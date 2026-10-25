@@ -276,6 +276,45 @@
     .list-row__label { color: var(--text-secondary); font-size: 14px; }
     .list-row__value { color: var(--text); font-size: 14px; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
 
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, .78);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .auth-gate[hidden] { display: none; }
+    .auth-panel {
+      width: min(100%, 420px);
+      padding: 24px;
+      border: 1px solid var(--separator);
+      border-radius: var(--radius-card);
+      background: var(--surface-1);
+    }
+    .auth-panel h2 { margin: 0 0 8px; font-size: 24px; }
+    .auth-panel p { margin: 0 0 20px; color: var(--text-secondary); line-height: 1.45; }
+    .auth-field {
+      width: 100%;
+      min-height: 48px;
+      box-sizing: border-box;
+      padding: 0 14px;
+      border: 1px solid var(--separator);
+      border-radius: 12px;
+      background: var(--surface-2);
+      color: var(--text-primary);
+      font: inherit;
+      outline: none;
+    }
+    .auth-field:focus { border-color: var(--atlas-blue-active); }
+    .auth-actions { display: flex; gap: 12px; margin-top: 14px; }
+    .auth-error { min-height: 20px; margin-top: 12px; color: var(--red); font-size: 13px; }
+
     .diagnostics-output {
       margin-top: 16px;
       padding: 16px;
@@ -490,13 +529,14 @@
           <section class="section">
             <h2 class="section-title">Sistema</h2>
             <div class="list">
-              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.3</span></div>
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.4</span></div>
               <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
-              <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">1</span></div>
+              <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">3</span></div>
               <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
               <div class="list-row"><span class="list-row__label">Garmin Private</span><span class="list-row__value" id="diag-garmin">No disponible</span></div>
               <div class="list-row"><span class="list-row__label">Sync</span><span class="list-row__value" id="diag-sync">idle</span></div>
-              <div class="list-row"><span class="list-row__label">Entorno</span><span class="list-row__value" id="diag-environment">development</span></div>
+              <div class="list-row"><span class="list-row__label">Entorno</span><span class="list-row__value" id="diag-environment">production</span></div>
+              <div class="list-row"><span class="list-row__label">Acceso ATLAS</span><span class="list-row__value" id="diag-auth">No autorizado</span></div>
             </div>
           </section>
 
@@ -504,6 +544,7 @@
             <h2 class="section-title">Autodiagnóstico</h2>
             <p class="section-copy">Ejecuta pruebas internas de la foundation sin crear archivos de tests adicionales.</p>
             <button class="button button--secondary" id="run-self-test" type="button">Ejecutar self-test</button>
+            <button class="button button--secondary" id="atlas-logout" type="button" style="margin-left:8px">Cerrar sesión ATLAS</button>
             <div class="diagnostics-output" id="diagnostics-output" aria-live="polite">Sin ejecutar.</div>
           </section>
         </div>
@@ -525,6 +566,20 @@
       </button>
     </nav>
 
+    <div class="auth-gate" id="auth-gate" hidden>
+      <form class="auth-panel" id="auth-form">
+        <p class="eyebrow">Acceso seguro</p>
+        <h2>Autorizar este dispositivo</h2>
+        <p>Introduce tu contraseña de acceso ATLAS. Se usará sólo para obtener una sesión firmada; la contraseña no se guardará.</p>
+        <label for="atlas-access-password" class="sr-only">Contraseña ATLAS</label>
+        <input class="auth-field" id="atlas-access-password" name="password" type="password" autocomplete="current-password" required placeholder="Contraseña ATLAS">
+        <div class="auth-actions">
+          <button class="button" id="atlas-login-button" type="submit">Entrar</button>
+        </div>
+        <div class="auth-error" id="auth-error" aria-live="polite"></div>
+      </form>
+    </div>
+
     <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
   </div>
 
@@ -537,9 +592,9 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.3",
+      version: "0.0.4",
       apiVersion: "v1",
-      environment: "development",
+      environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
       requestTimeoutMs: 8000,
       debug: false
@@ -549,14 +604,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.3",
+      version: "0.0.4",
       channel: "development",
-      buildId: "atlas-0.0.3-quick-sync",
-      builtAt: "2026-10-25T23:05:00+01:00",
+      buildId: "atlas-0.0.4-secure-github",
+      builtAt: "2026-10-25T23:55:00+01:00",
       apiVersion: "v1",
-      dbSchema: 2,
-      workerCompatibility: "0.0.4",
-      bridgeCompatibility: "0.0.4-compatible"
+      dbSchema: 3,
+      workerCompatibility: "0.0.5",
+      bridgeCompatibility: "0.0.5-compatible"
     });
 
     /* =========================================================
@@ -599,6 +654,7 @@
           ATLAS.navigation.mount();
           ATLAS.render.all();
           ATLAS.diagnostics.mount();
+          ATLAS.auth.mount();
           await ATLAS.sync.bootstrap();
           runtime.readyAt = nowIso();
         } catch (error) {
@@ -644,7 +700,7 @@
        ========================================================= */
     ATLAS.state = (() => {
       const state = {
-        session: { phase: "BOOTING", error: null },
+        session: { phase: "BOOTING", error: null, authenticated: false },
         navigation: { current: "today" },
         sync: { status: "idle", lastResult: null, lastSuccessfulSync: null, error: null },
         profile: { record: null },
@@ -679,6 +735,8 @@
           case "BOOT_STARTED": state.session.phase = "BOOTING"; mark("sync", "profile"); break;
           case "LOCAL_READY": state.session.phase = "LOCAL_READY"; mark("sync", "profile"); break;
           case "REMOTE_CHECKING": state.session.phase = "REMOTE_CHECKING"; mark("sync", "profile"); break;
+          case "AUTH_REQUIRED": state.session.phase = "AUTH_REQUIRED"; state.session.authenticated = false; state.session.error = payload || null; mark("sync", "profile"); break;
+          case "AUTHENTICATED": state.session.authenticated = true; state.session.error = null; mark("sync", "profile"); break;
           case "READY": state.session.phase = "READY"; mark("sync", "today", "profile"); break;
           case "DEGRADED": state.session.phase = "DEGRADED"; state.session.error = payload || null; mark("sync", "today", "profile"); break;
           case "OFFLINE": state.session.phase = "OFFLINE"; state.session.error = payload || null; mark("sync", "today", "profile"); break;
@@ -707,14 +765,14 @@
        ========================================================= */
     ATLAS.storage = (() => {
       const DB_NAME = "ATLAS_DB";
-      const DB_VERSION = 2;
+      const DB_VERSION = 3;
       const STORES = Object.freeze([
         "profile", "devices", "activities", "activityDetails", "activityStreams",
         "dailyStates", "wellness", "sleep", "hrv", "heartRate", "trainingStatus", "trainingReadiness",
         "bodyBattery", "stress", "spo2", "vo2max", "thresholds", "personalRecords",
         "gear", "calendar", "goals", "trainingPlans", "plannedWorkouts", "workouts",
         "reconciliations", "workoutOutcomes", "insights", "recommendations", "planChanges",
-        "preferences", "syncState", "sourceMetadata"
+        "preferences", "syncState", "sourceMetadata", "authSessions"
       ]);
 
       let db = null;
@@ -820,9 +878,15 @@
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), ATLAS.config.requestTimeoutMs);
         try {
+          const headers = { "Accept": "application/json", "Content-Type": "application/json", ...(options.headers || {}) };
+          if (options.auth !== false) {
+            const token = await ATLAS.auth?.token?.();
+            if (token) headers.Authorization = `Bearer ${token}`;
+          }
+
           const response = await fetch(url(path), {
             method: options.method || "GET",
-            headers: { "Accept": "application/json", "Content-Type": "application/json", ...(options.headers || {}) },
+            headers,
             body: options.body === undefined ? undefined : JSON.stringify(options.body),
             credentials: "omit",
             cache: "no-store",
@@ -843,7 +907,9 @@
         }
       }
 
-      const health = () => request("/health");
+      const health = () => request("/health", { auth: false });
+      const login = password => request("/auth/login", { method: "POST", body: { password }, auth: false });
+      const refreshAuth = () => request("/auth/refresh", { method: "POST" });
       const capabilities = () => request("/capabilities");
       const syncQuick = body => request("/sync/quick", { method: "POST", body: body || {} });
       const syncDeep = body => request("/sync/deep", { method: "POST", body: body || {} });
@@ -853,7 +919,121 @@
       const getActivityDeep = id => request(`/activities/${encodeURIComponent(id)}/deep`);
       const publishWorkout = workout => request("/workouts", { method: "POST", body: workout });
 
-      return { ApiError, workerConfigured, url, request, health, capabilities, syncQuick, syncDeep, getDaily, getActivities, getActivity, getActivityDeep, publishWorkout };
+      return { ApiError, workerConfigured, url, request, health, login, refreshAuth, capabilities, syncQuick, syncDeep, getDaily, getActivities, getActivity, getActivityDeep, publishWorkout };
+    })();
+
+    /* =========================================================
+       10.1 · ATLAS AUTH
+       ========================================================= */
+    ATLAS.auth = (() => {
+      const RECORD_ID = "primary";
+      const REFRESH_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+      let mounted = false;
+
+      async function record() { return ATLAS.storage.get("authSessions", RECORD_ID); }
+      async function token() { return (await record())?.token || null; }
+
+      async function save(data) {
+        await ATLAS.storage.put("authSessions", {
+          id: RECORD_ID,
+          token: String(data.token),
+          expiresAt: String(data.expiresAt),
+          userId: String(data.userId || ""),
+          updatedAt: ATLAS.core.nowIso()
+        });
+        ATLAS.state.dispatch({ type: "AUTHENTICATED" });
+      }
+
+      async function clear() {
+        await ATLAS.storage.delete("authSessions", RECORD_ID);
+        ATLAS.state.dispatch({ type: "AUTH_REQUIRED", payload: { code: "ATLAS_AUTH_REQUIRED", message: "Autoriza este dispositivo para conectar con ATLAS." } });
+      }
+
+      function show(message = "") {
+        const gate = document.getElementById("auth-gate");
+        const error = document.getElementById("auth-error");
+        if (error) error.textContent = message;
+        if (gate) gate.hidden = false;
+        setTimeout(() => document.getElementById("atlas-access-password")?.focus(), 0);
+      }
+
+      function hide() {
+        const gate = document.getElementById("auth-gate");
+        const input = document.getElementById("atlas-access-password");
+        const error = document.getElementById("auth-error");
+        if (gate) gate.hidden = true;
+        if (input) input.value = "";
+        if (error) error.textContent = "";
+      }
+
+      async function ensure() {
+        const current = await record();
+        if (!current?.token || !current?.expiresAt) {
+          ATLAS.state.dispatch({ type: "AUTH_REQUIRED", payload: { code: "ATLAS_AUTH_REQUIRED", message: "Autoriza este dispositivo para conectar con ATLAS." } });
+          show();
+          return false;
+        }
+
+        const expiresMs = Date.parse(current.expiresAt);
+        if (!Number.isFinite(expiresMs) || expiresMs <= Date.now()) {
+          await clear();
+          show("La sesión ATLAS ha caducado. Vuelve a autorizar este dispositivo.");
+          return false;
+        }
+
+        ATLAS.state.dispatch({ type: "AUTHENTICATED" });
+        if (expiresMs - Date.now() < REFRESH_WINDOW_MS) {
+          try {
+            const refreshed = await ATLAS.api.refreshAuth();
+            await save(refreshed.data);
+          } catch (error) {
+            if (error?.status === 401) {
+              await clear();
+              show("La sesión ATLAS ha caducado. Vuelve a autorizar este dispositivo.");
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      async function login(password) {
+        const response = await ATLAS.api.login(password);
+        await save(response.data);
+        hide();
+        return response;
+      }
+
+      function mount() {
+        if (mounted) return;
+        mounted = true;
+        const form = document.getElementById("auth-form");
+        const logout = document.getElementById("atlas-logout");
+        form?.addEventListener("submit", async event => {
+          event.preventDefault();
+          const input = document.getElementById("atlas-access-password");
+          const error = document.getElementById("auth-error");
+          const button = document.getElementById("atlas-login-button");
+          const password = String(input?.value || "");
+          if (!password) return;
+          if (button) button.disabled = true;
+          if (error) error.textContent = "Comprobando…";
+          try {
+            await login(password);
+            await ATLAS.sync.bootstrap();
+          } catch (err) {
+            if (error) error.textContent = err?.code === "ATLAS_AUTH_INVALID" ? "Contraseña ATLAS incorrecta." : "No se pudo autorizar este dispositivo.";
+          } finally {
+            if (button) button.disabled = false;
+          }
+        });
+        logout?.addEventListener("click", async () => {
+          await clear();
+          show("Sesión cerrada en este dispositivo.");
+        });
+      }
+
+      return { mount, token, ensure, login, clear, show, hide, record };
     })();
 
     /* =========================================================
@@ -905,6 +1085,9 @@
           const health = await ATLAS.api.health();
           ATLAS.state.dispatch({ type: "REMOTE_HEALTH", payload: health.data });
 
+          const authorized = await ATLAS.auth.ensure();
+          if (!authorized) return { status: "auth_required" };
+
           const capabilities = await ATLAS.api.capabilities();
           ATLAS.state.dispatch({ type: "REMOTE_CAPABILITIES", payload: capabilities.data });
 
@@ -921,6 +1104,11 @@
           return quick();
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "WORKER_UNAVAILABLE");
+          if (error?.status === 401 || ["ATLAS_AUTH_REQUIRED", "ATLAS_AUTH_INVALID", "ATLAS_AUTH_EXPIRED"].includes(error?.code)) {
+            await ATLAS.auth.clear();
+            ATLAS.auth.show("Autoriza este dispositivo para continuar sincronizando.");
+            return { status: "auth_required" };
+          }
           ATLAS.diagnostics.recordError(safe);
           ATLAS.state.dispatch({ type: navigator.onLine ? "DEGRADED" : "OFFLINE", payload: safe });
           return { status: navigator.onLine ? "degraded" : "offline" };
@@ -1177,6 +1365,7 @@
         text("diag-api-version", ATLAS.build.apiVersion);
         text("diag-db-version", String(ATLAS.storage.DB_VERSION));
         text("diag-environment", ATLAS.config.environment);
+        text("diag-auth", ATLAS.state.data.session.authenticated ? "Autorizado" : "No autorizado");
         const health = ATLAS.state.data.remote.health;
         const caps = ATLAS.state.data.remote.capabilities;
         text("diag-worker", health?.workerVersion || (ATLAS.api.workerConfigured() ? "Sin respuesta" : "No configurado"));
@@ -1206,11 +1395,11 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.3", status: "quick-sync" });
-    ATLAS.activities = Object.freeze({ version: "0.0.3", status: "quick-sync" });
-    ATLAS.training = Object.freeze({ version: "0.0.3", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.3", status: "foundation" });
-    ATLAS.profile = Object.freeze({ version: "0.0.3", status: "foundation" });
+    ATLAS.today = Object.freeze({ version: "0.0.4", status: "quick-sync" });
+    ATLAS.activities = Object.freeze({ version: "0.0.4", status: "quick-sync" });
+    ATLAS.training = Object.freeze({ version: "0.0.4", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.4", status: "foundation" });
+    ATLAS.profile = Object.freeze({ version: "0.0.4", status: "secure-auth" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -1226,9 +1415,9 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.3"],
+          ["build.version", ATLAS.build.version === "0.0.4"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
-          ["db.schema", ATLAS.storage.DB_VERSION === 2],
+          ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
           ["namespace.api", typeof ATLAS.api.health === "function"],
           ["namespace.sync", typeof ATLAS.sync.bootstrap === "function"],
@@ -1238,6 +1427,7 @@
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.dailyStates", ATLAS.storage.STORES.includes("dailyStates")],
           ["storage.store.trainingPlans", ATLAS.storage.STORES.includes("trainingPlans")],
+          ["storage.store.authSessions", ATLAS.storage.STORES.includes("authSessions")],
           ["worker.url.contract", /^https:\/\//.test(ATLAS.config.workerUrl)],
           ["worker.url.atlas", ATLAS.config.workerUrl === "https://atlas.aj-luque.workers.dev"]
         ];
@@ -1255,8 +1445,9 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.4" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.5" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
+            results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
             results.push({ name: "garmin.session.encrypted", pass: capabilities?.data?.encryptedSessionPersistence === true });
             results.push({ name: "garmin.sync.quick", pass: capabilities?.data?.syncQuick === true });
