@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="color-scheme" content="dark">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ATLAS">
+  <title>ATLAS</title>
+
+  <style>
+    /* =========================================================
+       01 · ATLAS DESIGN TOKENS · v0.0.3
+       ========================================================= */
+    :root {
+      --bg: #000000;
+      --surface-1: #111111;
+      --surface-2: #1C1C1E;
+      --surface-raised: #242426;
+      --divider: #2C2C2E;
+      --text: #FFFFFF;
+      --text-secondary: #A1A1A6;
+      --text-tertiary: #636366;
+      --atlas-blue: #0A84FF;
+      --atlas-blue-active: #409CFF;
+      --green: #30D158;
+      --yellow: #FFD60A;
+      --red: #FF453A;
+      --cyan: #64D2FF;
+      --purple: #BF5AF2;
+      --orange: #FF9F0A;
+
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-7: 32px;
+      --space-8: 40px;
+      --space-9: 48px;
+
+      --radius-small: 8px;
+      --radius-control: 12px;
+      --radius-card: 16px;
+      --radius-pill: 999px;
+
+      --motion-fast: 120ms;
+      --motion-normal: 180ms;
+      --motion-slow: 240ms;
+
+      --sidebar-width: 220px;
+      --content-reading: 720px;
+      --content-standard: 960px;
+      --content-data: 1280px;
+
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-right: env(safe-area-inset-right, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-left: env(safe-area-inset-left, 0px);
+    }
+
+    /* =========================================================
+       02 · GLOBAL CSS
+       ========================================================= */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { background: var(--bg); color: var(--text); }
+    body {
+      margin: 0;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overscroll-behavior-y: none;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { -webkit-tap-highlight-color: transparent; }
+    button:focus-visible, a:focus-visible { outline: 2px solid var(--atlas-blue-active); outline-offset: 3px; }
+    [hidden] { display: none !important; }
+
+    .app {
+      min-height: 100dvh;
+      background: var(--bg);
+    }
+
+    .sidebar {
+      display: none;
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: var(--sidebar-width);
+      padding: calc(var(--safe-top) + 28px) 18px calc(var(--safe-bottom) + 24px) calc(var(--safe-left) + 18px);
+      border-right: 1px solid var(--divider);
+      background: var(--bg);
+      z-index: 20;
+    }
+
+    .brand {
+      margin: 0 12px 34px;
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+
+    .nav-stack { display: grid; gap: 6px; }
+    .nav-spacer { height: 18px; }
+    .nav-divider { height: 1px; background: var(--divider); margin: 10px 12px; }
+
+    .nav-button {
+      min-height: 46px;
+      border: 0;
+      border-radius: var(--radius-control);
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background var(--motion-fast), color var(--motion-fast);
+      text-align: left;
+    }
+    .nav-button:hover { background: var(--surface-1); color: var(--text); }
+    .nav-button[aria-current="page"] { color: var(--atlas-blue-active); background: var(--surface-1); }
+    .nav-icon { width: 22px; height: 22px; flex: 0 0 22px; }
+    .nav-label { font-size: 16px; font-weight: 600; }
+
+    .mobile-header {
+      position: sticky;
+      top: 0;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: calc(58px + var(--safe-top));
+      padding: calc(var(--safe-top) + 10px) calc(16px + var(--safe-right)) 10px calc(16px + var(--safe-left));
+      background: rgba(0,0,0,.92);
+      border-bottom: 1px solid rgba(44,44,46,.55);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+    .mobile-brand { font-size: 17px; font-weight: 800; letter-spacing: .08em; }
+
+    .profile-button {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--divider);
+      border-radius: 50%;
+      background: var(--surface-1);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .main {
+      min-height: 100dvh;
+      padding: 18px calc(16px + var(--safe-right)) calc(92px + var(--safe-bottom)) calc(16px + var(--safe-left));
+    }
+
+    .content { width: min(100%, var(--content-standard)); margin: 0 auto; }
+    .content--data { width: min(100%, var(--content-data)); }
+
+    .screen-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-4);
+      margin-bottom: var(--space-7);
+    }
+    .screen-title { margin: 0; font-size: 28px; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; }
+    .screen-subtitle { margin: 8px 0 0; color: var(--text-secondary); font-size: 14px; }
+
+    .system-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 30px;
+      padding: 0 11px;
+      border-radius: var(--radius-pill);
+      color: var(--text-secondary);
+      background: var(--surface-1);
+      border: 1px solid var(--divider);
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .system-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-tertiary); }
+    .system-pill[data-tone="success"] .system-dot { background: var(--green); }
+    .system-pill[data-tone="warning"] .system-dot { background: var(--yellow); }
+    .system-pill[data-tone="error"] .system-dot { background: var(--red); }
+    .system-pill[data-tone="active"] .system-dot { background: var(--atlas-blue); }
+
+    .hero {
+      padding: 24px;
+      border-radius: var(--radius-card);
+      background: var(--surface-1);
+      border: 1px solid rgba(44,44,46,.8);
+      margin-bottom: var(--space-7);
+    }
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .hero-title { margin: 0; font-size: 24px; line-height: 1.2; font-weight: 700; letter-spacing: -.015em; }
+    .hero-copy { margin: 10px 0 0; max-width: 680px; color: var(--text-secondary); font-size: 15px; }
+
+    .section { margin-top: var(--space-7); }
+    .section-title { margin: 0 0 14px; font-size: 20px; font-weight: 600; }
+    .section-copy { margin: 0 0 16px; color: var(--text-secondary); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+
+    .panel {
+      padding: 20px;
+      border-top: 1px solid var(--divider);
+      min-width: 0;
+    }
+    .panel:first-child { border-top: 0; }
+    .panel-title { margin: 0 0 6px; font-size: 17px; font-weight: 600; }
+    .panel-copy { margin: 0; color: var(--text-secondary); font-size: 14px; }
+
+    .empty-state {
+      padding: 30px 0;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--divider);
+    }
+    .empty-state strong { color: var(--text); display: block; margin-bottom: 6px; font-size: 17px; }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px 18px;
+      padding: 18px 0;
+      border-top: 1px solid var(--divider);
+    }
+    .metric-value { font-size: 24px; line-height: 1.05; font-weight: 700; letter-spacing: -.02em; }
+    .metric-label { margin-top: 5px; color: var(--text-secondary); font-size: 12px; font-weight: 600; }
+
+    .button {
+      min-height: 44px;
+      padding: 0 16px;
+      border: 0;
+      border-radius: var(--radius-control);
+      background: var(--atlas-blue);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform var(--motion-fast), background var(--motion-fast), opacity var(--motion-fast);
+    }
+    .button:active { transform: scale(.985); background: var(--atlas-blue-active); }
+    .button--secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--divider); }
+    .button:disabled { opacity: .45; cursor: default; }
+
+    .list { border-top: 1px solid var(--divider); }
+    .list-row {
+      min-height: 54px;
+      padding: 12px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .list-row__label { color: var(--text-secondary); font-size: 14px; }
+    .list-row__value { color: var(--text); font-size: 14px; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+
+    .diagnostics-output {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: var(--radius-control);
+      background: var(--surface-1);
+      border: 1px solid var(--divider);
+      color: var(--text-secondary);
+      font: 12px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      inset: auto 0 0 0;
+      z-index: 25;
+      min-height: calc(58px + var(--safe-bottom));
+      padding: 5px calc(8px + var(--safe-right)) var(--safe-bottom) calc(8px + var(--safe-left));
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      background: rgba(17,17,17,.96);
+      border-top: 1px solid var(--divider);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+    }
+    .bottom-nav__button {
+      min-height: 52px;
+      border: 0;
+      background: transparent;
+      color: var(--text-tertiary);
+      border-radius: var(--radius-small);
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 2px;
+      cursor: pointer;
+    }
+    .bottom-nav__button[aria-current="page"] { color: var(--atlas-blue-active); }
+    .bottom-nav__button svg { width: 22px; height: 22px; }
+    .bottom-nav__label { font-size: 11px; line-height: 1; font-weight: 600; }
+
+    .toast-region {
+      position: fixed;
+      left: 50%;
+      bottom: calc(76px + var(--safe-bottom));
+      transform: translateX(-50%);
+      z-index: 60;
+      width: min(calc(100% - 32px), 520px);
+      pointer-events: none;
+    }
+    .toast {
+      padding: 12px 14px;
+      border-radius: var(--radius-control);
+      color: var(--text);
+      background: var(--surface-raised);
+      border: 1px solid var(--divider);
+      box-shadow: 0 8px 28px rgba(0,0,0,.3);
+      font-size: 14px;
+    }
+
+    @media (min-width: 600px) {
+      .main { padding-left: 24px; padding-right: 24px; }
+      .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metric-row { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
+    @media (min-width: 900px) {
+      .sidebar { display: flex; flex-direction: column; }
+      .mobile-header, .bottom-nav { display: none; }
+      .main { margin-left: var(--sidebar-width); padding: calc(var(--safe-top) + 42px) 32px calc(var(--safe-bottom) + 42px); }
+      .profile-nav { margin-top: auto; }
+      .toast-region { bottom: 28px; }
+    }
+
+    @media (min-width: 1200px) {
+      .main { padding-left: 40px; padding-right: 40px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- =======================================================
+         03 · APP SHELL
+         ======================================================= -->
+    <aside class="sidebar" aria-label="Navegación principal">
+      <div class="brand">ATLAS</div>
+      <nav class="nav-stack" data-nav="desktop">
+        <button class="nav-button" type="button" data-route="today" aria-current="page">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="nav-label">Hoy</span>
+        </button>
+        <button class="nav-button" type="button" data-route="activities">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17.5 9.5 13l3 2.5L19 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 8h2v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span class="nav-label">Actividad</span>
+        </button>
+        <button class="nav-button" type="button" data-route="training">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 3v4M16 3v4M4 10h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span class="nav-label">Plan</span>
+        </button>
+        <button class="nav-button" type="button" data-route="evolution">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span class="nav-label">Evolución</span>
+        </button>
+      </nav>
+      <div class="profile-nav">
+        <div class="nav-divider"></div>
+        <button class="nav-button" type="button" data-route="profile">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span class="nav-label">Perfil</span>
+        </button>
+      </div>
+    </aside>
+
+    <header class="mobile-header">
+      <div class="mobile-brand">ATLAS</div>
+      <button class="profile-button" type="button" data-route="profile" aria-label="Abrir Perfil">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 20c.8-4 3-6 6.5-6s5.7 2 6.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <main class="main" id="main-content">
+      <!-- HOY -->
+      <section class="screen" data-screen="today">
+        <div class="content">
+          <div class="screen-header">
+            <div>
+              <h1 class="screen-title">Hoy</h1>
+              <p class="screen-subtitle">Cómo estás y qué debes hacer hoy.</p>
+            </div>
+            <div class="system-pill" id="today-system-pill" data-tone="warning"><span class="system-dot"></span><span id="today-system-text">Iniciando</span></div>
+          </div>
+          <div class="hero">
+            <p class="eyebrow">Estado ATLAS</p>
+            <h2 class="hero-title" id="today-status-title">Sin datos sincronizados</h2>
+            <p class="hero-copy" id="today-status-copy">ATLAS mostrará primero la información local disponible y sincronizará Garmin después, cuando el Worker esté configurado y autorizado.</p>
+          </div>
+          <div class="grid-2">
+            <section class="panel">
+              <h2 class="panel-title">Entrenamiento de hoy</h2>
+              <p class="panel-copy" id="today-training-copy">Todavía no existe un plan activo.</p>
+            </section>
+            <section class="panel">
+              <h2 class="panel-title">Recuperación</h2>
+              <p class="panel-copy" id="today-recovery-copy">Sin datos locales de sueño, VFC o Training Readiness.</p>
+            </section>
+          </div>
+          <section class="section">
+            <h2 class="section-title">Última actividad</h2>
+            <div class="empty-state" id="today-last-activity"><strong>Sin actividad local</strong>La actividad aparecerá tras la primera sincronización válida.</div>
+          </section>
+        </div>
+      </section>
+
+      <!-- ACTIVIDAD -->
+      <section class="screen" data-screen="activities" hidden>
+        <div class="content content--data">
+          <div class="screen-header">
+            <div>
+              <h1 class="screen-title">Actividad</h1>
+              <p class="screen-subtitle">Qué hiciste y cómo salió.</p>
+            </div>
+          </div>
+          <div class="empty-state" id="activities-empty"><strong>Sin actividades sincronizadas</strong>ATLAS no consulta Garmin al abrir esta pantalla. Aquí se mostrarán los datos normalizados almacenados localmente.</div>
+          <div id="activities-list" class="list" hidden></div>
+        </div>
+      </section>
+
+      <!-- PLAN -->
+      <section class="screen" data-screen="training" hidden>
+        <div class="content">
+          <div class="screen-header">
+            <div>
+              <h1 class="screen-title">Plan</h1>
+              <p class="screen-subtitle">Qué debes entrenar.</p>
+            </div>
+          </div>
+          <div class="hero">
+            <p class="eyebrow">Training Engine</p>
+            <h2 class="hero-title">Pendiente de implementación deportiva</h2>
+            <p class="hero-copy">La foundation prepara el dominio, persistencia y UI. Las reglas canónicas del Training Engine se incorporarán de forma modular y determinista en fases posteriores.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- EVOLUCIÓN -->
+      <section class="screen" data-screen="evolution" hidden>
+        <div class="content">
+          <div class="screen-header">
+            <div>
+              <h1 class="screen-title">Evolución</h1>
+              <p class="screen-subtitle">Si estás mejorando.</p>
+            </div>
+          </div>
+          <div class="empty-state"><strong>Sin histórico suficiente</strong>VO₂ máx., umbral, carga y rendimiento se construirán desde históricos normalizados locales, no consultando meses de Garmin en cada visita.</div>
+        </div>
+      </section>
+
+      <!-- PERFIL -->
+      <section class="screen" data-screen="profile" hidden>
+        <div class="content">
+          <div class="screen-header">
+            <div>
+              <h1 class="screen-title">Perfil</h1>
+              <p class="screen-subtitle">Conexión, versión y diagnóstico.</p>
+            </div>
+          </div>
+
+          <section class="section">
+            <h2 class="section-title">Sistema</h2>
+            <div class="list">
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.3</span></div>
+              <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
+              <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">1</span></div>
+              <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
+              <div class="list-row"><span class="list-row__label">Garmin Private</span><span class="list-row__value" id="diag-garmin">No disponible</span></div>
+              <div class="list-row"><span class="list-row__label">Sync</span><span class="list-row__value" id="diag-sync">idle</span></div>
+              <div class="list-row"><span class="list-row__label">Entorno</span><span class="list-row__value" id="diag-environment">development</span></div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Autodiagnóstico</h2>
+            <p class="section-copy">Ejecuta pruebas internas de la foundation sin crear archivos de tests adicionales.</p>
+            <button class="button button--secondary" id="run-self-test" type="button">Ejecutar self-test</button>
+            <div class="diagnostics-output" id="diagnostics-output" aria-live="polite">Sin ejecutar.</div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav" aria-label="Navegación principal" data-nav="mobile">
+      <button class="bottom-nav__button" type="button" data-route="today" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12a8 8 0 1 0 16 0 8 8 0 0 0-16 0Z" stroke="currentColor" stroke-width="1.8"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bottom-nav__label">Hoy</span>
+      </button>
+      <button class="bottom-nav__button" type="button" data-route="activities">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 17.5 9.5 13l3 2.5L19 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 8h2v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="bottom-nav__label">Actividad</span>
+      </button>
+      <button class="bottom-nav__button" type="button" data-route="training">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 3v4M16 3v4M4 10h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="bottom-nav__label">Plan</span>
+      </button>
+      <button class="bottom-nav__button" type="button" data-route="evolution">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19V9M12 19V5M19 19v-7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="bottom-nav__label">Evolución</span>
+      </button>
+    </nav>
+
+    <div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+  <script>
+    "use strict";
+
+    /* =========================================================
+       04 · ATLAS CONFIG
+       ========================================================= */
+    window.ATLAS = window.ATLAS || {};
+
+    ATLAS.config = Object.freeze({
+      version: "0.0.3",
+      apiVersion: "v1",
+      environment: "development",
+      workerUrl: "https://atlas.aj-luque.workers.dev",
+      requestTimeoutMs: 8000,
+      debug: false
+    });
+
+    /* =========================================================
+       05 · ATLAS BUILD
+       ========================================================= */
+    ATLAS.build = Object.freeze({
+      version: "0.0.3",
+      channel: "development",
+      buildId: "atlas-0.0.3-quick-sync",
+      builtAt: "2026-10-25T23:05:00+01:00",
+      apiVersion: "v1",
+      dbSchema: 2,
+      workerCompatibility: "0.0.4",
+      bridgeCompatibility: "0.0.4-compatible"
+    });
+
+    /* =========================================================
+       06 · ATLAS CORE
+       ========================================================= */
+    ATLAS.core = (() => {
+      const runtime = {
+        startedAt: null,
+        readyAt: null,
+        standalone: window.matchMedia?.("(display-mode: standalone)")?.matches || window.navigator.standalone === true
+      };
+
+      const nowIso = () => new Date().toISOString();
+      const localDate = () => {
+        const d = new Date();
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+      const uid = (prefix = "id") => `${prefix}_${crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)}`;
+      const isPlainObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
+      const clamp = (n, min, max) => Math.min(max, Math.max(min, n));
+
+      function safeError(error, fallbackCode = "CLIENT_ERROR") {
+        return {
+          code: typeof error?.code === "string" ? error.code : fallbackCode,
+          message: typeof error?.message === "string" ? error.message : "Unexpected client error."
+        };
+      }
+
+      async function init() {
+        runtime.startedAt = nowIso();
+        ATLAS.state.dispatch({ type: "BOOT_STARTED" });
+
+        try {
+          await ATLAS.storage.open();
+          ATLAS.state.dispatch({ type: "LOCAL_READY" });
+          await ATLAS.data.hydrate();
+          ATLAS.navigation.mount();
+          ATLAS.render.all();
+          ATLAS.diagnostics.mount();
+          await ATLAS.sync.bootstrap();
+          runtime.readyAt = nowIso();
+        } catch (error) {
+          const safe = safeError(error, "BOOT_FAILURE");
+          ATLAS.state.dispatch({ type: "FATAL_ERROR", payload: safe });
+          ATLAS.diagnostics.recordError(safe);
+          ATLAS.render.all();
+        }
+      }
+
+      return { runtime, nowIso, localDate, uid, isPlainObject, clamp, safeError, init };
+    })();
+
+    /* =========================================================
+       07 · ATLAS EVENTS
+       ========================================================= */
+    ATLAS.events = (() => {
+      const listeners = new Map();
+      const counters = new Map();
+
+      function on(name, handler) {
+        if (!listeners.has(name)) listeners.set(name, new Set());
+        listeners.get(name).add(handler);
+        return () => listeners.get(name)?.delete(handler);
+      }
+
+      function emit(name, detail = null) {
+        counters.set(name, (counters.get(name) || 0) + 1);
+        for (const handler of listeners.get(name) || []) {
+          try { handler(detail); } catch (error) { ATLAS.diagnostics?.recordError?.(ATLAS.core.safeError(error, "EVENT_HANDLER_ERROR")); }
+        }
+      }
+
+      function stats() {
+        return Object.fromEntries([...counters.entries()].sort(([a], [b]) => a.localeCompare(b)));
+      }
+
+      return { on, emit, stats };
+    })();
+
+    /* =========================================================
+       08 · ATLAS STATE
+       ========================================================= */
+    ATLAS.state = (() => {
+      const state = {
+        session: { phase: "BOOTING", error: null },
+        navigation: { current: "today" },
+        sync: { status: "idle", lastResult: null, lastSuccessfulSync: null, error: null },
+        profile: { record: null },
+        today: { dailyState: null, latestActivity: null },
+        activities: { items: [], selectedId: null },
+        training: { activePlan: null },
+        evolution: { metrics: {} },
+        settings: {},
+        ui: { toast: null },
+        remote: { health: null, capabilities: null }
+      };
+
+      const dirty = new Set(["navigation", "today", "activities", "training", "evolution", "profile", "sync"]);
+      let scheduled = false;
+
+      function snapshot() { return typeof structuredClone === "function" ? structuredClone(state) : JSON.parse(JSON.stringify(state)); }
+
+      function mark(...domains) {
+        domains.forEach(domain => dirty.add(domain));
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(() => {
+          scheduled = false;
+          ATLAS.render.batch([...dirty]);
+          dirty.clear();
+        });
+      }
+
+      function dispatch(action) {
+        const payload = action?.payload;
+        switch (action?.type) {
+          case "BOOT_STARTED": state.session.phase = "BOOTING"; mark("sync", "profile"); break;
+          case "LOCAL_READY": state.session.phase = "LOCAL_READY"; mark("sync", "profile"); break;
+          case "REMOTE_CHECKING": state.session.phase = "REMOTE_CHECKING"; mark("sync", "profile"); break;
+          case "READY": state.session.phase = "READY"; mark("sync", "today", "profile"); break;
+          case "DEGRADED": state.session.phase = "DEGRADED"; state.session.error = payload || null; mark("sync", "today", "profile"); break;
+          case "OFFLINE": state.session.phase = "OFFLINE"; state.session.error = payload || null; mark("sync", "today", "profile"); break;
+          case "FATAL_ERROR": state.session.phase = "FATAL"; state.session.error = payload || null; mark("sync", "today", "profile"); break;
+          case "NAVIGATE": state.navigation.current = payload; mark("navigation"); ATLAS.events.emit("navigation:changed", payload); break;
+          case "SYNC_STARTED": state.sync.status = "syncing"; state.sync.error = null; mark("sync", "profile"); ATLAS.events.emit("sync:started"); break;
+          case "SYNC_COMPLETED": state.sync.status = payload?.status || "success"; state.sync.lastResult = payload || null; if (payload?.status === "success" || payload?.status === "partial_success") state.sync.lastSuccessfulSync = ATLAS.core.nowIso(); mark("sync", "profile"); ATLAS.events.emit("sync:completed", payload); break;
+          case "SYNC_ERROR": state.sync.status = "error"; state.sync.error = payload || null; mark("sync", "profile"); break;
+          case "REMOTE_HEALTH": state.remote.health = payload; mark("sync", "profile"); break;
+          case "REMOTE_CAPABILITIES": state.remote.capabilities = payload; mark("sync", "profile"); break;
+          case "PROFILE_LOADED": state.profile.record = payload || null; mark("profile"); break;
+          case "DAILY_STATE_LOADED": state.today.dailyState = payload || null; mark("today"); break;
+          case "ACTIVITIES_LOADED": state.activities.items = Array.isArray(payload) ? payload : []; state.today.latestActivity = state.activities.items[0] || null; mark("activities", "today"); ATLAS.events.emit("data:activities-updated", { count: state.activities.items.length }); break;
+          case "PLAN_LOADED": state.training.activePlan = payload || null; mark("training", "today"); break;
+          case "TOAST": state.ui.toast = payload || null; mark("toast"); ATLAS.events.emit("ui:toast", payload); break;
+          default: return false;
+        }
+        return true;
+      }
+
+      return { data: state, dispatch, snapshot, mark };
+    })();
+
+    /* =========================================================
+       09 · ATLAS STORAGE
+       ========================================================= */
+    ATLAS.storage = (() => {
+      const DB_NAME = "ATLAS_DB";
+      const DB_VERSION = 2;
+      const STORES = Object.freeze([
+        "profile", "devices", "activities", "activityDetails", "activityStreams",
+        "dailyStates", "wellness", "sleep", "hrv", "heartRate", "trainingStatus", "trainingReadiness",
+        "bodyBattery", "stress", "spo2", "vo2max", "thresholds", "personalRecords",
+        "gear", "calendar", "goals", "trainingPlans", "plannedWorkouts", "workouts",
+        "reconciliations", "workoutOutcomes", "insights", "recommendations", "planChanges",
+        "preferences", "syncState", "sourceMetadata"
+      ]);
+
+      let db = null;
+
+      function open() {
+        if (db) return Promise.resolve(db);
+        return new Promise((resolve, reject) => {
+          const request = indexedDB.open(DB_NAME, DB_VERSION);
+          request.onupgradeneeded = event => {
+            const database = event.target.result;
+            for (const store of STORES) {
+              if (!database.objectStoreNames.contains(store)) database.createObjectStore(store, { keyPath: "id" });
+            }
+          };
+          request.onsuccess = () => { db = request.result; db.onversionchange = () => db.close(); resolve(db); };
+          request.onerror = () => reject(Object.assign(new Error("IndexedDB could not be opened."), { code: "INDEXEDDB_OPEN_FAILED" }));
+          request.onblocked = () => reject(Object.assign(new Error("IndexedDB upgrade is blocked by another ATLAS tab."), { code: "INDEXEDDB_BLOCKED" }));
+        });
+      }
+
+      async function get(storeName, id) {
+        const database = await open();
+        return new Promise((resolve, reject) => {
+          const request = database.transaction(storeName, "readonly").objectStore(storeName).get(id);
+          request.onsuccess = () => resolve(request.result ?? null);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function put(storeName, value) {
+        if (!value || typeof value.id !== "string") throw Object.assign(new Error("Persisted records require a string id."), { code: "INVALID_STORAGE_RECORD" });
+        const database = await open();
+        return new Promise((resolve, reject) => {
+          const request = database.transaction(storeName, "readwrite").objectStore(storeName).put(value);
+          request.onsuccess = () => resolve(value);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function remove(storeName, id) {
+        const database = await open();
+        return new Promise((resolve, reject) => {
+          const request = database.transaction(storeName, "readwrite").objectStore(storeName).delete(id);
+          request.onsuccess = () => resolve(true);
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function query(storeName, options = {}) {
+        const database = await open();
+        return new Promise((resolve, reject) => {
+          const request = database.transaction(storeName, "readonly").objectStore(storeName).getAll();
+          request.onsuccess = () => {
+            let rows = request.result || [];
+            if (typeof options.filter === "function") rows = rows.filter(options.filter);
+            if (typeof options.sort === "function") rows = rows.sort(options.sort);
+            if (Number.isInteger(options.limit) && options.limit >= 0) rows = rows.slice(0, options.limit);
+            resolve(rows);
+          };
+          request.onerror = () => reject(request.error);
+        });
+      }
+
+      async function transaction(storeNames, mode, handler) {
+        const database = await open();
+        const tx = database.transaction(storeNames, mode);
+        const stores = Object.fromEntries(storeNames.map(name => [name, tx.objectStore(name)]));
+        await handler(stores, tx);
+        return new Promise((resolve, reject) => {
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => reject(tx.error);
+          tx.onabort = () => reject(tx.error || new Error("IndexedDB transaction aborted."));
+        });
+      }
+
+      return { DB_NAME, DB_VERSION, STORES, open, get, put, delete: remove, query, transaction };
+    })();
+
+    /* =========================================================
+       10 · ATLAS API
+       ========================================================= */
+    ATLAS.api = (() => {
+      class ApiError extends Error {
+        constructor(code, message, status = 0, requestId = null) {
+          super(message);
+          this.name = "ApiError";
+          this.code = code;
+          this.status = status;
+          this.requestId = requestId;
+        }
+      }
+
+      function workerConfigured() { return /^https?:\/\//i.test(ATLAS.config.workerUrl); }
+
+      function url(path) {
+        const base = ATLAS.config.workerUrl.replace(/\/$/, "");
+        return `${base}/api/${ATLAS.config.apiVersion}${path.startsWith("/") ? path : `/${path}`}`;
+      }
+
+      async function request(path, options = {}) {
+        if (!workerConfigured()) throw new ApiError("WORKER_NOT_CONFIGURED", "Cloudflare Worker URL is not configured.");
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), ATLAS.config.requestTimeoutMs);
+        try {
+          const response = await fetch(url(path), {
+            method: options.method || "GET",
+            headers: { "Accept": "application/json", "Content-Type": "application/json", ...(options.headers || {}) },
+            body: options.body === undefined ? undefined : JSON.stringify(options.body),
+            credentials: "omit",
+            cache: "no-store",
+            signal: controller.signal
+          });
+
+          const payload = await response.json().catch(() => null);
+          if (!response.ok || !payload?.ok) {
+            throw new ApiError(payload?.error?.code || "REMOTE_ERROR", payload?.error?.message || `Worker request failed (${response.status}).`, response.status, payload?.meta?.requestId || null);
+          }
+          return payload;
+        } catch (error) {
+          if (error?.name === "AbortError") throw new ApiError("WORKER_TIMEOUT", "Cloudflare Worker request timed out.");
+          if (error instanceof ApiError) throw error;
+          throw new ApiError("WORKER_UNAVAILABLE", "Cloudflare Worker is unavailable.");
+        } finally {
+          clearTimeout(timeout);
+        }
+      }
+
+      const health = () => request("/health");
+      const capabilities = () => request("/capabilities");
+      const syncQuick = body => request("/sync/quick", { method: "POST", body: body || {} });
+      const syncDeep = body => request("/sync/deep", { method: "POST", body: body || {} });
+      const getDaily = date => request(`/daily/${encodeURIComponent(date)}`);
+      const getActivities = () => request("/activities");
+      const getActivity = id => request(`/activities/${encodeURIComponent(id)}`);
+      const getActivityDeep = id => request(`/activities/${encodeURIComponent(id)}/deep`);
+      const publishWorkout = workout => request("/workouts", { method: "POST", body: workout });
+
+      return { ApiError, workerConfigured, url, request, health, capabilities, syncQuick, syncDeep, getDaily, getActivities, getActivity, getActivityDeep, publishWorkout };
+    })();
+
+    /* =========================================================
+       11 · ATLAS DATA
+       ========================================================= */
+    ATLAS.data = (() => {
+      async function hydrate() {
+        const todayId = ATLAS.core.localDate();
+        const [profile, activities, dailyStates, activePlans] = await Promise.all([
+          ATLAS.storage.get("profile", "self"),
+          ATLAS.storage.query("activities", { sort: (a, b) => String(b.startTime || "").localeCompare(String(a.startTime || "")), limit: 100 }),
+          ATLAS.storage.query("dailyStates", { filter: row => row.date === todayId, limit: 1 }),
+          ATLAS.storage.query("trainingPlans", { filter: row => row.status === "active", limit: 1 })
+        ]);
+        ATLAS.state.dispatch({ type: "PROFILE_LOADED", payload: profile });
+        ATLAS.state.dispatch({ type: "ACTIVITIES_LOADED", payload: activities });
+        ATLAS.state.dispatch({ type: "DAILY_STATE_LOADED", payload: dailyStates[0] || null });
+        ATLAS.state.dispatch({ type: "PLAN_LOADED", payload: activePlans[0] || null });
+      }
+
+      const activities = {
+        list: () => ATLAS.storage.query("activities", { sort: (a, b) => String(b.startTime || "").localeCompare(String(a.startTime || "")) }),
+        get: id => ATLAS.storage.get("activities", id)
+      };
+      const dailyStates = {
+        getToday: async () => {
+          const rows = await ATLAS.storage.query("dailyStates", { filter: row => row.date === ATLAS.core.localDate(), limit: 1 });
+          return rows[0] || null;
+        }
+      };
+      const profile = { get: () => ATLAS.storage.get("profile", "self") };
+      const training = { getState: async () => ({ plan: ATLAS.state.data.training.activePlan }) };
+
+      return { hydrate, activities, dailyStates, profile, training };
+    })();
+
+    /* =========================================================
+       12 · ATLAS SYNC
+       ========================================================= */
+    ATLAS.sync = (() => {
+      async function bootstrap() {
+        if (!ATLAS.api.workerConfigured()) {
+          ATLAS.state.dispatch({ type: "DEGRADED", payload: { code: "WORKER_NOT_CONFIGURED", message: "Worker URL pending." } });
+          return { status: "degraded" };
+        }
+
+        ATLAS.state.dispatch({ type: "REMOTE_CHECKING" });
+        try {
+          const health = await ATLAS.api.health();
+          ATLAS.state.dispatch({ type: "REMOTE_HEALTH", payload: health.data });
+
+          const capabilities = await ATLAS.api.capabilities();
+          ATLAS.state.dispatch({ type: "REMOTE_CAPABILITIES", payload: capabilities.data });
+
+          if (!capabilities.data?.garminPrivate) {
+            ATLAS.state.dispatch({ type: "DEGRADED", payload: { code: "GARMIN_NOT_AUTHENTICATED", message: "Garmin Private is not authenticated." } });
+            return { status: "degraded" };
+          }
+
+          if (!capabilities.data?.syncQuick) {
+            ATLAS.state.dispatch({ type: "READY" });
+            return { status: "ready", syncAvailable: false };
+          }
+
+          return quick();
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "WORKER_UNAVAILABLE");
+          ATLAS.diagnostics.recordError(safe);
+          ATLAS.state.dispatch({ type: navigator.onLine ? "DEGRADED" : "OFFLINE", payload: safe });
+          return { status: navigator.onLine ? "degraded" : "offline" };
+        }
+      }
+
+      async function readCursors() {
+        const [activities, dailyState] = await Promise.all([
+          ATLAS.storage.get("syncState", "activities"),
+          ATLAS.storage.get("syncState", "dailyState")
+        ]);
+        return {
+          activities: activities || undefined,
+          dailyState: dailyState || undefined
+        };
+      }
+
+      async function persistQuickSync(payload) {
+        const changes = payload?.changes || {};
+        const cursors = payload?.cursors || {};
+        const activities = Array.isArray(changes.activities) ? changes.activities : [];
+        const dailyStates = Array.isArray(changes.dailyStates) ? changes.dailyStates : [];
+
+        await ATLAS.storage.transaction(["activities", "dailyStates", "syncState"], "readwrite", stores => {
+          for (const activity of activities) {
+            if (activity?.id) stores.activities.put(activity);
+          }
+          for (const dailyState of dailyStates) {
+            if (dailyState?.id) stores.dailyStates.put(dailyState);
+          }
+          for (const [dataset, cursor] of Object.entries(cursors)) {
+            if (cursor && typeof cursor === "object") stores.syncState.put({ id: dataset, ...cursor });
+          }
+        });
+
+        await ATLAS.data.hydrate();
+        return { activities: activities.length, dailyStates: dailyStates.length };
+      }
+
+      async function quick() {
+        ATLAS.state.dispatch({ type: "SYNC_STARTED" });
+        try {
+          const cursors = await readCursors();
+          const response = await ATLAS.api.syncQuick({
+            reason: "bootstrap",
+            clientDate: ATLAS.core.localDate(),
+            datasets: ["activities", "dailyState"],
+            cursors
+          });
+
+          const persisted = await persistQuickSync(response?.data);
+          const remoteStatus = response?.data?.status || "FAILED";
+          const status = remoteStatus === "SUCCESS"
+            ? "success"
+            : remoteStatus === "PARTIAL_SUCCESS"
+              ? "partial_success"
+              : "error";
+
+          ATLAS.state.dispatch({
+            type: "SYNC_COMPLETED",
+            payload: {
+              status,
+              persisted,
+              warnings: response?.data?.warnings || [],
+              datasets: response?.data?.datasets || {},
+              meta: response.meta || {}
+            }
+          });
+
+          if (status === "error") {
+            ATLAS.state.dispatch({ type: "DEGRADED", payload: { code: "SYNC_DATASETS_FAILED", message: "Garmin datasets could not be synchronized." } });
+          } else {
+            ATLAS.state.dispatch({ type: "READY" });
+          }
+
+          return response;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "SYNC_FAILED");
+          ATLAS.diagnostics.recordError(safe);
+          ATLAS.state.dispatch({ type: "SYNC_ERROR", payload: safe });
+          ATLAS.state.dispatch({
+            type: error?.code === "GARMIN_AUTH_EXPIRED" || error?.code === "GARMIN_AUTH_REQUIRED" ? "DEGRADED" : (navigator.onLine ? "DEGRADED" : "OFFLINE"),
+            payload: safe
+          });
+          throw error;
+        }
+      }
+
+      function status() { return { ...ATLAS.state.data.sync }; }
+      return { bootstrap, quick, status };
+    })();
+
+    /* =========================================================
+       13 · ATLAS COMPONENTS / UI / CHARTS
+       ========================================================= */
+    ATLAS.components = (() => {
+      function badge(text, tone = "default") { return { text: String(text ?? ""), tone }; }
+      function metric(label, value, unit = "") { return { label: String(label ?? ""), value: value ?? "—", unit: String(unit ?? "") }; }
+      return { badge, metric };
+    })();
+
+    ATLAS.ui = (() => {
+      let toastTimer = null;
+      function toast(message) {
+        const region = document.getElementById("toast-region");
+        if (!region) return;
+        region.replaceChildren();
+        const node = document.createElement("div");
+        node.className = "toast";
+        node.textContent = String(message);
+        region.append(node);
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => region.replaceChildren(), 2800);
+      }
+      return { toast };
+    })();
+
+    ATLAS.charts = Object.freeze({ version: "0.0.3", status: "foundation" });
+
+    /* =========================================================
+       14 · ATLAS NAVIGATION
+       ========================================================= */
+    ATLAS.navigation = (() => {
+      const validRoutes = new Set(["today", "activities", "training", "evolution", "profile"]);
+      let mounted = false;
+
+      function navigate(route) {
+        if (!validRoutes.has(route)) return false;
+        ATLAS.state.dispatch({ type: "NAVIGATE", payload: route });
+        return true;
+      }
+
+      function mount() {
+        if (mounted) return;
+        mounted = true;
+        document.addEventListener("click", event => {
+          const trigger = event.target.closest?.("[data-route]");
+          if (!trigger) return;
+          event.preventDefault();
+          navigate(trigger.dataset.route);
+        });
+        window.addEventListener("online", () => ATLAS.sync.bootstrap());
+        window.addEventListener("offline", () => ATLAS.state.dispatch({ type: "OFFLINE", payload: { code: "BROWSER_OFFLINE", message: "Browser is offline." } }));
+      }
+
+      function current() { return ATLAS.state.data.navigation.current; }
+      return { mount, navigate, current };
+    })();
+
+    /* =========================================================
+       15 · ATLAS RENDERERS
+       ========================================================= */
+    ATLAS.render = (() => {
+      function text(id, value) { const el = document.getElementById(id); if (el) el.textContent = value; }
+      function formatDateTime(value) {
+        const ms = Date.parse(value || "");
+        return Number.isFinite(ms)
+          ? new Intl.DateTimeFormat("es-ES", { dateStyle: "medium", timeStyle: "short" }).format(new Date(ms))
+          : (value || "");
+      }
+
+      function navigation() {
+        const current = ATLAS.state.data.navigation.current;
+        document.querySelectorAll("[data-screen]").forEach(screen => { screen.hidden = screen.dataset.screen !== current; });
+        document.querySelectorAll("[data-route]").forEach(button => {
+          const active = button.dataset.route === current;
+          if (active) button.setAttribute("aria-current", "page"); else button.removeAttribute("aria-current");
+        });
+        document.getElementById("main-content")?.focus?.({ preventScroll: true });
+      }
+
+      function syncStatus() {
+        const phase = ATLAS.state.data.session.phase;
+        const pill = document.getElementById("today-system-pill");
+        const mapping = {
+          BOOTING: ["Iniciando", "active"],
+          LOCAL_READY: ["Local listo", "success"],
+          REMOTE_CHECKING: ["Comprobando Worker", "active"],
+          READY: ["Garmin conectado", "success"],
+          DEGRADED: ["Modo degradado", "warning"],
+          OFFLINE: ["Sin conexión", "warning"],
+          FATAL: ["Error crítico", "error"]
+        };
+        const [label, tone] = mapping[phase] || [phase, "warning"];
+        text("today-system-text", label);
+        if (pill) pill.dataset.tone = tone;
+        text("diag-sync", ATLAS.state.data.sync.status);
+      }
+
+      function today() {
+        const { latestActivity, dailyState } = ATLAS.state.data.today;
+        const plan = ATLAS.state.data.training.activePlan;
+
+        if (dailyState) {
+          const parts = [];
+          if (Number.isFinite(dailyState?.steps?.total)) parts.push(`${Math.round(dailyState.steps.total).toLocaleString("es-ES")} pasos`);
+          if (Number.isFinite(dailyState?.heartRate?.resting)) parts.push(`FC reposo ${Math.round(dailyState.heartRate.resting)} ppm`);
+          if (Number.isFinite(dailyState?.sleep?.durationSec)) {
+            const hours = Math.floor(dailyState.sleep.durationSec / 3600);
+            const minutes = Math.round((dailyState.sleep.durationSec % 3600) / 60);
+            parts.push(`sueño ${hours} h ${String(minutes).padStart(2, "0")} min`);
+          }
+          text("today-status-title", "Garmin sincronizado");
+          text("today-status-copy", parts.length ? parts.join(" · ") : `Estado diario recibido para ${dailyState.date}.`);
+        } else if (ATLAS.state.data.session.phase === "READY") {
+          text("today-status-title", "Garmin conectado");
+          text("today-status-copy", "La conexión está activa, pero Garmin no ha devuelto todavía un estado diario para hoy.");
+        } else {
+          text("today-status-title", "Datos locales disponibles");
+          text("today-status-copy", "ATLAS conserva la última información guardada aunque Garmin no esté disponible.");
+        }
+
+        text("today-training-copy", plan ? (plan.name || "Plan activo disponible.") : "Todavía no existe un plan activo.");
+        const container = document.getElementById("today-last-activity");
+        if (container) {
+          if (!latestActivity) {
+            container.textContent = "Sin actividades sincronizadas.";
+          } else {
+            const distance = Number.isFinite(latestActivity.distanceM) ? `${(latestActivity.distanceM / 1000).toFixed(2)} km` : null;
+            const bits = [latestActivity.name || latestActivity.sport || "Actividad", distance, formatDateTime(latestActivity.startTime)].filter(Boolean);
+            container.textContent = bits.join(" · ");
+          }
+        }
+      }
+
+      function activities() {
+        const rows = ATLAS.state.data.activities.items;
+        const empty = document.getElementById("activities-empty");
+        const list = document.getElementById("activities-list");
+        if (!empty || !list) return;
+        empty.hidden = rows.length > 0;
+        list.hidden = rows.length === 0;
+        list.replaceChildren();
+        for (const activity of rows) {
+          const row = document.createElement("div");
+          row.className = "list-row";
+          const label = document.createElement("span");
+          label.className = "list-row__label";
+          label.textContent = activity.name || activity.sport || "Actividad";
+          const value = document.createElement("span");
+          value.className = "list-row__value";
+          const distance = Number.isFinite(activity.distanceM) ? `${(activity.distanceM / 1000).toFixed(2)} km` : null;
+          value.textContent = [distance, formatDateTime(activity.startTime)].filter(Boolean).join(" · ") || "Sin detalle";
+          row.append(label, value);
+          list.append(row);
+        }
+      }
+
+      function training() {}
+      function evolution() {}
+
+      function profile() {
+        text("diag-atlas-version", ATLAS.build.version);
+        text("diag-api-version", ATLAS.build.apiVersion);
+        text("diag-db-version", String(ATLAS.storage.DB_VERSION));
+        text("diag-environment", ATLAS.config.environment);
+        const health = ATLAS.state.data.remote.health;
+        const caps = ATLAS.state.data.remote.capabilities;
+        text("diag-worker", health?.workerVersion || (ATLAS.api.workerConfigured() ? "Sin respuesta" : "No configurado"));
+        text("diag-garmin", caps?.garminPrivate
+          ? (caps?.syncQuick ? "Autenticado · Sync disponible" : "Autenticado · Sync pendiente")
+          : "No disponible");
+      }
+
+      function toast() { if (ATLAS.state.data.ui.toast) ATLAS.ui.toast(ATLAS.state.data.ui.toast); }
+
+      function batch(domains) {
+        const unique = new Set(domains);
+        if (unique.has("navigation")) navigation();
+        if (unique.has("sync")) syncStatus();
+        if (unique.has("today")) today();
+        if (unique.has("activities")) activities();
+        if (unique.has("training")) training();
+        if (unique.has("evolution")) evolution();
+        if (unique.has("profile") || unique.has("sync")) profile();
+        if (unique.has("toast")) toast();
+      }
+
+      function all() { batch(["navigation", "sync", "today", "activities", "training", "evolution", "profile"]); }
+      return { batch, all, navigation, syncStatus, today, activities, training, evolution, profile };
+    })();
+
+    /* =========================================================
+       16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
+       ========================================================= */
+    ATLAS.today = Object.freeze({ version: "0.0.3", status: "quick-sync" });
+    ATLAS.activities = Object.freeze({ version: "0.0.3", status: "quick-sync" });
+    ATLAS.training = Object.freeze({ version: "0.0.3", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.3", status: "foundation" });
+    ATLAS.profile = Object.freeze({ version: "0.0.3", status: "foundation" });
+
+    /* =========================================================
+       17 · ATLAS DIAGNOSTICS
+       ========================================================= */
+    ATLAS.diagnostics = (() => {
+      const errors = [];
+      let mounted = false;
+
+      function recordError(error) {
+        errors.push({ ...ATLAS.core.safeError(error), at: ATLAS.core.nowIso() });
+        if (errors.length > 20) errors.splice(0, errors.length - 20);
+      }
+
+      function assertions() {
+        return [
+          ["build.version", ATLAS.build.version === "0.0.3"],
+          ["api.version", ATLAS.config.apiVersion === "v1"],
+          ["db.schema", ATLAS.storage.DB_VERSION === 2],
+          ["namespace.storage", typeof ATLAS.storage.open === "function"],
+          ["namespace.api", typeof ATLAS.api.health === "function"],
+          ["namespace.sync", typeof ATLAS.sync.bootstrap === "function"],
+          ["namespace.state", typeof ATLAS.state.dispatch === "function"],
+          ["namespace.events", typeof ATLAS.events.emit === "function"],
+          ["navigation.default", ATLAS.navigation.current() === "today" || ["activities", "training", "evolution", "profile"].includes(ATLAS.navigation.current())],
+          ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
+          ["storage.store.dailyStates", ATLAS.storage.STORES.includes("dailyStates")],
+          ["storage.store.trainingPlans", ATLAS.storage.STORES.includes("trainingPlans")],
+          ["worker.url.contract", /^https:\/\//.test(ATLAS.config.workerUrl)],
+          ["worker.url.atlas", ATLAS.config.workerUrl === "https://atlas.aj-luque.workers.dev"]
+        ];
+      }
+
+      async function selfTest() {
+        const results = assertions().map(([name, pass]) => ({ name, pass: Boolean(pass) }));
+        try {
+          await ATLAS.storage.open();
+          results.push({ name: "indexeddb.open", pass: true });
+        } catch {
+          results.push({ name: "indexeddb.open", pass: false });
+        }
+
+        if (ATLAS.api.workerConfigured()) {
+          try {
+            const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.4" });
+            results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
+            results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
+            results.push({ name: "garmin.session.encrypted", pass: capabilities?.data?.encryptedSessionPersistence === true });
+            results.push({ name: "garmin.sync.quick", pass: capabilities?.data?.syncQuick === true });
+            results.push({ name: "garmin.activities", pass: capabilities?.data?.activities === true });
+            results.push({ name: "garmin.dailyState", pass: capabilities?.data?.dailyState === true });
+          } catch (error) {
+            results.push({ name: "worker.health", pass: false });
+            recordError(ATLAS.core.safeError(error, "WORKER_SELF_TEST_FAILED"));
+          }
+        }
+        const pass = results.every(item => item.pass);
+        return { pass, results, errors: [...errors], eventStats: ATLAS.events.stats(), statePhase: ATLAS.state.data.session.phase };
+      }
+
+      function format(result) {
+        const lines = [
+          `ATLAS ${ATLAS.build.version} · API ${ATLAS.build.apiVersion} · DB ${ATLAS.storage.DB_VERSION}`,
+          `RESULTADO: ${result.pass ? "PASS" : "FAIL"}`,
+          "",
+          ...result.results.map(item => `${item.pass ? "✓" : "✗"} ${item.name}`),
+          "",
+          `Phase: ${result.statePhase}`,
+          `Errors: ${result.errors.length}`
+        ];
+        return lines.join("\n");
+      }
+
+      function mount() {
+        if (mounted) return;
+        mounted = true;
+        document.getElementById("run-self-test")?.addEventListener("click", async () => {
+          const output = document.getElementById("diagnostics-output");
+          if (output) output.textContent = "Ejecutando…";
+          const result = await selfTest();
+          if (output) output.textContent = format(result);
+        });
+      }
+
+      function snapshot() {
+        return {
+          atlasVersion: ATLAS.build.version,
+          apiVersion: ATLAS.build.apiVersion,
+          dbVersion: ATLAS.storage.DB_VERSION,
+          workerConfigured: ATLAS.api.workerConfigured(),
+          sessionPhase: ATLAS.state.data.session.phase,
+          sync: ATLAS.sync.status(),
+          capabilities: ATLAS.state.data.remote.capabilities,
+          errors: [...errors],
+          environment: ATLAS.config.environment,
+          origin: location.origin,
+          standalone: ATLAS.core.runtime.standalone
+        };
+      }
+
+      return { recordError, selfTest, mount, snapshot };
+    })();
+
+    /* =========================================================
+       18 · STARTUP
+       ========================================================= */
+    document.addEventListener("DOMContentLoaded", () => {
+      ATLAS.core.init();
+    }, { once: true });
+  </script>
+</body>
+</html>
