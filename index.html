@@ -629,7 +629,7 @@
           <section class="section">
             <h2 class="section-title">Sistema</h2>
             <div class="list">
-              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.14</span></div>
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.15</span></div>
               <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
               <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">3</span></div>
               <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
@@ -643,7 +643,7 @@
 
           <section class="section">
             <h2 class="section-title">Datos Garmin complementarios</h2>
-            <p class="section-copy">Perfil, dispositivo, predicciones, récords, zapatillas y zonas FC normalizados por ATLAS.</p>
+            <p class="section-copy">Perfil, dispositivo, predicciones, récords, zapatillas, zonas FC y wellness complementario normalizados por ATLAS.</p>
             <div class="list" style="margin-bottom:16px">
               <div class="list-row"><span class="list-row__label">Perfil Garmin</span><span class="list-row__value" id="support-profile">—</span></div>
               <div class="list-row"><span class="list-row__label">Dispositivo principal</span><span class="list-row__value" id="support-device">—</span></div>
@@ -651,6 +651,9 @@
               <div class="list-row"><span class="list-row__label">Personal Records</span><span class="list-row__value" id="support-prs">—</span></div>
               <div class="list-row"><span class="list-row__label">Gear</span><span class="list-row__value" id="support-gear">—</span></div>
               <div class="list-row"><span class="list-row__label">Zonas FC</span><span class="list-row__value" id="support-zones">—</span></div>
+              <div class="list-row"><span class="list-row__label">Peso Garmin</span><span class="list-row__value" id="support-weight">—</span></div>
+              <div class="list-row"><span class="list-row__label">Hydration</span><span class="list-row__value" id="support-hydration">—</span></div>
+              <div class="list-row"><span class="list-row__label">Fitness Age</span><span class="list-row__value" id="support-fitness-age">—</span></div>
               <div class="list-row"><span class="list-row__label">Última actualización</span><span class="list-row__value" id="support-sync-status">Pendiente</span></div>
             </div>
             <button class="button button--secondary" id="supporting-sync-button" type="button">Actualizar datos Garmin</button>
@@ -718,7 +721,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.14",
+      version: "0.0.15",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -730,14 +733,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.14",
+      version: "0.0.15",
       channel: "development",
-      buildId: "atlas-0.0.14-f6.5-supporting-data",
+      buildId: "atlas-0.0.15-f6.6a-wellness-closure",
       builtAt: "2026-10-26T14:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 4,
-      workerCompatibility: "0.0.14",
-      bridgeCompatibility: "0.0.14-compatible"
+      workerCompatibility: "0.0.15",
+      bridgeCompatibility: "0.0.15-compatible"
     });
 
     /* =========================================================
@@ -831,7 +834,7 @@
         session: { phase: "BOOTING", error: null, authenticated: false },
         navigation: { current: "today" },
         sync: { status: "idle", lastResult: null, lastSuccessfulSync: null, error: null, deepHistory: { status: "pending", completedBlocks: [], completed: 0, total: 8, targetStart: null, targetEnd: null, lastError: null } },
-        profile: { record: null, preferences: null, devices: [], racePredictions: [], personalRecords: [], gear: [], heartRateZones: [], supportingSync: null },
+        profile: { record: null, preferences: null, devices: [], racePredictions: [], personalRecords: [], gear: [], heartRateZones: [], weight: [], hydration: [], fitnessAge: [], supportingSync: null },
         today: {
           dailyState: null,
           latestActivity: null,
@@ -896,6 +899,9 @@
             state.profile.personalRecords = Array.isArray(payload?.personalRecords) ? payload.personalRecords : [];
             state.profile.gear = Array.isArray(payload?.gear) ? payload.gear : [];
             state.profile.heartRateZones = Array.isArray(payload?.heartRateZones) ? payload.heartRateZones : [];
+            state.profile.weight = Array.isArray(payload?.weight) ? payload.weight : [];
+            state.profile.hydration = Array.isArray(payload?.hydration) ? payload.hydration : [];
+            state.profile.fitnessAge = Array.isArray(payload?.fitnessAge) ? payload.fitnessAge : [];
             state.profile.supportingSync = payload?.supportingSync || null;
             mark("profile", "evolution");
             break;
@@ -934,11 +940,11 @@
        ========================================================= */
     ATLAS.storage = (() => {
       const DB_NAME = "ATLAS_DB";
-      const DB_VERSION = 4;
+      const DB_VERSION = 5;
       const STORES = Object.freeze([
         "profile", "devices", "activities", "activityDetails", "activityStreams",
         "dailyStates", "wellness", "sleep", "hrv", "heartRate", "trainingStatus", "trainingReadiness",
-        "bodyBattery", "stress", "spo2", "vo2max", "thresholds", "racePredictions", "heartRateZones", "personalRecords",
+        "bodyBattery", "stress", "spo2", "vo2max", "thresholds", "racePredictions", "heartRateZones", "weight", "hydration", "fitnessAge", "personalRecords",
         "gear", "calendar", "goals", "trainingPlans", "plannedWorkouts", "workouts",
         "reconciliations", "workoutOutcomes", "insights", "recommendations", "planChanges",
         "preferences", "syncState", "sourceMetadata", "authSessions"
@@ -1230,6 +1236,9 @@
           personalRecords,
           gearRows,
           heartRateZones,
+          weightRows,
+          hydrationRows,
+          fitnessAgeRows,
           supportingSync
         ] = await Promise.all([
           ATLAS.storage.get("profile", "self"),
@@ -1249,6 +1258,9 @@
           ATLAS.storage.query("personalRecords"),
           ATLAS.storage.query("gear", { sort: (a, b) => String(a.name || "").localeCompare(String(b.name || "")) }),
           ATLAS.storage.query("heartRateZones", { sort: (a, b) => String(a.sport || "").localeCompare(String(b.sport || "")) }),
+          ATLAS.storage.query("weight", { sort: (a, b) => String(b.observedAt || b.date || "").localeCompare(String(a.observedAt || a.date || "")) }),
+          ATLAS.storage.query("hydration", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")) }),
+          ATLAS.storage.query("fitnessAge", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")) }),
           ATLAS.storage.get("syncState", "supporting")
         ]);
 
@@ -1262,6 +1274,9 @@
             personalRecords,
             gear: gearRows,
             heartRateZones,
+            weight: weightRows,
+            hydration: hydrationRows,
+            fitnessAge: fitnessAgeRows,
             supportingSync
           }
         });
@@ -1490,7 +1505,10 @@
           racePredictions: Array.isArray(changes.racePredictions) ? changes.racePredictions : [],
           personalRecords: Array.isArray(changes.personalRecords) ? changes.personalRecords : [],
           gear: Array.isArray(changes.gear) ? changes.gear : [],
-          heartRateZones: Array.isArray(changes.heartRateZones) ? changes.heartRateZones : []
+          heartRateZones: Array.isArray(changes.heartRateZones) ? changes.heartRateZones : [],
+          weight: Array.isArray(changes.weight) ? changes.weight : [],
+          hydration: Array.isArray(changes.hydration) ? changes.hydration : [],
+          fitnessAge: Array.isArray(changes.fitnessAge) ? changes.fitnessAge : []
         };
         const status = payload?.status === "SUCCESS" ? "success" : payload?.status === "PARTIAL_SUCCESS" ? "partial" : "error";
         const syncRecord = {
@@ -1738,7 +1756,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.14", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.15", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -2167,6 +2185,15 @@
         if (Number.isFinite(runningZones?.lactateThresholdHeartRate)) zoneBits.push(`LT ${Math.round(runningZones.lactateThresholdHeartRate)} ppm`);
         if (Number.isFinite(runningZones?.maxHeartRate)) zoneBits.push(`Máx ${Math.round(runningZones.maxHeartRate)} ppm`);
         text("support-zones", zoneBits.length ? `RUNNING · ${zoneBits.join(" · ")}` : `${supporting.heartRateZones?.length || 0} perfiles`);
+        const latestWeight = supporting.weight?.[0];
+        text("support-weight", Number.isFinite(latestWeight?.weightKg) ? `${latestWeight.weightKg.toFixed(1)} kg${latestWeight.observedAt ? ` · ${latestWeight.observedAt}` : ""}` : "Sin dato");
+        const latestHydration = supporting.hydration?.[0];
+        const hydrationBits = [];
+        if (Number.isFinite(latestHydration?.intakeMl)) hydrationBits.push(`${Math.round(latestHydration.intakeMl)} ml`);
+        if (Number.isFinite(latestHydration?.goalMl)) hydrationBits.push(`objetivo ${Math.round(latestHydration.goalMl)} ml`);
+        text("support-hydration", hydrationBits.join(" · ") || "Sin dato");
+        const latestFitnessAge = supporting.fitnessAge?.[0];
+        text("support-fitness-age", Number.isFinite(latestFitnessAge?.fitnessAge) ? `${latestFitnessAge.fitnessAge.toFixed(1)} años` : "Sin dato");
         const supportSync = supporting.supportingSync;
         text("support-sync-status", supportSync?.lastSuccessfulSync ? `${supportSync.status} · ${new Date(supportSync.lastSuccessfulSync).toLocaleString("es-ES")}` : "Pendiente");
         const supportingButton = document.getElementById("supporting-sync-button");
@@ -2212,7 +2239,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.14", status: "physiology-sync" });
+    ATLAS.today = Object.freeze({ version: "0.0.15", status: "physiology-sync" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -2321,11 +2348,11 @@
         });
       }
 
-      return { version: "0.0.14", status: "normal-detail", mount, open, close };
+      return { version: "0.0.15", status: "normal-detail", mount, open, close };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.14", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.14", status: "supporting-data" });
-    ATLAS.profile = Object.freeze({ version: "0.0.14", status: "garmin-supporting-data" });
+    ATLAS.training = Object.freeze({ version: "0.0.15", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.15", status: "supporting-data" });
+    ATLAS.profile = Object.freeze({ version: "0.0.15", status: "garmin-supporting-data" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -2341,9 +2368,9 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.14"],
+          ["build.version", ATLAS.build.version === "0.0.15"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
-          ["db.schema", ATLAS.storage.DB_VERSION === 4],
+          ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
           ["namespace.api", typeof ATLAS.api.health === "function"],
           ["namespace.sync", typeof ATLAS.sync.bootstrap === "function"],
@@ -2362,6 +2389,9 @@
           ["storage.store.thresholds", ATLAS.storage.STORES.includes("thresholds")],
           ["storage.store.racePredictions", ATLAS.storage.STORES.includes("racePredictions")],
           ["storage.store.heartRateZones", ATLAS.storage.STORES.includes("heartRateZones")],
+          ["storage.store.weight", ATLAS.storage.STORES.includes("weight")],
+          ["storage.store.hydration", ATLAS.storage.STORES.includes("hydration")],
+          ["storage.store.fitnessAge", ATLAS.storage.STORES.includes("fitnessAge")],
           ["storage.store.trainingPlans", ATLAS.storage.STORES.includes("trainingPlans")],
           ["storage.store.authSessions", ATLAS.storage.STORES.includes("authSessions")],
           ["worker.url.contract", /^https:\/\//.test(ATLAS.config.workerUrl)],
@@ -2381,7 +2411,7 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.14" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.15" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
@@ -2393,6 +2423,9 @@
             results.push({ name: "garmin.personalRecords", pass: capabilities?.data?.personalRecords === true });
             results.push({ name: "garmin.gear", pass: capabilities?.data?.gear === true });
             results.push({ name: "garmin.heartRateZones", pass: capabilities?.data?.heartRateZones === true });
+            results.push({ name: "garmin.weight", pass: capabilities?.data?.weight === true });
+            results.push({ name: "garmin.hydration", pass: capabilities?.data?.hydration === true });
+            results.push({ name: "garmin.fitnessAge", pass: capabilities?.data?.fitnessAge === true });
             results.push({ name: "garmin.profileData", pass: capabilities?.data?.profileData === true });
             results.push({ name: "garmin.devices", pass: capabilities?.data?.devices === true });
             results.push({ name: "garmin.activities", pass: capabilities?.data?.activities === true });
@@ -2427,10 +2460,33 @@
             const supportingState = await ATLAS.storage.get("syncState", "supporting");
             if (supportingState) {
               results.push({ name: "data.supporting.checkpoint", pass: supportingState.status === "success" });
-              for (const dataset of ["profile", "devices", "racePredictions", "personalRecords", "gear", "heartRateZones"]) {
+              for (const dataset of ["profile", "devices", "racePredictions", "personalRecords", "gear", "heartRateZones", "weight", "hydration", "fitnessAge"]) {
                 results.push({ name: `data.supporting.${dataset}`, pass: supportingState.datasets?.[dataset]?.status === "SUCCESS" });
               }
             }
+
+            const storedWeights = await ATLAS.storage.query("weight");
+            const numericWeights = storedWeights.map(row => row?.weightKg).filter(Number.isFinite);
+            results.push({
+              name: "data.weight.unit",
+              pass: numericWeights.length === 0 || numericWeights.every(value => value > 0 && value < 500)
+            });
+
+            const storedHydration = await ATLAS.storage.query("hydration");
+            const hydrationValues = storedHydration
+              .flatMap(row => [row?.intakeMl, row?.goalMl, row?.sweatLossMl])
+              .filter(Number.isFinite);
+            results.push({
+              name: "data.hydration.unit",
+              pass: hydrationValues.length === 0 || hydrationValues.every(value => value >= 0 && value < 50000)
+            });
+
+            const storedFitnessAge = await ATLAS.storage.query("fitnessAge");
+            const fitnessAgeValues = storedFitnessAge.map(row => row?.fitnessAge).filter(Number.isFinite);
+            results.push({
+              name: "data.fitnessAge.range",
+              pass: fitnessAgeValues.length === 0 || fitnessAgeValues.every(value => value > 0 && value < 120)
+            });
 
             const deepHistory = await ATLAS.storage.get("syncState", "deepHistory");
             if (deepHistory?.completedBlocks?.length || deepHistory?.status === "complete") {
