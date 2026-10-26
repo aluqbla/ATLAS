@@ -313,6 +313,12 @@
     .activity-table th:first-child, .activity-table td:first-child { text-align: left; }
     .activity-table th { color: var(--text-secondary); font-weight: 600; }
     .activity-detail-loading { padding: 22px 0; color: var(--text-secondary); }
+    .deep-analysis-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+    .deep-analysis-button { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 0; background: var(--atlas-blue); color: #fff; font: inherit; font-weight: 600; cursor: pointer; }
+    .deep-analysis-button:disabled { opacity: .45; cursor: default; }
+    .deep-analysis-status { color: var(--text-secondary); font-size: 13px; }
+    .deep-analysis-summary { margin-top: 18px; }
+
 
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
@@ -559,6 +565,17 @@
               <h3 class="section-title">Entrenamiento Garmin</h3>
               <div class="detail-grid" id="activity-workout"></div>
             </section>
+
+            <section class="section" id="activity-deep-section">
+              <h3 class="section-title">Análisis profundo</h3>
+              <p class="section-copy">FIT se descarga sólo cuando lo solicitas. ATLAS conserva el resultado normalizado, no el archivo FIT original.</p>
+              <div class="deep-analysis-actions">
+                <button class="deep-analysis-button" id="activity-deep-button" type="button">Analizar FIT</button>
+                <span class="deep-analysis-status" id="activity-deep-status">No analizado</span>
+              </div>
+              <div class="empty-state" id="activity-deep-error" hidden><strong>No se ha podido analizar el FIT</strong><span id="activity-deep-error-copy"></span></div>
+              <div class="detail-grid deep-analysis-summary" id="activity-deep-summary" hidden></div>
+            </section>
           </div>
         </div>
       </section>
@@ -675,7 +692,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.10",
+      version: "0.0.11",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -687,14 +704,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.10",
+      version: "0.0.11",
       channel: "development",
-      buildId: "atlas-0.0.10-f6.2-activity-detail",
-      builtAt: "2026-10-26T11:45:00+01:00",
+      buildId: "atlas-0.0.11-f6.3-fit-deep",
+      builtAt: "2026-10-26T12:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 3,
-      workerCompatibility: "0.0.10",
-      bridgeCompatibility: "0.0.10-compatible"
+      workerCompatibility: "0.0.11",
+      bridgeCompatibility: "0.0.11-compatible"
     });
 
     /* =========================================================
@@ -797,7 +814,7 @@
           readiness: null,
           trainingStatus: null
         },
-        activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null },
+        activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
         training: { activePlan: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null },
         settings: {},
@@ -856,7 +873,10 @@
           case "ACTIVITY_DETAIL_LOADING": state.activities.selectedId = payload?.id || state.activities.selectedId; state.activities.detailStatus = "loading"; state.activities.detailError = null; if (payload?.detail) state.activities.detail = payload.detail; mark("activities"); break;
           case "ACTIVITY_DETAIL_LOADED": state.activities.selectedId = payload?.id || state.activities.selectedId; state.activities.detail = payload?.detail || null; state.activities.detailStatus = "success"; state.activities.detailError = null; mark("activities"); ATLAS.events.emit("data:activity-detail-updated", { id: state.activities.selectedId }); break;
           case "ACTIVITY_DETAIL_ERROR": state.activities.detailStatus = "error"; state.activities.detailError = payload || null; mark("activities"); break;
-          case "ACTIVITY_DETAIL_CLOSED": state.activities.selectedId = null; state.activities.detail = null; state.activities.detailStatus = "idle"; state.activities.detailError = null; mark("activities"); break;
+          case "ACTIVITY_DEEP_LOADING": state.activities.deepStatus = "loading"; state.activities.deepError = null; if (payload?.deep) state.activities.deep = payload.deep; mark("activities"); break;
+          case "ACTIVITY_DEEP_LOADED": state.activities.deep = payload?.deep || null; state.activities.deepStatus = "success"; state.activities.deepError = null; mark("activities"); ATLAS.events.emit("data:activity-deep-updated", { id: state.activities.selectedId }); break;
+          case "ACTIVITY_DEEP_ERROR": state.activities.deepStatus = "error"; state.activities.deepError = payload || null; mark("activities"); break;
+          case "ACTIVITY_DETAIL_CLOSED": state.activities.selectedId = null; state.activities.detail = null; state.activities.detailStatus = "idle"; state.activities.detailError = null; state.activities.deep = null; state.activities.deepStatus = "idle"; state.activities.deepError = null; mark("activities"); break;
           case "PLAN_LOADED": state.training.activePlan = payload || null; mark("training", "today"); break;
           case "TOAST": state.ui.toast = payload || null; mark("toast"); ATLAS.events.emit("ui:toast", payload); break;
           default: return false;
@@ -1197,7 +1217,9 @@
         list: () => ATLAS.storage.query("activities", { sort: (a, b) => String(b.startTime || "").localeCompare(String(a.startTime || "")) }),
         get: id => ATLAS.storage.get("activities", id),
         getDetail: id => ATLAS.storage.get("activityDetails", id),
-        putDetail: detail => ATLAS.storage.put("activityDetails", detail)
+        putDetail: detail => ATLAS.storage.put("activityDetails", detail),
+        getDeep: id => ATLAS.storage.get("activityStreams", id),
+        putDeep: deep => ATLAS.storage.put("activityStreams", deep)
       };
       const dailyStates = {
         getToday: async () => {
@@ -1410,7 +1432,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.10", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.11", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -1735,6 +1757,39 @@
         const workoutCount = detailRows("activity-workout", workoutRows);
         const workoutSection = document.getElementById("activity-workout-section");
         if (workoutSection) workoutSection.hidden = workoutCount === 0;
+
+        const deep = state.deep;
+        const deepButton = document.getElementById("activity-deep-button");
+        const deepStatus = document.getElementById("activity-deep-status");
+        const deepError = document.getElementById("activity-deep-error");
+        const deepSummary = document.getElementById("activity-deep-summary");
+        if (deepButton) {
+          deepButton.disabled = state.deepStatus === "loading";
+          deepButton.textContent = deep ? "Actualizar análisis FIT" : "Analizar FIT";
+        }
+        if (deepStatus) {
+          deepStatus.textContent = state.deepStatus === "loading"
+            ? "Descargando y analizando FIT…"
+            : deep
+              ? `FIT analizado · ${deep.coverage?.records ?? 0} registros`
+              : "No analizado";
+        }
+        if (deepError) deepError.hidden = state.deepStatus !== "error";
+        text("activity-deep-error-copy", state.deepError?.message || "El detalle normal de Garmin sigue disponible.");
+        if (deepSummary) deepSummary.hidden = !deep;
+        const deepRows = deep ? [
+          { label: "CRC FIT", value: deep.fit?.crcValid === true ? "Válido" : (deep.fit?.crcValid === false ? "Inválido" : "—") },
+          { label: "Registros FIT", value: Number.isFinite(deep.coverage?.records) ? deep.coverage.records : null },
+          { label: "Puntos conservados", value: Number.isFinite(deep.coverage?.sampled) ? `${deep.coverage.sampled} / ${deep.coverage.records ?? "—"}` : null },
+          { label: "GPS", value: Number.isFinite(deep.coverage?.gps) ? deep.coverage.gps : null },
+          { label: "FC", value: Number.isFinite(deep.coverage?.heartRate) ? deep.coverage.heartRate : null },
+          { label: "Potencia", value: Number.isFinite(deep.coverage?.power) ? deep.coverage.power : null },
+          { label: "Dinámicas", value: Number.isFinite(deep.coverage?.dynamics) ? deep.coverage.dynamics : null },
+          { label: "Laps FIT", value: Number.isFinite(deep.coverage?.laps) ? deep.coverage.laps : null },
+          { label: "HRV intraworkout", value: Number.isFinite(deep.coverage?.hrvSamples) ? deep.coverage.hrvSamples : null },
+          { label: "Persistencia raw", value: deep.fit?.rawPersisted === false ? "No" : null }
+        ] : [];
+        detailRows("activity-deep-summary", deepRows);
       }
 
       function training() {}
@@ -1805,7 +1860,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.10", status: "physiology-sync" });
+    ATLAS.today = Object.freeze({ version: "0.0.11", status: "physiology-sync" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -1814,8 +1869,12 @@
         const summary = await ATLAS.data.activities.get(id);
         if (!summary) return;
 
-        const cached = await ATLAS.data.activities.getDetail(id);
+        const [cached, cachedDeep] = await Promise.all([
+          ATLAS.data.activities.getDetail(id),
+          ATLAS.data.activities.getDeep(id)
+        ]);
         ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_LOADING", payload: { id, detail: cached || null } });
+        if (cachedDeep) ATLAS.state.dispatch({ type: "ACTIVITY_DEEP_LOADED", payload: { deep: cachedDeep } });
 
         const fetchedMs = Date.parse(cached?.fetchedAt || "");
         const cacheNormalizationCurrent = cached?.normalizationVersion === 2;
@@ -1857,6 +1916,35 @@
         }
       }
 
+      async function loadDeep() {
+        const id = ATLAS.state.data.activities.selectedId;
+        if (!id) return null;
+        const summary = await ATLAS.data.activities.get(id);
+        const cached = await ATLAS.data.activities.getDeep(id);
+        if (!summary?.remoteId) {
+          const error = { code: "ACTIVITY_REMOTE_ID_MISSING", message: "La actividad no tiene identificador Garmin remoto." };
+          ATLAS.state.dispatch({ type: "ACTIVITY_DEEP_ERROR", payload: error });
+          return cached || null;
+        }
+        ATLAS.state.dispatch({ type: "ACTIVITY_DEEP_LOADING", payload: { deep: cached || null } });
+        try {
+          const response = await ATLAS.api.getActivityDeep(summary.remoteId);
+          const deep = response?.data;
+          if (!deep?.id || deep?.source !== "GARMIN_FIT" || !Array.isArray(deep?.streams?.points)) {
+            throw Object.assign(new Error("FIT deep-analysis contract is invalid."), { code: "ACTIVITY_DEEP_INVALID" });
+          }
+          await ATLAS.data.activities.putDeep(deep);
+          ATLAS.state.dispatch({ type: "ACTIVITY_DEEP_LOADED", payload: { deep } });
+          return deep;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "ACTIVITY_DEEP_FAILED");
+          ATLAS.diagnostics.recordError(safe);
+          ATLAS.state.dispatch({ type: "ACTIVITY_DEEP_ERROR", payload: safe });
+          if (cached) ATLAS.state.dispatch({ type: "TOAST", payload: "Mostrando el último análisis FIT guardado." });
+          return cached || null;
+        }
+      }
+
       function close() { ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_CLOSED" }); }
 
       function mount() {
@@ -1869,6 +1957,11 @@
             open(activity.dataset.activityId);
             return;
           }
+          if (event.target.closest?.("#activity-deep-button")) {
+            event.preventDefault();
+            loadDeep();
+            return;
+          }
           if (event.target.closest?.("#activity-detail-back")) {
             event.preventDefault();
             close();
@@ -1876,11 +1969,11 @@
         });
       }
 
-      return { version: "0.0.10", status: "normal-detail", mount, open, close };
+      return { version: "0.0.11", status: "normal-detail", mount, open, close };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.10", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.10", status: "physiology-sync" });
-    ATLAS.profile = Object.freeze({ version: "0.0.10", status: "secure-auth" });
+    ATLAS.training = Object.freeze({ version: "0.0.11", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.11", status: "physiology-sync" });
+    ATLAS.profile = Object.freeze({ version: "0.0.11", status: "secure-auth" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -1896,7 +1989,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.10"],
+          ["build.version", ATLAS.build.version === "0.0.11"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -1907,6 +2000,7 @@
           ["navigation.default", ATLAS.navigation.current() === "today" || ["activities", "training", "evolution", "profile"].includes(ATLAS.navigation.current())],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
+          ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
           ["storage.store.dailyStates", ATLAS.storage.STORES.includes("dailyStates")],
           ["storage.store.sleep", ATLAS.storage.STORES.includes("sleep")],
           ["storage.store.hrv", ATLAS.storage.STORES.includes("hrv")],
@@ -1933,7 +2027,7 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.10" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.11" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
@@ -1941,6 +2035,8 @@
             results.push({ name: "garmin.sync.quick", pass: capabilities?.data?.syncQuick === true });
             results.push({ name: "garmin.activities", pass: capabilities?.data?.activities === true });
             results.push({ name: "garmin.activityDetail", pass: capabilities?.data?.activityDetail === true });
+            results.push({ name: "garmin.activityDeep", pass: capabilities?.data?.activityDeep === true });
+            results.push({ name: "garmin.fit", pass: capabilities?.data?.fit === true });
             results.push({ name: "garmin.dailyState", pass: capabilities?.data?.dailyState === true });
             results.push({ name: "garmin.sleep", pass: capabilities?.data?.sleep === true });
             results.push({ name: "garmin.hrv", pass: capabilities?.data?.hrv === true });
@@ -1966,6 +2062,13 @@
               name: "data.activityDetail.strideUnit",
               pass: strideValues.length === 0 || strideValues.every(value => value > 0 && value < 5)
             });
+            const storedDeep = await ATLAS.storage.query("activityStreams");
+            if (storedDeep.length) {
+              const latestDeep = storedDeep.sort((a, b) => String(b.fetchedAt || "").localeCompare(String(a.fetchedAt || "")))[0];
+              results.push({ name: "data.activityDeep.fitCrc", pass: latestDeep?.fit?.crcValid === true });
+              results.push({ name: "data.activityDeep.downsampled", pass: Array.isArray(latestDeep?.streams?.points) && latestDeep.streams.points.length > 0 && latestDeep.streams.points.length <= 900 });
+              results.push({ name: "data.activityDeep.rawNotPersisted", pass: latestDeep?.fit?.rawPersisted === false });
+            }
           } catch (error) {
             results.push({ name: "worker.health", pass: false });
             recordError(ATLAS.core.safeError(error, "WORKER_SELF_TEST_FAILED"));
