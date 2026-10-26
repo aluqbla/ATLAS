@@ -629,7 +629,7 @@
           <section class="section">
             <h2 class="section-title">Sistema</h2>
             <div class="list">
-              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.10</span></div>
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.13</span></div>
               <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
               <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">3</span></div>
               <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
@@ -638,6 +638,17 @@
               <div class="list-row"><span class="list-row__label">Entorno</span><span class="list-row__value" id="diag-environment">production</span></div>
               <div class="list-row"><span class="list-row__label">Acceso ATLAS</span><span class="list-row__value" id="diag-auth">No autorizado</span></div>
             </div>
+          </section>
+
+
+          <section class="section">
+            <h2 class="section-title">Histórico Garmin</h2>
+            <p class="section-copy">Importa las 8 últimas semanas completas por bloques con checkpoint. No descarga FIT.</p>
+            <div class="list" style="margin-bottom:16px">
+              <div class="list-row"><span class="list-row__label">Estado</span><span class="list-row__value" id="deep-history-status">Pendiente</span></div>
+              <div class="list-row"><span class="list-row__label">Cobertura</span><span class="list-row__value" id="deep-history-range">—</span></div>
+            </div>
+            <button class="button button--secondary" id="deep-history-button" type="button">Importar histórico base (8 semanas)</button>
           </section>
 
           <section class="section">
@@ -692,7 +703,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.12",
+      version: "0.0.13",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -704,13 +715,13 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.12",
+      version: "0.0.13",
       channel: "development",
-      buildId: "atlas-0.0.12-f6.3-rr-semantics",
+      buildId: "atlas-0.0.13-f6.4-historical-backfill",
       builtAt: "2026-10-26T12:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 3,
-      workerCompatibility: "0.0.12",
+      workerCompatibility: "0.0.13",
       bridgeCompatibility: "0.0.12-compatible"
     });
 
@@ -751,6 +762,7 @@
           await ATLAS.storage.open();
           ATLAS.state.dispatch({ type: "LOCAL_READY" });
           await ATLAS.data.hydrate();
+          await ATLAS.sync.loadDeepHistoryState();
           ATLAS.navigation.mount();
           ATLAS.activities.mount();
           ATLAS.render.all();
@@ -803,7 +815,7 @@
       const state = {
         session: { phase: "BOOTING", error: null, authenticated: false },
         navigation: { current: "today" },
-        sync: { status: "idle", lastResult: null, lastSuccessfulSync: null, error: null },
+        sync: { status: "idle", lastResult: null, lastSuccessfulSync: null, error: null, deepHistory: { status: "pending", completedBlocks: [], completed: 0, total: 8, targetStart: null, targetEnd: null, lastError: null } },
         profile: { record: null },
         today: {
           dailyState: null,
@@ -854,6 +866,11 @@
           case "SYNC_STARTED": state.sync.status = "syncing"; state.sync.error = null; mark("sync", "profile"); ATLAS.events.emit("sync:started"); break;
           case "SYNC_COMPLETED": state.sync.status = payload?.status || "success"; state.sync.lastResult = payload || null; if (payload?.status === "success" || payload?.status === "partial_success") state.sync.lastSuccessfulSync = ATLAS.core.nowIso(); mark("sync", "profile"); ATLAS.events.emit("sync:completed", payload); break;
           case "SYNC_ERROR": state.sync.status = "error"; state.sync.error = payload || null; mark("sync", "profile"); break;
+          case "DEEP_HISTORY_LOADED": state.sync.deepHistory = { ...state.sync.deepHistory, ...(payload || {}) }; mark("sync", "profile", "evolution"); break;
+          case "DEEP_SYNC_STARTED": state.sync.deepHistory = { ...state.sync.deepHistory, ...(payload || {}), status: "syncing", lastError: null }; mark("sync", "profile", "evolution"); break;
+          case "DEEP_SYNC_PROGRESS": state.sync.deepHistory = { ...state.sync.deepHistory, ...(payload || {}), status: "syncing", lastError: null }; mark("sync", "profile", "evolution"); break;
+          case "DEEP_SYNC_COMPLETED": state.sync.deepHistory = { ...state.sync.deepHistory, ...(payload || {}), status: "complete", lastError: null }; mark("sync", "profile", "evolution"); ATLAS.events.emit("sync:deep-completed", payload); break;
+          case "DEEP_SYNC_ERROR": state.sync.deepHistory = { ...state.sync.deepHistory, ...(payload || {}), status: payload?.status || "error", lastError: payload?.lastError || payload || null }; mark("sync", "profile", "evolution"); break;
           case "REMOTE_HEALTH": state.remote.health = payload; mark("sync", "profile"); break;
           case "REMOTE_CAPABILITIES": state.remote.capabilities = payload; mark("sync", "profile"); break;
           case "PROFILE_LOADED": state.profile.record = payload || null; mark("profile"); break;
@@ -1003,7 +1020,7 @@
         if (!workerConfigured()) throw new ApiError("WORKER_NOT_CONFIGURED", "Cloudflare Worker URL is not configured.");
 
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), ATLAS.config.requestTimeoutMs);
+        const timeout = setTimeout(() => controller.abort(), options.timeoutMs || ATLAS.config.requestTimeoutMs);
         try {
           const headers = { "Accept": "application/json", "Content-Type": "application/json", ...(options.headers || {}) };
           if (options.auth !== false) {
@@ -1039,7 +1056,7 @@
       const refreshAuth = () => request("/auth/refresh", { method: "POST" });
       const capabilities = () => request("/capabilities");
       const syncQuick = body => request("/sync/quick", { method: "POST", body: body || {} });
-      const syncDeep = body => request("/sync/deep", { method: "POST", body: body || {} });
+      const syncDeep = body => request("/sync/deep", { method: "POST", body: body || {}, timeoutMs: 60000 });
       const getDaily = date => request(`/daily/${encodeURIComponent(date)}`);
       const getActivities = () => request("/activities");
       const getActivity = id => request(`/activities/${encodeURIComponent(id)}`);
@@ -1403,8 +1420,190 @@
         }
       }
 
+
+      const HISTORY_DATASETS = Object.freeze([
+        "activities", "sleep", "hrv", "readiness", "trainingStatus", "vo2", "threshold"
+      ]);
+      const HISTORY_STATE_ID = "deepHistory";
+
+      function parseDateOnlyUtc(value) {
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+        if (!match) return null;
+        return new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+      }
+
+      function formatDateOnlyUtc(date) {
+        return date instanceof Date && Number.isFinite(date.getTime()) ? date.toISOString().slice(0, 10) : null;
+      }
+
+      function addDaysDateOnly(value, days) {
+        const date = parseDateOnlyUtc(value);
+        if (!date) return null;
+        date.setUTCDate(date.getUTCDate() + Number(days || 0));
+        return formatDateOnlyUtc(date);
+      }
+
+      function historyTarget(today = ATLAS.core.localDate()) {
+        const date = parseDateOnlyUtc(today);
+        if (!date) return null;
+        const day = date.getUTCDay();
+        const daysSinceMonday = (day + 6) % 7;
+        const currentMonday = new Date(date.getTime());
+        currentMonday.setUTCDate(currentMonday.getUTCDate() - daysSinceMonday);
+        const targetEndDate = new Date(currentMonday.getTime());
+        targetEndDate.setUTCDate(targetEndDate.getUTCDate() - 1);
+        const targetStartDate = new Date(targetEndDate.getTime());
+        targetStartDate.setUTCDate(targetStartDate.getUTCDate() - 55);
+        return { startDate: formatDateOnlyUtc(targetStartDate), endDate: formatDateOnlyUtc(targetEndDate) };
+      }
+
+      function historyBlocks(target) {
+        if (!target?.startDate || !target?.endDate) return [];
+        const blocks = [];
+        let start = target.startDate;
+        while (start <= target.endDate && blocks.length < 8) {
+          const end = addDaysDateOnly(start, 6);
+          blocks.push({ startDate: start, endDate: end > target.endDate ? target.endDate : end });
+          start = addDaysDateOnly(end, 1);
+        }
+        return blocks;
+      }
+
+      const blockKey = block => `${block.startDate}:${block.endDate}`;
+
+      async function loadDeepHistoryState() {
+        const record = await ATLAS.storage.get("syncState", HISTORY_STATE_ID);
+        if (record) ATLAS.state.dispatch({ type: "DEEP_HISTORY_LOADED", payload: record });
+        return record;
+      }
+
+      async function persistDeepSync(payload) {
+        const changes = payload?.changes || {};
+        const collections = {
+          activities: Array.isArray(changes.activities) ? changes.activities : [],
+          sleep: Array.isArray(changes.sleeps) ? changes.sleeps : [],
+          hrv: Array.isArray(changes.hrv) ? changes.hrv : [],
+          trainingReadiness: Array.isArray(changes.trainingReadiness) ? changes.trainingReadiness : [],
+          trainingStatus: Array.isArray(changes.trainingStatuses) ? changes.trainingStatuses : [],
+          vo2max: Array.isArray(changes.vo2max) ? changes.vo2max : [],
+          thresholds: Array.isArray(changes.thresholds) ? changes.thresholds : []
+        };
+        const stores = Object.keys(collections);
+        await ATLAS.storage.transaction(stores, "readwrite", objectStores => {
+          for (const [storeName, rows] of Object.entries(collections)) {
+            for (const row of rows) if (row?.id) objectStores[storeName].put(row);
+          }
+        });
+        return Object.fromEntries(Object.entries(collections).map(([name, rows]) => [name, rows.length]));
+      }
+
+      async function saveDeepHistory(record) {
+        const saved = { id: HISTORY_STATE_ID, ...record, updatedAt: ATLAS.core.nowIso() };
+        await ATLAS.storage.put("syncState", saved);
+        return saved;
+      }
+
+      async function backfillHistory() {
+        const target = historyTarget();
+        if (!target) throw new Error("No se pudo calcular el rango histórico.");
+        const blocks = historyBlocks(target);
+        const previous = await ATLAS.storage.get("syncState", HISTORY_STATE_ID) || {};
+        const completed = new Set(Array.isArray(previous.completedBlocks) ? previous.completedBlocks : []);
+        const targetKeys = new Set(blocks.map(blockKey));
+        const pending = blocks.filter(block => !completed.has(blockKey(block))).reverse();
+
+        let record = {
+          ...previous,
+          targetStart: target.startDate,
+          targetEnd: target.endDate,
+          total: blocks.length,
+          completed: blocks.filter(block => completed.has(blockKey(block))).length,
+          completedBlocks: [...completed],
+          datasets: [...HISTORY_DATASETS],
+          status: pending.length ? "syncing" : "complete",
+          lastError: null
+        };
+
+        if (!pending.length) {
+          record = await saveDeepHistory(record);
+          ATLAS.state.dispatch({ type: "DEEP_SYNC_COMPLETED", payload: record });
+          return { status: "COMPLETE", record };
+        }
+
+        ATLAS.state.dispatch({ type: "DEEP_SYNC_STARTED", payload: record });
+        for (const block of pending) {
+          const key = blockKey(block);
+          try {
+            const response = await ATLAS.api.syncDeep({
+              startDate: block.startDate,
+              endDate: block.endDate,
+              datasets: [...HISTORY_DATASETS]
+            });
+            const persisted = await persistDeepSync(response?.data);
+            const remoteStatus = response?.data?.status || "FAILED";
+
+            if (remoteStatus !== "SUCCESS") {
+              record = await saveDeepHistory({
+                ...record,
+                status: "partial",
+                failedBlock: key,
+                lastError: { code: "DEEP_SYNC_PARTIAL", message: "Uno o más datasets del bloque no se completaron." },
+                lastDatasets: response?.data?.datasets || {},
+                lastPersisted: persisted
+              });
+              await ATLAS.data.hydrate();
+              ATLAS.state.dispatch({ type: "DEEP_SYNC_ERROR", payload: record });
+              return response;
+            }
+
+            completed.add(key);
+            record = await saveDeepHistory({
+              ...record,
+              status: "syncing",
+              completedBlocks: [...completed],
+              completed: blocks.filter(item => completed.has(blockKey(item))).length,
+              lastSuccessfulBlock: key,
+              failedBlock: null,
+              lastError: null,
+              lastDatasets: response?.data?.datasets || {},
+              lastPersisted: persisted
+            });
+            ATLAS.state.dispatch({ type: "DEEP_SYNC_PROGRESS", payload: record });
+            await new Promise(resolve => setTimeout(resolve, 650));
+          } catch (error) {
+            const safe = ATLAS.core.safeError(error, "DEEP_SYNC_FAILED");
+            record = await saveDeepHistory({
+              ...record,
+              status: "error",
+              failedBlock: key,
+              lastError: safe,
+              completedBlocks: [...completed],
+              completed: blocks.filter(item => completed.has(blockKey(item))).length
+            });
+            ATLAS.diagnostics.recordError(safe);
+            ATLAS.state.dispatch({ type: "DEEP_SYNC_ERROR", payload: record });
+            throw error;
+          }
+        }
+
+        record = await saveDeepHistory({
+          ...record,
+          status: "complete",
+          completedBlocks: [...completed],
+          completed: blocks.length,
+          coverageStart: target.startDate,
+          coverageEnd: target.endDate,
+          completedAt: ATLAS.core.nowIso(),
+          failedBlock: null,
+          lastError: null
+        });
+        await ATLAS.data.hydrate();
+        ATLAS.state.dispatch({ type: "DEEP_SYNC_COMPLETED", payload: record });
+        return { status: "COMPLETE", record };
+      }
+
       function status() { return { ...ATLAS.state.data.sync }; }
-      return { bootstrap, quick, status };
+      return { bootstrap, quick, backfillHistory, loadDeepHistoryState, historyTarget, status };
     })();
 
     /* =========================================================
@@ -1432,7 +1631,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.12", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.13", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -1838,6 +2037,24 @@
         text("diag-garmin", caps?.garminPrivate
           ? (caps?.syncQuick ? "Autenticado · Sync disponible" : "Autenticado · Sync pendiente")
           : "No disponible");
+
+        const history = ATLAS.state.data.sync.deepHistory || {};
+        const historyButton = document.getElementById("deep-history-button");
+        const completed = Number(history.completed || 0);
+        const total = Number(history.total || 8);
+        let historyStatus = "Pendiente";
+        if (history.status === "syncing") historyStatus = `Sincronizando ${completed}/${total}`;
+        else if (history.status === "complete") historyStatus = `Completo ${completed}/${total}`;
+        else if (history.status === "partial") historyStatus = `Parcial ${completed}/${total}`;
+        else if (history.status === "error") historyStatus = `Error ${completed}/${total}`;
+        text("deep-history-status", historyStatus);
+        text("deep-history-range", history.targetStart && history.targetEnd ? `${history.targetStart} → ${history.targetEnd}` : "—");
+        if (historyButton) {
+          historyButton.disabled = history.status === "syncing" || !caps?.syncDeep;
+          historyButton.textContent = history.status === "complete"
+            ? "Histórico base completo"
+            : (history.status === "partial" || history.status === "error" ? "Reanudar histórico" : "Importar histórico base (8 semanas)");
+        }
       }
 
       function toast() { if (ATLAS.state.data.ui.toast) ATLAS.ui.toast(ATLAS.state.data.ui.toast); }
@@ -1861,7 +2078,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.12", status: "physiology-sync" });
+    ATLAS.today = Object.freeze({ version: "0.0.13", status: "physiology-sync" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -1970,11 +2187,11 @@
         });
       }
 
-      return { version: "0.0.12", status: "normal-detail", mount, open, close };
+      return { version: "0.0.13", status: "normal-detail", mount, open, close };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.12", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.12", status: "physiology-sync" });
-    ATLAS.profile = Object.freeze({ version: "0.0.12", status: "secure-auth" });
+    ATLAS.training = Object.freeze({ version: "0.0.13", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.13", status: "physiology-sync" });
+    ATLAS.profile = Object.freeze({ version: "0.0.13", status: "secure-auth" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -1990,7 +2207,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.12"],
+          ["build.version", ATLAS.build.version === "0.0.13"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -2028,12 +2245,13 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.12" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.13" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
             results.push({ name: "garmin.session.encrypted", pass: capabilities?.data?.encryptedSessionPersistence === true });
             results.push({ name: "garmin.sync.quick", pass: capabilities?.data?.syncQuick === true });
+            results.push({ name: "garmin.sync.deep", pass: capabilities?.data?.syncDeep === true });
             results.push({ name: "garmin.activities", pass: capabilities?.data?.activities === true });
             results.push({ name: "garmin.activityDetail", pass: capabilities?.data?.activityDetail === true });
             results.push({ name: "garmin.activityDeep", pass: capabilities?.data?.activityDeep === true });
@@ -2063,6 +2281,19 @@
               name: "data.activityDetail.strideUnit",
               pass: strideValues.length === 0 || strideValues.every(value => value > 0 && value < 5)
             });
+            const deepHistory = await ATLAS.storage.get("syncState", "deepHistory");
+            if (deepHistory?.completedBlocks?.length || deepHistory?.status === "complete") {
+              const target = ATLAS.sync.historyTarget();
+              results.push({
+                name: "data.deepHistory.checkpoint",
+                pass:
+                  deepHistory?.status === "complete" &&
+                  deepHistory?.completed >= 8 &&
+                  deepHistory?.targetStart === target?.startDate &&
+                  deepHistory?.targetEnd === target?.endDate
+              });
+            }
+
             const storedDeep = await ATLAS.storage.query("activityStreams");
             if (storedDeep.length) {
               const latestDeep = storedDeep.sort((a, b) => String(b.fetchedAt || "").localeCompare(String(a.fetchedAt || "")))[0];
@@ -2104,6 +2335,19 @@
       function mount() {
         if (mounted) return;
         mounted = true;
+        document.getElementById("deep-history-button")?.addEventListener("click", async () => {
+          const button = document.getElementById("deep-history-button");
+          if (button) button.disabled = true;
+          try {
+            await ATLAS.sync.backfillHistory();
+            ATLAS.ui.toast("Histórico Garmin actualizado.");
+          } catch (error) {
+            ATLAS.ui.toast(error?.code === "GARMIN_RATE_LIMITED" ? "Garmin ha limitado temporalmente el histórico. Puedes reanudarlo." : "No se pudo completar el histórico. Puedes reanudarlo.");
+          } finally {
+            ATLAS.render.profile();
+          }
+        });
+
         document.getElementById("run-self-test")?.addEventListener("click", async () => {
           const output = document.getElementById("diagnostics-output");
           if (output) output.textContent = "Ejecutando…";
