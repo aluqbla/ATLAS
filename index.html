@@ -616,6 +616,259 @@
     }
 
 
+
+    .evolution-switcher {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 28px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .evolution-switcher::-webkit-scrollbar { display: none; }
+    .evolution-switcher button {
+      flex: 0 0 auto;
+      min-height: 34px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .evolution-switcher button[aria-pressed="true"] {
+      background: var(--atlas-blue);
+      color: #fff;
+    }
+
+    .evolution-overview {
+      border-top: 1px solid var(--divider);
+    }
+    .evolution-overview-row {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      padding: 22px 0;
+      border: 0;
+      border-bottom: 1px solid var(--divider);
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .evolution-overview-row__eyebrow {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .evolution-overview-row__value {
+      display: block;
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 650;
+      letter-spacing: -.015em;
+    }
+    .evolution-overview-row__detail {
+      display: block;
+      margin-top: 5px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+    .evolution-chevron {
+      color: var(--text-tertiary);
+      font-size: 26px;
+    }
+
+    .evolution-panel[hidden] { display: none !important; }
+    .evolution-back {
+      margin: 0 0 18px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--atlas-blue-active);
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .evolution-panel-header {
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .evolution-panel-header .hero-title { margin-bottom: 5px; }
+
+    .evolution-metric-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 24px;
+      padding: 26px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .evolution-metric-value {
+      font-size: 30px;
+      line-height: 1.05;
+      font-weight: 700;
+      letter-spacing: -.025em;
+      font-variant-numeric: tabular-nums;
+    }
+    .evolution-metric-label {
+      margin-top: 6px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    .evolution-chart-block {
+      padding: 28px 0 30px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .evolution-chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      margin-bottom: 12px;
+    }
+    .evolution-chart-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .02em;
+    }
+    .evolution-chart-value {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .evolution-chart-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+    .evolution-chart-grid {
+      stroke: var(--divider);
+      stroke-width: 1;
+      opacity: .6;
+      vector-effect: non-scaling-stroke;
+    }
+    .evolution-chart-line {
+      fill: none;
+      stroke: var(--atlas-blue);
+      stroke-width: 2.2;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      vector-effect: non-scaling-stroke;
+    }
+    .evolution-chart-band {
+      fill: rgba(10,132,255,.14);
+      stroke: none;
+    }
+    .evolution-chart-axis {
+      fill: var(--text-tertiary);
+      font-size: 11px;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    }
+    .evolution-empty-chart {
+      padding: 22px 0;
+      color: var(--text-tertiary);
+      font-size: 14px;
+    }
+
+    .evolution-load-bars {
+      display: grid;
+      gap: 15px;
+      padding: 22px 0 8px;
+    }
+    .evolution-load-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 14px;
+      font-size: 14px;
+    }
+    .evolution-load-label { color: var(--text-secondary); }
+    .evolution-load-track {
+      height: 7px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--surface-2);
+    }
+    .evolution-load-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--atlas-blue);
+    }
+    .evolution-load-value {
+      min-width: 42px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .race-prediction-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0 24px;
+      border-top: 1px solid var(--divider);
+    }
+    .race-prediction-item {
+      padding: 15px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .race-prediction-distance {
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    .race-prediction-time {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 650;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .records-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+    .records-table th,
+    .records-table td {
+      padding: 13px 10px;
+      border-bottom: 1px solid var(--divider);
+      text-align: left;
+      white-space: nowrap;
+    }
+    .records-table th {
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .records-table td:nth-child(2),
+    .records-table th:nth-child(2) { text-align: right; }
+    .records-table td:nth-child(3),
+    .records-table th:nth-child(3) { text-align: right; }
+    .record-link {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--atlas-blue-active);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    @media (min-width: 900px) {
+      .evolution-panel,
+      .evolution-overview-wrap { max-width: 960px; }
+      .race-prediction-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
     .auth-gate {
@@ -1123,20 +1376,187 @@
 
       <!-- EVOLUCIÓN -->
       <section class="screen" data-screen="evolution" hidden>
-        <div class="content">
+        <div class="content content--standard">
           <div class="screen-header">
             <div>
               <h1 class="screen-title">Evolución</h1>
-              <p class="screen-subtitle">Si estás mejorando.</p>
+              <p class="screen-subtitle">¿Estoy mejorando?</p>
             </div>
           </div>
-          <div class="list" id="evolution-summary">
-            <div class="list-row"><span class="list-row__label">VO₂ máx. running</span><span class="list-row__value" id="evolution-vo2">—</span></div>
-            <div class="list-row"><span class="list-row__label">Umbral running</span><span class="list-row__value" id="evolution-threshold">—</span></div>
-            <div class="list-row"><span class="list-row__label">Training Status</span><span class="list-row__value" id="evolution-training-status">—</span></div>
-            <div class="list-row"><span class="list-row__label">Carga aguda / crónica</span><span class="list-row__value" id="evolution-load">—</span></div>
+
+          <div class="evolution-switcher" id="evolution-switcher" aria-label="Áreas de Evolución">
+            <button type="button" data-evolution-view="overview" aria-pressed="true">Resumen</button>
+            <button type="button" data-evolution-view="performance" aria-pressed="false">Rendimiento</button>
+            <button type="button" data-evolution-view="load" aria-pressed="false">Carga</button>
+            <button type="button" data-evolution-view="recovery" aria-pressed="false">Recuperación</button>
+            <button type="button" data-evolution-view="records" aria-pressed="false">Marcas</button>
           </div>
-          <p class="section-copy" style="margin-top:20px">F6.1 muestra el último valor local normalizado. Los gráficos históricos se incorporarán cuando exista suficiente histórico persistido.</p>
+
+          <div class="evolution-overview-wrap" data-evolution-panel="overview">
+            <div class="evolution-overview">
+              <button class="evolution-overview-row" type="button" data-evolution-view="performance">
+                <span>
+                  <span class="evolution-overview-row__eyebrow">Rendimiento</span>
+                  <span class="evolution-overview-row__value" id="evolution-overview-performance">—</span>
+                  <span class="evolution-overview-row__detail" id="evolution-overview-performance-detail">VO₂ máx. · umbral · predicciones Garmin</span>
+                </span>
+                <span class="evolution-chevron" aria-hidden="true">›</span>
+              </button>
+              <button class="evolution-overview-row" type="button" data-evolution-view="load">
+                <span>
+                  <span class="evolution-overview-row__eyebrow">Carga</span>
+                  <span class="evolution-overview-row__value" id="evolution-overview-load">—</span>
+                  <span class="evolution-overview-row__detail" id="evolution-overview-load-detail">Carga aguda y distribución Garmin</span>
+                </span>
+                <span class="evolution-chevron" aria-hidden="true">›</span>
+              </button>
+              <button class="evolution-overview-row" type="button" data-evolution-view="recovery">
+                <span>
+                  <span class="evolution-overview-row__eyebrow">Recuperación</span>
+                  <span class="evolution-overview-row__value" id="evolution-overview-recovery">—</span>
+                  <span class="evolution-overview-row__detail" id="evolution-overview-recovery-detail">Sueño · VFC · Readiness</span>
+                </span>
+                <span class="evolution-chevron" aria-hidden="true">›</span>
+              </button>
+              <button class="evolution-overview-row" type="button" data-evolution-view="records">
+                <span>
+                  <span class="evolution-overview-row__eyebrow">Marcas</span>
+                  <span class="evolution-overview-row__value" id="evolution-overview-records">—</span>
+                  <span class="evolution-overview-row__detail">Personal Records Garmin</span>
+                </span>
+                <span class="evolution-chevron" aria-hidden="true">›</span>
+              </button>
+            </div>
+          </div>
+
+          <section class="evolution-panel" data-evolution-panel="performance" hidden>
+            <button class="evolution-back" type="button" data-evolution-view="overview">‹ Evolución</button>
+            <header class="evolution-panel-header">
+              <p class="eyebrow">Rendimiento</p>
+              <h2 class="hero-title">Rendimiento</h2>
+              <p class="section-copy">VO₂ máx., umbral y predicciones de carrera Garmin. ATLAS muestra tendencia sin sustituir la métrica nativa.</p>
+            </header>
+
+            <div class="evolution-metric-pair">
+              <div>
+                <div class="evolution-metric-value" id="evolution-performance-vo2">—</div>
+                <div class="evolution-metric-label">VO₂ máx. running</div>
+              </div>
+              <div>
+                <div class="evolution-metric-value" id="evolution-performance-threshold">—</div>
+                <div class="evolution-metric-label">Umbral running</div>
+              </div>
+            </div>
+
+            <section class="evolution-chart-block">
+              <div class="evolution-chart-head">
+                <span class="evolution-chart-title">VO₂ máx.</span>
+                <span class="evolution-chart-value" id="evolution-vo2-delta"></span>
+              </div>
+              <div id="evolution-vo2-chart"></div>
+            </section>
+
+            <section class="evolution-chart-block">
+              <div class="evolution-chart-head">
+                <span class="evolution-chart-title">Umbral</span>
+                <span class="evolution-chart-value" id="evolution-threshold-delta"></span>
+              </div>
+              <div id="evolution-threshold-chart"></div>
+            </section>
+
+            <section class="section" style="padding-top:28px">
+              <h3 class="section-title">Predicciones Garmin</h3>
+              <p class="section-copy">Predicciones nativas Garmin; no son récords reales ni predicciones ATLAS.</p>
+              <div class="race-prediction-grid" id="evolution-race-predictions"></div>
+            </section>
+          </section>
+
+          <section class="evolution-panel" data-evolution-panel="load" hidden>
+            <button class="evolution-back" type="button" data-evolution-view="overview">‹ Evolución</button>
+            <header class="evolution-panel-header">
+              <p class="eyebrow">Carga</p>
+              <h2 class="hero-title">Carga</h2>
+              <p class="section-copy">Histórico de carga aguda Garmin. No se presenta como suma semanal si Garmin no la entrega como tal.</p>
+            </header>
+
+            <div class="evolution-metric-pair">
+              <div>
+                <div class="evolution-metric-value" id="evolution-load-acute">—</div>
+                <div class="evolution-metric-label">Carga aguda</div>
+              </div>
+              <div>
+                <div class="evolution-metric-value" id="evolution-load-acwr">—</div>
+                <div class="evolution-metric-label">ACWR</div>
+              </div>
+            </div>
+
+            <section class="evolution-chart-block">
+              <div class="evolution-chart-head">
+                <span class="evolution-chart-title">Carga aguda · 8 semanas</span>
+                <span class="evolution-chart-value" id="evolution-load-status"></span>
+              </div>
+              <div id="evolution-load-chart"></div>
+            </section>
+
+            <section class="section" style="padding-top:28px">
+              <h3 class="section-title">Distribución actual</h3>
+              <p class="section-copy">Load Focus Garmin. Las barras muestran la proporción relativa entre los tres componentes disponibles.</p>
+              <div class="evolution-load-bars" id="evolution-load-focus"></div>
+            </section>
+          </section>
+
+          <section class="evolution-panel" data-evolution-panel="recovery" hidden>
+            <button class="evolution-back" type="button" data-evolution-view="overview">‹ Evolución</button>
+            <header class="evolution-panel-header">
+              <p class="eyebrow">Recuperación</p>
+              <h2 class="hero-title">Recuperación</h2>
+              <p class="section-copy">Aquí vive el histórico. Hoy conserva sólo el resumen del día.</p>
+            </header>
+
+            <section class="evolution-chart-block">
+              <div class="evolution-chart-head">
+                <span class="evolution-chart-title">Sueño</span>
+                <span class="evolution-chart-value" id="evolution-sleep-current"></span>
+              </div>
+              <div id="evolution-sleep-chart"></div>
+            </section>
+
+            <section class="evolution-chart-block">
+              <div class="evolution-chart-head">
+                <span class="evolution-chart-title">VFC</span>
+                <span class="evolution-chart-value" id="evolution-hrv-current"></span>
+              </div>
+              <div id="evolution-hrv-chart"></div>
+            </section>
+
+            <section class="evolution-chart-block">
+              <div class="evolution-chart-head">
+                <span class="evolution-chart-title">Readiness</span>
+                <span class="evolution-chart-value" id="evolution-readiness-current"></span>
+              </div>
+              <div id="evolution-readiness-chart"></div>
+            </section>
+          </section>
+
+          <section class="evolution-panel" data-evolution-panel="records" hidden>
+            <button class="evolution-back" type="button" data-evolution-view="overview">‹ Evolución</button>
+            <header class="evolution-panel-header">
+              <p class="eyebrow">Marcas</p>
+              <h2 class="hero-title">Personal Records</h2>
+              <p class="section-copy">Récords Garmin authoritative. ATLAS no los recalcula.</p>
+            </header>
+
+            <div class="table-scroll" style="margin-top:24px">
+              <table class="records-table">
+                <thead><tr><th>Distancia / marca</th><th>Resultado</th><th>Fecha</th></tr></thead>
+                <tbody id="evolution-records-body"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="evolution-records-empty" hidden>
+              <strong>Sin Personal Records disponibles</strong>
+              Garmin no ha devuelto marcas para mostrar.
+            </div>
+          </section>
         </div>
       </section>
 
@@ -1245,7 +1665,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.18",
+      version: "0.0.19",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -1257,9 +1677,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.18",
+      version: "0.0.19",
       channel: "development",
-      buildId: "atlas-0.0.18-f7.1-today-ux",
+      buildId: "atlas-0.0.19-f7.1-today-ux",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -1307,6 +1727,7 @@
           await ATLAS.sync.loadDeepHistoryState();
           ATLAS.navigation.mount();
           ATLAS.activities.mount();
+          ATLAS.evolution.mount();
           ATLAS.render.all();
           ATLAS.diagnostics.mount();
           ATLAS.auth.mount();
@@ -1370,7 +1791,7 @@
         },
         activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
         training: { activePlan: null },
-        evolution: { vo2max: null, threshold: null, trainingStatus: null },
+        evolution: { vo2max: null, threshold: null, trainingStatus: null, vo2History: [], thresholdHistory: [], trainingStatusHistory: [], sleepHistory: [], hrvHistory: [], readinessHistory: [] },
         settings: {},
         ui: { toast: null },
         remote: { health: null, capabilities: null }
@@ -1439,6 +1860,12 @@
             state.evolution.vo2max = payload?.vo2max || null;
             state.evolution.threshold = payload?.threshold || null;
             state.evolution.trainingStatus = payload?.trainingStatus || null;
+            state.evolution.vo2History = Array.isArray(payload?.vo2History) ? payload.vo2History : state.evolution.vo2History;
+            state.evolution.thresholdHistory = Array.isArray(payload?.thresholdHistory) ? payload.thresholdHistory : state.evolution.thresholdHistory;
+            state.evolution.trainingStatusHistory = Array.isArray(payload?.trainingStatusHistory) ? payload.trainingStatusHistory : state.evolution.trainingStatusHistory;
+            state.evolution.sleepHistory = Array.isArray(payload?.sleepHistory) ? payload.sleepHistory : state.evolution.sleepHistory;
+            state.evolution.hrvHistory = Array.isArray(payload?.hrvHistory) ? payload.hrvHistory : state.evolution.hrvHistory;
+            state.evolution.readinessHistory = Array.isArray(payload?.readinessHistory) ? payload.readinessHistory : state.evolution.readinessHistory;
             mark("today", "evolution");
             break;
           case "ACTIVITIES_LOADED": state.activities.items = Array.isArray(payload) ? payload : []; state.today.latestActivity = state.activities.items[0] || null; mark("activities", "today"); ATLAS.events.emit("data:activities-updated", { count: state.activities.items.length }); break;
@@ -1763,7 +2190,13 @@
           weightRows,
           hydrationRows,
           fitnessAgeRows,
-          supportingSync
+          supportingSync,
+          sleepHistoryRows,
+          hrvHistoryRows,
+          readinessHistoryRows,
+          trainingStatusHistoryRows,
+          vo2HistoryRows,
+          thresholdHistoryRows
         ] = await Promise.all([
           ATLAS.storage.get("profile", "self"),
           ATLAS.storage.query("activities", { sort: (a, b) => String(b.startTime || "").localeCompare(String(a.startTime || "")), limit: 100 }),
@@ -1785,7 +2218,13 @@
           ATLAS.storage.query("weight", { sort: (a, b) => String(b.observedAt || b.date || "").localeCompare(String(a.observedAt || a.date || "")) }),
           ATLAS.storage.query("hydration", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")) }),
           ATLAS.storage.query("fitnessAge", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")) }),
-          ATLAS.storage.get("syncState", "supporting")
+          ATLAS.storage.get("syncState", "supporting"),
+          ATLAS.storage.query("sleep", { sort: (a, b) => String(a.date || "").localeCompare(String(b.date || "")), limit: 90 }),
+          ATLAS.storage.query("hrv", { sort: (a, b) => String(a.date || "").localeCompare(String(b.date || "")), limit: 90 }),
+          ATLAS.storage.query("trainingReadiness", { sort: (a, b) => String(a.date || "").localeCompare(String(b.date || "")), limit: 90 }),
+          ATLAS.storage.query("trainingStatus", { sort: (a, b) => String(a.date || "").localeCompare(String(b.date || "")), limit: 90 }),
+          ATLAS.storage.query("vo2max", { sort: (a, b) => String(a.date || "").localeCompare(String(b.date || "")), limit: 90 }),
+          ATLAS.storage.query("thresholds", { sort: (a, b) => String(a.date || "").localeCompare(String(b.date || "")), limit: 90 })
         ]);
 
         ATLAS.state.dispatch({ type: "PROFILE_LOADED", payload: profile });
@@ -1816,7 +2255,13 @@
             readiness: readinessRows[0] || null,
             trainingStatus: trainingStatusRows[0] || null,
             vo2max: vo2Rows[0] || null,
-            threshold: thresholdRows[0] || null
+            threshold: thresholdRows[0] || null,
+            sleepHistory: sleepHistoryRows,
+            hrvHistory: hrvHistoryRows,
+            readinessHistory: readinessHistoryRows,
+            trainingStatusHistory: trainingStatusHistoryRows,
+            vo2History: vo2HistoryRows,
+            thresholdHistory: thresholdHistoryRows
           }
         });
       }
@@ -2584,7 +3029,7 @@
         return true;
       }
 
-      return { version: "0.0.18", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.19", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -3176,35 +3621,319 @@
 
       function training() {}
 
+      function evolutionSvgNode(name, attrs = {}) {
+        const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+        for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+        return node;
+      }
+
+      function evolutionDateLabel(value) {
+        const ms = Date.parse(value || "");
+        if (!Number.isFinite(ms)) return "";
+        return new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" }).format(new Date(ms)).replace(".", "");
+      }
+
+      function renderEvolutionLine(hostId, rows, options = {}) {
+        const host = document.getElementById(hostId);
+        if (!host) return false;
+        host.replaceChildren();
+
+        const clean = (rows || [])
+          .map(row => ({
+            date: row?.date || row?.observedAt || null,
+            value: Number(options.value(row)),
+            low: options.low ? Number(options.low(row)) : NaN,
+            high: options.high ? Number(options.high(row)) : NaN
+          }))
+          .filter(row => row.date && Number.isFinite(row.value));
+
+        if (clean.length < 2) {
+          const empty = document.createElement("div");
+          empty.className = "evolution-empty-chart";
+          empty.textContent = clean.length === 1 ? "Sólo hay un punto histórico disponible." : "Sin histórico suficiente.";
+          host.append(empty);
+          return false;
+        }
+
+        const W = 720, H = 190;
+        const pad = { left: 52, right: 14, top: 12, bottom: 28 };
+        const plotW = W - pad.left - pad.right;
+        const plotH = H - pad.top - pad.bottom;
+        const values = clean.flatMap(row => [row.value, row.low, row.high].filter(Number.isFinite));
+        let min = Math.min(...values), max = Math.max(...values);
+        if (min === max) { min -= 1; max += 1; }
+        const extra = (max - min) * .08 || 1;
+        min -= extra; max += extra;
+
+        const x = index => pad.left + (index / (clean.length - 1)) * plotW;
+        const y = value => options.invert
+          ? pad.top + ((value - min) / (max - min)) * plotH
+          : pad.top + (1 - ((value - min) / (max - min))) * plotH;
+
+        const svg = evolutionSvgNode("svg", {
+          class: "evolution-chart-svg",
+          viewBox: `0 0 ${W} ${H}`,
+          role: "img",
+          "aria-label": options.ariaLabel || "Gráfica histórica"
+        });
+
+        for (let i = 0; i < 3; i += 1) {
+          const gy = pad.top + (i / 2) * plotH;
+          svg.append(evolutionSvgNode("line", {
+            class: "evolution-chart-grid",
+            x1: pad.left, y1: gy, x2: W - pad.right, y2: gy
+          }));
+          const axisValue = options.invert
+            ? min + (i / 2) * (max - min)
+            : max - (i / 2) * (max - min);
+          const label = evolutionSvgNode("text", {
+            class: "evolution-chart-axis",
+            x: pad.left - 8, y: gy + 4, "text-anchor": "end"
+          });
+          label.textContent = options.axisFormat ? options.axisFormat(axisValue) : String(Math.round(axisValue));
+          svg.append(label);
+        }
+
+        if (options.low && options.high) {
+          const bandRows = clean.filter(row => Number.isFinite(row.low) && Number.isFinite(row.high));
+          if (bandRows.length >= 2 && bandRows.length === clean.length) {
+            const upper = clean.map((row, i) => `${i ? "L" : "M"}${x(i).toFixed(2)},${y(row.high).toFixed(2)}`).join(" ");
+            const lower = [...clean].reverse().map((row, reverseIndex) => {
+              const i = clean.length - 1 - reverseIndex;
+              return `L${x(i).toFixed(2)},${y(row.low).toFixed(2)}`;
+            }).join(" ");
+            svg.append(evolutionSvgNode("path", { class: "evolution-chart-band", d: `${upper} ${lower} Z` }));
+          }
+        }
+
+        const path = clean.map((row, i) => `${i ? "L" : "M"}${x(i).toFixed(2)},${y(row.value).toFixed(2)}`).join(" ");
+        svg.append(evolutionSvgNode("path", { class: "evolution-chart-line", d: path }));
+
+        const start = evolutionSvgNode("text", { class: "evolution-chart-axis", x: pad.left, y: H - 5, "text-anchor": "start" });
+        start.textContent = evolutionDateLabel(clean[0].date);
+        const finish = evolutionSvgNode("text", { class: "evolution-chart-axis", x: W - pad.right, y: H - 5, "text-anchor": "end" });
+        finish.textContent = evolutionDateLabel(clean.at(-1).date);
+        svg.append(start, finish);
+        host.append(svg);
+        return true;
+      }
+
+      function formatRecordLabel(record) {
+        const byType = {
+          1: "1 km",
+          2: "1 mile",
+          3: "5 km",
+          4: "10 km",
+          5: "Media maratón",
+          6: "Maratón",
+          7: "Carrera más larga"
+        };
+        if (Number.isFinite(record?.typeId) && byType[record.typeId]) return byType[record.typeId];
+        const key = String(record?.key || "").replace(/^TYPE_/, "Marca ");
+        return humanize(key);
+      }
+
+      function formatRecordValue(record) {
+        const value = Number(record?.value);
+        if (!Number.isFinite(value)) return "—";
+        if (Number(record?.typeId) === 7 || /long|far|distance/i.test(String(record?.key || ""))) {
+          return `${(value / 1000).toFixed(value >= 10000 ? 2 : 3).replace(".", ",")} km`;
+        }
+        if ([1,2,3,4,5,6].includes(Number(record?.typeId)) || /km|mile|marathon|time/i.test(String(record?.key || ""))) {
+          const seconds = value > 100000 ? value / 1000 : value;
+          return formatDurationClock(seconds) || "—";
+        }
+        return Number.isInteger(value) ? String(value) : Number(value).toFixed(2).replace(".", ",");
+      }
+
       function evolution() {
-        const { vo2max, threshold, trainingStatus } = ATLAS.state.data.evolution;
+        const evolutionState = ATLAS.state.data.evolution;
+        const supporting = ATLAS.state.data.profile || {};
+        const { vo2max, threshold, trainingStatus } = evolutionState;
+        const view = ATLAS.evolution.view();
 
-        text("evolution-vo2",
-          Number.isFinite(vo2max?.value)
-            ? `${Number(vo2max.value).toFixed(1).replace(".", ",")} ml/kg/min`
-            : "—"
-        );
+        document.querySelectorAll("[data-evolution-panel]").forEach(panel => {
+          panel.hidden = panel.dataset.evolutionPanel !== view;
+        });
+        document.querySelectorAll("#evolution-switcher [data-evolution-view]").forEach(button => {
+          button.setAttribute("aria-pressed", String(button.dataset.evolutionView === view));
+        });
 
-        const thresholdBits = [];
-        const pace = formatPace(threshold?.paceSecPerKm);
-        if (pace) thresholdBits.push(pace);
-        if (Number.isFinite(threshold?.heartRate)) thresholdBits.push(`${Math.round(threshold.heartRate)} ppm`);
-        if (Number.isFinite(threshold?.runningFtpW)) thresholdBits.push(`${Math.round(threshold.runningFtpW)} W`);
-        text("evolution-threshold", thresholdBits.join(" · ") || "—");
+        const latestHrv = evolutionState.hrvHistory?.at(-1) || ATLAS.state.data.today.hrv;
+        const latestSleep = evolutionState.sleepHistory?.at(-1) || ATLAS.state.data.today.sleep;
+        const latestReadiness = evolutionState.readinessHistory?.at(-1) || ATLAS.state.data.today.readiness;
 
-        const statusBits = [];
-        if (trainingStatus?.feedback) statusBits.push(String(trainingStatus.feedback).replace(/_/g, " "));
-        else if (trainingStatus?.status !== null && trainingStatus?.status !== undefined) statusBits.push(String(trainingStatus.status));
-        if (trainingStatus?.sport) statusBits.push(trainingStatus.sport);
-        text("evolution-training-status", statusBits.join(" · ") || "—");
+        const overviewPerformance = [];
+        if (Number.isFinite(vo2max?.value)) overviewPerformance.push(`VO₂ ${Number(vo2max.value).toFixed(1).replace(".", ",")}`);
+        if (Number.isFinite(threshold?.paceSecPerKm)) overviewPerformance.push(`Umbral ${formatPace(threshold.paceSecPerKm)}`);
+        text("evolution-overview-performance", overviewPerformance.join(" · ") || "Sin datos");
 
         const load = trainingStatus?.load;
-        const loadBits = [];
-        if (Number.isFinite(load?.acute)) loadBits.push(`Aguda ${Math.round(load.acute)}`);
-        if (Number.isFinite(load?.chronic)) loadBits.push(`Crónica ${Math.round(load.chronic)}`);
-        if (Number.isFinite(load?.acwr)) loadBits.push(`ACWR ${Number(load.acwr).toFixed(2)}`);
-        if (load?.acwrStatus) loadBits.push(String(load.acwrStatus).replace(/_/g, " "));
-        text("evolution-load", loadBits.join(" · ") || "—");
+        const loadOverview = [];
+        if (Number.isFinite(load?.acute)) loadOverview.push(`Aguda ${Math.round(load.acute)}`);
+        if (load?.acwrStatus) loadOverview.push(humanize(load.acwrStatus));
+        text("evolution-overview-load", loadOverview.join(" · ") || "Sin datos");
+
+        const recoveryOverview = [];
+        if (latestHrv?.status) recoveryOverview.push(`VFC ${humanize(latestHrv.status)}`);
+        const overviewReadiness = latestReadiness?.current || latestReadiness?.morning || null;
+        if (overviewReadiness?.level) recoveryOverview.push(`Readiness ${humanize(overviewReadiness.level)}`);
+        else if (Number.isFinite(overviewReadiness?.score)) recoveryOverview.push(`Readiness ${Math.round(overviewReadiness.score)}`);
+        text("evolution-overview-recovery", recoveryOverview.join(" · ") || "Sin datos");
+        text("evolution-overview-records", `${supporting.personalRecords?.length || 0} récords Garmin`);
+
+        text("evolution-performance-vo2",
+          Number.isFinite(vo2max?.value) ? Number(vo2max.value).toFixed(1).replace(".", ",") : "—"
+        );
+        const thresholdBits = [];
+        if (Number.isFinite(threshold?.paceSecPerKm)) thresholdBits.push(formatPace(threshold.paceSecPerKm));
+        if (Number.isFinite(threshold?.heartRate)) thresholdBits.push(`${Math.round(threshold.heartRate)} ppm`);
+        text("evolution-performance-threshold", thresholdBits.join(" · ") || "—");
+
+        const vo2History = (evolutionState.vo2History || []).filter(row => Number.isFinite(row?.value));
+        renderEvolutionLine("evolution-vo2-chart", vo2History, {
+          value: row => row.value,
+          axisFormat: value => Number(value).toFixed(1).replace(".", ","),
+          ariaLabel: "Evolución histórica de VO₂ máx."
+        });
+        if (vo2History.length >= 2) {
+          const delta = vo2History.at(-1).value - vo2History[0].value;
+          text("evolution-vo2-delta", `${delta >= 0 ? "+" : ""}${delta.toFixed(1).replace(".", ",")} en ${vo2History.length} registros`);
+        } else text("evolution-vo2-delta", "");
+
+        const thresholdHistory = (evolutionState.thresholdHistory || []).filter(row => Number.isFinite(row?.paceSecPerKm));
+        renderEvolutionLine("evolution-threshold-chart", thresholdHistory, {
+          value: row => row.paceSecPerKm,
+          invert: true,
+          axisFormat: value => {
+            const total = Math.round(value);
+            return `${Math.floor(total/60)}:${String(total%60).padStart(2,"0")}`;
+          },
+          ariaLabel: "Evolución del ritmo de umbral. Más arriba significa más rápido."
+        });
+        if (thresholdHistory.length >= 2) {
+          const change = thresholdHistory[0].paceSecPerKm - thresholdHistory.at(-1).paceSecPerKm;
+          text("evolution-threshold-delta", `${change >= 0 ? "+" : ""}${change.toFixed(1).replace(".", ",")} s/km más rápido`);
+        } else text("evolution-threshold-delta", "");
+
+        const raceHost = document.getElementById("evolution-race-predictions");
+        raceHost?.replaceChildren();
+        const race = supporting.racePredictions?.[0];
+        const raceRows = [
+          ["5 km", race?.times?.fiveKSec],
+          ["10 km", race?.times?.tenKSec],
+          ["Media maratón", race?.times?.halfMarathonSec],
+          ["Maratón", race?.times?.marathonSec]
+        ].filter(([, seconds]) => Number.isFinite(seconds));
+        for (const [distance, seconds] of raceRows) {
+          const item = document.createElement("div");
+          item.className = "race-prediction-item";
+          const d = document.createElement("div");
+          d.className = "race-prediction-distance";
+          d.textContent = distance;
+          const t = document.createElement("div");
+          t.className = "race-prediction-time";
+          t.textContent = formatDurationClock(seconds) || "—";
+          item.append(d, t);
+          raceHost?.append(item);
+        }
+
+        text("evolution-load-acute", Number.isFinite(load?.acute) ? Math.round(load.acute) : "—");
+        text("evolution-load-acwr", Number.isFinite(load?.acwr) ? Number(load.acwr).toFixed(2) : "—");
+        text("evolution-load-status", load?.acwrStatus ? humanize(load.acwrStatus) : (trainingStatus?.feedback ? humanize(trainingStatus.feedback) : ""));
+
+        const statusHistory = (evolutionState.trainingStatusHistory || []).filter(row => Number.isFinite(row?.load?.acute));
+        renderEvolutionLine("evolution-load-chart", statusHistory, {
+          value: row => row.load.acute,
+          axisFormat: value => String(Math.round(value)),
+          ariaLabel: "Histórico de carga aguda Garmin."
+        });
+
+        const focusHost = document.getElementById("evolution-load-focus");
+        focusHost?.replaceChildren();
+        const focus = trainingStatus?.loadFocus || {};
+        const focusRows = [
+          ["Aeróbica baja", Number(focus.lowAerobic)],
+          ["Aeróbica alta", Number(focus.highAerobic)],
+          ["Anaeróbica", Number(focus.anaerobic)]
+        ].filter(([, value]) => Number.isFinite(value) && value >= 0);
+        const focusTotal = focusRows.reduce((sum, [, value]) => sum + value, 0);
+        for (const [labelText, value] of focusRows) {
+          const pct = focusTotal > 0 ? (value / focusTotal) * 100 : 0;
+          const row = document.createElement("div");
+          row.className = "evolution-load-row";
+          row.innerHTML = `<span class="evolution-load-label"></span><span class="evolution-load-track"><span class="evolution-load-fill"></span></span><span class="evolution-load-value"></span>`;
+          row.querySelector(".evolution-load-label").textContent = labelText;
+          row.querySelector(".evolution-load-fill").style.width = `${Math.max(0, Math.min(100, pct)).toFixed(1)}%`;
+          row.querySelector(".evolution-load-value").textContent = `${Math.round(pct)} %`;
+          focusHost?.append(row);
+        }
+        if (focusRows.length === 0 && focusHost) {
+          focusHost.innerHTML = '<div class="evolution-empty-chart">Garmin no ha devuelto distribución de carga.</div>';
+        }
+
+        text("evolution-sleep-current", Number.isFinite(latestSleep?.durationSec) ? formatDuration(latestSleep.durationSec) : "");
+        renderEvolutionLine("evolution-sleep-chart", evolutionState.sleepHistory || [], {
+          value: row => Number(row.durationSec) / 3600,
+          axisFormat: value => `${Number(value).toFixed(1).replace(".", ",")} h`,
+          ariaLabel: "Histórico de duración de sueño."
+        });
+
+        const hrvCurrentBits = [];
+        if (Number.isFinite(latestHrv?.lastNightAverageMs)) hrvCurrentBits.push(`${Math.round(latestHrv.lastNightAverageMs)} ms`);
+        if (latestHrv?.status) hrvCurrentBits.push(humanize(latestHrv.status));
+        text("evolution-hrv-current", hrvCurrentBits.join(" · "));
+        renderEvolutionLine("evolution-hrv-chart", evolutionState.hrvHistory || [], {
+          value: row => row.lastNightAverageMs,
+          low: row => row.baseline?.balancedLowMs,
+          high: row => row.baseline?.balancedUpperMs,
+          axisFormat: value => `${Math.round(value)}`,
+          ariaLabel: "Histórico de VFC con banda habitual Garmin."
+        });
+
+        const readinessSnapshot = latestReadiness?.current || latestReadiness?.morning || null;
+        const readinessCurrent = [];
+        if (Number.isFinite(readinessSnapshot?.score)) readinessCurrent.push(String(Math.round(readinessSnapshot.score)));
+        if (readinessSnapshot?.level) readinessCurrent.push(humanize(readinessSnapshot.level));
+        text("evolution-readiness-current", readinessCurrent.join(" · "));
+        renderEvolutionLine("evolution-readiness-chart", evolutionState.readinessHistory || [], {
+          value: row => (row?.morning || row?.current)?.score,
+          axisFormat: value => String(Math.round(value)),
+          ariaLabel: "Histórico de Training Readiness de referencia."
+        });
+
+        const records = supporting.personalRecords || [];
+        const recordsBody = document.getElementById("evolution-records-body");
+        const recordsEmpty = document.getElementById("evolution-records-empty");
+        recordsBody?.replaceChildren();
+        if (recordsEmpty) recordsEmpty.hidden = records.length > 0;
+
+        const sortedRecords = [...records].sort((a, b) => {
+          const aRank = Number(a.typeId) || 999;
+          const bRank = Number(b.typeId) || 999;
+          return aRank - bRank;
+        });
+        for (const record of sortedRecords) {
+          const tr = document.createElement("tr");
+          const nameTd = document.createElement("td");
+          const localActivity = ATLAS.state.data.activities.items.find(item => String(item.remoteId || item.garminActivityId || "") === String(record.remoteActivityId || ""));
+          if (localActivity) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "record-link";
+            button.dataset.evolutionActivity = localActivity.id;
+            button.textContent = formatRecordLabel(record);
+            nameTd.append(button);
+          } else {
+            nameTd.textContent = formatRecordLabel(record);
+          }
+          const valueTd = document.createElement("td");
+          valueTd.textContent = formatRecordValue(record);
+          const dateTd = document.createElement("td");
+          dateTd.textContent = record.observedAt ? evolutionDateLabel(record.observedAt) : "—";
+          tr.append(nameTd, valueTd, dateTd);
+          recordsBody?.append(tr);
+        }
       }
 
       function profile() {
@@ -3296,7 +4025,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.18", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.19", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -3415,11 +4144,43 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.18", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.19", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.18", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.18", status: "supporting-data" });
-    ATLAS.profile = Object.freeze({ version: "0.0.18", status: "garmin-supporting-data" });
+    ATLAS.training = Object.freeze({ version: "0.0.19", status: "domain-pending" });
+    ATLAS.evolution = (() => {
+      let currentView = "overview";
+      let mounted = false;
+
+      function view() { return currentView; }
+
+      function setView(next) {
+        const allowed = new Set(["overview", "performance", "load", "recovery", "records"]);
+        currentView = allowed.has(next) ? next : "overview";
+        ATLAS.state.mark("evolution");
+      }
+
+      function mount() {
+        if (mounted) return;
+        mounted = true;
+        document.addEventListener("click", event => {
+          const viewButton = event.target.closest?.("[data-evolution-view]");
+          if (viewButton) {
+            event.preventDefault();
+            setView(viewButton.dataset.evolutionView);
+            return;
+          }
+          const activityButton = event.target.closest?.("[data-evolution-activity]");
+          if (activityButton) {
+            event.preventDefault();
+            ATLAS.navigation.navigate("activities");
+            ATLAS.activities.open(activityButton.dataset.evolutionActivity);
+          }
+        });
+      }
+
+      return { version: "0.0.19", status: "f3-evolution-experience", mount, view, setView };
+    })();
+    ATLAS.profile = Object.freeze({ version: "0.0.19", status: "garmin-supporting-data" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -3435,7 +4196,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.18"],
+          ["build.version", ATLAS.build.version === "0.0.19"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -3456,6 +4217,11 @@
           ["ux.activity.sharedCursor", typeof ATLAS.charts.renderActivity === "function"],
           ["ux.activity.paceFasterUp", ATLAS.charts.paceDirection === "faster-up"],
           ["ux.activity.masterDetail", Boolean(document.getElementById("activity-layout"))],
+          ["ux.evolution.fourAreas", ["performance","load","recovery","records"].every(id => Boolean(document.querySelector(`[data-evolution-panel="${id}"]`)))],
+          ["ux.evolution.performance", Boolean(document.getElementById("evolution-vo2-chart")) && Boolean(document.getElementById("evolution-threshold-chart"))],
+          ["ux.evolution.load", Boolean(document.getElementById("evolution-load-chart")) && Boolean(document.getElementById("evolution-load-focus"))],
+          ["ux.evolution.recovery", Boolean(document.getElementById("evolution-sleep-chart")) && Boolean(document.getElementById("evolution-hrv-chart")) && Boolean(document.getElementById("evolution-readiness-chart"))],
+          ["ux.evolution.records", Boolean(document.getElementById("evolution-records-body"))],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
