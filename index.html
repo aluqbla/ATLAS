@@ -692,7 +692,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.11",
+      version: "0.0.12",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -704,14 +704,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.11",
+      version: "0.0.12",
       channel: "development",
-      buildId: "atlas-0.0.11-f6.3-fit-deep",
+      buildId: "atlas-0.0.12-f6.3-rr-semantics",
       builtAt: "2026-10-26T12:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 3,
-      workerCompatibility: "0.0.11",
-      bridgeCompatibility: "0.0.11-compatible"
+      workerCompatibility: "0.0.12",
+      bridgeCompatibility: "0.0.12-compatible"
     });
 
     /* =========================================================
@@ -1432,7 +1432,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.11", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.12", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -1786,7 +1786,8 @@
           { label: "Potencia", value: Number.isFinite(deep.coverage?.power) ? deep.coverage.power : null },
           { label: "Dinámicas", value: Number.isFinite(deep.coverage?.dynamics) ? deep.coverage.dynamics : null },
           { label: "Laps FIT", value: Number.isFinite(deep.coverage?.laps) ? deep.coverage.laps : null },
-          { label: "HRV intraworkout", value: Number.isFinite(deep.coverage?.hrvSamples) ? deep.coverage.hrvSamples : null },
+                    { label: "Mensajes HRV FIT", value: Number.isFinite(deep.coverage?.hrvMessages) ? deep.coverage.hrvMessages : null },
+          { label: "Intervalos RR FIT", value: Number.isFinite(deep.coverage?.rrIntervals) ? deep.coverage.rrIntervals : null },
           { label: "Persistencia raw", value: deep.fit?.rawPersisted === false ? "No" : null }
         ] : [];
         detailRows("activity-deep-summary", deepRows);
@@ -1860,7 +1861,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.11", status: "physiology-sync" });
+    ATLAS.today = Object.freeze({ version: "0.0.12", status: "physiology-sync" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -1969,11 +1970,11 @@
         });
       }
 
-      return { version: "0.0.11", status: "normal-detail", mount, open, close };
+      return { version: "0.0.12", status: "normal-detail", mount, open, close };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.11", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.11", status: "physiology-sync" });
-    ATLAS.profile = Object.freeze({ version: "0.0.11", status: "secure-auth" });
+    ATLAS.training = Object.freeze({ version: "0.0.12", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.12", status: "physiology-sync" });
+    ATLAS.profile = Object.freeze({ version: "0.0.12", status: "secure-auth" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -1989,7 +1990,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.11"],
+          ["build.version", ATLAS.build.version === "0.0.12"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -2027,7 +2028,7 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.11" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.12" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
@@ -2068,6 +2069,15 @@
               results.push({ name: "data.activityDeep.fitCrc", pass: latestDeep?.fit?.crcValid === true });
               results.push({ name: "data.activityDeep.downsampled", pass: Array.isArray(latestDeep?.streams?.points) && latestDeep.streams.points.length > 0 && latestDeep.streams.points.length <= 900 });
               results.push({ name: "data.activityDeep.rawNotPersisted", pass: latestDeep?.fit?.rawPersisted === false });
+              results.push({
+                name: "data.activityDeep.rrSemantics",
+                pass:
+                  latestDeep?.semanticVersion === 2 &&
+                  Number.isFinite(latestDeep?.coverage?.hrvMessages) &&
+                  Number.isFinite(latestDeep?.coverage?.rrIntervals) &&
+                  latestDeep.coverage.hrvMessages >= 0 &&
+                  latestDeep.coverage.rrIntervals >= latestDeep.coverage.hrvMessages
+              });
             }
           } catch (error) {
             results.push({ name: "worker.health", pass: false });
