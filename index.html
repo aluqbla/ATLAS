@@ -440,6 +440,146 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
     }
+
+
+    /* =========================================================
+       F7.1 · CANONICAL UX/UI · TODAY
+       ========================================================= */
+    .screen-header--today { align-items: center; margin-bottom: 24px; }
+    .screen-header--today .screen-subtitle { display: none; }
+
+    .today-layout { display: grid; gap: 32px; }
+    .today-status-card {
+      padding: 24px;
+      border-radius: var(--radius-card);
+      background: var(--surface-1);
+      border: 1px solid rgba(44,44,46,.72);
+    }
+    .today-status-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .today-status-conclusion {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.08;
+      font-weight: 700;
+      letter-spacing: -.025em;
+    }
+    .today-status-score-wrap { text-align: right; flex: 0 0 auto; }
+    .today-status-score {
+      font-size: 34px;
+      line-height: .98;
+      font-weight: 700;
+      letter-spacing: -.035em;
+    }
+    .today-status-score-label {
+      margin-top: 7px;
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .today-status-reason {
+      margin: 14px 0 0;
+      max-width: 640px;
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .today-status-signals {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 14px;
+      margin-top: 18px;
+      color: var(--text-tertiary);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .today-columns { display: grid; grid-template-columns: 1fr; gap: 30px; }
+    .today-block { min-width: 0; }
+    .today-block-header {
+      margin: 0 0 12px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .today-primary-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 650;
+      letter-spacing: -.015em;
+    }
+    .today-primary-meta { margin: 7px 0 0; color: var(--text-secondary); font-size: 15px; }
+    .today-primary-detail { margin: 5px 0 0; color: var(--text); font-size: 15px; }
+    .today-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 14px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--atlas-blue-active);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .today-link::after { content: "›"; font-size: 20px; line-height: .8; }
+    .today-link:active { opacity: .68; }
+
+    .today-data-list { border-top: 1px solid var(--divider); }
+    .today-data-row {
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .today-data-label { color: var(--text-secondary); font-size: 14px; }
+    .today-data-value { color: var(--text); font-size: 15px; font-weight: 600; text-align: right; }
+
+    .today-last-activity {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 0;
+      border: 0;
+      border-top: 1px solid var(--divider);
+      border-bottom: 1px solid var(--divider);
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .today-last-activity:active { opacity: .7; }
+    .today-activity-kicker { color: var(--text-secondary); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+    .today-activity-name { margin-top: 4px; font-size: 17px; font-weight: 600; }
+    .today-activity-meta { margin-top: 4px; color: var(--text-secondary); font-size: 14px; }
+    .today-activity-chevron { color: var(--text-tertiary); font-size: 26px; }
+
+    .system-pill[hidden] { display: none !important; }
+
+    @media (min-width: 600px) {
+      .today-status-card { padding: 28px; }
+      .today-columns { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; }
+    }
+
+    @media (min-width: 900px) {
+      .screen-header--today { margin-bottom: 28px; }
+      .today-layout { gap: 36px; }
+      .today-status-card { padding: 30px 32px; }
+      .today-status-conclusion { font-size: 30px; }
+    }
   </style>
 </head>
 <body>
@@ -487,32 +627,50 @@
       <!-- HOY -->
       <section class="screen" data-screen="today">
         <div class="content">
-          <div class="screen-header">
+          <div class="screen-header screen-header--today">
             <div>
               <h1 class="screen-title">Hoy</h1>
               <p class="screen-subtitle">Cómo estás y qué debes hacer hoy.</p>
             </div>
             <div class="system-pill" id="today-system-pill" data-tone="warning"><span class="system-dot"></span><span id="today-system-text">Iniciando</span></div>
           </div>
-          <div class="hero">
-            <p class="eyebrow">Estado ATLAS</p>
-            <h2 class="hero-title" id="today-status-title">Sin datos sincronizados</h2>
-            <p class="hero-copy" id="today-status-copy">ATLAS mostrará primero la información local disponible y sincronizará Garmin después, cuando el Worker esté configurado y autorizado.</p>
-          </div>
-          <div class="grid-2">
-            <section class="panel">
-              <h2 class="panel-title">Entrenamiento de hoy</h2>
-              <p class="panel-copy" id="today-training-copy">Todavía no existe un plan activo.</p>
+
+          <div class="today-layout">
+            <section class="today-status-card" aria-labelledby="today-status-title">
+              <p class="eyebrow">Estado ATLAS</p>
+              <div class="today-status-top">
+                <div>
+                  <h2 class="today-status-conclusion" id="today-status-title">Datos locales</h2>
+                  <p class="today-status-reason" id="today-status-copy">ATLAS mostrará la última información disponible mientras actualiza Garmin en segundo plano.</p>
+                </div>
+                <div class="today-status-score-wrap" id="today-status-score-wrap" hidden>
+                  <div class="today-status-score" id="today-status-score">—</div>
+                  <div class="today-status-score-label">Readiness Garmin</div>
+                </div>
+              </div>
+              <div class="today-status-signals" id="today-status-signals"></div>
             </section>
-            <section class="panel">
-              <h2 class="panel-title">Recuperación</h2>
-              <p class="panel-copy" id="today-recovery-copy">Sin datos locales de sueño, VFC o Training Readiness.</p>
+
+            <div class="today-columns">
+              <section class="today-block" aria-labelledby="today-training-title">
+                <h2 class="today-block-header" id="today-training-title">Entrenamiento de hoy</h2>
+                <div id="today-training-content">
+                  <p class="today-primary-title">Sin entrenamiento previsto</p>
+                  <p class="today-primary-meta">No hay una sesión planificada en ATLAS para hoy.</p>
+                </div>
+              </section>
+
+              <section class="today-block" aria-labelledby="today-recovery-title">
+                <h2 class="today-block-header" id="today-recovery-title">Recuperación</h2>
+                <div class="today-data-list" id="today-recovery-list"></div>
+              </section>
+            </div>
+
+            <section class="today-block" aria-labelledby="today-last-title">
+              <h2 class="today-block-header" id="today-last-title">Última actividad</h2>
+              <div id="today-last-activity"><div class="empty-state"><strong>Sin actividad local</strong>La actividad aparecerá tras una sincronización válida.</div></div>
             </section>
           </div>
-          <section class="section">
-            <h2 class="section-title">Última actividad</h2>
-            <div class="empty-state" id="today-last-activity"><strong>Sin actividad local</strong>La actividad aparecerá tras la primera sincronización válida.</div>
-          </section>
         </div>
       </section>
 
@@ -721,7 +879,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.15",
+      version: "0.0.16",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -733,12 +891,12 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.15",
+      version: "0.0.16",
       channel: "development",
-      buildId: "atlas-0.0.15-f6.6a-wellness-closure",
-      builtAt: "2026-10-26T14:10:00+01:00",
+      buildId: "atlas-0.0.16-f7.1-today-ux",
+      builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
-      dbSchema: 4,
+      dbSchema: 5,
       workerCompatibility: "0.0.15",
       bridgeCompatibility: "0.0.15-compatible"
     });
@@ -1756,7 +1914,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.15", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.16", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -1865,20 +2023,25 @@
 
       function syncStatus() {
         const phase = ATLAS.state.data.session.phase;
+        const sync = ATLAS.state.data.sync.status;
         const pill = document.getElementById("today-system-pill");
+        const updating = sync === "syncing" || sync === "backfilling";
         const mapping = {
           BOOTING: ["Iniciando", "active"],
-          LOCAL_READY: ["Local listo", "success"],
-          REMOTE_CHECKING: ["Comprobando Worker", "active"],
-          READY: ["Garmin conectado", "success"],
-          DEGRADED: ["Modo degradado", "warning"],
-          OFFLINE: ["Sin conexión", "warning"],
+          LOCAL_READY: ["Datos locales", "success"],
+          REMOTE_CHECKING: ["Actualizando", "active"],
+          READY: updating ? ["Actualizando", "active"] : ["Actualizado", "success"],
+          DEGRADED: ["Datos guardados", "warning"],
+          OFFLINE: ["Sin conexión · datos guardados", "warning"],
           FATAL: ["Error crítico", "error"]
         };
         const [label, tone] = mapping[phase] || [phase, "warning"];
         text("today-system-text", label);
-        if (pill) pill.dataset.tone = tone;
-        text("diag-sync", ATLAS.state.data.sync.status);
+        if (pill) {
+          pill.dataset.tone = tone;
+          pill.hidden = phase === "READY" && !updating;
+        }
+        text("diag-sync", sync);
       }
 
       function today() {
@@ -1893,55 +2056,142 @@
         } = ATLAS.state.data.today;
         const plan = ATLAS.state.data.training.activePlan;
 
-        if (dailyState || sleep || hrv || readiness || bodyBattery || trainingStatus) {
-          const parts = [];
-          if (Number.isFinite(readiness?.current?.score)) {
-            parts.push(`Readiness ${Math.round(readiness.current.score)}${readiness.current.level ? ` ${readiness.current.level}` : ""}`);
-          }
-          if (Number.isFinite(hrv?.lastNightAverageMs)) parts.push(`VFC ${Math.round(hrv.lastNightAverageMs)} ms`);
-          if (Number.isFinite(sleep?.durationSec)) parts.push(`sueño ${formatDuration(sleep.durationSec)}`);
-          else if (Number.isFinite(dailyState?.sleep?.durationSec)) parts.push(`sueño ${formatDuration(dailyState.sleep.durationSec)}`);
+        const levelLabels = {
+          EXCELLENT: "Excelente",
+          HIGH: "Alta",
+          GOOD: "Buena",
+          MEDIUM: "Correcta",
+          MODERATE: "Correcta",
+          LOW: "Baja",
+          POOR: "Muy baja"
+        };
+        const readinessSnapshot = readiness?.current || readiness?.morning || null;
+        const readinessScore = Number.isFinite(readinessSnapshot?.score) ? Math.round(readinessSnapshot.score) : null;
+        const readinessLevel = readinessSnapshot?.level ? String(readinessSnapshot.level).toUpperCase() : null;
+        const conclusion = readinessLevel ? (levelLabels[readinessLevel] || humanize(readinessLevel)) : null;
 
-          text("today-status-title", "Garmin sincronizado");
-          text("today-status-copy", parts.length ? parts.join(" · ") : `Estado fisiológico recibido para ${ATLAS.core.localDate()}.`);
+        const statusScoreWrap = document.getElementById("today-status-score-wrap");
+        if (statusScoreWrap) statusScoreWrap.hidden = !Number.isFinite(readinessScore);
+        text("today-status-score", Number.isFinite(readinessScore) ? readinessScore : "—");
+
+        const signals = [];
+        const sleepDuration = Number.isFinite(sleep?.durationSec) ? sleep.durationSec : dailyState?.sleep?.durationSec;
+        if (Number.isFinite(sleepDuration)) signals.push(`Sueño ${formatDuration(sleepDuration)}`);
+        if (Number.isFinite(hrv?.lastNightAverageMs)) signals.push(`VFC ${Math.round(hrv.lastNightAverageMs)} ms`);
+        if (readinessLevel) signals.push(`Readiness ${levelLabels[readinessLevel] || humanize(readinessLevel)}`);
+
+        if (conclusion) {
+          text("today-status-title", conclusion);
+          text("today-status-copy", `Training Readiness Garmin ${Number.isFinite(readinessScore) ? readinessScore : "disponible"}. ATLAS conserva la lectura de recuperación sin inventar una puntuación propia.`);
+        } else if (dailyState || sleep || hrv || bodyBattery || trainingStatus) {
+          text("today-status-title", "Recuperación disponible");
+          text("today-status-copy", "Hay datos locales de recuperación para hoy. ATLAS los presenta sin convertirlos en una puntuación propia.");
         } else if (ATLAS.state.data.session.phase === "READY") {
-          text("today-status-title", "Garmin conectado");
-          text("today-status-copy", "La conexión está activa, pero Garmin no ha devuelto todavía datos fisiológicos para hoy.");
+          text("today-status-title", "Sin estado de recuperación");
+          text("today-status-copy", "Garmin está conectado, pero todavía no hay una lectura de recuperación disponible para hoy.");
         } else {
-          text("today-status-title", "Datos locales disponibles");
-          text("today-status-copy", "ATLAS conserva la última información guardada aunque Garmin no esté disponible.");
+          text("today-status-title", "Datos locales");
+          text("today-status-copy", "ATLAS mantiene visible la última información guardada aunque la conexión remota no esté disponible.");
         }
+        const signalNode = document.getElementById("today-status-signals");
+        if (signalNode) signalNode.textContent = signals.join(" · ");
 
-        const recovery = [];
-        if (Number.isFinite(sleep?.score)) recovery.push(`Sueño ${Math.round(sleep.score)}/100`);
-        if (Number.isFinite(sleep?.durationSec)) recovery.push(formatDuration(sleep.durationSec));
-        if (Number.isFinite(hrv?.lastNightAverageMs)) {
-          recovery.push(`VFC ${Math.round(hrv.lastNightAverageMs)} ms${hrv.status ? ` · ${hrv.status}` : ""}`);
-        }
-        if (Number.isFinite(readiness?.morning?.score)) {
-          recovery.push(`Readiness mañana ${Math.round(readiness.morning.score)}${readiness.morning.level ? ` · ${readiness.morning.level}` : ""}`);
-        }
-        if (Number.isFinite(readiness?.current?.score) && readiness?.current?.timestamp !== readiness?.morning?.timestamp) {
-          recovery.push(`actual ${Math.round(readiness.current.score)}${readiness.current.level ? ` · ${readiness.current.level}` : ""}`);
-        }
-        if (Number.isFinite(readiness?.current?.recoveryTimeMin)) {
-          const minutes = readiness.current.recoveryTimeMin;
-          recovery.push(`recuperación ${minutes >= 60 ? `${Math.round(minutes / 60)} h` : `${Math.round(minutes)} min`}`);
+        const recoveryRows = [];
+        if (Number.isFinite(sleepDuration)) recoveryRows.push(["Sueño", formatDuration(sleepDuration)]);
+        if (Number.isFinite(sleep?.score)) recoveryRows.push(["Puntuación de sueño", `${Math.round(sleep.score)}/100`]);
+        if (Number.isFinite(hrv?.lastNightAverageMs)) recoveryRows.push(["VFC", `${Math.round(hrv.lastNightAverageMs)} ms${hrv.status ? ` · ${humanize(hrv.status)}` : ""}`]);
+        if (Number.isFinite(readinessScore)) recoveryRows.push(["Predisposición", `${conclusion || "—"} · ${readinessScore}`]);
+        if (Number.isFinite(readinessSnapshot?.recoveryTimeMin)) {
+          const minutes = readinessSnapshot.recoveryTimeMin;
+          recoveryRows.push(["Recuperación", minutes >= 60 ? `${Math.round(minutes / 60)} h` : `${Math.round(minutes)} min`]);
         }
         const bbPoints = Array.isArray(bodyBattery?.points) ? bodyBattery.points : [];
         const lastBb = bbPoints.length ? bbPoints[bbPoints.length - 1]?.value : null;
-        if (Number.isFinite(lastBb)) recovery.push(`Body Battery ${Math.round(lastBb)}`);
-        text("today-recovery-copy", recovery.length ? recovery.join(" · ") : "Sin datos locales de sueño, VFC o Training Readiness.");
+        if (Number.isFinite(lastBb)) recoveryRows.push(["Body Battery", `${Math.round(lastBb)}`]);
 
-        text("today-training-copy", plan ? (plan.name || "Plan activo disponible.") : "Todavía no existe un plan activo.");
+        const recoveryList = document.getElementById("today-recovery-list");
+        recoveryList?.replaceChildren();
+        if (recoveryList) {
+          if (!recoveryRows.length) {
+            const empty = document.createElement("div");
+            empty.className = "empty-state";
+            empty.textContent = "Sin datos locales de recuperación para hoy.";
+            recoveryList.append(empty);
+          } else {
+            for (const [labelText, valueText] of recoveryRows) {
+              const row = document.createElement("div");
+              row.className = "today-data-row";
+              const label = document.createElement("span");
+              label.className = "today-data-label";
+              label.textContent = labelText;
+              const value = document.createElement("span");
+              value.className = "today-data-value";
+              value.textContent = valueText;
+              row.append(label, value);
+              recoveryList.append(row);
+            }
+          }
+        }
+
+        const training = document.getElementById("today-training-content");
+        training?.replaceChildren();
+        if (training) {
+          const title = document.createElement("p");
+          title.className = "today-primary-title";
+          const meta = document.createElement("p");
+          meta.className = "today-primary-meta";
+          if (plan) {
+            title.textContent = plan.name || "Plan activo";
+            meta.textContent = "El plan está disponible localmente.";
+            const link = document.createElement("button");
+            link.type = "button";
+            link.className = "today-link";
+            link.dataset.route = "training";
+            link.textContent = "Ver plan";
+            training.append(title, meta, link);
+          } else {
+            title.textContent = "Sin entrenamiento previsto";
+            meta.textContent = "No hay una sesión planificada en ATLAS para hoy.";
+            training.append(title, meta);
+          }
+        }
+
         const container = document.getElementById("today-last-activity");
+        container?.replaceChildren();
         if (container) {
           if (!latestActivity) {
-            container.textContent = "Sin actividades sincronizadas.";
+            const empty = document.createElement("div");
+            empty.className = "empty-state";
+            const strong = document.createElement("strong");
+            strong.textContent = "Sin actividad local";
+            empty.append(strong, document.createTextNode("La actividad aparecerá tras una sincronización válida."));
+            container.append(empty);
           } else {
-            const distance = Number.isFinite(latestActivity.distanceM) ? `${(latestActivity.distanceM / 1000).toFixed(2)} km` : null;
-            const bits = [latestActivity.name || latestActivity.sport || "Actividad", distance, formatDateTime(latestActivity.startTime)].filter(Boolean);
-            container.textContent = bits.join(" · ");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "today-last-activity";
+            button.dataset.route = "activities";
+            button.dataset.activityId = latestActivity.id;
+            const main = document.createElement("span");
+            const kicker = document.createElement("div");
+            kicker.className = "today-activity-kicker";
+            kicker.textContent = humanize(latestActivity.sport || "Actividad");
+            const name = document.createElement("div");
+            name.className = "today-activity-name";
+            name.textContent = latestActivity.name || "Actividad";
+            const distance = formatDistance(latestActivity.distanceM);
+            const duration = formatDurationClock(latestActivity.durationSec);
+            const pace = formatPace(latestActivity.averagePaceSecPerKm);
+            const meta = document.createElement("div");
+            meta.className = "today-activity-meta";
+            meta.textContent = [distance, duration, pace, formatDateTime(latestActivity.startTime)].filter(Boolean).join(" · ");
+            main.append(kicker, name, meta);
+            const chevron = document.createElement("span");
+            chevron.className = "today-activity-chevron";
+            chevron.setAttribute("aria-hidden", "true");
+            chevron.textContent = "›";
+            button.append(main, chevron);
+            container.append(button);
           }
         }
       }
@@ -2239,7 +2489,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.15", status: "physiology-sync" });
+    ATLAS.today = Object.freeze({ version: "0.0.16", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -2348,11 +2598,11 @@
         });
       }
 
-      return { version: "0.0.15", status: "normal-detail", mount, open, close };
+      return { version: "0.0.16", status: "normal-detail", mount, open, close };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.15", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.15", status: "supporting-data" });
-    ATLAS.profile = Object.freeze({ version: "0.0.15", status: "garmin-supporting-data" });
+    ATLAS.training = Object.freeze({ version: "0.0.16", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.16", status: "supporting-data" });
+    ATLAS.profile = Object.freeze({ version: "0.0.16", status: "garmin-supporting-data" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -2368,7 +2618,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.15"],
+          ["build.version", ATLAS.build.version === "0.0.16"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -2377,6 +2627,11 @@
           ["namespace.state", typeof ATLAS.state.dispatch === "function"],
           ["namespace.events", typeof ATLAS.events.emit === "function"],
           ["navigation.default", ATLAS.navigation.current() === "today" || ["activities", "training", "evolution", "profile"].includes(ATLAS.navigation.current())],
+          ["ux.darkMode.only", document.documentElement.querySelector('meta[name="color-scheme"]')?.content === "dark"],
+          ["ux.today.statusCard", Boolean(document.querySelector(".today-status-card"))],
+          ["ux.today.recovery", Boolean(document.getElementById("today-recovery-list"))],
+          ["ux.navigation.mobile", Boolean(document.querySelector(".bottom-nav"))],
+          ["ux.navigation.desktop", Boolean(document.querySelector(".sidebar"))],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
