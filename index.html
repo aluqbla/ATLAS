@@ -598,7 +598,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.7",
+      version: "0.0.8",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -610,9 +610,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.7",
+      version: "0.0.8",
       channel: "development",
-      buildId: "atlas-0.0.7-threshold-history-fallback",
+      buildId: "atlas-0.0.8-f6.1-diagnostic-fix",
       builtAt: "2026-10-26T11:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 3,
@@ -1590,7 +1590,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.6"],
+          ["build.version", ATLAS.build.version === "0.0.8"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -1626,7 +1626,7 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.7" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.8" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
