@@ -365,6 +365,7 @@
       font-size: 12px;
     }
     .activity-row-name {
+      display: block;
       margin-top: 3px;
       overflow: hidden;
       color: var(--text);
@@ -374,6 +375,7 @@
       white-space: nowrap;
     }
     .activity-row-metrics {
+      display: block;
       margin-top: 5px;
       color: var(--text-secondary);
       font-size: 14px;
@@ -1243,7 +1245,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.17",
+      version: "0.0.18",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -1255,9 +1257,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.17",
+      version: "0.0.18",
       channel: "development",
-      buildId: "atlas-0.0.17-f7.1-today-ux",
+      buildId: "atlas-0.0.18-f7.1-today-ux",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -2582,7 +2584,7 @@
         return true;
       }
 
-      return { version: "0.0.17", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.18", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -3294,7 +3296,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.17", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.18", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -3413,11 +3415,11 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.17", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.18", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.17", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.17", status: "supporting-data" });
-    ATLAS.profile = Object.freeze({ version: "0.0.17", status: "garmin-supporting-data" });
+    ATLAS.training = Object.freeze({ version: "0.0.18", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.18", status: "supporting-data" });
+    ATLAS.profile = Object.freeze({ version: "0.0.18", status: "garmin-supporting-data" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -3433,7 +3435,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.17"],
+          ["build.version", ATLAS.build.version === "0.0.18"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -3449,6 +3451,7 @@
           ["ux.navigation.desktop", Boolean(document.querySelector(".sidebar"))],
           ["ux.activity.filters", Boolean(document.getElementById("activity-filters"))],
           ["ux.activity.listRows", Boolean(document.querySelector(".activity-list-pane"))],
+          ["ux.activity.rowHierarchy", getComputedStyle(document.querySelector(".activity-row-name") || document.body).display === "block"],
           ["ux.activity.separateCharts", Boolean(document.getElementById("activity-pace-chart")) && Boolean(document.getElementById("activity-hr-chart")) && Boolean(document.getElementById("activity-power-chart"))],
           ["ux.activity.sharedCursor", typeof ATLAS.charts.renderActivity === "function"],
           ["ux.activity.paceFasterUp", ATLAS.charts.paceDirection === "faster-up"],
