@@ -512,7 +512,13 @@
               <p class="screen-subtitle">Si estás mejorando.</p>
             </div>
           </div>
-          <div class="empty-state"><strong>Sin histórico suficiente</strong>VO₂ máx., umbral, carga y rendimiento se construirán desde históricos normalizados locales, no consultando meses de Garmin en cada visita.</div>
+          <div class="list" id="evolution-summary">
+            <div class="list-row"><span class="list-row__label">VO₂ máx. running</span><span class="list-row__value" id="evolution-vo2">—</span></div>
+            <div class="list-row"><span class="list-row__label">Umbral running</span><span class="list-row__value" id="evolution-threshold">—</span></div>
+            <div class="list-row"><span class="list-row__label">Training Status</span><span class="list-row__value" id="evolution-training-status">—</span></div>
+            <div class="list-row"><span class="list-row__label">Carga aguda / crónica</span><span class="list-row__value" id="evolution-load">—</span></div>
+          </div>
+          <p class="section-copy" style="margin-top:20px">F6.1 muestra el último valor local normalizado. Los gráficos históricos se incorporarán cuando exista suficiente histórico persistido.</p>
         </div>
       </section>
 
@@ -529,7 +535,7 @@
           <section class="section">
             <h2 class="section-title">Sistema</h2>
             <div class="list">
-              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.4</span></div>
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.5</span></div>
               <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
               <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">3</span></div>
               <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
@@ -592,7 +598,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.4",
+      version: "0.0.5",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -604,14 +610,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.4",
+      version: "0.0.5",
       channel: "development",
-      buildId: "atlas-0.0.4-secure-github",
-      builtAt: "2026-10-25T23:55:00+01:00",
+      buildId: "atlas-0.0.5-physiology-sync",
+      builtAt: "2026-10-26T11:15:00+01:00",
       apiVersion: "v1",
       dbSchema: 3,
-      workerCompatibility: "0.0.5",
-      bridgeCompatibility: "0.0.5-compatible"
+      workerCompatibility: "0.0.6",
+      bridgeCompatibility: "0.0.6-compatible"
     });
 
     /* =========================================================
@@ -704,10 +710,18 @@
         navigation: { current: "today" },
         sync: { status: "idle", lastResult: null, lastSuccessfulSync: null, error: null },
         profile: { record: null },
-        today: { dailyState: null, latestActivity: null },
+        today: {
+          dailyState: null,
+          latestActivity: null,
+          sleep: null,
+          hrv: null,
+          bodyBattery: null,
+          readiness: null,
+          trainingStatus: null
+        },
         activities: { items: [], selectedId: null },
         training: { activePlan: null },
-        evolution: { metrics: {} },
+        evolution: { vo2max: null, threshold: null, trainingStatus: null },
         settings: {},
         ui: { toast: null },
         remote: { health: null, capabilities: null }
@@ -749,6 +763,17 @@
           case "REMOTE_CAPABILITIES": state.remote.capabilities = payload; mark("sync", "profile"); break;
           case "PROFILE_LOADED": state.profile.record = payload || null; mark("profile"); break;
           case "DAILY_STATE_LOADED": state.today.dailyState = payload || null; mark("today"); break;
+          case "PHYSIOLOGY_LOADED":
+            state.today.sleep = payload?.sleep || null;
+            state.today.hrv = payload?.hrv || null;
+            state.today.bodyBattery = payload?.bodyBattery || null;
+            state.today.readiness = payload?.readiness || null;
+            state.today.trainingStatus = payload?.trainingStatus || null;
+            state.evolution.vo2max = payload?.vo2max || null;
+            state.evolution.threshold = payload?.threshold || null;
+            state.evolution.trainingStatus = payload?.trainingStatus || null;
+            mark("today", "evolution");
+            break;
           case "ACTIVITIES_LOADED": state.activities.items = Array.isArray(payload) ? payload : []; state.today.latestActivity = state.activities.items[0] || null; mark("activities", "today"); ATLAS.events.emit("data:activities-updated", { count: state.activities.items.length }); break;
           case "PLAN_LOADED": state.training.activePlan = payload || null; mark("training", "today"); break;
           case "TOAST": state.ui.toast = payload || null; mark("toast"); ATLAS.events.emit("ui:toast", payload); break;
@@ -1042,16 +1067,48 @@
     ATLAS.data = (() => {
       async function hydrate() {
         const todayId = ATLAS.core.localDate();
-        const [profile, activities, dailyStates, activePlans] = await Promise.all([
+        const [
+          profile,
+          activities,
+          dailyStates,
+          activePlans,
+          sleeps,
+          hrvRows,
+          bodyBatteryRows,
+          readinessRows,
+          trainingStatusRows,
+          vo2Rows,
+          thresholdRows
+        ] = await Promise.all([
           ATLAS.storage.get("profile", "self"),
           ATLAS.storage.query("activities", { sort: (a, b) => String(b.startTime || "").localeCompare(String(a.startTime || "")), limit: 100 }),
           ATLAS.storage.query("dailyStates", { filter: row => row.date === todayId, limit: 1 }),
-          ATLAS.storage.query("trainingPlans", { filter: row => row.status === "active", limit: 1 })
+          ATLAS.storage.query("trainingPlans", { filter: row => row.status === "active", limit: 1 }),
+          ATLAS.storage.query("sleep", { filter: row => row.date === todayId, limit: 1 }),
+          ATLAS.storage.query("hrv", { filter: row => row.date === todayId, limit: 1 }),
+          ATLAS.storage.query("bodyBattery", { filter: row => row.date === todayId, limit: 1 }),
+          ATLAS.storage.query("trainingReadiness", { filter: row => row.date === todayId, limit: 1 }),
+          ATLAS.storage.query("trainingStatus", { filter: row => row.date === todayId, limit: 1 }),
+          ATLAS.storage.query("vo2max", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")), limit: 1 }),
+          ATLAS.storage.query("thresholds", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")), limit: 1 })
         ]);
+
         ATLAS.state.dispatch({ type: "PROFILE_LOADED", payload: profile });
         ATLAS.state.dispatch({ type: "ACTIVITIES_LOADED", payload: activities });
         ATLAS.state.dispatch({ type: "DAILY_STATE_LOADED", payload: dailyStates[0] || null });
         ATLAS.state.dispatch({ type: "PLAN_LOADED", payload: activePlans[0] || null });
+        ATLAS.state.dispatch({
+          type: "PHYSIOLOGY_LOADED",
+          payload: {
+            sleep: sleeps[0] || null,
+            hrv: hrvRows[0] || null,
+            bodyBattery: bodyBatteryRows[0] || null,
+            readiness: readinessRows[0] || null,
+            trainingStatus: trainingStatusRows[0] || null,
+            vo2max: vo2Rows[0] || null,
+            threshold: thresholdRows[0] || null
+          }
+        });
       }
 
       const activities = {
@@ -1064,10 +1121,29 @@
           return rows[0] || null;
         }
       };
+      const physiology = {
+        getToday: async () => {
+          const date = ATLAS.core.localDate();
+          const [sleep, hrv, bodyBattery, readiness, trainingStatus] = await Promise.all([
+            ATLAS.storage.query("sleep", { filter: row => row.date === date, limit: 1 }),
+            ATLAS.storage.query("hrv", { filter: row => row.date === date, limit: 1 }),
+            ATLAS.storage.query("bodyBattery", { filter: row => row.date === date, limit: 1 }),
+            ATLAS.storage.query("trainingReadiness", { filter: row => row.date === date, limit: 1 }),
+            ATLAS.storage.query("trainingStatus", { filter: row => row.date === date, limit: 1 })
+          ]);
+          return {
+            sleep: sleep[0] || null,
+            hrv: hrv[0] || null,
+            bodyBattery: bodyBattery[0] || null,
+            readiness: readiness[0] || null,
+            trainingStatus: trainingStatus[0] || null
+          };
+        }
+      };
       const profile = { get: () => ATLAS.storage.get("profile", "self") };
       const training = { getState: async () => ({ plan: ATLAS.state.data.training.activePlan }) };
 
-      return { hydrate, activities, dailyStates, profile, training };
+      return { hydrate, activities, dailyStates, physiology, profile, training };
     })();
 
     /* =========================================================
@@ -1116,28 +1192,42 @@
       }
 
       async function readCursors() {
-        const [activities, dailyState] = await Promise.all([
-          ATLAS.storage.get("syncState", "activities"),
-          ATLAS.storage.get("syncState", "dailyState")
-        ]);
-        return {
-          activities: activities || undefined,
-          dailyState: dailyState || undefined
-        };
+        const datasets = [
+          "activities",
+          "dailyState",
+          "sleep",
+          "hrv",
+          "bodyBattery",
+          "readiness",
+          "trainingStatus",
+          "vo2",
+          "threshold"
+        ];
+        const rows = await Promise.all(datasets.map(dataset => ATLAS.storage.get("syncState", dataset)));
+        return Object.fromEntries(datasets.map((dataset, index) => [dataset, rows[index] || undefined]));
       }
 
       async function persistQuickSync(payload) {
         const changes = payload?.changes || {};
         const cursors = payload?.cursors || {};
-        const activities = Array.isArray(changes.activities) ? changes.activities : [];
-        const dailyStates = Array.isArray(changes.dailyStates) ? changes.dailyStates : [];
+        const collections = {
+          activities: Array.isArray(changes.activities) ? changes.activities : [],
+          dailyStates: Array.isArray(changes.dailyStates) ? changes.dailyStates : [],
+          sleep: Array.isArray(changes.sleeps) ? changes.sleeps : [],
+          hrv: Array.isArray(changes.hrv) ? changes.hrv : [],
+          bodyBattery: Array.isArray(changes.bodyBattery) ? changes.bodyBattery : [],
+          trainingReadiness: Array.isArray(changes.trainingReadiness) ? changes.trainingReadiness : [],
+          trainingStatus: Array.isArray(changes.trainingStatuses) ? changes.trainingStatuses : [],
+          vo2max: Array.isArray(changes.vo2max) ? changes.vo2max : [],
+          thresholds: Array.isArray(changes.thresholds) ? changes.thresholds : []
+        };
 
-        await ATLAS.storage.transaction(["activities", "dailyStates", "syncState"], "readwrite", stores => {
-          for (const activity of activities) {
-            if (activity?.id) stores.activities.put(activity);
-          }
-          for (const dailyState of dailyStates) {
-            if (dailyState?.id) stores.dailyStates.put(dailyState);
+        const storeNames = [...Object.keys(collections), "syncState"];
+        await ATLAS.storage.transaction(storeNames, "readwrite", stores => {
+          for (const [storeName, rows] of Object.entries(collections)) {
+            for (const row of rows) {
+              if (row?.id) stores[storeName].put(row);
+            }
           }
           for (const [dataset, cursor] of Object.entries(cursors)) {
             if (cursor && typeof cursor === "object") stores.syncState.put({ id: dataset, ...cursor });
@@ -1145,7 +1235,7 @@
         });
 
         await ATLAS.data.hydrate();
-        return { activities: activities.length, dailyStates: dailyStates.length };
+        return Object.fromEntries(Object.entries(collections).map(([name, rows]) => [name, rows.length]));
       }
 
       async function quick() {
@@ -1155,7 +1245,17 @@
           const response = await ATLAS.api.syncQuick({
             reason: "bootstrap",
             clientDate: ATLAS.core.localDate(),
-            datasets: ["activities", "dailyState"],
+            datasets: [
+              "activities",
+              "dailyState",
+              "sleep",
+              "hrv",
+              "bodyBattery",
+              "readiness",
+              "trainingStatus",
+              "vo2",
+              "threshold"
+            ],
             cursors
           });
 
@@ -1226,7 +1326,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.3", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.5", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -1270,6 +1370,22 @@
           : (value || "");
       }
 
+      function formatDuration(seconds) {
+        if (!Number.isFinite(seconds)) return null;
+        const totalMinutes = Math.round(seconds / 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return hours ? `${hours} h ${String(minutes).padStart(2, "0")} min` : `${minutes} min`;
+      }
+
+      function formatPace(seconds) {
+        if (!Number.isFinite(seconds) || seconds <= 0) return null;
+        const total = Math.round(seconds);
+        const minutes = Math.floor(total / 60);
+        const secs = String(total % 60).padStart(2, "0");
+        return `${minutes}:${secs} /km`;
+      }
+
       function navigation() {
         const current = ATLAS.state.data.navigation.current;
         document.querySelectorAll("[data-screen]").forEach(screen => { screen.hidden = screen.dataset.screen !== current; });
@@ -1299,27 +1415,56 @@
       }
 
       function today() {
-        const { latestActivity, dailyState } = ATLAS.state.data.today;
+        const {
+          latestActivity,
+          dailyState,
+          sleep,
+          hrv,
+          bodyBattery,
+          readiness,
+          trainingStatus
+        } = ATLAS.state.data.today;
         const plan = ATLAS.state.data.training.activePlan;
 
-        if (dailyState) {
+        if (dailyState || sleep || hrv || readiness || bodyBattery || trainingStatus) {
           const parts = [];
-          if (Number.isFinite(dailyState?.steps?.total)) parts.push(`${Math.round(dailyState.steps.total).toLocaleString("es-ES")} pasos`);
-          if (Number.isFinite(dailyState?.heartRate?.resting)) parts.push(`FC reposo ${Math.round(dailyState.heartRate.resting)} ppm`);
-          if (Number.isFinite(dailyState?.sleep?.durationSec)) {
-            const hours = Math.floor(dailyState.sleep.durationSec / 3600);
-            const minutes = Math.round((dailyState.sleep.durationSec % 3600) / 60);
-            parts.push(`sueño ${hours} h ${String(minutes).padStart(2, "0")} min`);
+          if (Number.isFinite(readiness?.current?.score)) {
+            parts.push(`Readiness ${Math.round(readiness.current.score)}${readiness.current.level ? ` ${readiness.current.level}` : ""}`);
           }
+          if (Number.isFinite(hrv?.lastNightAverageMs)) parts.push(`VFC ${Math.round(hrv.lastNightAverageMs)} ms`);
+          if (Number.isFinite(sleep?.durationSec)) parts.push(`sueño ${formatDuration(sleep.durationSec)}`);
+          else if (Number.isFinite(dailyState?.sleep?.durationSec)) parts.push(`sueño ${formatDuration(dailyState.sleep.durationSec)}`);
+
           text("today-status-title", "Garmin sincronizado");
-          text("today-status-copy", parts.length ? parts.join(" · ") : `Estado diario recibido para ${dailyState.date}.`);
+          text("today-status-copy", parts.length ? parts.join(" · ") : `Estado fisiológico recibido para ${ATLAS.core.localDate()}.`);
         } else if (ATLAS.state.data.session.phase === "READY") {
           text("today-status-title", "Garmin conectado");
-          text("today-status-copy", "La conexión está activa, pero Garmin no ha devuelto todavía un estado diario para hoy.");
+          text("today-status-copy", "La conexión está activa, pero Garmin no ha devuelto todavía datos fisiológicos para hoy.");
         } else {
           text("today-status-title", "Datos locales disponibles");
           text("today-status-copy", "ATLAS conserva la última información guardada aunque Garmin no esté disponible.");
         }
+
+        const recovery = [];
+        if (Number.isFinite(sleep?.score)) recovery.push(`Sueño ${Math.round(sleep.score)}/100`);
+        if (Number.isFinite(sleep?.durationSec)) recovery.push(formatDuration(sleep.durationSec));
+        if (Number.isFinite(hrv?.lastNightAverageMs)) {
+          recovery.push(`VFC ${Math.round(hrv.lastNightAverageMs)} ms${hrv.status ? ` · ${hrv.status}` : ""}`);
+        }
+        if (Number.isFinite(readiness?.morning?.score)) {
+          recovery.push(`Readiness mañana ${Math.round(readiness.morning.score)}${readiness.morning.level ? ` · ${readiness.morning.level}` : ""}`);
+        }
+        if (Number.isFinite(readiness?.current?.score) && readiness?.current?.timestamp !== readiness?.morning?.timestamp) {
+          recovery.push(`actual ${Math.round(readiness.current.score)}${readiness.current.level ? ` · ${readiness.current.level}` : ""}`);
+        }
+        if (Number.isFinite(readiness?.current?.recoveryTimeMin)) {
+          const minutes = readiness.current.recoveryTimeMin;
+          recovery.push(`recuperación ${minutes >= 60 ? `${Math.round(minutes / 60)} h` : `${Math.round(minutes)} min`}`);
+        }
+        const bbPoints = Array.isArray(bodyBattery?.points) ? bodyBattery.points : [];
+        const lastBb = bbPoints.length ? bbPoints[bbPoints.length - 1]?.value : null;
+        if (Number.isFinite(lastBb)) recovery.push(`Body Battery ${Math.round(lastBb)}`);
+        text("today-recovery-copy", recovery.length ? recovery.join(" · ") : "Sin datos locales de sueño, VFC o Training Readiness.");
 
         text("today-training-copy", plan ? (plan.name || "Plan activo disponible.") : "Todavía no existe un plan activo.");
         const container = document.getElementById("today-last-activity");
@@ -1358,7 +1503,37 @@
       }
 
       function training() {}
-      function evolution() {}
+
+      function evolution() {
+        const { vo2max, threshold, trainingStatus } = ATLAS.state.data.evolution;
+
+        text("evolution-vo2",
+          Number.isFinite(vo2max?.value)
+            ? `${Number(vo2max.value).toFixed(1).replace(".", ",")} ml/kg/min`
+            : "—"
+        );
+
+        const thresholdBits = [];
+        const pace = formatPace(threshold?.paceSecPerKm);
+        if (pace) thresholdBits.push(pace);
+        if (Number.isFinite(threshold?.heartRate)) thresholdBits.push(`${Math.round(threshold.heartRate)} ppm`);
+        if (Number.isFinite(threshold?.runningFtpW)) thresholdBits.push(`${Math.round(threshold.runningFtpW)} W`);
+        text("evolution-threshold", thresholdBits.join(" · ") || "—");
+
+        const statusBits = [];
+        if (trainingStatus?.feedback) statusBits.push(String(trainingStatus.feedback).replace(/_/g, " "));
+        else if (trainingStatus?.status !== null && trainingStatus?.status !== undefined) statusBits.push(String(trainingStatus.status));
+        if (trainingStatus?.sport) statusBits.push(trainingStatus.sport);
+        text("evolution-training-status", statusBits.join(" · ") || "—");
+
+        const load = trainingStatus?.load;
+        const loadBits = [];
+        if (Number.isFinite(load?.acute)) loadBits.push(`Aguda ${Math.round(load.acute)}`);
+        if (Number.isFinite(load?.chronic)) loadBits.push(`Crónica ${Math.round(load.chronic)}`);
+        if (Number.isFinite(load?.acwr)) loadBits.push(`ACWR ${Number(load.acwr).toFixed(2)}`);
+        if (load?.acwrStatus) loadBits.push(String(load.acwrStatus).replace(/_/g, " "));
+        text("evolution-load", loadBits.join(" · ") || "—");
+      }
 
       function profile() {
         text("diag-atlas-version", ATLAS.build.version);
@@ -1395,11 +1570,11 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.4", status: "quick-sync" });
-    ATLAS.activities = Object.freeze({ version: "0.0.4", status: "quick-sync" });
-    ATLAS.training = Object.freeze({ version: "0.0.4", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.4", status: "foundation" });
-    ATLAS.profile = Object.freeze({ version: "0.0.4", status: "secure-auth" });
+    ATLAS.today = Object.freeze({ version: "0.0.5", status: "physiology-sync" });
+    ATLAS.activities = Object.freeze({ version: "0.0.5", status: "quick-sync" });
+    ATLAS.training = Object.freeze({ version: "0.0.5", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.5", status: "physiology-sync" });
+    ATLAS.profile = Object.freeze({ version: "0.0.5", status: "secure-auth" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -1415,7 +1590,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.4"],
+          ["build.version", ATLAS.build.version === "0.0.5"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -1426,6 +1601,12 @@
           ["navigation.default", ATLAS.navigation.current() === "today" || ["activities", "training", "evolution", "profile"].includes(ATLAS.navigation.current())],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.dailyStates", ATLAS.storage.STORES.includes("dailyStates")],
+          ["storage.store.sleep", ATLAS.storage.STORES.includes("sleep")],
+          ["storage.store.hrv", ATLAS.storage.STORES.includes("hrv")],
+          ["storage.store.trainingReadiness", ATLAS.storage.STORES.includes("trainingReadiness")],
+          ["storage.store.trainingStatus", ATLAS.storage.STORES.includes("trainingStatus")],
+          ["storage.store.vo2max", ATLAS.storage.STORES.includes("vo2max")],
+          ["storage.store.thresholds", ATLAS.storage.STORES.includes("thresholds")],
           ["storage.store.trainingPlans", ATLAS.storage.STORES.includes("trainingPlans")],
           ["storage.store.authSessions", ATLAS.storage.STORES.includes("authSessions")],
           ["worker.url.contract", /^https:\/\//.test(ATLAS.config.workerUrl)],
@@ -1445,7 +1626,7 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.5" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.6" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
@@ -1453,6 +1634,18 @@
             results.push({ name: "garmin.sync.quick", pass: capabilities?.data?.syncQuick === true });
             results.push({ name: "garmin.activities", pass: capabilities?.data?.activities === true });
             results.push({ name: "garmin.dailyState", pass: capabilities?.data?.dailyState === true });
+            results.push({ name: "garmin.sleep", pass: capabilities?.data?.sleep === true });
+            results.push({ name: "garmin.hrv", pass: capabilities?.data?.hrv === true });
+            results.push({ name: "garmin.bodyBattery", pass: capabilities?.data?.bodyBattery === true });
+            results.push({ name: "garmin.trainingReadiness", pass: capabilities?.data?.trainingReadiness === true });
+            results.push({ name: "garmin.trainingStatus", pass: capabilities?.data?.trainingStatus === true });
+            results.push({ name: "garmin.vo2", pass: capabilities?.data?.vo2 === true });
+            results.push({ name: "garmin.threshold", pass: capabilities?.data?.threshold === true });
+
+            const syncDatasets = ATLAS.state.data.sync.lastResult?.datasets || {};
+            for (const dataset of ["activities", "dailyState", "sleep", "hrv", "bodyBattery", "readiness", "trainingStatus", "vo2", "threshold"]) {
+              results.push({ name: `sync.${dataset}`, pass: syncDatasets?.[dataset]?.status === "SUCCESS" });
+            }
           } catch (error) {
             results.push({ name: "worker.health", pass: false });
             recordError(ATLAS.core.safeError(error, "WORKER_SELF_TEST_FAILED"));
