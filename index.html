@@ -629,7 +629,7 @@
           <section class="section">
             <h2 class="section-title">Sistema</h2>
             <div class="list">
-              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.13</span></div>
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.14</span></div>
               <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
               <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">3</span></div>
               <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
@@ -640,6 +640,21 @@
             </div>
           </section>
 
+
+          <section class="section">
+            <h2 class="section-title">Datos Garmin complementarios</h2>
+            <p class="section-copy">Perfil, dispositivo, predicciones, récords, zapatillas y zonas FC normalizados por ATLAS.</p>
+            <div class="list" style="margin-bottom:16px">
+              <div class="list-row"><span class="list-row__label">Perfil Garmin</span><span class="list-row__value" id="support-profile">—</span></div>
+              <div class="list-row"><span class="list-row__label">Dispositivo principal</span><span class="list-row__value" id="support-device">—</span></div>
+              <div class="list-row"><span class="list-row__label">Race Predictions</span><span class="list-row__value" id="support-races">—</span></div>
+              <div class="list-row"><span class="list-row__label">Personal Records</span><span class="list-row__value" id="support-prs">—</span></div>
+              <div class="list-row"><span class="list-row__label">Gear</span><span class="list-row__value" id="support-gear">—</span></div>
+              <div class="list-row"><span class="list-row__label">Zonas FC</span><span class="list-row__value" id="support-zones">—</span></div>
+              <div class="list-row"><span class="list-row__label">Última actualización</span><span class="list-row__value" id="support-sync-status">Pendiente</span></div>
+            </div>
+            <button class="button button--secondary" id="supporting-sync-button" type="button">Actualizar datos Garmin</button>
+          </section>
 
           <section class="section">
             <h2 class="section-title">Histórico Garmin</h2>
@@ -703,7 +718,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.13",
+      version: "0.0.14",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -715,14 +730,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.13",
+      version: "0.0.14",
       channel: "development",
-      buildId: "atlas-0.0.13-f6.4-historical-backfill",
-      builtAt: "2026-10-26T12:45:00+01:00",
+      buildId: "atlas-0.0.14-f6.5-supporting-data",
+      builtAt: "2026-10-26T14:10:00+01:00",
       apiVersion: "v1",
-      dbSchema: 3,
-      workerCompatibility: "0.0.13",
-      bridgeCompatibility: "0.0.12-compatible"
+      dbSchema: 4,
+      workerCompatibility: "0.0.14",
+      bridgeCompatibility: "0.0.14-compatible"
     });
 
     /* =========================================================
@@ -816,7 +831,7 @@
         session: { phase: "BOOTING", error: null, authenticated: false },
         navigation: { current: "today" },
         sync: { status: "idle", lastResult: null, lastSuccessfulSync: null, error: null, deepHistory: { status: "pending", completedBlocks: [], completed: 0, total: 8, targetStart: null, targetEnd: null, lastError: null } },
-        profile: { record: null },
+        profile: { record: null, preferences: null, devices: [], racePredictions: [], personalRecords: [], gear: [], heartRateZones: [], supportingSync: null },
         today: {
           dailyState: null,
           latestActivity: null,
@@ -874,6 +889,16 @@
           case "REMOTE_HEALTH": state.remote.health = payload; mark("sync", "profile"); break;
           case "REMOTE_CAPABILITIES": state.remote.capabilities = payload; mark("sync", "profile"); break;
           case "PROFILE_LOADED": state.profile.record = payload || null; mark("profile"); break;
+          case "SUPPORTING_LOADED":
+            state.profile.preferences = payload?.preferences || null;
+            state.profile.devices = Array.isArray(payload?.devices) ? payload.devices : [];
+            state.profile.racePredictions = Array.isArray(payload?.racePredictions) ? payload.racePredictions : [];
+            state.profile.personalRecords = Array.isArray(payload?.personalRecords) ? payload.personalRecords : [];
+            state.profile.gear = Array.isArray(payload?.gear) ? payload.gear : [];
+            state.profile.heartRateZones = Array.isArray(payload?.heartRateZones) ? payload.heartRateZones : [];
+            state.profile.supportingSync = payload?.supportingSync || null;
+            mark("profile", "evolution");
+            break;
           case "DAILY_STATE_LOADED": state.today.dailyState = payload || null; mark("today"); break;
           case "PHYSIOLOGY_LOADED":
             state.today.sleep = payload?.sleep || null;
@@ -909,11 +934,11 @@
        ========================================================= */
     ATLAS.storage = (() => {
       const DB_NAME = "ATLAS_DB";
-      const DB_VERSION = 3;
+      const DB_VERSION = 4;
       const STORES = Object.freeze([
         "profile", "devices", "activities", "activityDetails", "activityStreams",
         "dailyStates", "wellness", "sleep", "hrv", "heartRate", "trainingStatus", "trainingReadiness",
-        "bodyBattery", "stress", "spo2", "vo2max", "thresholds", "personalRecords",
+        "bodyBattery", "stress", "spo2", "vo2max", "thresholds", "racePredictions", "heartRateZones", "personalRecords",
         "gear", "calendar", "goals", "trainingPlans", "plannedWorkouts", "workouts",
         "reconciliations", "workoutOutcomes", "insights", "recommendations", "planChanges",
         "preferences", "syncState", "sourceMetadata", "authSessions"
@@ -1057,13 +1082,14 @@
       const capabilities = () => request("/capabilities");
       const syncQuick = body => request("/sync/quick", { method: "POST", body: body || {} });
       const syncDeep = body => request("/sync/deep", { method: "POST", body: body || {}, timeoutMs: 60000 });
+      const syncSupporting = body => request("/sync/supporting", { method: "POST", body: body || {}, timeoutMs: 30000 });
       const getDaily = date => request(`/daily/${encodeURIComponent(date)}`);
       const getActivities = () => request("/activities");
       const getActivity = id => request(`/activities/${encodeURIComponent(id)}`);
       const getActivityDeep = id => request(`/activities/${encodeURIComponent(id)}/deep`);
       const publishWorkout = workout => request("/workouts", { method: "POST", body: workout });
 
-      return { ApiError, workerConfigured, url, request, health, login, refreshAuth, capabilities, syncQuick, syncDeep, getDaily, getActivities, getActivity, getActivityDeep, publishWorkout };
+      return { ApiError, workerConfigured, url, request, health, login, refreshAuth, capabilities, syncQuick, syncDeep, syncSupporting, getDaily, getActivities, getActivity, getActivityDeep, publishWorkout };
     })();
 
     /* =========================================================
@@ -1197,7 +1223,14 @@
           readinessRows,
           trainingStatusRows,
           vo2Rows,
-          thresholdRows
+          thresholdRows,
+          preferences,
+          devices,
+          racePredictions,
+          personalRecords,
+          gearRows,
+          heartRateZones,
+          supportingSync
         ] = await Promise.all([
           ATLAS.storage.get("profile", "self"),
           ATLAS.storage.query("activities", { sort: (a, b) => String(b.startTime || "").localeCompare(String(a.startTime || "")), limit: 100 }),
@@ -1209,10 +1242,29 @@
           ATLAS.storage.query("trainingReadiness", { filter: row => row.date === todayId, limit: 1 }),
           ATLAS.storage.query("trainingStatus", { filter: row => row.date === todayId, limit: 1 }),
           ATLAS.storage.query("vo2max", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")), limit: 1 }),
-          ATLAS.storage.query("thresholds", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")), limit: 1 })
+          ATLAS.storage.query("thresholds", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")), limit: 1 }),
+          ATLAS.storage.get("preferences", "garmin"),
+          ATLAS.storage.query("devices", { sort: (a, b) => Number(Boolean(b.primaryTrainingDevice)) - Number(Boolean(a.primaryTrainingDevice)) }),
+          ATLAS.storage.query("racePredictions", { sort: (a, b) => String(b.date || "").localeCompare(String(a.date || "")) }),
+          ATLAS.storage.query("personalRecords"),
+          ATLAS.storage.query("gear", { sort: (a, b) => String(a.name || "").localeCompare(String(b.name || "")) }),
+          ATLAS.storage.query("heartRateZones", { sort: (a, b) => String(a.sport || "").localeCompare(String(b.sport || "")) }),
+          ATLAS.storage.get("syncState", "supporting")
         ]);
 
         ATLAS.state.dispatch({ type: "PROFILE_LOADED", payload: profile });
+        ATLAS.state.dispatch({
+          type: "SUPPORTING_LOADED",
+          payload: {
+            preferences,
+            devices,
+            racePredictions,
+            personalRecords,
+            gear: gearRows,
+            heartRateZones,
+            supportingSync
+          }
+        });
         ATLAS.state.dispatch({ type: "ACTIVITIES_LOADED", payload: activities });
         ATLAS.state.dispatch({ type: "DAILY_STATE_LOADED", payload: dailyStates[0] || null });
         ATLAS.state.dispatch({ type: "PLAN_LOADED", payload: activePlans[0] || null });
@@ -1300,7 +1352,12 @@
             return { status: "ready", syncAvailable: false };
           }
 
-          return quick();
+          const quickResult = await quick();
+          if (capabilities.data?.supportingData) {
+            try { await supporting(false); }
+            catch (error) { ATLAS.diagnostics.recordError(ATLAS.core.safeError(error, "SUPPORTING_SYNC_FAILED")); }
+          }
+          return quickResult;
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "WORKER_UNAVAILABLE");
           if (error?.status === 401 || ["ATLAS_AUTH_REQUIRED", "ATLAS_AUTH_INVALID", "ATLAS_AUTH_EXPIRED"].includes(error?.code)) {
@@ -1420,6 +1477,56 @@
         }
       }
 
+
+
+      const SUPPORTING_TTL_MS = 24 * 60 * 60 * 1000;
+
+      async function persistSupportingSync(payload) {
+        const changes = payload?.changes || {};
+        const collections = {
+          profile: Array.isArray(changes.profile) ? changes.profile : [],
+          preferences: Array.isArray(changes.preferences) ? changes.preferences : [],
+          devices: Array.isArray(changes.devices) ? changes.devices : [],
+          racePredictions: Array.isArray(changes.racePredictions) ? changes.racePredictions : [],
+          personalRecords: Array.isArray(changes.personalRecords) ? changes.personalRecords : [],
+          gear: Array.isArray(changes.gear) ? changes.gear : [],
+          heartRateZones: Array.isArray(changes.heartRateZones) ? changes.heartRateZones : []
+        };
+        const status = payload?.status === "SUCCESS" ? "success" : payload?.status === "PARTIAL_SUCCESS" ? "partial" : "error";
+        const syncRecord = {
+          id: "supporting",
+          status,
+          lastSuccessfulSync: status === "success" || status === "partial" ? ATLAS.core.nowIso() : null,
+          datasets: payload?.datasets || {},
+          warnings: payload?.warnings || [],
+          updatedAt: ATLAS.core.nowIso()
+        };
+        const stores = [...Object.keys(collections), "syncState"];
+        await ATLAS.storage.transaction(stores, "readwrite", objectStores => {
+          for (const [storeName, rows] of Object.entries(collections)) {
+            for (const row of rows) if (row?.id) objectStores[storeName].put(row);
+          }
+          objectStores.syncState.put(syncRecord);
+        });
+        await ATLAS.data.hydrate();
+        return syncRecord;
+      }
+
+      async function supporting(force = false) {
+        const previous = await ATLAS.storage.get("syncState", "supporting");
+        const lastMs = Date.parse(previous?.lastSuccessfulSync || "");
+        if (!force && Number.isFinite(lastMs) && Date.now() - lastMs < SUPPORTING_TTL_MS) return previous;
+
+        const target = historyTarget();
+        const response = await ATLAS.api.syncSupporting({
+          clientDate: ATLAS.core.localDate(),
+          historyStart: target?.startDate || null,
+          historyEnd: target?.endDate || null
+        });
+        const record = await persistSupportingSync(response?.data);
+        if (record.status === "partial") ATLAS.state.dispatch({ type: "TOAST", payload: "Datos Garmin complementarios parcialmente actualizados." });
+        return record;
+      }
 
       const HISTORY_DATASETS = Object.freeze([
         "activities", "sleep", "hrv", "readiness", "trainingStatus", "vo2", "threshold"
@@ -1603,7 +1710,7 @@
       }
 
       function status() { return { ...ATLAS.state.data.sync }; }
-      return { bootstrap, quick, backfillHistory, loadDeepHistoryState, historyTarget, status };
+      return { bootstrap, quick, supporting, backfillHistory, loadDeepHistoryState, historyTarget, status };
     })();
 
     /* =========================================================
@@ -1631,7 +1738,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.13", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.14", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -2038,6 +2145,33 @@
           ? (caps?.syncQuick ? "Autenticado · Sync disponible" : "Autenticado · Sync pendiente")
           : "No disponible");
 
+        const supporting = ATLAS.state.data.profile || {};
+        const prefs = supporting.preferences || {};
+        const profileBits = [supporting.record?.displayName, prefs.preferredLocale, prefs.measurementSystem].filter(Boolean);
+        text("support-profile", profileBits.join(" · ") || "—");
+        const primaryDevice = (supporting.devices || []).find(item => item.primaryTrainingDevice) || supporting.devices?.[0];
+        text("support-device", primaryDevice?.name || "—");
+        const latestRace = supporting.racePredictions?.[0];
+        const raceBits = latestRace?.times ? [
+          Number.isFinite(latestRace.times.fiveKSec) ? `5K ${formatDurationClock(latestRace.times.fiveKSec)}` : null,
+          Number.isFinite(latestRace.times.tenKSec) ? `10K ${formatDurationClock(latestRace.times.tenKSec)}` : null,
+          Number.isFinite(latestRace.times.halfMarathonSec) ? `MM ${formatDurationClock(latestRace.times.halfMarathonSec)}` : null,
+          Number.isFinite(latestRace.times.marathonSec) ? `M ${formatDurationClock(latestRace.times.marathonSec)}` : null
+        ].filter(Boolean) : [];
+        text("support-races", raceBits.join(" · ") || "—");
+        text("support-prs", `${supporting.personalRecords?.length || 0} récords`);
+        const activeGear = (supporting.gear || []).filter(item => String(item.status || "").toUpperCase() !== "RETIRED");
+        text("support-gear", `${activeGear.length} activos · ${supporting.gear?.length || 0} total`);
+        const runningZones = (supporting.heartRateZones || []).find(item => item.sport === "RUNNING");
+        const zoneBits = [];
+        if (Number.isFinite(runningZones?.lactateThresholdHeartRate)) zoneBits.push(`LT ${Math.round(runningZones.lactateThresholdHeartRate)} ppm`);
+        if (Number.isFinite(runningZones?.maxHeartRate)) zoneBits.push(`Máx ${Math.round(runningZones.maxHeartRate)} ppm`);
+        text("support-zones", zoneBits.length ? `RUNNING · ${zoneBits.join(" · ")}` : `${supporting.heartRateZones?.length || 0} perfiles`);
+        const supportSync = supporting.supportingSync;
+        text("support-sync-status", supportSync?.lastSuccessfulSync ? `${supportSync.status} · ${new Date(supportSync.lastSuccessfulSync).toLocaleString("es-ES")}` : "Pendiente");
+        const supportingButton = document.getElementById("supporting-sync-button");
+        if (supportingButton) supportingButton.disabled = !caps?.supportingData;
+
         const history = ATLAS.state.data.sync.deepHistory || {};
         const historyButton = document.getElementById("deep-history-button");
         const completed = Number(history.completed || 0);
@@ -2078,7 +2212,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.13", status: "physiology-sync" });
+    ATLAS.today = Object.freeze({ version: "0.0.14", status: "physiology-sync" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -2187,11 +2321,11 @@
         });
       }
 
-      return { version: "0.0.13", status: "normal-detail", mount, open, close };
+      return { version: "0.0.14", status: "normal-detail", mount, open, close };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.13", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.13", status: "physiology-sync" });
-    ATLAS.profile = Object.freeze({ version: "0.0.13", status: "secure-auth" });
+    ATLAS.training = Object.freeze({ version: "0.0.14", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.14", status: "supporting-data" });
+    ATLAS.profile = Object.freeze({ version: "0.0.14", status: "garmin-supporting-data" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -2207,9 +2341,9 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.13"],
+          ["build.version", ATLAS.build.version === "0.0.14"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
-          ["db.schema", ATLAS.storage.DB_VERSION === 3],
+          ["db.schema", ATLAS.storage.DB_VERSION === 4],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
           ["namespace.api", typeof ATLAS.api.health === "function"],
           ["namespace.sync", typeof ATLAS.sync.bootstrap === "function"],
@@ -2226,6 +2360,8 @@
           ["storage.store.trainingStatus", ATLAS.storage.STORES.includes("trainingStatus")],
           ["storage.store.vo2max", ATLAS.storage.STORES.includes("vo2max")],
           ["storage.store.thresholds", ATLAS.storage.STORES.includes("thresholds")],
+          ["storage.store.racePredictions", ATLAS.storage.STORES.includes("racePredictions")],
+          ["storage.store.heartRateZones", ATLAS.storage.STORES.includes("heartRateZones")],
           ["storage.store.trainingPlans", ATLAS.storage.STORES.includes("trainingPlans")],
           ["storage.store.authSessions", ATLAS.storage.STORES.includes("authSessions")],
           ["worker.url.contract", /^https:\/\//.test(ATLAS.config.workerUrl)],
@@ -2245,13 +2381,20 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.13" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.14" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
             results.push({ name: "garmin.session.encrypted", pass: capabilities?.data?.encryptedSessionPersistence === true });
             results.push({ name: "garmin.sync.quick", pass: capabilities?.data?.syncQuick === true });
             results.push({ name: "garmin.sync.deep", pass: capabilities?.data?.syncDeep === true });
+            results.push({ name: "garmin.sync.supporting", pass: capabilities?.data?.syncSupporting === true });
+            results.push({ name: "garmin.racePredictions", pass: capabilities?.data?.racePredictions === true });
+            results.push({ name: "garmin.personalRecords", pass: capabilities?.data?.personalRecords === true });
+            results.push({ name: "garmin.gear", pass: capabilities?.data?.gear === true });
+            results.push({ name: "garmin.heartRateZones", pass: capabilities?.data?.heartRateZones === true });
+            results.push({ name: "garmin.profileData", pass: capabilities?.data?.profileData === true });
+            results.push({ name: "garmin.devices", pass: capabilities?.data?.devices === true });
             results.push({ name: "garmin.activities", pass: capabilities?.data?.activities === true });
             results.push({ name: "garmin.activityDetail", pass: capabilities?.data?.activityDetail === true });
             results.push({ name: "garmin.activityDeep", pass: capabilities?.data?.activityDeep === true });
@@ -2281,6 +2424,14 @@
               name: "data.activityDetail.strideUnit",
               pass: strideValues.length === 0 || strideValues.every(value => value > 0 && value < 5)
             });
+            const supportingState = await ATLAS.storage.get("syncState", "supporting");
+            if (supportingState) {
+              results.push({ name: "data.supporting.checkpoint", pass: supportingState.status === "success" });
+              for (const dataset of ["profile", "devices", "racePredictions", "personalRecords", "gear", "heartRateZones"]) {
+                results.push({ name: `data.supporting.${dataset}`, pass: supportingState.datasets?.[dataset]?.status === "SUCCESS" });
+              }
+            }
+
             const deepHistory = await ATLAS.storage.get("syncState", "deepHistory");
             if (deepHistory?.completedBlocks?.length || deepHistory?.status === "complete") {
               const target = ATLAS.sync.historyTarget();
@@ -2335,6 +2486,19 @@
       function mount() {
         if (mounted) return;
         mounted = true;
+        document.getElementById("supporting-sync-button")?.addEventListener("click", async () => {
+          const button = document.getElementById("supporting-sync-button");
+          if (button) button.disabled = true;
+          try {
+            await ATLAS.sync.supporting(true);
+            ATLAS.ui.toast("Datos Garmin complementarios actualizados.");
+          } catch (error) {
+            ATLAS.ui.toast("No se pudieron actualizar todos los datos Garmin complementarios.");
+          } finally {
+            ATLAS.render.profile();
+          }
+        });
+
         document.getElementById("deep-history-button")?.addEventListener("click", async () => {
           const button = document.getElementById("deep-history-button");
           if (button) button.disabled = true;
