@@ -275,6 +275,44 @@
     }
     .list-row__label { color: var(--text-secondary); font-size: 14px; }
     .list-row__value { color: var(--text); font-size: 14px; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+    .activity-row-button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      cursor: pointer;
+      text-align: inherit;
+    }
+    .activity-row-button:active { opacity: .72; }
+    .activity-detail-back {
+      border: 0;
+      padding: 6px 0 18px;
+      background: transparent;
+      color: var(--atlas-blue-active);
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .activity-detail-meta { margin: 8px 0 0; color: var(--text-secondary); font-size: 14px; }
+    .activity-detail-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+      padding: 22px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .activity-detail-metric__value { font-size: 24px; line-height: 1.05; font-weight: 700; }
+    .activity-detail-metric__label { margin-top: 5px; color: var(--text-secondary); font-size: 12px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr; gap: 0; border-top: 1px solid var(--divider); }
+    .detail-row { display: flex; justify-content: space-between; gap: 18px; padding: 12px 0; border-bottom: 1px solid var(--divider); }
+    .detail-row__label { color: var(--text-secondary); }
+    .detail-row__value { text-align: right; font-weight: 600; }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .activity-table { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 13px; }
+    .activity-table th, .activity-table td { padding: 10px 8px; border-bottom: 1px solid var(--divider); text-align: right; white-space: nowrap; }
+    .activity-table th:first-child, .activity-table td:first-child { text-align: left; }
+    .activity-table th { color: var(--text-secondary); font-weight: 600; }
+    .activity-detail-loading { padding: 22px 0; color: var(--text-secondary); }
 
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
@@ -481,8 +519,47 @@
               <p class="screen-subtitle">Qué hiciste y cómo salió.</p>
             </div>
           </div>
-          <div class="empty-state" id="activities-empty"><strong>Sin actividades sincronizadas</strong>ATLAS no consulta Garmin al abrir esta pantalla. Aquí se mostrarán los datos normalizados almacenados localmente.</div>
-          <div id="activities-list" class="list" hidden></div>
+          <div id="activities-list-view">
+            <div class="empty-state" id="activities-empty"><strong>Sin actividades sincronizadas</strong>ATLAS no consulta Garmin al abrir esta pantalla. Aquí se mostrarán los datos normalizados almacenados localmente.</div>
+            <div id="activities-list" class="list" hidden></div>
+          </div>
+
+          <div id="activity-detail-view" hidden>
+            <button class="activity-detail-back" id="activity-detail-back" type="button">‹ Actividad</button>
+            <p class="eyebrow" id="activity-detail-sport">Actividad</p>
+            <h2 class="hero-title" id="activity-detail-name">Detalle de actividad</h2>
+            <p class="activity-detail-meta" id="activity-detail-meta"></p>
+
+            <div class="activity-detail-loading" id="activity-detail-loading" hidden>Actualizando detalle Garmin…</div>
+            <div class="empty-state" id="activity-detail-error" hidden><strong>No se ha podido actualizar el detalle</strong><span id="activity-detail-error-copy">Se mantiene cualquier detalle local disponible.</span></div>
+
+            <div class="activity-detail-metrics" id="activity-detail-metrics"></div>
+
+            <section class="section" id="activity-training-effect-section" hidden>
+              <h3 class="section-title">Training Effect</h3>
+              <div class="detail-grid" id="activity-training-effect"></div>
+            </section>
+
+            <section class="section" id="activity-performance-section" hidden>
+              <h3 class="section-title">Rendimiento</h3>
+              <div class="detail-grid" id="activity-performance"></div>
+            </section>
+
+            <section class="section" id="activity-dynamics-section" hidden>
+              <h3 class="section-title">Dinámicas</h3>
+              <div class="detail-grid" id="activity-dynamics"></div>
+            </section>
+
+            <section class="section" id="activity-laps-section" hidden>
+              <h3 class="section-title">Vueltas / intervalos</h3>
+              <div class="table-scroll"><table class="activity-table"><thead><tr><th>#</th><th>Distancia</th><th>Tiempo</th><th>Ritmo</th><th>FC</th><th>Potencia</th></tr></thead><tbody id="activity-laps-body"></tbody></table></div>
+            </section>
+
+            <section class="section" id="activity-workout-section" hidden>
+              <h3 class="section-title">Entrenamiento Garmin</h3>
+              <div class="detail-grid" id="activity-workout"></div>
+            </section>
+          </div>
         </div>
       </section>
 
@@ -535,7 +612,7 @@
           <section class="section">
             <h2 class="section-title">Sistema</h2>
             <div class="list">
-              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.6</span></div>
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.9</span></div>
               <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
               <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">3</span></div>
               <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
@@ -598,7 +675,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.8",
+      version: "0.0.9",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -610,14 +687,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.8",
+      version: "0.0.9",
       channel: "development",
-      buildId: "atlas-0.0.8-f6.1-diagnostic-fix",
+      buildId: "atlas-0.0.9-f6.2-activity-detail",
       builtAt: "2026-10-26T11:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 3,
-      workerCompatibility: "0.0.8",
-      bridgeCompatibility: "0.0.8-compatible"
+      workerCompatibility: "0.0.9",
+      bridgeCompatibility: "0.0.9-compatible"
     });
 
     /* =========================================================
@@ -658,6 +735,7 @@
           ATLAS.state.dispatch({ type: "LOCAL_READY" });
           await ATLAS.data.hydrate();
           ATLAS.navigation.mount();
+          ATLAS.activities.mount();
           ATLAS.render.all();
           ATLAS.diagnostics.mount();
           ATLAS.auth.mount();
@@ -719,7 +797,7 @@
           readiness: null,
           trainingStatus: null
         },
-        activities: { items: [], selectedId: null },
+        activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null },
         training: { activePlan: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null },
         settings: {},
@@ -775,6 +853,10 @@
             mark("today", "evolution");
             break;
           case "ACTIVITIES_LOADED": state.activities.items = Array.isArray(payload) ? payload : []; state.today.latestActivity = state.activities.items[0] || null; mark("activities", "today"); ATLAS.events.emit("data:activities-updated", { count: state.activities.items.length }); break;
+          case "ACTIVITY_DETAIL_LOADING": state.activities.selectedId = payload?.id || state.activities.selectedId; state.activities.detailStatus = "loading"; state.activities.detailError = null; if (payload?.detail) state.activities.detail = payload.detail; mark("activities"); break;
+          case "ACTIVITY_DETAIL_LOADED": state.activities.selectedId = payload?.id || state.activities.selectedId; state.activities.detail = payload?.detail || null; state.activities.detailStatus = "success"; state.activities.detailError = null; mark("activities"); ATLAS.events.emit("data:activity-detail-updated", { id: state.activities.selectedId }); break;
+          case "ACTIVITY_DETAIL_ERROR": state.activities.detailStatus = "error"; state.activities.detailError = payload || null; mark("activities"); break;
+          case "ACTIVITY_DETAIL_CLOSED": state.activities.selectedId = null; state.activities.detail = null; state.activities.detailStatus = "idle"; state.activities.detailError = null; mark("activities"); break;
           case "PLAN_LOADED": state.training.activePlan = payload || null; mark("training", "today"); break;
           case "TOAST": state.ui.toast = payload || null; mark("toast"); ATLAS.events.emit("ui:toast", payload); break;
           default: return false;
@@ -1113,7 +1195,9 @@
 
       const activities = {
         list: () => ATLAS.storage.query("activities", { sort: (a, b) => String(b.startTime || "").localeCompare(String(a.startTime || "")) }),
-        get: id => ATLAS.storage.get("activities", id)
+        get: id => ATLAS.storage.get("activities", id),
+        getDetail: id => ATLAS.storage.get("activityDetails", id),
+        putDetail: detail => ATLAS.storage.put("activityDetails", detail)
       };
       const dailyStates = {
         getToday: async () => {
@@ -1326,7 +1410,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.6", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.9", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -1384,6 +1468,43 @@
         const minutes = Math.floor(total / 60);
         const secs = String(total % 60).padStart(2, "0");
         return `${minutes}:${secs} /km`;
+      }
+
+      function formatDurationClock(seconds) {
+        if (!Number.isFinite(seconds) || seconds < 0) return null;
+        const total = Math.round(seconds);
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const secs = total % 60;
+        return hours ? `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}` : `${minutes}:${String(secs).padStart(2, "0")}`;
+      }
+
+      function formatDistance(meters) {
+        return Number.isFinite(meters) ? `${(meters / 1000).toFixed(2)} km` : null;
+      }
+
+      function humanize(value) {
+        return String(value || "").replace(/_/g, " ").replace(/\b\w/g, char => char.toUpperCase());
+      }
+
+      function detailRows(containerId, rows) {
+        const container = document.getElementById(containerId);
+        if (!container) return 0;
+        container.replaceChildren();
+        const valid = rows.filter(row => row?.value !== null && row?.value !== undefined && row.value !== "");
+        for (const row of valid) {
+          const node = document.createElement("div");
+          node.className = "detail-row";
+          const label = document.createElement("span");
+          label.className = "detail-row__label";
+          label.textContent = row.label;
+          const value = document.createElement("span");
+          value.className = "detail-row__value";
+          value.textContent = String(row.value);
+          node.append(label, value);
+          container.append(node);
+        }
+        return valid.length;
       }
 
       function navigation() {
@@ -1480,26 +1601,140 @@
       }
 
       function activities() {
-        const rows = ATLAS.state.data.activities.items;
+        const state = ATLAS.state.data.activities;
+        const rows = state.items;
+        const listView = document.getElementById("activities-list-view");
+        const detailView = document.getElementById("activity-detail-view");
         const empty = document.getElementById("activities-empty");
         const list = document.getElementById("activities-list");
-        if (!empty || !list) return;
-        empty.hidden = rows.length > 0;
-        list.hidden = rows.length === 0;
-        list.replaceChildren();
-        for (const activity of rows) {
-          const row = document.createElement("div");
-          row.className = "list-row";
-          const label = document.createElement("span");
-          label.className = "list-row__label";
-          label.textContent = activity.name || activity.sport || "Actividad";
-          const value = document.createElement("span");
-          value.className = "list-row__value";
-          const distance = Number.isFinite(activity.distanceM) ? `${(activity.distanceM / 1000).toFixed(2)} km` : null;
-          value.textContent = [distance, formatDateTime(activity.startTime)].filter(Boolean).join(" · ") || "Sin detalle";
-          row.append(label, value);
-          list.append(row);
+        if (!empty || !list || !listView || !detailView) return;
+
+        const detailOpen = Boolean(state.selectedId);
+        listView.hidden = detailOpen;
+        detailView.hidden = !detailOpen;
+
+        if (!detailOpen) {
+          empty.hidden = rows.length > 0;
+          list.hidden = rows.length === 0;
+          list.replaceChildren();
+          for (const activity of rows) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "list-row activity-row-button";
+            button.dataset.activityId = activity.id;
+            button.setAttribute("aria-label", `Abrir ${activity.name || activity.sport || "actividad"}`);
+            const label = document.createElement("span");
+            label.className = "list-row__label";
+            label.textContent = activity.name || activity.sport || "Actividad";
+            const value = document.createElement("span");
+            value.className = "list-row__value";
+            const distance = formatDistance(activity.distanceM);
+            value.textContent = [distance, formatDateTime(activity.startTime)].filter(Boolean).join(" · ") || "Sin detalle";
+            button.append(label, value);
+            list.append(button);
+          }
+          return;
         }
+
+        const summary = rows.find(item => item.id === state.selectedId) || null;
+        const detail = state.detail;
+        text("activity-detail-sport", humanize(detail?.sport || summary?.sport || "Actividad"));
+        text("activity-detail-name", detail?.name || summary?.name || "Actividad");
+        text("activity-detail-meta", formatDateTime(detail?.startTime || summary?.startTime));
+
+        const loading = document.getElementById("activity-detail-loading");
+        const error = document.getElementById("activity-detail-error");
+        if (loading) loading.hidden = state.detailStatus !== "loading";
+        if (error) error.hidden = state.detailStatus !== "error" || Boolean(detail);
+        text("activity-detail-error-copy", state.detailError?.message || "Se mantiene cualquier detalle local disponible.");
+
+        const metrics = document.getElementById("activity-detail-metrics");
+        metrics?.replaceChildren();
+        const metricValues = [
+          [formatDistance(detail?.distanceM ?? summary?.distanceM), "Distancia"],
+          [formatDurationClock(detail?.durationSec ?? summary?.durationSec), "Tiempo"],
+          [formatPace(detail?.pace?.averageSecPerKm ?? summary?.averagePaceSecPerKm), "Ritmo medio"],
+          [Number.isFinite(detail?.heartRate?.average) ? `${Math.round(detail.heartRate.average)} ppm` : (Number.isFinite(summary?.averageHeartRate) ? `${Math.round(summary.averageHeartRate)} ppm` : null), "FC media"]
+        ].filter(([value]) => value);
+        for (const [value, labelText] of metricValues) {
+          const node = document.createElement("div");
+          const valueEl = document.createElement("div");
+          valueEl.className = "activity-detail-metric__value";
+          valueEl.textContent = value;
+          const labelEl = document.createElement("div");
+          labelEl.className = "activity-detail-metric__label";
+          labelEl.textContent = labelText;
+          node.append(valueEl, labelEl);
+          metrics?.append(node);
+        }
+
+        const te = detail?.trainingEffect;
+        const teCount = detailRows("activity-training-effect", [
+          { label: "Beneficio principal", value: te?.label ? humanize(te.label) : null },
+          { label: "Aeróbico", value: Number.isFinite(te?.aerobic) ? Number(te.aerobic).toFixed(1) : null },
+          { label: "Anaeróbico", value: Number.isFinite(te?.anaerobic) ? Number(te.anaerobic).toFixed(1) : null },
+          { label: "Feedback aeróbico", value: te?.aerobicFeedback ? humanize(te.aerobicFeedback) : null },
+          { label: "Carga", value: Number.isFinite(detail?.trainingLoad) ? Math.round(detail.trainingLoad) : null },
+          { label: "Recuperación", value: Number.isFinite(detail?.recoveryTimeMin) ? formatDuration(detail.recoveryTimeMin * 60) : null }
+        ]);
+        const teSection = document.getElementById("activity-training-effect-section");
+        if (teSection) teSection.hidden = teCount === 0;
+
+        const perfCount = detailRows("activity-performance", [
+          { label: "FC máxima", value: Number.isFinite(detail?.heartRate?.max) ? `${Math.round(detail.heartRate.max)} ppm` : null },
+          { label: "Potencia media", value: Number.isFinite(detail?.power?.average) ? `${Math.round(detail.power.average)} W` : null },
+          { label: "Potencia normalizada", value: Number.isFinite(detail?.power?.normalized) ? `${Math.round(detail.power.normalized)} W` : null },
+          { label: "Potencia máxima", value: Number.isFinite(detail?.power?.max) ? `${Math.round(detail.power.max)} W` : null },
+          { label: "Cadencia media", value: Number.isFinite(detail?.cadence?.average) ? `${Math.round(detail.cadence.average)} spm` : null },
+          { label: "Desnivel +", value: Number.isFinite(detail?.elevation?.gainM) ? `${Math.round(detail.elevation.gainM)} m` : null },
+          { label: "Body Battery", value: Number.isFinite(detail?.bodyBatteryDelta) ? `${detail.bodyBatteryDelta > 0 ? "+" : ""}${Math.round(detail.bodyBatteryDelta)}` : null },
+          { label: "Agua estimada", value: Number.isFinite(detail?.estimatedWaterMl) ? `${Math.round(detail.estimatedWaterMl)} ml` : null }
+        ]);
+        const perfSection = document.getElementById("activity-performance-section");
+        if (perfSection) perfSection.hidden = perfCount === 0;
+
+        const dyn = detail?.dynamics;
+        const dynCount = detailRows("activity-dynamics", [
+          { label: "Ground Contact Time", value: Number.isFinite(dyn?.groundContactTimeMs) ? `${Math.round(dyn.groundContactTimeMs)} ms` : null },
+          { label: "GCT Balance", value: Number.isFinite(dyn?.groundContactBalancePct) ? `${Number(dyn.groundContactBalancePct).toFixed(1)} %` : null },
+          { label: "Oscilación vertical", value: Number.isFinite(dyn?.verticalOscillationCm) ? `${Number(dyn.verticalOscillationCm).toFixed(1)} cm` : null },
+          { label: "Vertical Ratio", value: Number.isFinite(dyn?.verticalRatioPct) ? `${Number(dyn.verticalRatioPct).toFixed(1)} %` : null },
+          { label: "Longitud de zancada", value: Number.isFinite(dyn?.strideLengthM) ? `${Number(dyn.strideLengthM).toFixed(2)} m` : null },
+          { label: "Respiración", value: Number.isFinite(detail?.respiration?.averageBrpm) ? `${Number(detail.respiration.averageBrpm).toFixed(1)} rpm` : null }
+        ]);
+        const dynSection = document.getElementById("activity-dynamics-section");
+        if (dynSection) dynSection.hidden = dynCount === 0;
+
+        const laps = Array.isArray(detail?.laps) ? detail.laps : [];
+        const lapsSection = document.getElementById("activity-laps-section");
+        const tbody = document.getElementById("activity-laps-body");
+        tbody?.replaceChildren();
+        for (const lap of laps) {
+          const tr = document.createElement("tr");
+          const cells = [
+            lap.index ?? "—",
+            Number.isFinite(lap.distanceM) ? `${(lap.distanceM / 1000).toFixed(2)} km` : "—",
+            formatDurationClock(lap.durationSec) || "—",
+            formatPace(lap.paceSecPerKm) || "—",
+            Number.isFinite(lap.averageHeartRate) ? `${Math.round(lap.averageHeartRate)}` : "—",
+            Number.isFinite(lap.averagePower) ? `${Math.round(lap.averagePower)} W` : "—"
+          ];
+          cells.forEach(value => { const td = document.createElement("td"); td.textContent = String(value); tr.append(td); });
+          tbody?.append(tr);
+        }
+        if (lapsSection) lapsSection.hidden = laps.length === 0;
+
+        const workout = detail?.workout;
+        const workoutRows = [];
+        if (workout?.workoutId) workoutRows.push({ label: "Workout ID", value: workout.workoutId });
+        if (workout?.name) workoutRows.push({ label: "Entrenamiento", value: workout.name });
+        const executed = Array.isArray(workout?.executed) ? workout.executed : [];
+        if (executed[0]?.name && !workout?.name) workoutRows.push({ label: "Entrenamiento", value: executed[0].name });
+        if (executed[0]?.phrase) workoutRows.push({ label: "Estructura", value: executed[0].phrase });
+        if (Number.isFinite(executed[0]?.stepCount)) workoutRows.push({ label: "Pasos", value: executed[0].stepCount });
+        const workoutCount = detailRows("activity-workout", workoutRows);
+        const workoutSection = document.getElementById("activity-workout-section");
+        if (workoutSection) workoutSection.hidden = workoutCount === 0;
       }
 
       function training() {}
@@ -1570,11 +1805,71 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.6", status: "physiology-sync" });
-    ATLAS.activities = Object.freeze({ version: "0.0.6", status: "quick-sync" });
-    ATLAS.training = Object.freeze({ version: "0.0.6", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.6", status: "physiology-sync" });
-    ATLAS.profile = Object.freeze({ version: "0.0.6", status: "secure-auth" });
+    ATLAS.today = Object.freeze({ version: "0.0.9", status: "physiology-sync" });
+    ATLAS.activities = (() => {
+      const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
+      let mounted = false;
+
+      async function open(id) {
+        const summary = await ATLAS.data.activities.get(id);
+        if (!summary) return;
+
+        const cached = await ATLAS.data.activities.getDetail(id);
+        ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_LOADING", payload: { id, detail: cached || null } });
+
+        const fetchedMs = Date.parse(cached?.fetchedAt || "");
+        if (cached && Number.isFinite(fetchedMs) && Date.now() - fetchedMs < DETAIL_TTL_MS) {
+          ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_LOADED", payload: { id, detail: cached } });
+          return cached;
+        }
+
+        if (!summary.remoteId) {
+          const error = { code: "ACTIVITY_REMOTE_ID_MISSING", message: "La actividad no tiene identificador Garmin remoto." };
+          ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_ERROR", payload: error });
+          return cached || null;
+        }
+
+        try {
+          const response = await ATLAS.api.getActivity(summary.remoteId);
+          const detail = response?.data;
+          if (!detail?.id) throw Object.assign(new Error("Activity detail contract is invalid."), { code: "ACTIVITY_DETAIL_INVALID" });
+          await ATLAS.data.activities.putDetail(detail);
+          ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_LOADED", payload: { id, detail } });
+          if (response?.meta?.partial) ATLAS.state.dispatch({ type: "TOAST", payload: "Detalle parcial: Garmin no devolvió todos los apartados." });
+          return detail;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "ACTIVITY_DETAIL_FAILED");
+          ATLAS.diagnostics.recordError(safe);
+          ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_ERROR", payload: safe });
+          if (cached) ATLAS.state.dispatch({ type: "TOAST", payload: "Mostrando el último detalle guardado." });
+          return cached || null;
+        }
+      }
+
+      function close() { ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_CLOSED" }); }
+
+      function mount() {
+        if (mounted) return;
+        mounted = true;
+        document.addEventListener("click", event => {
+          const activity = event.target.closest?.("[data-activity-id]");
+          if (activity) {
+            event.preventDefault();
+            open(activity.dataset.activityId);
+            return;
+          }
+          if (event.target.closest?.("#activity-detail-back")) {
+            event.preventDefault();
+            close();
+          }
+        });
+      }
+
+      return { version: "0.0.9", status: "normal-detail", mount, open, close };
+    })();
+    ATLAS.training = Object.freeze({ version: "0.0.9", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.9", status: "physiology-sync" });
+    ATLAS.profile = Object.freeze({ version: "0.0.9", status: "secure-auth" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -1590,7 +1885,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.8"],
+          ["build.version", ATLAS.build.version === "0.0.9"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -1600,6 +1895,7 @@
           ["namespace.events", typeof ATLAS.events.emit === "function"],
           ["navigation.default", ATLAS.navigation.current() === "today" || ["activities", "training", "evolution", "profile"].includes(ATLAS.navigation.current())],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
+          ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.dailyStates", ATLAS.storage.STORES.includes("dailyStates")],
           ["storage.store.sleep", ATLAS.storage.STORES.includes("sleep")],
           ["storage.store.hrv", ATLAS.storage.STORES.includes("hrv")],
@@ -1626,13 +1922,14 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.8" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.9" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
             results.push({ name: "garmin.session.encrypted", pass: capabilities?.data?.encryptedSessionPersistence === true });
             results.push({ name: "garmin.sync.quick", pass: capabilities?.data?.syncQuick === true });
             results.push({ name: "garmin.activities", pass: capabilities?.data?.activities === true });
+            results.push({ name: "garmin.activityDetail", pass: capabilities?.data?.activityDetail === true });
             results.push({ name: "garmin.dailyState", pass: capabilities?.data?.dailyState === true });
             results.push({ name: "garmin.sleep", pass: capabilities?.data?.sleep === true });
             results.push({ name: "garmin.hrv", pass: capabilities?.data?.hrv === true });
