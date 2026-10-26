@@ -612,7 +612,7 @@
           <section class="section">
             <h2 class="section-title">Sistema</h2>
             <div class="list">
-              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.9</span></div>
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.10</span></div>
               <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
               <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">3</span></div>
               <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
@@ -675,7 +675,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.9",
+      version: "0.0.10",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -687,14 +687,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.9",
+      version: "0.0.10",
       channel: "development",
-      buildId: "atlas-0.0.9-f6.2-activity-detail",
+      buildId: "atlas-0.0.10-f6.2-activity-detail",
       builtAt: "2026-10-26T11:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 3,
-      workerCompatibility: "0.0.9",
-      bridgeCompatibility: "0.0.9-compatible"
+      workerCompatibility: "0.0.10",
+      bridgeCompatibility: "0.0.10-compatible"
     });
 
     /* =========================================================
@@ -1410,7 +1410,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.9", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.10", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -1805,7 +1805,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.9", status: "physiology-sync" });
+    ATLAS.today = Object.freeze({ version: "0.0.10", status: "physiology-sync" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -1818,7 +1818,18 @@
         ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_LOADING", payload: { id, detail: cached || null } });
 
         const fetchedMs = Date.parse(cached?.fetchedAt || "");
-        if (cached && Number.isFinite(fetchedMs) && Date.now() - fetchedMs < DETAIL_TTL_MS) {
+        const cacheNormalizationCurrent = cached?.normalizationVersion === 2;
+        const cachedStrideLooksInvalid =
+          Number.isFinite(cached?.dynamics?.strideLengthM) &&
+          cached.dynamics.strideLengthM > 10;
+
+        if (
+          cached &&
+          cacheNormalizationCurrent &&
+          !cachedStrideLooksInvalid &&
+          Number.isFinite(fetchedMs) &&
+          Date.now() - fetchedMs < DETAIL_TTL_MS
+        ) {
           ATLAS.state.dispatch({ type: "ACTIVITY_DETAIL_LOADED", payload: { id, detail: cached } });
           return cached;
         }
@@ -1865,11 +1876,11 @@
         });
       }
 
-      return { version: "0.0.9", status: "normal-detail", mount, open, close };
+      return { version: "0.0.10", status: "normal-detail", mount, open, close };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.9", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.9", status: "physiology-sync" });
-    ATLAS.profile = Object.freeze({ version: "0.0.9", status: "secure-auth" });
+    ATLAS.training = Object.freeze({ version: "0.0.10", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.10", status: "physiology-sync" });
+    ATLAS.profile = Object.freeze({ version: "0.0.10", status: "secure-auth" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -1885,7 +1896,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.9"],
+          ["build.version", ATLAS.build.version === "0.0.10"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -1922,7 +1933,7 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.9" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.10" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
@@ -1946,6 +1957,14 @@
             results.push({
               name: "data.threshold.pace",
               pass: Number.isFinite(ATLAS.state.data.evolution.threshold?.paceSecPerKm) && ATLAS.state.data.evolution.threshold.paceSecPerKm > 0
+            });
+            const storedDetails = await ATLAS.storage.query("activityDetails");
+            const strideValues = storedDetails
+              .map(row => row?.dynamics?.strideLengthM)
+              .filter(Number.isFinite);
+            results.push({
+              name: "data.activityDetail.strideUnit",
+              pass: strideValues.length === 0 || strideValues.every(value => value > 0 && value < 5)
             });
           } catch (error) {
             results.push({ name: "worker.health", pass: false });
