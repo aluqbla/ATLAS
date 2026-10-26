@@ -535,7 +535,7 @@
           <section class="section">
             <h2 class="section-title">Sistema</h2>
             <div class="list">
-              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.5</span></div>
+              <div class="list-row"><span class="list-row__label">ATLAS</span><span class="list-row__value" id="diag-atlas-version">0.0.6</span></div>
               <div class="list-row"><span class="list-row__label">API</span><span class="list-row__value" id="diag-api-version">v1</span></div>
               <div class="list-row"><span class="list-row__label">DB</span><span class="list-row__value" id="diag-db-version">3</span></div>
               <div class="list-row"><span class="list-row__label">Worker</span><span class="list-row__value" id="diag-worker">No configurado</span></div>
@@ -598,7 +598,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.5",
+      version: "0.0.6",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -610,14 +610,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.5",
+      version: "0.0.6",
       channel: "development",
-      buildId: "atlas-0.0.5-physiology-sync",
-      builtAt: "2026-10-26T11:15:00+01:00",
+      buildId: "atlas-0.0.6-threshold-pace-fix",
+      builtAt: "2026-10-26T11:30:00+01:00",
       apiVersion: "v1",
       dbSchema: 3,
-      workerCompatibility: "0.0.6",
-      bridgeCompatibility: "0.0.6-compatible"
+      workerCompatibility: "0.0.7",
+      bridgeCompatibility: "0.0.7-compatible"
     });
 
     /* =========================================================
@@ -1326,7 +1326,7 @@
       return { toast };
     })();
 
-    ATLAS.charts = Object.freeze({ version: "0.0.5", status: "foundation" });
+    ATLAS.charts = Object.freeze({ version: "0.0.6", status: "foundation" });
 
     /* =========================================================
        14 · ATLAS NAVIGATION
@@ -1570,11 +1570,11 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.5", status: "physiology-sync" });
-    ATLAS.activities = Object.freeze({ version: "0.0.5", status: "quick-sync" });
-    ATLAS.training = Object.freeze({ version: "0.0.5", status: "domain-pending" });
-    ATLAS.evolution = Object.freeze({ version: "0.0.5", status: "physiology-sync" });
-    ATLAS.profile = Object.freeze({ version: "0.0.5", status: "secure-auth" });
+    ATLAS.today = Object.freeze({ version: "0.0.6", status: "physiology-sync" });
+    ATLAS.activities = Object.freeze({ version: "0.0.6", status: "quick-sync" });
+    ATLAS.training = Object.freeze({ version: "0.0.6", status: "domain-pending" });
+    ATLAS.evolution = Object.freeze({ version: "0.0.6", status: "physiology-sync" });
+    ATLAS.profile = Object.freeze({ version: "0.0.6", status: "secure-auth" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -1590,7 +1590,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.5"],
+          ["build.version", ATLAS.build.version === "0.0.6"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 3],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -1626,7 +1626,7 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.6" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.7" });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
@@ -1646,6 +1646,10 @@
             for (const dataset of ["activities", "dailyState", "sleep", "hrv", "bodyBattery", "readiness", "trainingStatus", "vo2", "threshold"]) {
               results.push({ name: `sync.${dataset}`, pass: syncDatasets?.[dataset]?.status === "SUCCESS" });
             }
+            results.push({
+              name: "data.threshold.pace",
+              pass: Number.isFinite(ATLAS.state.data.evolution.threshold?.paceSecPerKm) && ATLAS.state.data.evolution.threshold.paceSecPerKm > 0
+            });
           } catch (error) {
             results.push({ name: "worker.health", pass: false });
             recordError(ATLAS.core.safeError(error, "WORKER_SELF_TEST_FAILED"));
