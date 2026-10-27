@@ -2109,7 +2109,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.27",
+      version: "0.0.28",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2121,14 +2121,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.27",
+      version: "0.0.28",
       channel: "development",
-      buildId: "atlas-0.0.27-f7.4-gear-final",
+      buildId: "atlas-0.0.28-f7.4-gear-retired-precedence",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
-      workerCompatibility: "0.0.15",
-      bridgeCompatibility: "0.0.19-compatible"
+      workerCompatibility: "0.0.20",
+      bridgeCompatibility: "0.0.20-compatible"
     });
 
     /* =========================================================
@@ -3484,7 +3484,7 @@
         return true;
       }
 
-      return { version: "0.0.27", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.28", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -4395,6 +4395,11 @@
         return Boolean(item?.retiredDate) || status.includes("RETIRED") || status.includes("RETIR");
       }
 
+      function gearIsActive(item) {
+        const status = String(item?.status || "").toUpperCase();
+        return status === "ACTIVE" && !gearIsRetired(item);
+      }
+
       function renderGearList(hostId, rows) {
         const host = document.getElementById(hostId);
         if (!host) return;
@@ -4467,11 +4472,12 @@
         const displayName = record.fullName || record.displayName || "Deportista";
 
         const allGear = supporting.gear || [];
-        const activeGear = allGear.filter(item => !gearIsRetired(item));
+        const activeGear = allGear.filter(gearIsActive);
         const retiredGear = allGear.filter(gearIsRetired);
+        const unknownGear = allGear.filter(item => !gearIsActive(item) && !gearIsRetired(item));
 
         text("profile-overview-athlete", displayName);
-        text("profile-overview-equipment", `${activeGear.length} activas`);
+        text("profile-overview-equipment", unknownGear.length ? `${activeGear.length} activas · ${unknownGear.length} sin clasificar` : `${activeGear.length} activas`);
         text("profile-overview-garmin", caps?.garminPrivate ? "Conectado" : "No conectado");
 
         text("profile-athlete-name", displayName);
@@ -4620,7 +4626,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.27", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.28", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -4739,9 +4745,9 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.27", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.28", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.27", status: "domain-pending" });
+    ATLAS.training = Object.freeze({ version: "0.0.28", status: "domain-pending" });
     ATLAS.evolution = (() => {
       let currentView = "overview";
       let mounted = false;
@@ -4773,7 +4779,7 @@
         });
       }
 
-      return { version: "0.0.27", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.28", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -4801,7 +4807,7 @@
         });
       }
 
-      return { version: "0.0.27", status: "f3-profile-equipment-settings", mount, view, setView };
+      return { version: "0.0.28", status: "f3-profile-equipment-settings", mount, view, setView };
     })();
 
     /* =========================================================
@@ -4818,7 +4824,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.27"],
+          ["build.version", ATLAS.build.version === "0.0.28"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -4889,7 +4895,7 @@
         if (ATLAS.api.workerConfigured()) {
           try {
             const [health, capabilities] = await Promise.all([ATLAS.api.health(), ATLAS.api.capabilities()]);
-            results.push({ name: "worker.health", pass: health?.data?.workerVersion === "0.0.15" });
+            results.push({ name: "worker.health", pass: health?.data?.workerVersion === ATLAS.build.workerCompatibility });
             results.push({ name: "worker.api.v1", pass: health?.data?.apiVersion === "v1" });
             results.push({ name: "atlas.auth.token", pass: Boolean(await ATLAS.auth.token()) });
             results.push({ name: "garmin.authenticated", pass: capabilities?.data?.garminPrivate === true });
