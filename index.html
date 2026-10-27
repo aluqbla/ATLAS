@@ -197,6 +197,69 @@
     .system-pill[data-tone="error"] .system-dot { background: var(--red); }
     .system-pill[data-tone="active"] .system-dot { background: var(--atlas-blue); }
 
+
+    .system-banner {
+      width: min(100%, var(--content-standard));
+      margin: 0 auto 22px;
+      padding: 12px 14px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: 10px 12px;
+      align-items: center;
+      border: 1px solid var(--divider);
+      border-radius: var(--radius-control);
+      background: var(--surface-1);
+    }
+    .system-banner__dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+    }
+    .system-banner[data-tone="warning"] .system-banner__dot { background: var(--yellow); }
+    .system-banner[data-tone="error"] .system-banner__dot { background: var(--red); }
+    .system-banner[data-tone="active"] .system-banner__dot { background: var(--atlas-blue); }
+    .system-banner__title {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 650;
+    }
+    .system-banner__copy {
+      grid-column: 2 / 4;
+      margin-top: -4px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .system-banner__action {
+      min-height: 36px;
+      padding: 0 12px;
+      border: 1px solid var(--divider);
+      border-radius: var(--radius-control);
+      background: var(--surface-2);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+    .system-banner__action:disabled { opacity: .45; cursor: default; }
+
+    [data-external-action]:disabled {
+      opacity: .45;
+      cursor: default;
+    }
+
+    @media (max-width: 599px) {
+      .system-banner {
+        grid-template-columns: auto minmax(0, 1fr);
+      }
+      .system-banner__action {
+        grid-column: 2;
+        justify-self: start;
+      }
+      .system-banner__copy { grid-column: 2; }
+    }
+
     .hero {
       padding: 24px;
       border-radius: var(--radius-card);
@@ -249,7 +312,7 @@
     .metric-label { margin-top: 5px; color: var(--text-secondary); font-size: 12px; font-weight: 600; }
 
     .button {
-      min-height: 44px;
+      min-height: 48px;
       padding: 0 16px;
       border: 0;
       border-radius: var(--radius-control);
@@ -1378,6 +1441,13 @@
     </header>
 
     <main class="main" id="main-content">
+      <div class="system-banner" id="global-system-banner" data-tone="warning" role="status" aria-live="polite" hidden>
+        <span class="system-banner__dot" aria-hidden="true"></span>
+        <div class="system-banner__title" id="global-system-title">Estado del sistema</div>
+        <button class="system-banner__action" id="global-system-retry" type="button">Reintentar</button>
+        <div class="system-banner__copy" id="global-system-copy"></div>
+      </div>
+
       <!-- HOY -->
       <section class="screen" data-screen="today">
         <div class="content">
@@ -1543,7 +1613,7 @@
                   <h3 class="section-title">Datos detallados</h3>
                   <p class="section-copy">Las series de alta resolución se cargan desde FIT sólo cuando las solicitas.</p>
                   <div class="deep-analysis-actions">
-                    <button class="deep-analysis-button" id="activity-deep-button" type="button">Analizar FIT</button>
+                    <button class="deep-analysis-button" id="activity-deep-button" type="button" data-external-action="fit">Analizar FIT</button>
                     <span class="deep-analysis-status" id="activity-deep-status">No analizado</span>
                   </div>
                   <div class="empty-state" id="activity-deep-error" hidden>
@@ -1571,10 +1641,9 @@
               <p class="screen-subtitle">Qué debes entrenar.</p>
             </div>
           </div>
-          <div class="hero">
-            <p class="eyebrow">Training Engine</p>
-            <h2 class="hero-title">Pendiente de implementación deportiva</h2>
-            <p class="hero-copy">La foundation prepara el dominio, persistencia y UI. Las reglas canónicas del Training Engine se incorporarán de forma modular y determinista en fases posteriores.</p>
+          <div class="empty-state plan-empty-state">
+            <strong>Aún no hay un plan de entrenamiento</strong>
+            Cuando exista un objetivo y un plan, aquí verás la semana de entrenamiento con la misma información en móvil, tablet y escritorio.
           </div>
         </div>
       </section>
@@ -1992,7 +2061,7 @@
                 <div class="list-row"><span class="list-row__label">Fitness Age</span><span class="list-row__value" id="support-fitness-age">—</span></div>
                 <div class="list-row"><span class="list-row__label">Última actualización</span><span class="list-row__value" id="support-sync-status">Pendiente</span></div>
               </div>
-              <button class="button button--secondary" id="supporting-sync-button" type="button">Actualizar datos Garmin</button>
+              <button class="button button--secondary" id="supporting-sync-button" type="button" data-external-action="garmin-sync">Actualizar datos Garmin</button>
             </section>
 
             <section class="section">
@@ -2003,7 +2072,7 @@
                 <div class="list-row"><span class="list-row__label">Cobertura</span><span class="list-row__value" id="deep-history-range">—</span></div>
                 <div class="list-row"><span class="list-row__label">Registros diarios</span><span class="list-row__value" id="deep-history-counts">—</span></div>
               </div>
-              <button class="button button--secondary" id="deep-history-button" type="button">Importar histórico base (8 semanas)</button>
+              <button class="button button--secondary" id="deep-history-button" type="button" data-external-action="deep-sync">Importar histórico base (8 semanas)</button>
             </section>
           </section>
 
@@ -2115,7 +2184,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.29",
+      version: "0.0.30",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2127,10 +2196,10 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.29",
+      version: "0.0.30",
       channel: "development",
-      buildId: "atlas-0.0.29-f7.4-gear-empty-guard",
-      builtAt: "2026-10-26T19:45:00+01:00",
+      buildId: "atlas-0.0.30-f7.5-ux-system-acceptance",
+      builtAt: "2026-10-27T14:15:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
       workerCompatibility: "0.0.20",
@@ -3504,7 +3573,7 @@
         return true;
       }
 
-      return { version: "0.0.29", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.30", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -3669,6 +3738,76 @@
           pill.dataset.tone = tone;
           pill.hidden = phase === "READY" && !updating;
         }
+
+        const banner = document.getElementById("global-system-banner");
+        const retry = document.getElementById("global-system-retry");
+        let bannerState = null;
+
+        if (phase === "OFFLINE") {
+          bannerState = {
+            tone: "warning",
+            title: "Sin conexión · mostrando datos guardados",
+            copy: "Puedes seguir navegando por la información persistida. Las operaciones con Garmin se reactivarán al recuperar Internet.",
+            retry: false
+          };
+        } else if (phase === "DEGRADED") {
+          bannerState = {
+            tone: "warning",
+            title: "Garmin no está disponible · mostrando datos guardados",
+            copy: "ATLAS mantiene la información local. Puedes seguir navegando y reintentar la actualización cuando quieras.",
+            retry: navigator.onLine
+          };
+        } else if (sync === "partial_success") {
+          bannerState = {
+            tone: "warning",
+            title: "Actualización parcial",
+            copy: "Algunos datos no se han podido actualizar. ATLAS mantiene el resto de la información y los últimos datos guardados.",
+            retry: navigator.onLine
+          };
+        } else if (phase === "FATAL") {
+          bannerState = {
+            tone: "error",
+            title: "Error local crítico",
+            copy: "ATLAS no ha podido completar el arranque local. Consulta Diagnóstico antes de volver a sincronizar.",
+            retry: false
+          };
+        }
+
+        if (banner) {
+          banner.hidden = !bannerState;
+          if (bannerState) {
+            banner.dataset.tone = bannerState.tone;
+            text("global-system-title", bannerState.title);
+            text("global-system-copy", bannerState.copy);
+          }
+        }
+        if (retry) {
+          retry.hidden = !bannerState?.retry;
+          retry.disabled = !bannerState?.retry;
+        }
+
+        const remoteBlocked =
+          !navigator.onLine ||
+          phase === "OFFLINE" ||
+          phase === "FATAL";
+
+        document.querySelectorAll("[data-external-action]").forEach(control => {
+          const capabilityBlocked =
+            control.dataset.externalAction === "fit"
+              ? ATLAS.state.data.remote.capabilities?.fit !== true
+              : control.dataset.externalAction === "deep-sync"
+                ? ATLAS.state.data.remote.capabilities?.syncDeep !== true
+                : ATLAS.state.data.remote.capabilities?.supportingData !== true;
+          const busy = control.dataset.busy === "true";
+          control.disabled = remoteBlocked || capabilityBlocked || busy;
+          control.setAttribute("aria-disabled", String(control.disabled));
+          if (remoteBlocked) {
+            control.title = "No disponible sin conexión. Los datos locales siguen accesibles.";
+          } else if (control.title === "No disponible sin conexión. Los datos locales siguen accesibles.") {
+            control.removeAttribute("title");
+          }
+        });
+
         text("diag-sync", sync);
       }
 
@@ -4047,7 +4186,8 @@
         const deepError = document.getElementById("activity-deep-error");
         const fitDisclosure = document.getElementById("activity-fit-disclosure");
         if (deepButton) {
-          deepButton.disabled = state.deepStatus === "loading";
+          deepButton.dataset.busy = state.deepStatus === "loading" ? "true" : "false";
+          deepButton.disabled = state.deepStatus === "loading" || !navigator.onLine || ATLAS.state.data.remote.capabilities?.fit !== true;
           deepButton.textContent = deep ? "Actualizar datos FIT" : "Cargar datos FIT";
         }
         if (deepStatus) {
@@ -4566,7 +4706,7 @@
         text("support-sync-status", supportSync?.lastSuccessfulSync ? `${supportSync.status} · ${new Date(supportSync.lastSuccessfulSync).toLocaleString("es-ES")}` : "Pendiente");
 
         const supportingButton = document.getElementById("supporting-sync-button");
-        if (supportingButton) supportingButton.disabled = !caps?.supportingData;
+        if (supportingButton) supportingButton.disabled = !caps?.supportingData || !navigator.onLine || ATLAS.state.data.session.phase === "OFFLINE";
 
         const history = sync.deepHistory || {};
         const historyButton = document.getElementById("deep-history-button");
@@ -4596,7 +4736,7 @@
 
         if (historyButton) {
           historyButton.dataset.forceRebuild = dailyHistorySparse ? "true" : "false";
-          historyButton.disabled = history.status === "syncing" || !caps?.syncDeep || (history.status === "complete" && !dailyHistorySparse);
+          historyButton.disabled = history.status === "syncing" || !caps?.syncDeep || !navigator.onLine || ATLAS.state.data.session.phase === "OFFLINE" || (history.status === "complete" && !dailyHistorySparse);
           historyButton.textContent = dailyHistorySparse
             ? "Reconstruir histórico base (8 semanas)"
             : history.status === "complete"
@@ -4649,7 +4789,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.29", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.30", status: "f7-ux-accepted-candidate" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -4768,9 +4908,9 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.29", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.30", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.29", status: "domain-pending" });
+    ATLAS.training = Object.freeze({ version: "0.0.30", status: "domain-pending" });
     ATLAS.evolution = (() => {
       let currentView = "overview";
       let mounted = false;
@@ -4802,7 +4942,7 @@
         });
       }
 
-      return { version: "0.0.29", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.30", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -4830,7 +4970,7 @@
         });
       }
 
-      return { version: "0.0.29", status: "f3-profile-equipment-settings", mount, view, setView };
+      return { version: "0.0.30", status: "f7-profile-accepted-candidate", mount, view, setView };
     })();
 
     /* =========================================================
@@ -4847,7 +4987,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.29"],
+          ["build.version", ATLAS.build.version === "0.0.30"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -4885,6 +5025,27 @@
           ["ux.profile.garminSimple", Boolean(document.getElementById("profile-garmin-connected")) && Boolean(document.getElementById("profile-garmin-device"))],
           ["ux.profile.settings", Boolean(document.querySelector('[data-profile-panel="settings"]')) && Boolean(document.querySelector('[data-profile-panel="privacy"]'))],
           ["ux.profile.technicalIsolated", !String(document.querySelector('[data-profile-panel="overview"]')?.textContent || "").includes("Private API") && Boolean(document.querySelector('[data-profile-panel="diagnostics"]'))],
+          ["ux.responsive.breakpoints", [...document.styleSheets].some(sheet => {
+            try {
+              const css = [...sheet.cssRules].map(rule => String(rule.cssText || "")).join("\n");
+              return css.includes("(min-width: 600px)") &&
+                     css.includes("(min-width: 900px)") &&
+                     css.includes("(min-width: 1200px)");
+            } catch { return false; }
+          })],
+          ["ux.responsive.maxWidths", getComputedStyle(document.documentElement).getPropertyValue("--content-reading").trim() === "720px" &&
+                                      getComputedStyle(document.documentElement).getPropertyValue("--content-standard").trim() === "960px" &&
+                                      getComputedStyle(document.documentElement).getPropertyValue("--content-data").trim() === "1280px"],
+          ["ux.responsive.safeAreas", [...document.styleSheets].some(sheet => {
+            try { return [...sheet.cssRules].map(rule => String(rule.cssText || "")).join("\n").includes("safe-area-inset"); }
+            catch { return false; }
+          })],
+          ["ux.system.globalFeedback", Boolean(document.getElementById("global-system-banner")) && Boolean(document.getElementById("global-system-retry"))],
+          ["ux.system.offlineExternalGuard", [...document.querySelectorAll("[data-external-action]")].length >= 3],
+          ["ux.system.partialDegradation", Boolean(document.getElementById("global-system-copy"))],
+          ["ux.plan.productLanguage", !String(document.querySelector('[data-screen="training"]')?.textContent || "").includes("Training Engine") &&
+                                      !String(document.querySelector('[data-screen="training"]')?.textContent || "").includes("foundation")],
+          ["ux.controls.primary48", parseFloat(getComputedStyle(document.querySelector(".button") || document.body).minHeight || "0") >= 48],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
@@ -5075,6 +5236,17 @@
       function mount() {
         if (mounted) return;
         mounted = true;
+        document.getElementById("global-system-retry")?.addEventListener("click", async () => {
+          const button = document.getElementById("global-system-retry");
+          if (!navigator.onLine || button?.disabled) return;
+          button.disabled = true;
+          try {
+            await ATLAS.sync.bootstrap();
+          } finally {
+            ATLAS.state.mark("sync", "profile", "activities");
+          }
+        });
+
         document.getElementById("supporting-sync-button")?.addEventListener("click", async () => {
           const button = document.getElementById("supporting-sync-button");
           if (button) button.disabled = true;
