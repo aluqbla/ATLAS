@@ -2418,9 +2418,11 @@
 
             <div class="diagnostic-actions">
               <button class="button button--secondary" id="run-self-test" type="button">Ejecutar self-test</button>
+              <button class="button button--secondary" id="pr-diagnostic-button" type="button">Inspeccionar Personal Records</button>
               <button class="button button--secondary" id="atlas-logout" type="button">Cerrar sesión ATLAS</button>
             </div>
             <div class="diagnostics-output" id="diagnostics-output" aria-live="polite">Sin ejecutar.</div>
+            <pre class="diagnostics-output" id="pr-diagnostic-output" aria-live="polite" hidden></pre>
           </section>
 
           <section class="profile-panel" data-profile-panel="about" hidden>
@@ -2480,7 +2482,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.33",
+      version: "0.0.34",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2492,14 +2494,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.33",
+      version: "0.0.34",
       channel: "development",
-      buildId: "atlas-0.0.33-f8.2-pr-date-fix",
+      buildId: "atlas-0.0.34-f8.2-pr-diagnostic",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
-      workerCompatibility: "0.0.22",
-      bridgeCompatibility: "0.0.22-compatible"
+      workerCompatibility: "0.0.23",
+      bridgeCompatibility: "0.0.23-compatible"
     });
 
     /* =========================================================
@@ -3685,9 +3687,10 @@
       const getActivities = () => request("/activities");
       const getActivity = id => request(`/activities/${encodeURIComponent(id)}`);
       const getActivityDeep = id => request(`/activities/${encodeURIComponent(id)}/deep`);
+      const getPersonalRecordsDiagnostic = () => request("/diagnostics/personal-records", { timeoutMs: 30000 });
       const publishWorkout = workout => request("/workouts", { method: "POST", body: workout });
 
-      return { ApiError, workerConfigured, url, request, health, login, refreshAuth, capabilities, syncQuick, syncDeep, syncSupporting, getDaily, getActivities, getActivity, getActivityDeep, publishWorkout };
+      return { ApiError, workerConfigured, url, request, health, login, refreshAuth, capabilities, syncQuick, syncDeep, syncSupporting, getDaily, getActivities, getActivity, getActivityDeep, getPersonalRecordsDiagnostic, publishWorkout };
     })();
 
     /* =========================================================
@@ -4696,7 +4699,7 @@
         return true;
       }
 
-      return { version: "0.0.33", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.34", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -6096,7 +6099,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.33", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.34", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -6215,7 +6218,7 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.33", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.34", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
       const PR_DISTANCE_BY_TYPE = Object.freeze({
@@ -6442,7 +6445,7 @@
       }
 
       return Object.freeze({
-        version: "0.0.33",
+        version: "0.0.34",
         status: "f8.2-current-ability",
         normalizeActivity,
         normalizePersonalRecordEvidence,
@@ -6483,7 +6486,7 @@
         });
       }
 
-      return { version: "0.0.33", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.34", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -6511,7 +6514,7 @@
         });
       }
 
-      return { version: "0.0.33", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.34", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -6528,7 +6531,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.33"],
+          ["build.version", ATLAS.build.version === "0.0.34"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -6835,6 +6838,26 @@
             ATLAS.ui.toast(error?.code === "GARMIN_RATE_LIMITED" ? "Garmin ha limitado temporalmente el histórico. Puedes reanudarlo." : "No se pudo completar el histórico. Puedes reanudarlo.");
           } finally {
             ATLAS.render.profile();
+          }
+        });
+
+        document.getElementById("pr-diagnostic-button")?.addEventListener("click", async () => {
+          const button = document.getElementById("pr-diagnostic-button");
+          const output = document.getElementById("pr-diagnostic-output");
+          if (!output) return;
+          button.disabled = true;
+          output.hidden = false;
+          output.textContent = "Consultando Personal Records Garmin…";
+          try {
+            const response = await ATLAS.api.getPersonalRecordsDiagnostic();
+            const rows = response?.data?.rows || [];
+            output.textContent = rows.length
+              ? rows.map((row, index) => `${index + 1}. ${JSON.stringify(row)}`).join("\n\n")
+              : "Garmin no devolvió Personal Records running.";
+          } catch (error) {
+            output.textContent = `ERROR ${error.code || "UNKNOWN"}: ${error.message || "No se pudo inspeccionar Personal Records."}`;
+          } finally {
+            button.disabled = false;
           }
         });
 
