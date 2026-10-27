@@ -1666,7 +1666,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.20",
+      version: "0.0.21",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -1678,9 +1678,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.20",
+      version: "0.0.21",
       channel: "development",
-      buildId: "atlas-0.0.20-f7.1-today-ux",
+      buildId: "atlas-0.0.21-f7.1-today-ux",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -3033,7 +3033,7 @@
         return true;
       }
 
-      return { version: "0.0.20", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.21", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -4049,7 +4049,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.20", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.21", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -4168,9 +4168,9 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.20", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.21", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.20", status: "domain-pending" });
+    ATLAS.training = Object.freeze({ version: "0.0.21", status: "domain-pending" });
     ATLAS.evolution = (() => {
       let currentView = "overview";
       let mounted = false;
@@ -4202,9 +4202,9 @@
         });
       }
 
-      return { version: "0.0.20", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.21", status: "f3-evolution-experience", mount, view, setView };
     })();
-    ATLAS.profile = Object.freeze({ version: "0.0.20", status: "garmin-supporting-data" });
+    ATLAS.profile = Object.freeze({ version: "0.0.21", status: "garmin-supporting-data" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -4220,7 +4220,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.20"],
+          ["build.version", ATLAS.build.version === "0.0.21"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -4246,7 +4246,12 @@
           ["ux.evolution.load", Boolean(document.getElementById("evolution-load-chart")) && Boolean(document.getElementById("evolution-load-focus"))],
           ["ux.evolution.recovery", Boolean(document.getElementById("evolution-sleep-chart")) && Boolean(document.getElementById("evolution-hrv-chart")) && Boolean(document.getElementById("evolution-readiness-chart"))],
           ["ux.evolution.records", Boolean(document.getElementById("evolution-records-body"))],
-          ["ux.evolution.recordsSemantic", typeof formatRecordLabel === "function"],
+          ["ux.evolution.recordsSemantic", (() => {
+            const labels = [...document.querySelectorAll("#evolution-records-body td:first-child")]
+              .map(cell => String(cell.textContent || "").trim())
+              .filter(Boolean);
+            return labels.length === 0 || labels.every(label => !/^Marca\s+\d+$/i.test(label));
+          })()],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
