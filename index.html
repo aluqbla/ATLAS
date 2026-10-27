@@ -2109,7 +2109,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.23",
+      version: "0.0.24",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2121,14 +2121,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.23",
+      version: "0.0.24",
       channel: "development",
-      buildId: "atlas-0.0.23-f7.4-profile-equipment-settings",
+      buildId: "atlas-0.0.24-f7.4-gear-status-fix",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
       workerCompatibility: "0.0.15",
-      bridgeCompatibility: "0.0.15-compatible"
+      bridgeCompatibility: "0.0.16-compatible"
     });
 
     /* =========================================================
@@ -3477,7 +3477,7 @@
         return true;
       }
 
-      return { version: "0.0.23", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.24", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -4613,7 +4613,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.23", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.24", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -4732,9 +4732,9 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.23", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.24", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.23", status: "domain-pending" });
+    ATLAS.training = Object.freeze({ version: "0.0.24", status: "domain-pending" });
     ATLAS.evolution = (() => {
       let currentView = "overview";
       let mounted = false;
@@ -4766,7 +4766,7 @@
         });
       }
 
-      return { version: "0.0.23", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.24", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -4794,7 +4794,7 @@
         });
       }
 
-      return { version: "0.0.23", status: "f3-profile-equipment-settings", mount, view, setView };
+      return { version: "0.0.24", status: "f3-profile-equipment-settings", mount, view, setView };
     })();
 
     /* =========================================================
@@ -4811,7 +4811,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.23"],
+          ["build.version", ATLAS.build.version === "0.0.24"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -4934,6 +4934,13 @@
               for (const dataset of ["profile", "devices", "racePredictions", "personalRecords", "gear", "heartRateZones", "weight", "hydration", "fitnessAge"]) {
                 results.push({ name: `data.supporting.${dataset}`, pass: supportingState.datasets?.[dataset]?.status === "SUCCESS" });
               }
+              const storedGear = await ATLAS.storage.query("gear");
+              results.push({
+                name: "data.gear.statusNormalized",
+                pass:
+                  storedGear.length === 0 ||
+                  storedGear.every(row => ["ACTIVE", "RETIRED"].includes(String(row?.status || "").toUpperCase()))
+              });
             }
 
             const storedWeights = await ATLAS.storage.query("weight");
