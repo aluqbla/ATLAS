@@ -1609,6 +1609,7 @@
             <div class="list" style="margin-bottom:16px">
               <div class="list-row"><span class="list-row__label">Estado</span><span class="list-row__value" id="deep-history-status">Pendiente</span></div>
               <div class="list-row"><span class="list-row__label">Cobertura</span><span class="list-row__value" id="deep-history-range">—</span></div>
+              <div class="list-row"><span class="list-row__label">Registros diarios</span><span class="list-row__value" id="deep-history-counts">—</span></div>
             </div>
             <button class="button button--secondary" id="deep-history-button" type="button">Importar histórico base (8 semanas)</button>
           </section>
@@ -1665,7 +1666,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.19",
+      version: "0.0.20",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -1677,9 +1678,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.19",
+      version: "0.0.20",
       channel: "development",
-      buildId: "atlas-0.0.19-f7.1-today-ux",
+      buildId: "atlas-0.0.20-f7.1-today-ux",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -2597,11 +2598,14 @@
         return saved;
       }
 
-      async function backfillHistory() {
+      async function backfillHistory(forceRebuild = false) {
         const target = historyTarget();
         if (!target) throw new Error("No se pudo calcular el rango histórico.");
         const blocks = historyBlocks(target);
-        const previous = await ATLAS.storage.get("syncState", HISTORY_STATE_ID) || {};
+        const storedPrevious = await ATLAS.storage.get("syncState", HISTORY_STATE_ID) || {};
+        const previous = forceRebuild
+          ? { id: HISTORY_STATE_ID, status: "pending", completedBlocks: [], completed: 0, total: 8, rebuiltAt: ATLAS.core.nowIso() }
+          : storedPrevious;
         const completed = new Set(Array.isArray(previous.completedBlocks) ? previous.completedBlocks : []);
         const targetKeys = new Set(blocks.map(blockKey));
         const pending = blocks.filter(block => !completed.has(blockKey(block))).reverse();
@@ -3029,7 +3033,7 @@
         return true;
       }
 
-      return { version: "0.0.19", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.20", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -3780,7 +3784,8 @@
         if (overviewReadiness?.level) recoveryOverview.push(`Readiness ${humanize(overviewReadiness.level)}`);
         else if (Number.isFinite(overviewReadiness?.score)) recoveryOverview.push(`Readiness ${Math.round(overviewReadiness.score)}`);
         text("evolution-overview-recovery", recoveryOverview.join(" · ") || "Sin datos");
-        text("evolution-overview-records", `${supporting.personalRecords?.length || 0} récords Garmin`);
+        const runningPrCount = (supporting.personalRecords || []).filter(record => Number(record?.typeId) >= 1 && Number(record?.typeId) <= 7).length;
+        text("evolution-overview-records", `${runningPrCount} marcas running`);
 
         text("evolution-performance-vo2",
           Number.isFinite(vo2max?.value) ? Number(vo2max.value).toFixed(1).replace(".", ",") : "—"
@@ -3902,17 +3907,14 @@
           ariaLabel: "Histórico de Training Readiness de referencia."
         });
 
-        const records = supporting.personalRecords || [];
+        const allRecords = supporting.personalRecords || [];
+        const records = allRecords.filter(record => Number.isFinite(Number(record?.typeId)) && Number(record.typeId) >= 1 && Number(record.typeId) <= 7);
         const recordsBody = document.getElementById("evolution-records-body");
         const recordsEmpty = document.getElementById("evolution-records-empty");
         recordsBody?.replaceChildren();
         if (recordsEmpty) recordsEmpty.hidden = records.length > 0;
 
-        const sortedRecords = [...records].sort((a, b) => {
-          const aRank = Number(a.typeId) || 999;
-          const bRank = Number(b.typeId) || 999;
-          return aRank - bRank;
-        });
+        const sortedRecords = [...records].sort((a, b) => Number(a.typeId) - Number(b.typeId));
         for (const record of sortedRecords) {
           const tr = document.createElement("tr");
           const nameTd = document.createElement("td");
@@ -3930,7 +3932,8 @@
           const valueTd = document.createElement("td");
           valueTd.textContent = formatRecordValue(record);
           const dateTd = document.createElement("td");
-          dateTd.textContent = record.observedAt ? evolutionDateLabel(record.observedAt) : "—";
+          const recordDate = record.observedAt || localActivity?.startTime || null;
+          dateTd.textContent = recordDate ? evolutionDateLabel(recordDate) : "—";
           tr.append(nameTd, valueTd, dateTd);
           recordsBody?.append(tr);
         }
@@ -3996,11 +3999,32 @@
         else if (history.status === "error") historyStatus = `Error ${completed}/${total}`;
         text("deep-history-status", historyStatus);
         text("deep-history-range", history.targetStart && history.targetEnd ? `${history.targetStart} → ${history.targetEnd}` : "—");
+
+        const historyCounts = {
+          sleep: ATLAS.state.data.evolution.sleepHistory?.length || 0,
+          hrv: ATLAS.state.data.evolution.hrvHistory?.length || 0,
+          readiness: ATLAS.state.data.evolution.readinessHistory?.length || 0,
+          status: ATLAS.state.data.evolution.trainingStatusHistory?.length || 0,
+          vo2: ATLAS.state.data.evolution.vo2History?.length || 0,
+          threshold: ATLAS.state.data.evolution.thresholdHistory?.length || 0
+        };
+        text(
+          "deep-history-counts",
+          `Sueño ${historyCounts.sleep} · VFC ${historyCounts.hrv} · Readiness ${historyCounts.readiness} · Status ${historyCounts.status} · VO₂ ${historyCounts.vo2} · Umbral ${historyCounts.threshold}`
+        );
+
+        const dailyHistorySparse =
+          history.status === "complete" &&
+          (historyCounts.sleep <= 1 || historyCounts.hrv <= 1 || historyCounts.readiness <= 1);
+
         if (historyButton) {
-          historyButton.disabled = history.status === "syncing" || !caps?.syncDeep;
-          historyButton.textContent = history.status === "complete"
-            ? "Histórico base completo"
-            : (history.status === "partial" || history.status === "error" ? "Reanudar histórico" : "Importar histórico base (8 semanas)");
+          historyButton.dataset.forceRebuild = dailyHistorySparse ? "true" : "false";
+          historyButton.disabled = history.status === "syncing" || !caps?.syncDeep || (history.status === "complete" && !dailyHistorySparse);
+          historyButton.textContent = dailyHistorySparse
+            ? "Reconstruir histórico base (8 semanas)"
+            : history.status === "complete"
+              ? "Histórico base completo"
+              : (history.status === "partial" || history.status === "error" ? "Reanudar histórico" : "Importar histórico base (8 semanas)");
         }
       }
 
@@ -4025,7 +4049,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.19", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.20", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -4144,9 +4168,9 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.19", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.20", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.19", status: "domain-pending" });
+    ATLAS.training = Object.freeze({ version: "0.0.20", status: "domain-pending" });
     ATLAS.evolution = (() => {
       let currentView = "overview";
       let mounted = false;
@@ -4178,9 +4202,9 @@
         });
       }
 
-      return { version: "0.0.19", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.20", status: "f3-evolution-experience", mount, view, setView };
     })();
-    ATLAS.profile = Object.freeze({ version: "0.0.19", status: "garmin-supporting-data" });
+    ATLAS.profile = Object.freeze({ version: "0.0.20", status: "garmin-supporting-data" });
 
     /* =========================================================
        17 · ATLAS DIAGNOSTICS
@@ -4196,7 +4220,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.19"],
+          ["build.version", ATLAS.build.version === "0.0.20"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -4222,6 +4246,7 @@
           ["ux.evolution.load", Boolean(document.getElementById("evolution-load-chart")) && Boolean(document.getElementById("evolution-load-focus"))],
           ["ux.evolution.recovery", Boolean(document.getElementById("evolution-sleep-chart")) && Boolean(document.getElementById("evolution-hrv-chart")) && Boolean(document.getElementById("evolution-readiness-chart"))],
           ["ux.evolution.records", Boolean(document.getElementById("evolution-records-body"))],
+          ["ux.evolution.recordsSemantic", typeof formatRecordLabel === "function"],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
@@ -4345,6 +4370,17 @@
                   deepHistory?.targetEnd === target?.endDate
               });
             }
+            if (deepHistory?.status === "complete") {
+              const [historySleep, historyHrv, historyReadiness] = await Promise.all([
+                ATLAS.storage.query("sleep"),
+                ATLAS.storage.query("hrv"),
+                ATLAS.storage.query("trainingReadiness")
+              ]);
+              results.push({
+                name: "data.deepHistory.dailyCoverage",
+                pass: historySleep.length > 1 && historyHrv.length > 1 && historyReadiness.length > 1
+              });
+            }
 
             const storedDeep = await ATLAS.storage.query("activityStreams");
             if (storedDeep.length) {
@@ -4404,8 +4440,9 @@
           const button = document.getElementById("deep-history-button");
           if (button) button.disabled = true;
           try {
-            await ATLAS.sync.backfillHistory();
-            ATLAS.ui.toast("Histórico Garmin actualizado.");
+            const forceRebuild = button?.dataset?.forceRebuild === "true";
+            await ATLAS.sync.backfillHistory(forceRebuild);
+            ATLAS.ui.toast(forceRebuild ? "Histórico Garmin reconstruido." : "Histórico Garmin actualizado.");
           } catch (error) {
             ATLAS.ui.toast(error?.code === "GARMIN_RATE_LIMITED" ? "Garmin ha limitado temporalmente el histórico. Puedes reanudarlo." : "No se pudo completar el histórico. Puedes reanudarlo.");
           } finally {
