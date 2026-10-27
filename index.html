@@ -1119,6 +1119,54 @@
       color: var(--text);
       font-weight: 650;
     }
+
+    .training-pace-anchors {
+      width: min(100%, var(--content-standard));
+      margin: 0 auto 28px;
+      padding: 0 0 24px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-anchor-group + .training-anchor-group {
+      margin-top: 24px;
+    }
+    .training-anchor-list {
+      border-top: 1px solid var(--divider);
+    }
+    .training-anchor-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) minmax(130px, .8fr) minmax(130px, 1.1fr);
+      gap: 16px;
+      align-items: center;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-anchor-row__label {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 650;
+    }
+    .training-anchor-row__pace {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .training-anchor-row__meta {
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: right;
+      line-height: 1.4;
+    }
+    @media (max-width: 599px) {
+      .training-anchor-row {
+        grid-template-columns: 90px 1fr;
+        gap: 6px 12px;
+      }
+      .training-anchor-row__meta {
+        grid-column: 1 / 3;
+        text-align: left;
+      }
+    }
     @media (max-width: 599px) {
       .training-ability__header { display: block; }
       .training-ability__status { margin-top: 8px; text-align: left; }
@@ -1937,6 +1985,31 @@
             </details>
           </section>
 
+          <section class="training-pace-anchors" id="training-pace-anchors-section">
+            <div class="training-ability__header">
+              <div>
+                <p class="eyebrow">Anclas de ritmo</p>
+                <h2 class="section-title">Ritmos de entrenamiento</h2>
+                <p class="section-copy">Los ritmos fisiológicos salen del umbral oficial. Los ritmos de competición sólo salen de capacidad actual.</p>
+              </div>
+              <div class="training-ability__status" id="training-pace-status">—</div>
+            </div>
+
+            <div class="training-anchor-group">
+              <div class="profile-group-label">Fisiológicas · umbral Garmin</div>
+              <div class="training-anchor-list" id="training-physio-anchors"></div>
+              <div class="training-base-note" id="training-threshold-source">Umbral oficial: —</div>
+            </div>
+
+            <div class="training-anchor-group">
+              <div class="profile-group-label">Específicas · capacidad actual</div>
+              <div class="training-anchor-list" id="training-specific-anchors"></div>
+              <div class="training-base-note" id="training-vo2-anchor">VO₂ proxy: —</div>
+            </div>
+
+            <div class="training-fingerprint">Fingerprint: <span id="training-pace-fingerprint">—</span></div>
+          </section>
+
           <div class="empty-state plan-empty-state" id="training-no-plan">
             <strong>Aún no hay un objetivo ni un plan</strong>
             Cuando definas un objetivo, ATLAS construirá el plan sobre esta base sin confundir tu capacidad actual con la demanda futura.
@@ -2480,7 +2553,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.35",
+      version: "0.0.36",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2492,9 +2565,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.35",
+      version: "0.0.36",
       channel: "development",
-      buildId: "atlas-0.0.35-f8.2-pr-epoch-date-fix",
+      buildId: "atlas-0.0.36-f8.3-pace-anchors",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -2567,7 +2640,7 @@
        Pure / deterministic / no IO.
        ========================================================= */
     ATLAS.trainingEngine = (() => {
-      const ENGINE_VERSION = "8.2.0";
+      const ENGINE_VERSION = "8.3.0";
       const WINDOW_WEEKS = 8;
 
       const DISTANCES = Object.freeze({
@@ -3188,6 +3261,122 @@
         return Object.freeze({ ...core, fingerprint: fingerprint(core) });
       }
 
+      const PHYSIOLOGICAL_PACE_BANDS = Object.freeze({
+        RECOVERY: Object.freeze({ minSpeedFraction: 0.68, maxSpeedFraction: 0.76 }),
+        EASY: Object.freeze({ minSpeedFraction: 0.75, maxSpeedFraction: 0.84 }),
+        AEROBIC: Object.freeze({ minSpeedFraction: 0.82, maxSpeedFraction: 0.90 }),
+        THRESHOLD: Object.freeze({ minSpeedFraction: 0.985, maxSpeedFraction: 1.015 })
+      });
+
+      function paceBandFromThreshold(thresholdPaceSecPerKm, band) {
+        if (!Number.isFinite(thresholdPaceSecPerKm) || thresholdPaceSecPerKm <= 0) return null;
+        const minSpeedFraction = Number(band?.minSpeedFraction);
+        const maxSpeedFraction = Number(band?.maxSpeedFraction);
+        if (![minSpeedFraction, maxSpeedFraction].every(Number.isFinite) ||
+            minSpeedFraction <= 0 || maxSpeedFraction <= 0 ||
+            minSpeedFraction > maxSpeedFraction) return null;
+
+        const fasterPaceSecPerKm = thresholdPaceSecPerKm / maxSpeedFraction;
+        const slowerPaceSecPerKm = thresholdPaceSecPerKm / minSpeedFraction;
+
+        return Object.freeze({
+          minPaceSecPerKm: fasterPaceSecPerKm,
+          maxPaceSecPerKm: slowerPaceSecPerKm,
+          minSpeedFraction,
+          maxSpeedFraction,
+          sourceType: "OFFICIAL_THRESHOLD"
+        });
+      }
+
+      function specificPaceAnchor(key, ability) {
+        if (!ability || !Number.isFinite(ability.paceSecPerKm) || ability.paceSecPerKm <= 0) return null;
+        return Object.freeze({
+          key,
+          paceSecPerKm: ability.paceSecPerKm,
+          timeSec: ability.timeSec,
+          distanceM: ability.distanceM,
+          sourceType: "CURRENT_ABILITY",
+          abilityFingerprint: ability.fingerprint || null,
+          evidenceSourceType: ability.sourceType || null,
+          date: ability.date || null,
+          confidence: ability.confidence || null
+        });
+      }
+
+      function buildPaceAnchors(input) {
+        const asOfDate = input?.asOfDate;
+        if (!isDateOnly(asOfDate)) {
+          throw Object.assign(
+            new Error("Pace Anchors require an explicit YYYY-MM-DD asOfDate."),
+            { code: "ENGINE_AS_OF_DATE_REQUIRED" }
+          );
+        }
+
+        const threshold = input?.threshold && typeof input.threshold === "object"
+          ? input.threshold
+          : null;
+        const thresholdPace = Number(threshold?.paceSecPerKm);
+        const thresholdValid = Number.isFinite(thresholdPace) && thresholdPace > 0;
+
+        const physiological = {
+          status: thresholdValid ? "READY" : "NEEDS_ANCHOR_TEST",
+          sourceType: thresholdValid ? "OFFICIAL_THRESHOLD" : null,
+          threshold: thresholdValid ? Object.freeze({
+            paceSecPerKm: thresholdPace,
+            heartRate: Number.isFinite(threshold?.heartRate) ? threshold.heartRate : null,
+            speed: Number.isFinite(threshold?.speed) ? threshold.speed : null,
+            observedAt: threshold?.observedAt || threshold?.date || null,
+            source: threshold?.source || null
+          }) : null,
+          anchors: Object.freeze({
+            RECOVERY: thresholdValid ? paceBandFromThreshold(thresholdPace, PHYSIOLOGICAL_PACE_BANDS.RECOVERY) : null,
+            EASY: thresholdValid ? paceBandFromThreshold(thresholdPace, PHYSIOLOGICAL_PACE_BANDS.EASY) : null,
+            AEROBIC: thresholdValid ? paceBandFromThreshold(thresholdPace, PHYSIOLOGICAL_PACE_BANDS.AEROBIC) : null,
+            THRESHOLD: thresholdValid ? paceBandFromThreshold(thresholdPace, PHYSIOLOGICAL_PACE_BANDS.THRESHOLD) : null
+          })
+        };
+
+        const currentAbility = input?.currentAbility && typeof input.currentAbility === "object"
+          ? input.currentAbility
+          : null;
+        const abilities = currentAbility?.abilities || {};
+        const specificAnchors = {
+          "5K": specificPaceAnchor("5K", abilities["5K"]),
+          "10K": specificPaceAnchor("10K", abilities["10K"]),
+          "HALF": specificPaceAnchor("HALF", abilities.HALF),
+          "MARATHON": specificPaceAnchor("MARATHON", abilities.MARATHON)
+        };
+        const specificAvailable = Object.values(specificAnchors).filter(Boolean).length;
+
+        const specific = {
+          status: specificAvailable > 0 ? "READY" : "INSUFFICIENT_DATA",
+          sourceType: specificAvailable > 0 ? "CURRENT_ABILITY" : null,
+          anchors: Object.freeze(specificAnchors),
+          vo2Proxy: specificAnchors["5K"]
+            ? Object.freeze({
+                paceSecPerKm: specificAnchors["5K"].paceSecPerKm,
+                sourceType: "5K_PROXY",
+                abilityFingerprint: specificAnchors["5K"].abilityFingerprint
+              })
+            : null
+        };
+
+        const core = {
+          version: ENGINE_VERSION,
+          asOfDate,
+          physiological,
+          specific,
+          separationPolicy: Object.freeze({
+            physiologicalSource: "OFFICIAL_THRESHOLD",
+            competitionSource: "CURRENT_ABILITY",
+            vo2Source: "5K_PROXY",
+            crossContaminationAllowed: false
+          })
+        };
+
+        return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+      }
+
       function makeFixtureWeek(startDate, {
         runningDays = 0,
         distanceM = 0,
@@ -3331,6 +3520,45 @@
 
         const riegel10k = riegel(1200, 5000, 10000);
 
+        const paceAnchorsThresholdOnly = buildPaceAnchors({
+          asOfDate,
+          threshold: {
+            paceSecPerKm: 263,
+            heartRate: 171,
+            observedAt: "2026-10-20",
+            source: "GARMIN_PRIVATE"
+          },
+          currentAbility: abilityNoMarathon
+        });
+
+        const paceAnchorsFull = buildPaceAnchors({
+          asOfDate,
+          threshold: {
+            paceSecPerKm: 263,
+            heartRate: 171,
+            observedAt: "2026-10-20",
+            source: "GARMIN_PRIVATE"
+          },
+          currentAbility: abilityDirect
+        });
+
+        const paceAnchorsNoThreshold = buildPaceAnchors({
+          asOfDate,
+          threshold: null,
+          currentAbility: abilityDirect
+        });
+
+        const paceDeterministicA = buildPaceAnchors({
+          asOfDate,
+          threshold: { paceSecPerKm: 263, observedAt: "2026-10-20", source: "GARMIN_PRIVATE" },
+          currentAbility: abilityDirect
+        });
+        const paceDeterministicB = buildPaceAnchors({
+          asOfDate,
+          threshold: { paceSecPerKm: 263, observedAt: "2026-10-20", source: "GARMIN_PRIVATE" },
+          currentAbility: abilityDirect
+        });
+
         return Object.freeze({
           window8: low.weeks.length === 8,
           excludesCurrentWeek: low.window.endDate === "2026-10-25",
@@ -3356,7 +3584,23 @@
                                     abilityDirect.abilities["10K"]?.confidence === "UNRATED",
           abilityDispersion: dispersionAbility.abilities["5K"]?.selection === "RECENT_DUE_TO_DISPERSION_GT_6" &&
                              dispersionAbility.abilities["5K"]?.confidenceAdjustment === "DISPERSION_GT_6",
-          abilityDeterministic: deterministicAbilityA.fingerprint === deterministicAbilityB.fingerprint
+          abilityDeterministic: deterministicAbilityA.fingerprint === deterministicAbilityB.fingerprint,
+          paceThresholdOfficial: paceAnchorsThresholdOnly.physiological.sourceType === "OFFICIAL_THRESHOLD" &&
+                                 paceAnchorsThresholdOnly.physiological.status === "READY",
+          paceRecoveryBand: Math.abs(paceAnchorsThresholdOnly.physiological.anchors.RECOVERY.minPaceSecPerKm - (263 / 0.76)) < 0.001 &&
+                            Math.abs(paceAnchorsThresholdOnly.physiological.anchors.RECOVERY.maxPaceSecPerKm - (263 / 0.68)) < 0.001,
+          paceThresholdBand: Math.abs(paceAnchorsThresholdOnly.physiological.anchors.THRESHOLD.minPaceSecPerKm - (263 / 1.015)) < 0.001 &&
+                             Math.abs(paceAnchorsThresholdOnly.physiological.anchors.THRESHOLD.maxPaceSecPerKm - (263 / 0.985)) < 0.001,
+          paceSpecificFromAbility: paceAnchorsFull.specific.anchors["5K"]?.sourceType === "CURRENT_ABILITY" &&
+                                   Math.abs(paceAnchorsFull.specific.anchors["5K"]?.paceSecPerKm - abilityDirect.abilities["5K"].paceSecPerKm) < 0.001,
+          paceVo2Proxy5k: paceAnchorsFull.specific.vo2Proxy?.sourceType === "5K_PROXY" &&
+                          Math.abs(paceAnchorsFull.specific.vo2Proxy?.paceSecPerKm - abilityDirect.abilities["5K"].paceSecPerKm) < 0.001,
+          paceMissingThreshold: paceAnchorsNoThreshold.physiological.status === "NEEDS_ANCHOR_TEST" &&
+                                paceAnchorsNoThreshold.specific.status === "READY",
+          paceFamilySeparation: paceAnchorsFull.separationPolicy.crossContaminationAllowed === false &&
+                                paceAnchorsFull.physiological.sourceType === "OFFICIAL_THRESHOLD" &&
+                                paceAnchorsFull.specific.sourceType === "CURRENT_ABILITY",
+          paceDeterministic: paceDeterministicA.fingerprint === paceDeterministicB.fingerprint
         });
       }
 
@@ -3370,6 +3614,9 @@
         startOfIsoWeek,
         buildAthleteSnapshot,
         buildCurrentAbility,
+        buildPaceAnchors,
+        paceBandFromThreshold,
+        PHYSIOLOGICAL_PACE_BANDS,
         normalizeDistanceKey,
         riegel,
         recencyOf,
@@ -3425,7 +3672,7 @@
           trainingStatus: null
         },
         activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
-        training: { activePlan: null, athleteSnapshot: null, currentAbility: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", engineError: null, abilityError: null },
+        training: { activePlan: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", engineError: null, abilityError: null, paceError: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null, vo2History: [], thresholdHistory: [], trainingStatusHistory: [], sleepHistory: [], hrvHistory: [], readinessHistory: [] },
         settings: {},
         ui: { toast: null },
@@ -3518,6 +3765,9 @@
           case "CURRENT_ABILITY_LOADING": state.training.abilityStatus = "loading"; state.training.abilityError = null; mark("training"); break;
           case "CURRENT_ABILITY_LOADED": state.training.currentAbility = payload?.ability || payload || null; state.training.abilityDiagnostics = payload?.diagnostics || null; state.training.abilityStatus = "ready"; state.training.abilityError = null; mark("training"); break;
           case "CURRENT_ABILITY_ERROR": state.training.abilityStatus = "error"; state.training.abilityError = payload || null; mark("training"); break;
+          case "PACE_ANCHORS_LOADING": state.training.paceStatus = "loading"; state.training.paceError = null; mark("training"); break;
+          case "PACE_ANCHORS_LOADED": state.training.paceAnchors = payload || null; state.training.paceStatus = "ready"; state.training.paceError = null; mark("training"); break;
+          case "PACE_ANCHORS_ERROR": state.training.paceStatus = "error"; state.training.paceError = payload || null; mark("training"); break;
           case "TOAST": state.ui.toast = payload || null; mark("toast"); ATLAS.events.emit("ui:toast", payload); break;
           default: return false;
         }
@@ -4696,7 +4946,7 @@
         return true;
       }
 
-      return { version: "0.0.35", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.36", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -5539,6 +5789,91 @@
           text("training-ability-fingerprint", "—");
         }
 
+        const paceAnchors = state.paceAnchors;
+        const physioHost = document.getElementById("training-physio-anchors");
+        const specificHost = document.getElementById("training-specific-anchors");
+        physioHost?.replaceChildren();
+        specificHost?.replaceChildren();
+
+        const paceRange = anchor => {
+          if (!anchor || !Number.isFinite(anchor.minPaceSecPerKm) || !Number.isFinite(anchor.maxPaceSecPerKm)) return "—";
+          return `${formatPace(anchor.minPaceSecPerKm)} – ${formatPace(anchor.maxPaceSecPerKm)}`;
+        };
+
+        const addAnchorRow = (host, label, pace, meta) => {
+          if (!host) return;
+          const row = document.createElement("div");
+          row.className = "training-anchor-row";
+
+          const labelEl = document.createElement("div");
+          labelEl.className = "training-anchor-row__label";
+          labelEl.textContent = label;
+
+          const paceEl = document.createElement("div");
+          paceEl.className = "training-anchor-row__pace";
+          paceEl.textContent = pace || "—";
+
+          const metaEl = document.createElement("div");
+          metaEl.className = "training-anchor-row__meta";
+          metaEl.textContent = meta || "";
+
+          row.append(labelEl, paceEl, metaEl);
+          host.append(row);
+        };
+
+        if (paceAnchors) {
+          const phys = paceAnchors.physiological;
+          const specific = paceAnchors.specific;
+          text("training-pace-status", `${phys?.status || "—"} · ${specific?.status || "—"}`);
+
+          const physLabels = [
+            ["RECOVERY", "Recuperación", "68–76 % velocidad LT"],
+            ["EASY", "Fácil", "75–84 % velocidad LT"],
+            ["AEROBIC", "Aeróbico", "82–90 % velocidad LT"],
+            ["THRESHOLD", "Umbral", "98,5–101,5 % velocidad LT"]
+          ];
+          for (const [key, label, meta] of physLabels) {
+            addAnchorRow(physioHost, label, paceRange(phys?.anchors?.[key]), meta);
+          }
+
+          const threshold = phys?.threshold;
+          text(
+            "training-threshold-source",
+            threshold
+              ? `Umbral oficial: ${formatPace(threshold.paceSecPerKm)}${Number.isFinite(threshold.heartRate) ? ` · ${Math.round(threshold.heartRate)} ppm` : ""}${threshold.observedAt ? ` · ${threshold.observedAt}` : ""}`
+              : "Umbral oficial: no disponible · NEEDS_ANCHOR_TEST"
+          );
+
+          const specificLabels = [
+            ["5K", "5 km"],
+            ["10K", "10 km"],
+            ["HALF", "Media"],
+            ["MARATHON", "Maratón"]
+          ];
+          for (const [key, label] of specificLabels) {
+            const item = specific?.anchors?.[key];
+            addAnchorRow(
+              specificHost,
+              label,
+              item ? formatPace(item.paceSecPerKm) : "—",
+              item ? `${item.sourceType} · ${item.date || "—"} · confianza ${item.confidence || "—"}` : "Sin evidencia actual"
+            );
+          }
+
+          text(
+            "training-vo2-anchor",
+            specific?.vo2Proxy
+              ? `VO₂ proxy 5K: ${formatPace(specific.vo2Proxy.paceSecPerKm)}`
+              : "VO₂ proxy 5K: sin capacidad 5K actual"
+          );
+          text("training-pace-fingerprint", paceAnchors.fingerprint || "—");
+        } else {
+          text("training-pace-status", state.paceStatus === "error" ? "ERROR" : "—");
+          text("training-threshold-source", "Umbral oficial: —");
+          text("training-vo2-anchor", "VO₂ proxy 5K: —");
+          text("training-pace-fingerprint", "—");
+        }
+
         const noPlan = document.getElementById("training-no-plan");
         if (noPlan) noPlan.hidden = Boolean(state.activePlan);
       }
@@ -6096,7 +6431,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.35", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.36", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -6215,7 +6550,7 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.35", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.36", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
       const PR_DISTANCE_BY_TYPE = Object.freeze({
@@ -6407,6 +6742,28 @@
         });
       }
 
+      async function refreshPaceAnchors(
+        currentAbility = ATLAS.state.data.training.currentAbility,
+        asOfDate = ATLAS.core.localDate()
+      ) {
+        ATLAS.state.dispatch({ type: "PACE_ANCHORS_LOADING" });
+        try {
+          const threshold = ATLAS.state.data.evolution.threshold || null;
+          const paceAnchors = ATLAS.trainingEngine.buildPaceAnchors({
+            asOfDate,
+            threshold,
+            currentAbility
+          });
+          ATLAS.state.dispatch({ type: "PACE_ANCHORS_LOADED", payload: paceAnchors });
+          return paceAnchors;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "PACE_ANCHORS_FAILED");
+          ATLAS.state.dispatch({ type: "PACE_ANCHORS_ERROR", payload: safe });
+          ATLAS.diagnostics?.recordError?.(safe);
+          return null;
+        }
+      }
+
       async function refreshCurrentAbility(asOfDate = ATLAS.core.localDate()) {
         ATLAS.state.dispatch({ type: "CURRENT_ABILITY_LOADING" });
         try {
@@ -6416,6 +6773,7 @@
             type: "CURRENT_ABILITY_LOADED",
             payload: { ability, diagnostics: input.diagnostics }
           });
+          await refreshPaceAnchors(ability, asOfDate);
           return ability;
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "CURRENT_ABILITY_FAILED");
@@ -6442,14 +6800,15 @@
       }
 
       return Object.freeze({
-        version: "0.0.35",
-        status: "f8.2-current-ability",
+        version: "0.0.36",
+        status: "f8.3-pace-anchors",
         normalizeActivity,
         normalizePersonalRecordEvidence,
         buildSnapshotInput,
         buildCurrentAbilityInput,
         refreshSnapshot,
-        refreshCurrentAbility
+        refreshCurrentAbility,
+        refreshPaceAnchors
       });
     })();
     ATLAS.evolution = (() => {
@@ -6483,7 +6842,7 @@
         });
       }
 
-      return { version: "0.0.35", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.36", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -6511,7 +6870,7 @@
         });
       }
 
-      return { version: "0.0.35", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.36", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -6528,7 +6887,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.35"],
+          ["build.version", ATLAS.build.version === "0.0.36"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -6609,6 +6968,12 @@
                                                 ((ATLAS.state.data.training.abilityDiagnostics?.datedRunningTimeRecords || 0) +
                                                  (ATLAS.state.data.training.abilityDiagnostics?.undatedRunningTimeRecords || 0)) &&
                                              (ATLAS.state.data.training.abilityDiagnostics?.undatedRunningTimeRecords || 0) === 0],
+          ["engine.pace.live", Boolean(ATLAS.state.data.training.paceAnchors?.fingerprint)],
+          ["engine.pace.officialThreshold", ATLAS.state.data.training.paceAnchors?.physiological?.status === "READY" &&
+                                            ATLAS.state.data.training.paceAnchors?.physiological?.sourceType === "OFFICIAL_THRESHOLD"],
+          ["engine.pace.familySeparation", ATLAS.state.data.training.paceAnchors?.separationPolicy?.crossContaminationAllowed === false],
+          ["engine.pace.currentAbilityOnly", ATLAS.state.data.training.paceAnchors?.specific?.sourceType === null ||
+                                             ATLAS.state.data.training.paceAnchors?.specific?.sourceType === "CURRENT_ABILITY"],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
