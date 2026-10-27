@@ -1122,6 +1122,88 @@
 
 
 
+
+    .training-prescription {
+      width: min(100%, var(--content-standard));
+      margin: 0 auto 28px;
+      padding: 0 0 24px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-prescription-list {
+      margin-top: 18px;
+      border-top: 1px solid var(--divider);
+    }
+    .training-prescription-session {
+      display: grid;
+      grid-template-columns: 90px minmax(160px, 1.1fr) minmax(130px, .8fr) minmax(150px, 1fr);
+      gap: 14px;
+      align-items: start;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-prescription-session__date {
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .training-prescription-session__name {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .training-prescription-session__target {
+      color: var(--text);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.45;
+    }
+    .training-prescription-session__meta {
+      color: var(--text-secondary);
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: right;
+    }
+    .training-prescription-session[data-blocked="true"] .training-prescription-session__name,
+    .training-prescription-session[data-blocked="true"] .training-prescription-session__target {
+      color: var(--yellow);
+    }
+    .training-prescription-week-list {
+      margin-top: 14px;
+      border-top: 1px solid var(--divider);
+    }
+    .training-prescription-week-row {
+      display: grid;
+      grid-template-columns: 44px 90px 100px 95px 90px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--divider);
+      font-size: 12px;
+    }
+    .training-prescription-week-row__muted { color: var(--text-secondary); }
+    .training-prescription-week-row__strong { color: var(--text); font-weight: 650; }
+    .training-prescription-week-row__right { color: var(--text-secondary); text-align: right; }
+    @media (max-width: 899px) {
+      .training-prescription-session {
+        grid-template-columns: 72px 1fr;
+      }
+      .training-prescription-session__target,
+      .training-prescription-session__meta {
+        grid-column: 2;
+        text-align: left;
+      }
+      .training-prescription-week-row {
+        grid-template-columns: 36px 1fr auto;
+      }
+      .training-prescription-week-row > :nth-child(4),
+      .training-prescription-week-row > :nth-child(5),
+      .training-prescription-week-row > :nth-child(6) {
+        grid-column: 2 / 4;
+        text-align: left;
+      }
+    }
+
     .training-availability,
     .training-weekly-skeleton {
       width: min(100%, var(--content-standard));
@@ -2387,6 +2469,43 @@
             </details>
           </section>
 
+          <section class="training-prescription" id="training-prescription-section">
+            <div class="training-ability__header">
+              <div>
+                <p class="eyebrow">Prescription Core</p>
+                <h2 class="section-title">Sesiones prescritas</h2>
+                <p class="section-copy">Convierte la estructura semanal en dosis, distancia y ritmo. La fuerza detallada se completa en el siguiente módulo.</p>
+              </div>
+              <div class="training-ability__status" id="training-prescription-status">—</div>
+            </div>
+
+            <div class="training-prescription-summary" id="training-prescription-summary" hidden>
+              <div class="training-base-grid">
+                <div class="training-base-metric"><strong id="training-prescription-volume">—</strong><span>Volumen referencia</span></div>
+                <div class="training-base-metric"><strong id="training-prescription-longrun">—</strong><span>Tirada larga</span></div>
+                <div class="training-base-metric"><strong id="training-prescription-dose">—</strong><span>Dosis calidad</span></div>
+              </div>
+
+              <div class="training-base-notes">
+                <div class="training-base-note" id="training-prescription-volume-note">Volumen: —</div>
+                <div class="training-base-note" id="training-prescription-specific-note">Específico: —</div>
+              </div>
+
+              <div class="training-prescription-list" id="training-prescription-list"></div>
+            </div>
+
+            <div class="empty-state" id="training-prescription-empty">
+              <strong>Prescription Core pendiente</strong>
+              Necesita Macrocycle, Weekly Skeleton y Pace Anchors válidos.
+            </div>
+
+            <details class="training-snapshot-details" id="training-prescription-details">
+              <summary>Ver prescripción de las 17 semanas</summary>
+              <div class="training-prescription-week-list" id="training-prescription-week-list"></div>
+              <div class="training-fingerprint">Fingerprint: <span id="training-prescription-fingerprint">—</span></div>
+            </details>
+          </section>
+
           <section class="training-base" id="training-base-section">
             <p class="eyebrow">Base actual</p>
             <div class="training-base__headline">
@@ -3035,7 +3154,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.40",
+      version: "0.0.41",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -3047,9 +3166,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.40",
+      version: "0.0.41",
       channel: "development",
-      buildId: "atlas-0.0.40-f8.6-weekly-skeleton-consolidation",
+      buildId: "atlas-0.0.41-f8.7-prescription-core",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -3123,7 +3242,7 @@
        Pure / deterministic / no IO.
        ========================================================= */
     ATLAS.trainingEngine = (() => {
-      const ENGINE_VERSION = "8.6.1";
+      const ENGINE_VERSION = "8.7.0";
       const WINDOW_WEEKS = 8;
 
       const DISTANCES = Object.freeze({
@@ -3739,6 +3858,589 @@
           evidenceCount: normalizedEvidence.length,
           abilities,
           durabilityProfile: durability
+        };
+
+        return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+      }
+
+      const PRESCRIPTION_DOSES = Object.freeze({
+        THRESHOLD: Object.freeze({
+          LOW: Object.freeze({ minWorkMin: 16, maxWorkMin: 22 }),
+          MEDIUM: Object.freeze({ minWorkMin: 24, maxWorkMin: 32 }),
+          HIGH: Object.freeze({ minWorkMin: 32, maxWorkMin: 40 })
+        }),
+        VO2: Object.freeze({
+          LOW: Object.freeze({ minWorkMin: 10, maxWorkMin: 12 }),
+          MEDIUM: Object.freeze({ minWorkMin: 14, maxWorkMin: 18 }),
+          HIGH: Object.freeze({ minWorkMin: 18, maxWorkMin: 22 })
+        }),
+        SPECIFIC_5K: Object.freeze({
+          LOW: Object.freeze({ minKm: 2.5, maxKm: 3.5 }),
+          MEDIUM: Object.freeze({ minKm: 3.5, maxKm: 4.5 }),
+          HIGH: Object.freeze({ minKm: 4.5, maxKm: 5.5 })
+        }),
+        SPECIFIC_10K: Object.freeze({
+          LOW: Object.freeze({ minKm: 3, maxKm: 4 }),
+          MEDIUM: Object.freeze({ minKm: 4.5, maxKm: 6 }),
+          HIGH: Object.freeze({ minKm: 6, maxKm: 8 })
+        }),
+        SPECIFIC_HALF: Object.freeze({
+          LOW: Object.freeze({ minKm: 4, maxKm: 6 }),
+          MEDIUM: Object.freeze({ minKm: 6, maxKm: 9 }),
+          HIGH: Object.freeze({ minKm: 8, maxKm: 12 })
+        }),
+        SPECIFIC_MARATHON: Object.freeze({
+          LOW: Object.freeze({ minKm: 6, maxKm: 10 }),
+          MEDIUM: Object.freeze({ minKm: 10, maxKm: 16 }),
+          HIGH: Object.freeze({ minKm: 14, maxKm: 22 })
+        })
+      });
+
+      const PRESCRIPTION_POLICY = Object.freeze({
+        sourceGapPolicy: "DETERMINISTIC_IMPLEMENTATION_POLICY_F8_7",
+        progressionVolume: "HORIZON_RAMP_FROM_H_PLUS_S_TO_PEAK",
+        consolidationVolume: "BELOW_PREVIOUS_TWO_BY_INITIAL_STEP",
+        partialEntryVolume: "NO_FULL_WEEK_TARGET",
+        raceWeekVolume: "NO_ARTIFICIAL_WEEKLY_BAND",
+        nonTaperWarmupCooldown: "PROPORTIONAL_UNQUANTIFIED",
+        taperWarmupKm: 1,
+        taperCooldownKm: 1,
+        specificWithoutCurrentAbility: "BLOCKED_BY_CURRENT_ABILITY"
+      });
+
+      function roundHalf(value) {
+        return Math.round(Number(value) * 2) / 2;
+      }
+
+      function nearest30Seconds(valueSec) {
+        return Math.max(30, Math.round(Number(valueSec) / 30) * 30);
+      }
+
+      function progressionVolumePlan(macrocycle) {
+        const weeks = macrocycle?.weeks || [];
+        const H = Number(macrocycle?.demand?.habitualKm);
+        const S = Number(macrocycle?.demand?.initialStepKm);
+        const peak = Number(macrocycle?.demand?.peakKm);
+        const taperWeeks = Number(macrocycle?.allocation?.taper || 0);
+
+        const progressive = weeks.filter(week =>
+          week.type === "PROGRESSION" &&
+          week.phase !== "taper"
+        );
+        const progressiveTargets = new Map();
+
+        if (progressive.length) {
+          const first = Math.min(peak, H + S);
+          const denominator = Math.max(1, progressive.length - 1);
+          progressive.forEach((week, index) => {
+            const t = progressive.length === 1 ? 1 : index / denominator;
+            progressiveTargets.set(
+              week.index,
+              roundHalf(first + (peak - first) * t)
+            );
+          });
+        }
+
+        const targets = [];
+        for (const week of weeks) {
+          let targetKm = null;
+          let source = null;
+
+          if (week.type === "PARTIAL_ENTRY") {
+            source = "PARTIAL_ENTRY_NO_FULL_BAND";
+          } else if (week.type === "RACE_WEEK") {
+            source = "RACE_WEEK_SPECIAL";
+          } else if (week.phase === "taper") {
+            const taperPhaseWeek = week.phaseWeek;
+            const factors = taperWeeks === 3
+              ? [0.80, 0.60, null]
+              : taperWeeks === 2
+                ? [0.65, null]
+                : [null];
+            const factor = factors[taperPhaseWeek - 1] ?? null;
+            targetKm = Number.isFinite(factor) ? roundHalf(peak * factor) : null;
+            source = Number.isFinite(factor) ? "CANONICAL_TAPER_FACTOR" : "RACE_WEEK_SPECIAL";
+          } else if (week.type === "CONSOLIDATION") {
+            const previous = targets
+              .filter(row => Number.isFinite(row.targetKm))
+              .slice(-2)
+              .map(row => row.targetKm);
+            if (previous.length) {
+              targetKm = roundHalf(Math.max(H, Math.min(...previous) - S));
+            }
+            source = "CONSOLIDATION_BELOW_PREVIOUS";
+          } else {
+            targetKm = progressiveTargets.get(week.index) ?? roundHalf(H + S);
+            source = "HORIZON_RAMP";
+          }
+
+          targets.push(Object.freeze({
+            weekIndex: week.index,
+            targetKm,
+            source
+          }));
+        }
+
+        return Object.freeze(targets);
+      }
+
+      function longRunPlan(macrocycle, snapshot) {
+        const weeks = macrocycle?.weeks || [];
+        const lr0Km = Number(snapshot?.longRunBase?.distanceM) / 1000;
+        const startKm = Number.isFinite(lr0Km) && lr0Km > 0 ? lr0Km : null;
+        const peakKm = Number(macrocycle?.demand?.peakLongRunKm);
+        const taperWeeks = Number(macrocycle?.allocation?.taper || 0);
+
+        const buildWeeks = weeks.filter(week =>
+          !["PARTIAL_ENTRY", "CONSOLIDATION", "RACE_WEEK"].includes(week.type) &&
+          week.phase !== "taper"
+        );
+        const ramp = new Map();
+
+        if (Number.isFinite(startKm) && Number.isFinite(peakKm) && buildWeeks.length) {
+          buildWeeks.forEach((week, index) => {
+            const t = buildWeeks.length === 1 ? 1 : index / (buildWeeks.length - 1);
+            ramp.set(week.index, roundHalf(startKm + (peakKm - startKm) * t));
+          });
+        }
+
+        const result = [];
+        for (const week of weeks) {
+          let km = null;
+          let source = null;
+
+          if (week.type === "RACE_WEEK") {
+            km = 0;
+            source = "CANONICAL_RACE_WEEK_ZERO_LONG_RUN";
+          } else if (week.type === "PARTIAL_ENTRY") {
+            km = Number.isFinite(startKm) ? roundHalf(startKm) : null;
+            source = "LR0";
+          } else if (week.phase === "taper") {
+            const factors = taperWeeks === 3
+              ? [0.70, 0.50, 0]
+              : taperWeeks === 2
+                ? [0.55, 0]
+                : [0];
+            const factor = factors[week.phaseWeek - 1];
+            km = Number.isFinite(factor) && Number.isFinite(peakKm)
+              ? roundHalf(peakKm * factor)
+              : null;
+            source = "CANONICAL_TAPER_LONG_RUN";
+          } else if (week.type === "CONSOLIDATION") {
+            const previous = result
+              .filter(row => Number.isFinite(row.km) && row.km > 0)
+              .slice(-2)
+              .map(row => row.km);
+            const S = Number(macrocycle?.demand?.initialStepKm) || 2;
+            km = previous.length
+              ? roundHalf(Math.max(startKm || 0, Math.min(...previous) - S))
+              : startKm;
+            source = "CONSOLIDATION_LONG_RUN_REDUCTION";
+          } else {
+            km = ramp.get(week.index) ?? startKm;
+            source = "LR0_TO_PEAK_RAMP";
+          }
+
+          result.push(Object.freeze({ weekIndex: week.index, km, source }));
+        }
+
+        return Object.freeze(result);
+      }
+
+      function thresholdBlockForDose(dose, thresholdPaceSecPerKm) {
+        const range = PRESCRIPTION_DOSES.THRESHOLD[dose] || PRESCRIPTION_DOSES.THRESHOLD.LOW;
+        if (!Number.isFinite(thresholdPaceSecPerKm) || thresholdPaceSecPerKm <= 0) return null;
+
+        const midpoint = (range.minWorkMin + range.maxWorkMin) / 2;
+        const reps = [1000, 1500, 2000, 3000];
+        let best = null;
+
+        for (const repM of reps) {
+          const repSec = thresholdPaceSecPerKm * (repM / 1000);
+          for (let count = 2; count <= 10; count += 1) {
+            const totalMin = (repSec * count) / 60;
+            if (totalMin < range.minWorkMin || totalMin > range.maxWorkMin) continue;
+            const score = Math.abs(totalMin - midpoint) + Math.abs(repSec / 60 - 8) * 0.15;
+            if (!best || score < best.score) {
+              best = {
+                score,
+                repM,
+                count,
+                repSec,
+                totalWorkSec: repSec * count,
+                totalWorkKm: (repM * count) / 1000
+              };
+            }
+          }
+        }
+
+        if (!best) return null;
+
+        return Object.freeze({
+          family: "THRESHOLD",
+          dose,
+          reps: best.count,
+          repM: best.repM,
+          totalWorkSec: best.totalWorkSec,
+          totalWorkKm: best.totalWorkKm,
+          targetPaceSecPerKm: thresholdPaceSecPerKm,
+          recoverySec: nearest30Seconds(best.repSec * 0.20),
+          recoveryType: "EASY_JOG",
+          warmupCooldown: "PROPORTIONAL_UNQUANTIFIED"
+        });
+      }
+
+      function specificBlockForDose(distanceKey, dose, specificAnchor) {
+        if (!specificAnchor || !Number.isFinite(specificAnchor.paceSecPerKm)) return null;
+
+        const key = ({
+          "5K": "SPECIFIC_5K",
+          "10K": "SPECIFIC_10K",
+          "HALF": "SPECIFIC_HALF",
+          "MARATHON": "SPECIFIC_MARATHON"
+        })[distanceKey];
+        const range = PRESCRIPTION_DOSES[key]?.[dose];
+        if (!range) return null;
+
+        const workKm = roundHalf((range.minKm + range.maxKm) / 2);
+        return Object.freeze({
+          family: "SPECIFIC_PACE",
+          distanceKey,
+          dose,
+          totalWorkKm: workKm,
+          targetPaceSecPerKm: specificAnchor.paceSecPerKm,
+          sourceType: specificAnchor.sourceType || "CURRENT_ABILITY",
+          warmupCooldown: "PROPORTIONAL_UNQUANTIFIED"
+        });
+      }
+
+      function qualityPrescriptionForWeek({
+        week,
+        skeletonWeek,
+        paceAnchors,
+        goal
+      }) {
+        const qualityDay = skeletonWeek?.days?.find(day =>
+          day.roles?.some(role => role.role === "QUALITY_PRIMARY")
+        );
+        if (!qualityDay) return null;
+
+        const role = qualityDay.roles.find(item => item.role === "QUALITY_PRIMARY");
+        const dose = role?.doseCap || "LOW";
+        const thresholdPace = paceAnchors?.physiological?.threshold?.paceSecPerKm;
+        const distanceKey = goal?.distanceKey;
+        const specificAnchor = paceAnchors?.specific?.anchors?.[distanceKey] || null;
+
+        if (week.phase === "specific") {
+          const specific = specificBlockForDose(distanceKey, dose, specificAnchor);
+          if (specific) {
+            return Object.freeze({
+              date: qualityDay.date,
+              status: "READY",
+              source: "CURRENT_ABILITY",
+              ...specific
+            });
+          }
+          return Object.freeze({
+            date: qualityDay.date,
+            status: "BLOCKED_BY_CURRENT_ABILITY",
+            family: "SPECIFIC_PACE",
+            dose,
+            source: "CURRENT_ABILITY_REQUIRED",
+            reason: "SPECIFIC_PACE_REQUIRES_VALID_CURRENT_ABILITY"
+          });
+        }
+
+        if (week.phase === "taper" && week.type !== "RACE_WEEK") {
+          const threshold = thresholdBlockForDose("LOW", thresholdPace);
+          return threshold
+            ? Object.freeze({ date: qualityDay.date, status: "READY", source: "OFFICIAL_THRESHOLD", ...threshold })
+            : Object.freeze({
+                date: qualityDay.date,
+                status: "BLOCKED_BY_THRESHOLD",
+                family: "THRESHOLD",
+                dose: "LOW",
+                source: "OFFICIAL_THRESHOLD_REQUIRED"
+              });
+        }
+
+        const threshold = thresholdBlockForDose(dose, thresholdPace);
+        return threshold
+          ? Object.freeze({ date: qualityDay.date, status: "READY", source: "OFFICIAL_THRESHOLD", ...threshold })
+          : Object.freeze({
+              date: qualityDay.date,
+              status: "BLOCKED_BY_THRESHOLD",
+              family: "THRESHOLD",
+              dose,
+              source: "OFFICIAL_THRESHOLD_REQUIRED"
+            });
+      }
+
+      function continuousRunPrescription(day, distanceKm, paceAnchors, hardDates) {
+        const date = day.date;
+        const previousHard = (hardDates || [])
+          .filter(hardDate => hardDate < date)
+          .sort()
+          .at(-1);
+        const dayAfterHard = previousHard && daysBetween(previousHard, date) === 1;
+
+        const family = dayAfterHard ? "RECOVERY" : "EASY";
+        const anchorKey = dayAfterHard ? "RECOVERY" : "EASY";
+        const anchor = paceAnchors?.physiological?.anchors?.[anchorKey] || null;
+        const minimumKm = family === "RECOVERY" ? 5 : 5;
+
+        return Object.freeze({
+          family,
+          distanceKm: roundHalf(Math.max(minimumKm, distanceKm)),
+          targetPaceMinSecPerKm: anchor?.minPaceSecPerKm ?? null,
+          targetPaceMaxSecPerKm: anchor?.maxPaceSecPerKm ?? null,
+          source: "OFFICIAL_THRESHOLD"
+        });
+      }
+
+      function prescribeWeek({
+        week,
+        skeletonWeek,
+        targetVolume,
+        longRun,
+        paceAnchors,
+        macrocycle,
+        snapshot,
+        goal
+      }) {
+        const sessions = [];
+        const quality = qualityPrescriptionForWeek({
+          week,
+          skeletonWeek,
+          paceAnchors,
+          goal
+        });
+
+        const qualityKnownKm =
+          quality?.status === "READY" && Number.isFinite(quality.totalWorkKm)
+            ? quality.totalWorkKm
+            : 0;
+
+        const longRunDay = skeletonWeek?.days?.find(day =>
+          day.roles?.some(role => role.role === "LONG_RUN")
+        );
+        const easyDays = skeletonWeek?.days?.filter(day =>
+          day.roles?.some(role => role.role === "EASY_AEROBIC_RECOVERY")
+        ) || [];
+        const strengthDays = skeletonWeek?.days?.filter(day =>
+          day.roles?.some(role => role.role === "STRENGTH")
+        ) || [];
+        const competitionDay = skeletonWeek?.days?.find(day =>
+          day.roles?.some(role => role.role === "COMPETITION")
+        );
+
+        const knownFixedKm =
+          (Number.isFinite(longRun?.km) ? longRun.km : 0) +
+          qualityKnownKm +
+          (competitionDay ? Number(goal?.distanceM || macrocycle?.goal?.distanceM || DISTANCES[goal?.distanceKey]) / 1000 : 0);
+
+        const targetKm = Number(targetVolume?.targetKm);
+        const residual = Number.isFinite(targetKm)
+          ? Math.max(0, targetKm - knownFixedKm)
+          : null;
+        const perEasy = easyDays.length && Number.isFinite(residual)
+          ? residual / easyDays.length
+          : 5;
+
+        if (quality) {
+          sessions.push(Object.freeze({
+            id: `rx:${week.index}:${quality.date}:quality`,
+            weekIndex: week.index,
+            date: quality.date,
+            role: "QUALITY_PRIMARY",
+            name: quality.status === "READY"
+              ? (quality.family === "THRESHOLD" ? "Umbral" : `Ritmo ${goal?.distanceKey || ""}`)
+              : "Calidad específica pendiente",
+            prescription: quality,
+            stimulus: "PRIMARY"
+          }));
+        }
+
+        if (longRunDay && Number.isFinite(longRun?.km) && longRun.km > 0) {
+          const easy = paceAnchors?.physiological?.anchors?.EASY || null;
+          sessions.push(Object.freeze({
+            id: `rx:${week.index}:${longRunDay.date}:long`,
+            weekIndex: week.index,
+            date: longRunDay.date,
+            role: "LONG_RUN",
+            name: "Tirada larga",
+            prescription: Object.freeze({
+              family: "LONG_RUN",
+              variant: "NORMAL",
+              distanceKm: longRun.km,
+              targetPaceMinSecPerKm: easy?.minPaceSecPerKm ?? null,
+              targetPaceMaxSecPerKm: easy?.maxPaceSecPerKm ?? null,
+              nutritionNote: goal?.distanceKey === "MARATHON" && longRun.km >= 24
+                ? "NUTRITION_PRACTICE_RECOMMENDED"
+                : null,
+              source: "LR0_TO_PEAK"
+            }),
+            stimulus: "IMPORTANT"
+          }));
+        }
+
+        for (const day of easyDays) {
+          const run = continuousRunPrescription(
+            day,
+            Number.isFinite(perEasy) ? perEasy : 5,
+            paceAnchors,
+            skeletonWeek?.hardDates || []
+          );
+          sessions.push(Object.freeze({
+            id: `rx:${week.index}:${day.date}:continuous`,
+            weekIndex: week.index,
+            date: day.date,
+            role: "EASY_AEROBIC_RECOVERY",
+            name: run.family === "RECOVERY" ? "Recuperación" : "Rodaje fácil",
+            prescription: run,
+            stimulus: "SUPPORT"
+          }));
+        }
+
+        for (const day of strengthDays) {
+          const strengthRole = day.roles.find(role => role.role === "STRENGTH");
+          sessions.push(Object.freeze({
+            id: `rx:${week.index}:${day.date}:strength`,
+            weekIndex: week.index,
+            date: day.date,
+            role: "STRENGTH",
+            name: `Fuerza ${strengthRole?.variant || ""}`.trim(),
+            prescription: Object.freeze({
+              family: "STRENGTH",
+              level: strengthRole?.level || skeletonWeek?.strengthRole || null,
+              variant: strengthRole?.variant || null,
+              status: "PENDING_STRENGTH_MODULE_F8_8"
+            }),
+            stimulus: strengthRole?.level === "PRINCIPAL" ? "IMPORTANT" : "SUPPORT"
+          }));
+        }
+
+        if (competitionDay) {
+          const distanceM = Number(goal?.distanceM || DISTANCES[goal?.distanceKey]);
+          const targetTimeSec = Number(goal?.targetTimeSec || goal?.targetTime);
+          sessions.push(Object.freeze({
+            id: `rx:${week.index}:${competitionDay.date}:competition`,
+            weekIndex: week.index,
+            date: competitionDay.date,
+            role: "COMPETITION",
+            name: goal?.eventName || "Competición objetivo",
+            prescription: Object.freeze({
+              family: "COMPETITION",
+              distanceM,
+              targetTimeSec,
+              targetPaceSecPerKm:
+                Number.isFinite(distanceM) && distanceM > 0 && Number.isFinite(targetTimeSec)
+                  ? targetTimeSec / (distanceM / 1000)
+                  : null,
+              source: "GOAL_DEMAND"
+            }),
+            stimulus: "PRIMARY"
+          }));
+        }
+
+        sessions.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+        const blocked = sessions.filter(session =>
+          String(session.prescription?.status || "").startsWith("BLOCKED")
+        ).length;
+
+        const knownDistanceKm = sessions.reduce((sum, session) => {
+          const p = session.prescription || {};
+          if (Number.isFinite(p.distanceKm)) return sum + p.distanceKm;
+          if (p.family === "COMPETITION" && Number.isFinite(p.distanceM)) return sum + p.distanceM / 1000;
+          if (Number.isFinite(p.totalWorkKm)) return sum + p.totalWorkKm;
+          return sum;
+        }, 0);
+
+        return Object.freeze({
+          weekIndex: week.index,
+          startDate: week.startDate,
+          endDate: week.endDate,
+          phase: week.phase,
+          weekType: week.type,
+          dose: skeletonWeek?.qualityDoseCap || "LOW",
+          targetVolumeKm: Number.isFinite(targetVolume?.targetKm) ? targetVolume.targetKm : null,
+          targetVolumeSource: targetVolume?.source || null,
+          longRunKm: Number.isFinite(longRun?.km) ? longRun.km : null,
+          knownDistanceKm: roundHalf(knownDistanceKm),
+          blockedSessions: blocked,
+          sessions: Object.freeze(sessions),
+          status: blocked ? "PARTIAL" : "READY"
+        });
+      }
+
+      function buildPrescriptionCore(input) {
+        const asOfDate = input?.asOfDate;
+        if (!isDateOnly(asOfDate)) {
+          throw Object.assign(
+            new Error("Prescription Core requires an explicit YYYY-MM-DD asOfDate."),
+            { code: "ENGINE_AS_OF_DATE_REQUIRED" }
+          );
+        }
+
+        const skeleton = input?.weeklySkeleton;
+        const macrocycle = input?.macrocycle;
+        const snapshot = input?.athleteSnapshot;
+        const paceAnchors = input?.paceAnchors;
+        const goal = input?.goal;
+
+        if (!skeleton?.weeks?.length || !macrocycle?.weeks?.length || !snapshot || !paceAnchors || !goal) {
+          const core = {
+            version: ENGINE_VERSION,
+            asOfDate,
+            status: "INSUFFICIENT_INPUT",
+            weeks: [],
+            policy: PRESCRIPTION_POLICY
+          };
+          return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+        }
+
+        const volume = progressionVolumePlan(macrocycle);
+        const longRuns = longRunPlan(macrocycle, snapshot);
+        const weekMap = new Map(skeleton.weeks.map(week => [week.weekIndex, week]));
+
+        const weeks = macrocycle.weeks.map(week => prescribeWeek({
+          week,
+          skeletonWeek: weekMap.get(week.index),
+          targetVolume: volume.find(row => row.weekIndex === week.index),
+          longRun: longRuns.find(row => row.weekIndex === week.index),
+          paceAnchors,
+          macrocycle,
+          snapshot,
+          goal
+        }));
+
+        const blockedSessions = weeks.reduce((sum, week) => sum + week.blockedSessions, 0);
+        const highWeeks = weeks.filter(week => week.dose === "HIGH").length;
+
+        const core = {
+          version: ENGINE_VERSION,
+          asOfDate,
+          status: blockedSessions ? "PARTIAL" : "READY",
+          volumePlan: volume,
+          longRunPlan: longRuns,
+          weeks: Object.freeze(weeks),
+          summary: Object.freeze({
+            totalWeeks: weeks.length,
+            blockedSessions,
+            highWeeks,
+            specificBlockedByCurrentAbility:
+              weeks.some(week => week.sessions.some(session =>
+                session.prescription?.status === "BLOCKED_BY_CURRENT_ABILITY"
+              ))
+          }),
+          policy: PRESCRIPTION_POLICY,
+          trace: Object.freeze({
+            skeletonFingerprint: skeleton?.fingerprint || null,
+            macrocycleFingerprint: macrocycle?.fingerprint || null,
+            snapshotFingerprint: snapshot?.fingerprint || null,
+            paceAnchorsFingerprint: paceAnchors?.fingerprint || null
+          })
         };
 
         return Object.freeze({ ...core, fingerprint: fingerprint(core) });
@@ -5087,6 +5789,78 @@
           availability: availability3
         });
 
+        const prescriptionPartial = buildPrescriptionCore({
+          asOfDate,
+          weeklySkeleton: skeleton3,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          paceAnchors: paceAnchorsThresholdOnly,
+          goal: macroGoalSevilla
+        });
+
+        const paceFullMarathon = buildPaceAnchors({
+          asOfDate,
+          threshold: { paceSecPerKm: 263, observedAt: "2026-10-20", source: "GARMIN_PRIVATE" },
+          currentAbility: {
+            fingerprint: "ability-marathon",
+            abilities: {
+              "5K": null,
+              "10K": null,
+              "HALF": null,
+              "MARATHON": {
+                timeSec: 11400,
+                paceSecPerKm: 11400 / 42.195,
+                distanceM: 42195,
+                sourceType: "RACE_TEST",
+                date: "2026-10-01",
+                confidence: "UNRATED",
+                fingerprint: "marathon-fixture"
+              }
+            }
+          }
+        });
+        const prescriptionReady = buildPrescriptionCore({
+          asOfDate,
+          weeklySkeleton: skeleton3,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          paceAnchors: paceFullMarathon,
+          goal: macroGoalSevilla
+        });
+
+        const prescriptionDeterministicA = buildPrescriptionCore({
+          asOfDate,
+          weeklySkeleton: skeleton3,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          paceAnchors: paceAnchorsThresholdOnly,
+          goal: macroGoalSevilla
+        });
+        const prescriptionDeterministicB = buildPrescriptionCore({
+          asOfDate,
+          weeklySkeleton: skeleton3,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          paceAnchors: paceAnchorsThresholdOnly,
+          goal: macroGoalSevilla
+        });
+
+        const firstThreshold = prescriptionPartial.weeks
+          .flatMap(week => week.sessions)
+          .find(session => session.prescription?.family === "THRESHOLD" && session.prescription?.status !== "BLOCKED_BY_THRESHOLD");
+
+        const consolidationVolumes = prescriptionPartial.weeks.filter(week => week.weekType === "CONSOLIDATION");
+        const consolidationReduced = consolidationVolumes.every(week => {
+          const idx = prescriptionPartial.weeks.findIndex(row => row.weekIndex === week.weekIndex);
+          const previous = prescriptionPartial.weeks
+            .slice(Math.max(0, idx - 2), idx)
+            .map(row => row.targetVolumeKm)
+            .filter(Number.isFinite);
+          return !Number.isFinite(week.targetVolumeKm) ||
+                 !previous.length ||
+                 week.targetVolumeKm < Math.min(...previous);
+        });
+
         const readyWeek = skeleton3.weeks.find(week => week?.status === "READY" && week.weekType === "PROGRESSION");
         const hardDatesReady = readyWeek?.hardDates || [];
         const hardSeparated = hardDatesReady.length < 2 ||
@@ -5180,7 +5954,30 @@
                                   skeleton3.weeks.find(week => week.weekType === "RACE_WEEK")?.strengthRole === null,
           skeletonOverrideSingleWeek: skeletonOverride.availability.overridesApplied.length === 1 &&
                                       skeletonOverride.availability.overridesApplied[0] === macroSevilla.weeks[2].startDate,
-          skeletonDeterministic: skeletonDeterministicA.fingerprint === skeletonDeterministicB.fingerprint
+          skeletonDeterministic: skeletonDeterministicA.fingerprint === skeletonDeterministicB.fingerprint,
+          prescriptionThresholdDose: Boolean(firstThreshold) &&
+                                     firstThreshold.prescription.source === "OFFICIAL_THRESHOLD" &&
+                                     ["LOW", "MEDIUM"].includes(firstThreshold.prescription.dose),
+          prescriptionSpecificBlocked: prescriptionPartial.status === "PARTIAL" &&
+                                       prescriptionPartial.summary.specificBlockedByCurrentAbility === true,
+          prescriptionSpecificReady: prescriptionReady.weeks
+            .filter(week => week.phase === "specific")
+            .some(week => week.sessions.some(session => session.prescription?.family === "SPECIFIC_PACE" &&
+                                                        session.prescription?.status !== "BLOCKED_BY_CURRENT_ABILITY")),
+          prescriptionConsolidationReduced: consolidationReduced,
+          prescriptionTaperVolume: prescriptionPartial.weeks.find(week => week.weekIndex === 15)?.targetVolumeKm === 61 &&
+                                    prescriptionPartial.weeks.find(week => week.weekIndex === 16)?.targetVolumeKm === 45.5 &&
+                                    prescriptionPartial.weeks.find(week => week.weekIndex === 17)?.targetVolumeKm === null,
+          prescriptionTaperLongRun: prescriptionPartial.weeks.find(week => week.weekIndex === 15)?.longRunKm === 23 &&
+                                     prescriptionPartial.weeks.find(week => week.weekIndex === 16)?.longRunKm === 16.5 &&
+                                     prescriptionPartial.weeks.find(week => week.weekIndex === 17)?.longRunKm === 0,
+          prescriptionMaxOneHigh: prescriptionPartial.weeks.every(week =>
+            week.sessions.filter(session => session.prescription?.dose === "HIGH").length <= 1
+          ),
+          prescriptionRaceGoalDemand: prescriptionPartial.weeks.find(week => week.weekType === "RACE_WEEK")?.sessions
+            .some(session => session.prescription?.family === "COMPETITION" &&
+                             session.prescription?.source === "GOAL_DEMAND"),
+          prescriptionDeterministic: prescriptionDeterministicA.fingerprint === prescriptionDeterministicB.fingerprint
         });
       }
 
@@ -5197,6 +5994,9 @@
         buildGoalAssessment,
         buildMacrocycle,
         buildWeeklySkeleton,
+        buildPrescriptionCore,
+        PRESCRIPTION_DOSES,
+        PRESCRIPTION_POLICY,
         WEEKLY_SKELETON_POLICY,
         PREFERRED_RUNNING_DAYS,
         MACROCYCLE_PHASE_RANGES,
@@ -5261,7 +6061,7 @@
           trainingStatus: null
         },
         activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
-        training: { activePlan: null, activeGoal: null, goalAssessment: null, macrocycle: null, availability: null, weeklySkeleton: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", goalStatus: "idle", macroStatus: "idle", skeletonStatus: "idle", engineError: null, abilityError: null, paceError: null, goalError: null, macroError: null, skeletonError: null },
+        training: { activePlan: null, activeGoal: null, goalAssessment: null, macrocycle: null, availability: null, weeklySkeleton: null, prescriptionCore: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", goalStatus: "idle", macroStatus: "idle", skeletonStatus: "idle", prescriptionStatus: "idle", engineError: null, abilityError: null, paceError: null, goalError: null, macroError: null, skeletonError: null, prescriptionError: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null, vo2History: [], thresholdHistory: [], trainingStatusHistory: [], sleepHistory: [], hrvHistory: [], readinessHistory: [] },
         settings: {},
         ui: { toast: null },
@@ -5359,6 +6159,9 @@
           case "WEEKLY_SKELETON_LOADING": state.training.skeletonStatus = "loading"; state.training.skeletonError = null; mark("training"); break;
           case "WEEKLY_SKELETON_LOADED": state.training.weeklySkeleton = payload || null; state.training.skeletonStatus = "ready"; state.training.skeletonError = null; mark("training"); break;
           case "WEEKLY_SKELETON_ERROR": state.training.skeletonStatus = "error"; state.training.skeletonError = payload || null; mark("training"); break;
+          case "PRESCRIPTION_LOADING": state.training.prescriptionStatus = "loading"; state.training.prescriptionError = null; mark("training"); break;
+          case "PRESCRIPTION_LOADED": state.training.prescriptionCore = payload || null; state.training.prescriptionStatus = "ready"; state.training.prescriptionError = null; mark("training"); break;
+          case "PRESCRIPTION_ERROR": state.training.prescriptionStatus = "error"; state.training.prescriptionError = payload || null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADING": state.training.engineStatus = "loading"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADED": state.training.athleteSnapshot = payload || null; state.training.engineStatus = "ready"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_ERROR": state.training.engineStatus = "error"; state.training.engineError = payload || null; mark("training"); break;
@@ -6549,7 +7352,7 @@
         return true;
       }
 
-      return { version: "0.0.40", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.41", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -7268,6 +8071,7 @@
         const macro = state.macrocycle;
         const availability = state.availability;
         const skeleton = state.weeklySkeleton;
+        const prescription = state.prescriptionCore;
 
         const setDayChecks = (hostId, days) => {
           document.querySelectorAll(`#${hostId} input[type="checkbox"]`).forEach(input => {
@@ -7435,6 +8239,149 @@
           text("training-week-rest", "—");
           text("training-week-frequency-policy", "Frecuencia: —");
           text("training-week-separation", "Separación: —");
+        }
+
+        const prescriptionEmpty = document.getElementById("training-prescription-empty");
+        const prescriptionSummary = document.getElementById("training-prescription-summary");
+        const prescriptionDetails = document.getElementById("training-prescription-details");
+        const prescriptionList = document.getElementById("training-prescription-list");
+        const prescriptionWeekList = document.getElementById("training-prescription-week-list");
+        prescriptionList?.replaceChildren();
+        prescriptionWeekList?.replaceChildren();
+
+        const formatKm = value => Number.isFinite(value) ? `${value.toFixed(value % 1 ? 1 : 0)} km` : "—";
+        const paceRangeText = p => {
+          if (!Number.isFinite(p?.targetPaceMinSecPerKm) || !Number.isFinite(p?.targetPaceMaxSecPerKm)) return "—";
+          return `${formatPace(p.targetPaceMinSecPerKm)} – ${formatPace(p.targetPaceMaxSecPerKm)}`;
+        };
+
+        const currentPrescriptionWeek = prescription?.weeks?.find(week =>
+          week.startDate <= ATLAS.core.localDate() && week.endDate >= ATLAS.core.localDate()
+        ) || prescription?.weeks?.[0] || null;
+
+        text("training-prescription-status", prescription?.status || "—");
+        text("training-prescription-fingerprint", prescription?.fingerprint || "—");
+
+        if (prescription && prescription.status !== "INSUFFICIENT_INPUT" && currentPrescriptionWeek) {
+          if (prescriptionEmpty) prescriptionEmpty.hidden = true;
+          if (prescriptionSummary) prescriptionSummary.hidden = false;
+          if (prescriptionDetails) prescriptionDetails.hidden = false;
+
+          text(
+            "training-prescription-volume",
+            Number.isFinite(currentPrescriptionWeek.targetVolumeKm)
+              ? formatKm(currentPrescriptionWeek.targetVolumeKm)
+              : currentPrescriptionWeek.weekType === "PARTIAL_ENTRY"
+                ? "Parcial"
+                : currentPrescriptionWeek.weekType === "RACE_WEEK" ? "Carrera" : "—"
+          );
+          text("training-prescription-longrun", formatKm(currentPrescriptionWeek.longRunKm));
+          text("training-prescription-dose", currentPrescriptionWeek.dose || "LOW");
+          text(
+            "training-prescription-volume-note",
+            Number.isFinite(currentPrescriptionWeek.targetVolumeKm)
+              ? `Volumen referencia: ${formatKm(currentPrescriptionWeek.targetVolumeKm)} · km conocidos ${formatKm(currentPrescriptionWeek.knownDistanceKm)} · WU/CD proporcional no cuantificado`
+              : "Volumen: semana parcial/carrera sin banda artificial"
+          );
+          text(
+            "training-prescription-specific-note",
+            prescription.summary?.specificBlockedByCurrentAbility
+              ? "Específico: bloqueado hasta disponer de Current Ability válida ≤180 días"
+              : "Específico: habilitado desde Current Ability"
+          );
+
+          for (const session of currentPrescriptionWeek.sessions || []) {
+            const p = session.prescription || {};
+            const row = document.createElement("div");
+            row.className = "training-prescription-session";
+            row.dataset.blocked = String(String(p.status || "").startsWith("BLOCKED"));
+
+            const date = document.createElement("div");
+            date.className = "training-prescription-session__date";
+            date.textContent = session.date;
+
+            const name = document.createElement("div");
+            name.className = "training-prescription-session__name";
+            name.textContent = session.name;
+
+            const target = document.createElement("div");
+            target.className = "training-prescription-session__target";
+
+            if (p.family === "THRESHOLD" && p.status !== "BLOCKED_BY_THRESHOLD") {
+              target.textContent = `${p.reps} × ${(p.repM / 1000).toFixed(p.repM % 1000 ? 1 : 0)} km · ${formatPace(p.targetPaceSecPerKm)}`;
+            } else if (p.family === "SPECIFIC_PACE" && !String(p.status || "").startsWith("BLOCKED")) {
+              target.textContent = `${formatKm(p.totalWorkKm)} @ ${formatPace(p.targetPaceSecPerKm)}`;
+            } else if (p.family === "LONG_RUN" || ["EASY", "RECOVERY"].includes(p.family)) {
+              target.textContent = `${formatKm(p.distanceKm)} · ${paceRangeText(p)}`;
+            } else if (p.family === "COMPETITION") {
+              target.textContent = `${(p.distanceM / 1000).toFixed(3).replace(/\.000$/, "")} km · ${formatDurationClock(p.targetTimeSec)} · ${formatPace(p.targetPaceSecPerKm)}`;
+            } else if (p.family === "STRENGTH") {
+              target.textContent = `${p.level || "—"} · variante ${p.variant || "—"}`;
+            } else {
+              target.textContent = p.reason || p.status || "—";
+            }
+
+            const meta = document.createElement("div");
+            meta.className = "training-prescription-session__meta";
+            if (p.family === "THRESHOLD" && p.recoverySec) {
+              meta.textContent = `dosis ${p.dose} · rec ${formatDurationClock(p.recoverySec)} · WU/CD proporcional`;
+            } else if (p.family === "LONG_RUN") {
+              meta.textContent = p.nutritionNote ? "normal · practicar nutrición" : "normal";
+            } else if (p.family === "STRENGTH") {
+              meta.textContent = "detalle en F8.8";
+            } else {
+              meta.textContent = p.source || p.status || "";
+            }
+
+            row.append(date, name, target, meta);
+            prescriptionList?.append(row);
+          }
+
+          for (const week of prescription.weeks || []) {
+            const row = document.createElement("div");
+            row.className = "training-prescription-week-row";
+
+            const index = document.createElement("div");
+            index.className = "training-prescription-week-row__muted";
+            index.textContent = `W${week.weekIndex}`;
+
+            const phase = document.createElement("div");
+            phase.className = "training-prescription-week-row__strong";
+            phase.textContent = week.phase;
+
+            const type = document.createElement("div");
+            type.className = "training-prescription-week-row__muted";
+            type.textContent = week.weekType;
+
+            const volume = document.createElement("div");
+            volume.className = "training-prescription-week-row__strong";
+            volume.textContent = Number.isFinite(week.targetVolumeKm)
+              ? formatKm(week.targetVolumeKm)
+              : (week.weekType === "RACE_WEEK" ? "race" : "partial");
+
+            const lr = document.createElement("div");
+            lr.className = "training-prescription-week-row__muted";
+            lr.textContent = `LR ${formatKm(week.longRunKm)}`;
+
+            const quality = document.createElement("div");
+            quality.className = "training-prescription-week-row__right";
+            const q = week.sessions.find(session => session.role === "QUALITY_PRIMARY");
+            quality.textContent = q
+              ? `${q.prescription?.family || "—"} · ${q.prescription?.status || q.prescription?.dose || "READY"}`
+              : "sin calidad";
+
+            row.append(index, phase, type, volume, lr, quality);
+            prescriptionWeekList?.append(row);
+          }
+        } else {
+          if (prescriptionEmpty) prescriptionEmpty.hidden = false;
+          if (prescriptionSummary) prescriptionSummary.hidden = true;
+          if (prescriptionDetails) prescriptionDetails.hidden = true;
+          text("training-prescription-volume", "—");
+          text("training-prescription-longrun", "—");
+          text("training-prescription-dose", "—");
+          text("training-prescription-volume-note", "Volumen: —");
+          text("training-prescription-specific-note", "Específico: —");
         }
 
         const phaseHost = document.getElementById("training-phase-list");
@@ -8340,7 +9287,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.40", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.41", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -8459,7 +9406,7 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.40", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.41", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
       const PR_DISTANCE_BY_TYPE = Object.freeze({
@@ -8749,6 +9696,28 @@
         return availability;
       }
 
+      async function refreshPrescriptionCore(asOfDate = ATLAS.core.localDate()) {
+        ATLAS.state.dispatch({ type: "PRESCRIPTION_LOADING" });
+        try {
+          const prescription = ATLAS.trainingEngine.buildPrescriptionCore({
+            asOfDate,
+            weeklySkeleton: ATLAS.state.data.training.weeklySkeleton,
+            macrocycle: ATLAS.state.data.training.macrocycle,
+            athleteSnapshot: ATLAS.state.data.training.athleteSnapshot,
+            paceAnchors: ATLAS.state.data.training.paceAnchors,
+            goal: ATLAS.state.data.training.activeGoal,
+            goalAssessment: ATLAS.state.data.training.goalAssessment
+          });
+          ATLAS.state.dispatch({ type: "PRESCRIPTION_LOADED", payload: prescription });
+          return prescription;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "PRESCRIPTION_CORE_FAILED");
+          ATLAS.state.dispatch({ type: "PRESCRIPTION_ERROR", payload: safe });
+          ATLAS.diagnostics?.recordError?.(safe);
+          return null;
+        }
+      }
+
       async function refreshWeeklySkeleton(asOfDate = ATLAS.core.localDate()) {
         ATLAS.state.dispatch({ type: "WEEKLY_SKELETON_LOADING" });
         try {
@@ -8760,6 +9729,7 @@
             availability
           });
           ATLAS.state.dispatch({ type: "WEEKLY_SKELETON_LOADED", payload: skeleton });
+          await refreshPrescriptionCore(asOfDate);
           return skeleton;
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "WEEKLY_SKELETON_FAILED");
@@ -9019,8 +9989,8 @@
       }
 
       return Object.freeze({
-        version: "0.0.40",
-        status: "f8.6-weekly-skeleton",
+        version: "0.0.41",
+        status: "f8.7-prescription-core",
         normalizeActivity,
         normalizePersonalRecordEvidence,
         buildSnapshotInput,
@@ -9031,6 +10001,7 @@
         refreshGoalAssessment,
         refreshMacrocycle,
         refreshWeeklySkeleton,
+        refreshPrescriptionCore,
         loadAvailability,
         saveAvailability,
         saveAvailabilityOverride,
@@ -9073,7 +10044,7 @@
         });
       }
 
-      return { version: "0.0.40", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.41", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -9101,7 +10072,7 @@
         });
       }
 
-      return { version: "0.0.40", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.41", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -9118,7 +10089,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.40"],
+          ["build.version", ATLAS.build.version === "0.0.41"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -9219,6 +10190,16 @@
           ["engine.skeleton.live", !ATLAS.state.data.training.availability?.default ||
                                    Boolean(ATLAS.state.data.training.weeklySkeleton?.fingerprint)],
           ["engine.skeleton.futureOnly", typeof ATLAS.training.saveAvailabilityOverride === "function"],
+          ["engine.prescription.contract", typeof ATLAS.trainingEngine.buildPrescriptionCore === "function"],
+          ["engine.prescription.live", !ATLAS.state.data.training.weeklySkeleton?.weeks?.length ||
+                                       Boolean(ATLAS.state.data.training.prescriptionCore?.fingerprint)],
+          ["engine.prescription.maxOneHigh", !ATLAS.state.data.training.prescriptionCore?.weeks?.length ||
+                                             ATLAS.state.data.training.prescriptionCore.weeks.every(week =>
+                                               week.sessions.filter(session => session.prescription?.dose === "HIGH").length <= 1)],
+          ["engine.prescription.raceWeekNoBand", !ATLAS.state.data.training.prescriptionCore?.weeks?.length ||
+                                                ATLAS.state.data.training.prescriptionCore.weeks
+                                                  .filter(week => week.weekType === "RACE_WEEK")
+                                                  .every(week => week.targetVolumeKm === null)],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
