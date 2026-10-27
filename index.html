@@ -1050,6 +1050,87 @@
       margin-inline: auto;
     }
 
+    .training-ability {
+      width: min(100%, var(--content-standard));
+      margin: 0 auto 28px;
+      padding: 0 0 24px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-ability__header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .training-ability__status {
+      flex: 0 0 auto;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: right;
+    }
+    .training-ability-list {
+      border-top: 1px solid var(--divider);
+    }
+    .training-ability-row {
+      display: grid;
+      grid-template-columns: minmax(92px, .7fr) minmax(100px, .8fr) minmax(110px, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-ability-row__distance {
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .training-ability-row__time {
+      color: var(--text);
+      font-size: 20px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .training-ability-row__meta {
+      min-width: 0;
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .training-ability-row__pace {
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+    .training-ability-trace {
+      margin-top: 14px;
+      border-top: 1px solid var(--divider);
+    }
+    .training-ability-trace-row {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--divider);
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .training-ability-trace-row strong {
+      color: var(--text);
+      font-weight: 650;
+    }
+    @media (max-width: 599px) {
+      .training-ability__header { display: block; }
+      .training-ability__status { margin-top: 8px; text-align: left; }
+      .training-ability-row {
+        grid-template-columns: 72px 1fr auto;
+        gap: 8px 12px;
+      }
+      .training-ability-row__meta {
+        grid-column: 1 / 4;
+      }
+    }
+
     @media (min-width: 600px) {
       .training-base-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .training-base-metric {
@@ -1831,6 +1912,30 @@
             </details>
           </section>
 
+          <section class="training-ability" id="training-ability-section">
+            <div class="training-ability__header">
+              <div>
+                <p class="eyebrow">Capacidad actual</p>
+                <h2 class="section-title">Evidencia de carrera</h2>
+                <p class="section-copy">Carreras/tests y mejores esfuerzos fechados. Las predicciones Garmin no forman parte de esta capacidad.</p>
+              </div>
+              <div class="training-ability__status" id="training-ability-status">—</div>
+            </div>
+
+            <div class="training-ability-list" id="training-ability-list"></div>
+
+            <div class="training-base-notes">
+              <div class="training-base-note" id="training-ability-policy">Confianza: —</div>
+              <div class="training-base-note" id="training-ability-durability">Durabilidad maratón: —</div>
+            </div>
+
+            <details class="training-snapshot-details">
+              <summary>Ver trazabilidad de capacidad</summary>
+              <div class="training-ability-trace" id="training-ability-trace"></div>
+              <div class="training-fingerprint">Fingerprint: <span id="training-ability-fingerprint">—</span></div>
+            </details>
+          </section>
+
           <div class="empty-state plan-empty-state" id="training-no-plan">
             <strong>Aún no hay un objetivo ni un plan</strong>
             Cuando definas un objetivo, ATLAS construirá el plan sobre esta base sin confundir tu capacidad actual con la demanda futura.
@@ -2374,7 +2479,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.31",
+      version: "0.0.32",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2386,14 +2491,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.31",
+      version: "0.0.32",
       channel: "development",
-      buildId: "atlas-0.0.31-f8.1-contracts-athlete-snapshot",
+      buildId: "atlas-0.0.32-f8.2-current-ability",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
-      workerCompatibility: "0.0.20",
-      bridgeCompatibility: "0.0.20-compatible"
+      workerCompatibility: "0.0.21",
+      bridgeCompatibility: "0.0.21-compatible"
     });
 
     /* =========================================================
@@ -2461,7 +2566,7 @@
        Pure / deterministic / no IO.
        ========================================================= */
     ATLAS.trainingEngine = (() => {
-      const ENGINE_VERSION = "8.1.0";
+      const ENGINE_VERSION = "8.2.0";
       const WINDOW_WEEKS = 8;
 
       const DISTANCES = Object.freeze({
@@ -2720,6 +2825,368 @@
         return Object.freeze({ ...core, fingerprint: fingerprint(core) });
       }
 
+      const CURRENT_ABILITY_KEYS = Object.freeze(["5K", "10K", "HALF", "MARATHON"]);
+      const CURRENT_ABILITY_CONFIDENCE_POLICY = Object.freeze({
+        default: "UNRATED",
+        marathonDurability: "LOW",
+        rationale: "USER_APPROVED_F8_2_SOURCE_GAP"
+      });
+
+      function daysBetween(startDate, endDate) {
+        const start = utcDate(startDate);
+        const end = utcDate(endDate);
+        if (!start || !end) return null;
+        return Math.round((end.getTime() - start.getTime()) / 86400000);
+      }
+
+      function recencyOf(date, asOfDate) {
+        const ageDays = daysBetween(date, asOfDate);
+        if (!Number.isFinite(ageDays) || ageDays < 0) return Object.freeze({ bucket: "INVALID", ageDays });
+        if (ageDays <= 42) return Object.freeze({ bucket: "CURRENT", ageDays });
+        if (ageDays <= 84) return Object.freeze({ bucket: "VALID", ageDays });
+        if (ageDays <= 180) return Object.freeze({ bucket: "CONTEXT", ageDays });
+        return Object.freeze({ bucket: "EXPIRED", ageDays });
+      }
+
+      function normalizeDistanceKey(distanceM) {
+        if (!Number.isFinite(distanceM) || distanceM <= 0) return null;
+        let best = null;
+        for (const key of CURRENT_ABILITY_KEYS) {
+          const official = DISTANCES[key];
+          const deltaPct = Math.abs(distanceM - official) / official;
+          if (deltaPct <= 0.04 && (!best || deltaPct < best.deltaPct)) {
+            best = { key, officialDistanceM: official, deltaPct };
+          }
+        }
+        return best ? Object.freeze(best) : null;
+      }
+
+      function riegel(timeSec, distanceM1, distanceM2) {
+        if (![timeSec, distanceM1, distanceM2].every(Number.isFinite)) return null;
+        if (timeSec <= 0 || distanceM1 <= 0 || distanceM2 <= 0) return null;
+        return timeSec * Math.pow(distanceM2 / distanceM1, 1.06);
+      }
+
+      function evidencePriority(sourceType) {
+        if (sourceType === "RACE_TEST") return 1;
+        if (sourceType === "BEST_EFFORT") return 2;
+        return 99;
+      }
+
+      function normalizeCurrentEvidence(evidence, asOfDate) {
+        const distance = normalizeDistanceKey(Number(evidence?.distanceM));
+        const timeSec = Number(evidence?.timeSec);
+        const date = isDateOnly(evidence?.date) ? evidence.date : null;
+        const sourceType = ["RACE_TEST", "BEST_EFFORT"].includes(evidence?.sourceType)
+          ? evidence.sourceType
+          : null;
+        const recency = date ? recencyOf(date, asOfDate) : { bucket: "INVALID", ageDays: null };
+
+        if (!distance || !Number.isFinite(timeSec) || timeSec <= 0 || !date || !sourceType) return null;
+
+        return Object.freeze({
+          id: String(evidence?.id || `${sourceType}:${date}:${distance.key}:${Math.round(timeSec)}`),
+          sourceType,
+          source: String(evidence?.source || "UNKNOWN"),
+          date,
+          recency,
+          distanceKey: distance.key,
+          distanceM: distance.officialDistanceM,
+          rawDistanceM: Number(evidence?.distanceM),
+          timeSec,
+          activityId: evidence?.activityId ? String(evidence.activityId) : null,
+          trace: evidence?.trace || null
+        });
+      }
+
+      function dispersionRatio(values) {
+        const clean = values.map(Number).filter(Number.isFinite);
+        const center = median(clean);
+        if (!Number.isFinite(center) || center <= 0 || clean.length < 2) return 0;
+        return (Math.max(...clean) - Math.min(...clean)) / center;
+      }
+
+      function chooseEvidenceConsensus(rows) {
+        if (!rows.length) return null;
+        const sorted = [...rows].sort((a, b) => {
+          const priority = evidencePriority(a.sourceType) - evidencePriority(b.sourceType);
+          if (priority) return priority;
+          return String(b.date).localeCompare(String(a.date));
+        });
+        const bestPriority = evidencePriority(sorted[0].sourceType);
+        const compatible = sorted.filter(row => evidencePriority(row.sourceType) === bestPriority);
+        const dispersion = dispersionRatio(compatible.map(row => row.timeSec));
+
+        if (dispersion > 0.06) {
+          const recent = [...compatible].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+          return Object.freeze({
+            timeSec: recent.timeSec,
+            selected: [recent],
+            candidates: compatible,
+            dispersion,
+            selection: "RECENT_DUE_TO_DISPERSION_GT_6",
+            confidenceAdjustment: "DISPERSION_GT_6"
+          });
+        }
+
+        return Object.freeze({
+          timeSec: median(compatible.map(row => row.timeSec)),
+          selected: compatible,
+          candidates: compatible,
+          dispersion,
+          selection: compatible.length > 1 ? "MEDIAN_CONSENSUS" : "SINGLE_EVIDENCE",
+          confidenceAdjustment: null
+        });
+      }
+
+      function abilityRecord({
+        key,
+        timeSec,
+        sourceType,
+        date,
+        recency,
+        confidence = CURRENT_ABILITY_CONFIDENCE_POLICY.default,
+        selection,
+        dispersion = 0,
+        confidenceAdjustment = null,
+        evidence = [],
+        projection = null
+      }) {
+        const distanceM = DISTANCES[key];
+        const core = {
+          key,
+          distanceM,
+          timeSec,
+          paceSecPerKm: Number.isFinite(timeSec) ? timeSec / (distanceM / 1000) : null,
+          sourceType,
+          date,
+          recency,
+          confidence,
+          selection,
+          dispersion,
+          confidenceAdjustment,
+          evidence,
+          projection
+        };
+        return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+      }
+
+      function directAbilityFor(key, normalizedEvidence) {
+        const rows = normalizedEvidence.filter(
+          row => row.distanceKey === key && row.recency.bucket !== "EXPIRED" && row.recency.bucket !== "INVALID"
+        );
+        const consensus = chooseEvidenceConsensus(rows);
+        if (!consensus) return null;
+
+        const latestSelected = [...consensus.selected].sort(
+          (a, b) => String(b.date).localeCompare(String(a.date))
+        )[0];
+
+        return abilityRecord({
+          key,
+          timeSec: consensus.timeSec,
+          sourceType: latestSelected.sourceType,
+          date: latestSelected.date,
+          recency: latestSelected.recency,
+          selection: consensus.selection,
+          dispersion: consensus.dispersion,
+          confidenceAdjustment: consensus.confidenceAdjustment,
+          evidence: consensus.selected.map(row => ({
+            id: row.id,
+            sourceType: row.sourceType,
+            source: row.source,
+            date: row.date,
+            distanceKey: row.distanceKey,
+            distanceM: row.distanceM,
+            timeSec: row.timeSec,
+            activityId: row.activityId
+          }))
+        });
+      }
+
+      function equivalentAbilityFor(key, directAbilities) {
+        if (key === "MARATHON") return null;
+        const targetDistanceM = DISTANCES[key];
+        const candidates = [];
+
+        for (const sourceKey of ["5K", "10K", "HALF"]) {
+          if (sourceKey === key) continue;
+          const source = directAbilities[sourceKey];
+          if (!source || !Number.isFinite(source.timeSec)) continue;
+          const projected = riegel(source.timeSec, DISTANCES[sourceKey], targetDistanceM);
+          if (!Number.isFinite(projected)) continue;
+
+          candidates.push({
+            sourceKey,
+            timeSec: projected,
+            date: source.date,
+            recency: source.recency,
+            source
+          });
+        }
+
+        if (!candidates.length) return null;
+        const dispersion = dispersionRatio(candidates.map(item => item.timeSec));
+        let selected;
+        let selection;
+        let confidenceAdjustment = null;
+
+        if (dispersion > 0.06) {
+          selected = [...candidates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+          selection = "RECENT_EQUIVALENCE_DUE_TO_DISPERSION_GT_6";
+          confidenceAdjustment = "DISPERSION_GT_6";
+        } else {
+          selected = [...candidates].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+          selection = candidates.length > 1 ? "MEDIAN_EQUIVALENCE_CONSENSUS" : "SINGLE_EQUIVALENCE";
+        }
+
+        const timeSec = dispersion > 0.06
+          ? selected.timeSec
+          : median(candidates.map(item => item.timeSec));
+
+        return abilityRecord({
+          key,
+          timeSec,
+          sourceType: "EQUIVALENCE",
+          date: selected.date,
+          recency: selected.recency,
+          selection,
+          dispersion,
+          confidenceAdjustment,
+          evidence: candidates.map(item => ({
+            sourceKey: item.sourceKey,
+            sourceTimeSec: item.source.timeSec,
+            sourceDate: item.source.date,
+            sourceType: item.source.sourceType,
+            projectedTimeSec: item.timeSec
+          })),
+          projection: {
+            formula: "RIEGEL",
+            exponent: 1.06,
+            targetKey: key
+          }
+        });
+      }
+
+      function buildDurabilityProfile(normalizedEvidence) {
+        const halfRows = normalizedEvidence.filter(row => row.distanceKey === "HALF");
+        const marathonRows = normalizedEvidence.filter(row => row.distanceKey === "MARATHON");
+        const pairs = [];
+
+        for (const marathon of marathonRows) {
+          for (const half of halfRows) {
+            const gapDays = daysBetween(half.date, marathon.date);
+            if (!Number.isFinite(gapDays) || gapDays < 0 || gapDays > 180) continue;
+            const simpleProjection = riegel(half.timeSec, DISTANCES.HALF, DISTANCES.MARATHON);
+            if (!Number.isFinite(simpleProjection) || simpleProjection <= 0) continue;
+            pairs.push({
+              halfDate: half.date,
+              marathonDate: marathon.date,
+              gapDays,
+              halfTimeSec: half.timeSec,
+              marathonTimeSec: marathon.timeSec,
+              riegelMarathonSec: simpleProjection,
+              factor: marathon.timeSec / simpleProjection,
+              halfEvidenceId: half.id,
+              marathonEvidenceId: marathon.id
+            });
+          }
+        }
+
+        const factor = median(pairs.map(pair => pair.factor));
+        return Object.freeze({
+          available: Number.isFinite(factor) && factor > 0,
+          factor: Number.isFinite(factor) ? factor : null,
+          samples: pairs.length,
+          pairs
+        });
+      }
+
+      function buildCurrentAbility(input) {
+        const asOfDate = input?.asOfDate;
+        if (!isDateOnly(asOfDate)) {
+          throw Object.assign(
+            new Error("Current Ability requires an explicit YYYY-MM-DD asOfDate."),
+            { code: "ENGINE_AS_OF_DATE_REQUIRED" }
+          );
+        }
+
+        const normalizedEvidence = (Array.isArray(input?.evidence) ? input.evidence : [])
+          .map(row => normalizeCurrentEvidence(row, asOfDate))
+          .filter(Boolean);
+
+        const direct = {};
+        for (const key of CURRENT_ABILITY_KEYS) {
+          direct[key] = directAbilityFor(key, normalizedEvidence);
+        }
+
+        const abilities = {
+          "5K": direct["5K"] || equivalentAbilityFor("5K", direct),
+          "10K": direct["10K"] || equivalentAbilityFor("10K", direct),
+          "HALF": direct.HALF || equivalentAbilityFor("HALF", direct),
+          "MARATHON": direct.MARATHON || null
+        };
+
+        const durability = buildDurabilityProfile(normalizedEvidence);
+
+        if (!abilities.MARATHON && durability.available && abilities.HALF) {
+          const baseMarathon = riegel(
+            abilities.HALF.timeSec,
+            DISTANCES.HALF,
+            DISTANCES.MARATHON
+          );
+          const estimated = Number.isFinite(baseMarathon)
+            ? baseMarathon * durability.factor
+            : null;
+
+          if (Number.isFinite(estimated)) {
+            abilities.MARATHON = abilityRecord({
+              key: "MARATHON",
+              timeSec: estimated,
+              sourceType: "DURABILITY_ESTIMATE",
+              date: abilities.HALF.date,
+              recency: abilities.HALF.recency,
+              confidence: CURRENT_ABILITY_CONFIDENCE_POLICY.marathonDurability,
+              selection: "HALF_PLUS_PERSONAL_DURABILITY",
+              evidence: abilities.HALF.evidence,
+              projection: {
+                formula: "RIEGEL_HALF_TO_MARATHON_X_PERSONAL_DURABILITY",
+                exponent: 1.06,
+                durabilityFactor: durability.factor,
+                durabilitySamples: durability.samples
+              }
+            });
+          }
+        }
+
+        const available = CURRENT_ABILITY_KEYS.filter(key => Boolean(abilities[key]));
+        const core = {
+          version: ENGINE_VERSION,
+          asOfDate,
+          status: available.length === 0
+            ? "INSUFFICIENT_DATA"
+            : available.length === CURRENT_ABILITY_KEYS.length
+              ? "READY"
+              : "PARTIAL",
+          confidencePolicy: CURRENT_ABILITY_CONFIDENCE_POLICY,
+          evidencePolicy: {
+            priority: ["RACE_TEST", "BEST_EFFORT", "EQUIVALENCE"],
+            distanceTolerancePct: 4,
+            recencyDays: {
+              currentMax: 42,
+              validMax: 84,
+              contextMax: 180
+            },
+            marathonSimpleRiegelFromShorterDistances: false
+          },
+          evidenceCount: normalizedEvidence.length,
+          abilities,
+          durabilityProfile: durability
+        };
+
+        return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+      }
+
       function makeFixtureWeek(startDate, {
         runningDays = 0,
         distanceM = 0,
@@ -2817,6 +3284,52 @@
         const deterministicA = buildAthleteSnapshot(deterministicInput);
         const deterministicB = buildAthleteSnapshot(deterministicInput);
 
+        const abilityDirect = buildCurrentAbility({
+          asOfDate,
+          evidence: [
+            { id: "be-5k", sourceType: "BEST_EFFORT", source: "fixture", date: "2026-10-20", distanceM: 5000, timeSec: 1180 },
+            { id: "race-5k", sourceType: "RACE_TEST", source: "fixture", date: "2026-10-18", distanceM: 5000, timeSec: 1200 },
+            { id: "race-10k", sourceType: "RACE_TEST", source: "fixture", date: "2026-09-20", distanceM: 10000, timeSec: 2500 },
+            { id: "race-half", sourceType: "RACE_TEST", source: "fixture", date: "2026-08-01", distanceM: 21097.5, timeSec: 5500 }
+          ]
+        });
+
+        const abilityNoMarathon = buildCurrentAbility({
+          asOfDate,
+          evidence: [
+            { id: "race-10k-only", sourceType: "RACE_TEST", source: "fixture", date: "2026-10-10", distanceM: 10000, timeSec: 2500 }
+          ]
+        });
+
+        const durabilityAbility = buildCurrentAbility({
+          asOfDate,
+          evidence: [
+            { id: "old-half", sourceType: "RACE_TEST", source: "fixture", date: "2025-10-01", distanceM: 21097.5, timeSec: 5400 },
+            { id: "old-marathon", sourceType: "RACE_TEST", source: "fixture", date: "2026-02-01", distanceM: 42195, timeSec: 11800 },
+            { id: "current-half", sourceType: "RACE_TEST", source: "fixture", date: "2026-10-01", distanceM: 21097.5, timeSec: 5200 }
+          ]
+        });
+
+        const dispersionAbility = buildCurrentAbility({
+          asOfDate,
+          evidence: [
+            { id: "5k-a", sourceType: "BEST_EFFORT", source: "fixture", date: "2026-10-01", distanceM: 5000, timeSec: 1200 },
+            { id: "5k-b", sourceType: "BEST_EFFORT", source: "fixture", date: "2026-10-20", distanceM: 5000, timeSec: 1320 }
+          ]
+        });
+
+        const deterministicAbilityInput = {
+          asOfDate,
+          evidence: [
+            { id: "d-5k", sourceType: "BEST_EFFORT", source: "fixture", date: "2026-10-20", distanceM: 5000, timeSec: 1200 },
+            { id: "d-10k", sourceType: "BEST_EFFORT", source: "fixture", date: "2026-10-15", distanceM: 10000, timeSec: 2500 }
+          ]
+        };
+        const deterministicAbilityA = buildCurrentAbility(deterministicAbilityInput);
+        const deterministicAbilityB = buildCurrentAbility(deterministicAbilityInput);
+
+        const riegel10k = riegel(1200, 5000, 10000);
+
         return Object.freeze({
           window8: low.weeks.length === 8,
           excludesCurrentWeek: low.window.endDate === "2026-10-25",
@@ -2828,7 +3341,21 @@
                       drop.base.recentVolumeDrop === true,
           deterministic: deterministicA.fingerprint === deterministicB.fingerprint,
           qualityExplicitOnly: medium.evidence.quality.dependencyPending === true &&
-                               high.evidence.quality.dependencyPending === false
+                               high.evidence.quality.dependencyPending === false,
+          abilityDirectPriority: abilityDirect.abilities["5K"]?.sourceType === "RACE_TEST" &&
+                                 Math.round(abilityDirect.abilities["5K"]?.timeSec) === 1200,
+          abilityRecency: abilityDirect.abilities["5K"]?.recency?.bucket === "CURRENT" &&
+                          abilityDirect.abilities["10K"]?.recency?.bucket === "CURRENT" &&
+                          abilityDirect.abilities.HALF?.recency?.bucket === "CONTEXT",
+          abilityRiegel: Number.isFinite(riegel10k) && Math.abs(riegel10k - 2501.92) < 2,
+          abilityNoSimpleMarathon: abilityNoMarathon.abilities.MARATHON === null,
+          abilityDurabilityMarathon: durabilityAbility.abilities.MARATHON?.sourceType === "DURABILITY_ESTIMATE" &&
+                                     durabilityAbility.abilities.MARATHON?.confidence === "LOW",
+          abilityConfidenceUnrated: abilityDirect.abilities["5K"]?.confidence === "UNRATED" &&
+                                    abilityDirect.abilities["10K"]?.confidence === "UNRATED",
+          abilityDispersion: dispersionAbility.abilities["5K"]?.selection === "RECENT_DUE_TO_DISPERSION_GT_6" &&
+                             dispersionAbility.abilities["5K"]?.confidenceAdjustment === "DISPERSION_GT_6",
+          abilityDeterministic: deterministicAbilityA.fingerprint === deterministicAbilityB.fingerprint
         });
       }
 
@@ -2841,6 +3368,11 @@
         median,
         startOfIsoWeek,
         buildAthleteSnapshot,
+        buildCurrentAbility,
+        normalizeDistanceKey,
+        riegel,
+        recencyOf,
+        CURRENT_ABILITY_CONFIDENCE_POLICY,
         fingerprint,
         regressionTests
       });
@@ -2892,7 +3424,7 @@
           trainingStatus: null
         },
         activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
-        training: { activePlan: null, athleteSnapshot: null, engineStatus: "idle", engineError: null },
+        training: { activePlan: null, athleteSnapshot: null, currentAbility: null, engineStatus: "idle", abilityStatus: "idle", engineError: null, abilityError: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null, vo2History: [], thresholdHistory: [], trainingStatusHistory: [], sleepHistory: [], hrvHistory: [], readinessHistory: [] },
         settings: {},
         ui: { toast: null },
@@ -2982,6 +3514,9 @@
           case "TRAINING_SNAPSHOT_LOADING": state.training.engineStatus = "loading"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADED": state.training.athleteSnapshot = payload || null; state.training.engineStatus = "ready"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_ERROR": state.training.engineStatus = "error"; state.training.engineError = payload || null; mark("training"); break;
+          case "CURRENT_ABILITY_LOADING": state.training.abilityStatus = "loading"; state.training.abilityError = null; mark("training"); break;
+          case "CURRENT_ABILITY_LOADED": state.training.currentAbility = payload || null; state.training.abilityStatus = "ready"; state.training.abilityError = null; mark("training"); break;
+          case "CURRENT_ABILITY_ERROR": state.training.abilityStatus = "error"; state.training.abilityError = payload || null; mark("training"); break;
           case "TOAST": state.ui.toast = payload || null; mark("toast"); ATLAS.events.emit("ui:toast", payload); break;
           default: return false;
         }
@@ -3623,6 +4158,7 @@
           objectStores.syncState.put(syncRecord);
         });
         await ATLAS.data.hydrate();
+        if (ATLAS.training?.refreshCurrentAbility) await ATLAS.training.refreshCurrentAbility();
         return syncRecord;
       }
 
@@ -4159,7 +4695,7 @@
         return true;
       }
 
-      return { version: "0.0.31", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.32", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -4910,6 +5446,90 @@
           }
         }
 
+        const ability = state.currentAbility;
+        const abilityHost = document.getElementById("training-ability-list");
+        const traceHost = document.getElementById("training-ability-trace");
+        if (abilityHost) abilityHost.replaceChildren();
+        if (traceHost) traceHost.replaceChildren();
+
+        const abilityLabels = {
+          "5K": "5 km",
+          "10K": "10 km",
+          "HALF": "Media",
+          "MARATHON": "Maratón"
+        };
+        const sourceLabels = {
+          RACE_TEST: "Carrera / test",
+          BEST_EFFORT: "Mejor esfuerzo",
+          EQUIVALENCE: "Equivalencia Riegel",
+          DURABILITY_ESTIMATE: "Media + durabilidad personal"
+        };
+        const recencyLabels = {
+          CURRENT: "current",
+          VALID: "valid",
+          CONTEXT: "context"
+        };
+
+        if (ability) {
+          text("training-ability-status", ability.status);
+          text(
+            "training-ability-policy",
+            `Confianza: ${ability.confidencePolicy?.default || "UNRATED"} por defecto · ${ability.confidencePolicy?.marathonDurability || "LOW"} sólo en maratón por durabilidad`
+          );
+          text(
+            "training-ability-durability",
+            ability.durabilityProfile?.available
+              ? `Durabilidad maratón: factor ${ability.durabilityProfile.factor.toFixed(3)} · ${ability.durabilityProfile.samples} muestra(s)`
+              : "Durabilidad maratón: sin perfil personal suficiente"
+          );
+          text("training-ability-fingerprint", ability.fingerprint || "—");
+
+          for (const key of ["5K", "10K", "HALF", "MARATHON"]) {
+            const item = ability.abilities?.[key] || null;
+            const row = document.createElement("div");
+            row.className = "training-ability-row";
+
+            const distance = document.createElement("div");
+            distance.className = "training-ability-row__distance";
+            distance.textContent = abilityLabels[key];
+
+            const time = document.createElement("div");
+            time.className = "training-ability-row__time";
+            time.textContent = item ? (formatDurationClock(item.timeSec) || "—") : "—";
+
+            const meta = document.createElement("div");
+            meta.className = "training-ability-row__meta";
+            meta.textContent = item
+              ? `${sourceLabels[item.sourceType] || item.sourceType} · ${item.date || "—"} · ${recencyLabels[item.recency?.bucket] || item.recency?.bucket || "—"} · confianza ${item.confidence}`
+              : "Sin evidencia utilizable ≤180 días";
+
+            const pace = document.createElement("div");
+            pace.className = "training-ability-row__pace";
+            pace.textContent = item && Number.isFinite(item.paceSecPerKm)
+              ? `${formatPace(item.paceSecPerKm)}`
+              : "";
+
+            row.append(distance, time, meta, pace);
+            abilityHost?.append(row);
+
+            if (item && traceHost) {
+              const trace = document.createElement("div");
+              trace.className = "training-ability-trace-row";
+              const evidenceCount = Array.isArray(item.evidence) ? item.evidence.length : 0;
+              trace.innerHTML =
+                `<strong>${abilityLabels[key]}</strong> · ${sourceLabels[item.sourceType] || item.sourceType} · ` +
+                `${item.selection || "—"} · evidencia ${evidenceCount} · dispersión ${(Number(item.dispersion || 0) * 100).toFixed(1)} %` +
+                `${item.confidenceAdjustment ? ` · ${item.confidenceAdjustment}` : ""}`;
+              traceHost.append(trace);
+            }
+          }
+        } else {
+          text("training-ability-status", state.abilityStatus === "error" ? "ERROR" : "—");
+          text("training-ability-policy", "Confianza: UNRATED salvo maratón por durabilidad.");
+          text("training-ability-durability", "Durabilidad maratón: —");
+          text("training-ability-fingerprint", "—");
+        }
+
         const noPlan = document.getElementById("training-no-plan");
         if (noPlan) noPlan.hidden = Boolean(state.activePlan);
       }
@@ -5467,7 +6087,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.31", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.32", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -5586,9 +6206,21 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.31", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.32", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
+      const PR_DISTANCE_BY_TYPE = Object.freeze({
+        3: "5K",
+        4: "10K",
+        5: "HALF",
+        6: "MARATHON"
+      });
+
+      function dateOnlyFrom(value) {
+        const match = /^(\d{4}-\d{2}-\d{2})/.exec(String(value || ""));
+        return match ? match[1] : null;
+      }
+
       function normalizedKind(activity) {
         const raw = String(activity?.sport || activity?.activityType || "").toLowerCase();
         if (raw.includes("run")) return "RUNNING";
@@ -5605,17 +6237,101 @@
 
         return Object.freeze({
           id: String(activity?.id || activity?.remoteId || ""),
+          remoteId: activity?.remoteId || activity?.garminActivityId || null,
           startTime: activity?.startTime || null,
           date: typeof activity?.date === "string" ? activity.date : null,
           kind,
           distanceM: Number.isFinite(activity?.distanceM) ? activity.distanceM : null,
           durationSec: Number.isFinite(activity?.durationSec) ? activity.durationSec : null,
+          evidenceType: String(
+            activity?.evidenceType ||
+            activity?.atlasEvidenceType ||
+            activity?.competitionType ||
+            ""
+          ).toUpperCase(),
+          isRace: activity?.isRace === true,
+          isTest: activity?.isTest === true,
           qualityEvidence:
             kind === "RUNNING" && explicitQuality
               ? "EXPLICIT"
               : (kind === "RUNNING" ? "UNMAPPED" : "NOT_APPLICABLE"),
           isQuality: kind === "RUNNING" && explicitQuality
         });
+      }
+
+      function personalRecordTimeSec(record) {
+        const value = Number(record?.value);
+        if (!Number.isFinite(value) || value <= 0) return null;
+        return value > 100000 ? value / 1000 : value;
+      }
+
+      function normalizePersonalRecordEvidence(record, activities) {
+        const key = PR_DISTANCE_BY_TYPE[Number(record?.typeId)];
+        if (!key) return null;
+
+        const timeSec = personalRecordTimeSec(record);
+        if (!Number.isFinite(timeSec)) return null;
+
+        const linked = activities.find(activity =>
+          String(activity.remoteId || "") === String(record?.remoteActivityId || "")
+        );
+        const date = dateOnlyFrom(record?.observedAt) || dateOnlyFrom(linked?.startTime);
+        if (!date) return null;
+
+        return Object.freeze({
+          id: `pr:${record?.id || key}`,
+          sourceType: "BEST_EFFORT",
+          source: "GARMIN_PERSONAL_RECORD",
+          date,
+          distanceM: ATLAS.trainingEngine.DISTANCES[key],
+          timeSec,
+          activityId: record?.remoteActivityId || linked?.remoteId || null,
+          trace: {
+            personalRecordId: record?.id || null,
+            typeId: Number(record?.typeId),
+            authority: "GARMIN"
+          }
+        });
+      }
+
+      function normalizeExplicitActivityEvidence(activity) {
+        if (activity.kind !== "RUNNING") return null;
+        const marker = activity.evidenceType;
+        const explicit = activity.isRace || activity.isTest ||
+          ["RACE_TEST", "RACE", "TEST"].includes(marker);
+        if (!explicit) return null;
+
+        const date = dateOnlyFrom(activity.date) || dateOnlyFrom(activity.startTime);
+        if (!date || !Number.isFinite(activity.distanceM) || !Number.isFinite(activity.durationSec)) return null;
+
+        return Object.freeze({
+          id: `activity:${activity.id}`,
+          sourceType: "RACE_TEST",
+          source: "ATLAS_ACTIVITY_EXPLICIT",
+          date,
+          distanceM: activity.distanceM,
+          timeSec: activity.durationSec,
+          activityId: activity.remoteId || activity.id,
+          trace: {
+            marker: activity.isRace ? "isRace" : activity.isTest ? "isTest" : marker
+          }
+        });
+      }
+
+      function dedupeEvidence(rows) {
+        const unique = new Map();
+        for (const row of rows.filter(Boolean)) {
+          const key = [
+            row.sourceType,
+            row.source,
+            row.date,
+            Math.round(Number(row.distanceM) || 0),
+            Math.round(Number(row.timeSec) || 0),
+            row.activityId || ""
+          ].join("|");
+          if (!unique.has(key)) unique.set(key, row);
+        }
+        return [...unique.values()];
       }
 
       async function buildSnapshotInput(asOfDate = ATLAS.core.localDate()) {
@@ -5626,12 +6342,46 @@
         });
       }
 
+      async function buildCurrentAbilityInput(asOfDate = ATLAS.core.localDate()) {
+        const [rawActivities, personalRecords] = await Promise.all([
+          ATLAS.data.activities.list(),
+          ATLAS.storage.query("personalRecords")
+        ]);
+        const activities = rawActivities.map(normalizeActivity);
+
+        const evidence = dedupeEvidence([
+          ...activities.map(normalizeExplicitActivityEvidence),
+          ...(personalRecords || []).map(record => normalizePersonalRecordEvidence(record, activities))
+        ]);
+
+        return Object.freeze({
+          asOfDate,
+          evidence
+        });
+      }
+
+      async function refreshCurrentAbility(asOfDate = ATLAS.core.localDate()) {
+        ATLAS.state.dispatch({ type: "CURRENT_ABILITY_LOADING" });
+        try {
+          const input = await buildCurrentAbilityInput(asOfDate);
+          const ability = ATLAS.trainingEngine.buildCurrentAbility(input);
+          ATLAS.state.dispatch({ type: "CURRENT_ABILITY_LOADED", payload: ability });
+          return ability;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "CURRENT_ABILITY_FAILED");
+          ATLAS.state.dispatch({ type: "CURRENT_ABILITY_ERROR", payload: safe });
+          ATLAS.diagnostics?.recordError?.(safe);
+          return null;
+        }
+      }
+
       async function refreshSnapshot(asOfDate = ATLAS.core.localDate()) {
         ATLAS.state.dispatch({ type: "TRAINING_SNAPSHOT_LOADING" });
         try {
           const input = await buildSnapshotInput(asOfDate);
           const snapshot = ATLAS.trainingEngine.buildAthleteSnapshot(input);
           ATLAS.state.dispatch({ type: "TRAINING_SNAPSHOT_LOADED", payload: snapshot });
+          await refreshCurrentAbility(asOfDate);
           return snapshot;
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "TRAINING_SNAPSHOT_FAILED");
@@ -5642,11 +6392,14 @@
       }
 
       return Object.freeze({
-        version: "0.0.31",
-        status: "f8.1-contracts-athlete-snapshot",
+        version: "0.0.32",
+        status: "f8.2-current-ability",
         normalizeActivity,
+        normalizePersonalRecordEvidence,
         buildSnapshotInput,
-        refreshSnapshot
+        buildCurrentAbilityInput,
+        refreshSnapshot,
+        refreshCurrentAbility
       });
     })();
     ATLAS.evolution = (() => {
@@ -5680,7 +6433,7 @@
         });
       }
 
-      return { version: "0.0.31", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.32", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -5708,7 +6461,7 @@
         });
       }
 
-      return { version: "0.0.31", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.32", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -5725,7 +6478,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.31"],
+          ["build.version", ATLAS.build.version === "0.0.32"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -5795,6 +6548,11 @@
           ["engine.snapshot.live", ATLAS.state.data.training.athleteSnapshot?.weeks?.length === 8 &&
                                    Boolean(ATLAS.state.data.training.athleteSnapshot?.fingerprint)],
           ["engine.snapshot.qualityExplicitOnly", ATLAS.state.data.training.athleteSnapshot?.evidence?.quality?.policy === "EXPLICIT_ONLY"],
+          ["engine.ability.live", Boolean(ATLAS.state.data.training.currentAbility?.fingerprint)],
+          ["engine.ability.noGarminPredictions", !String(ATLAS.training.buildCurrentAbilityInput).includes("racePredictions")],
+          ["engine.ability.confidencePolicy", ATLAS.trainingEngine.CURRENT_ABILITY_CONFIDENCE_POLICY.default === "UNRATED" &&
+                                             ATLAS.trainingEngine.CURRENT_ABILITY_CONFIDENCE_POLICY.marathonDurability === "LOW"],
+          ["engine.ability.noSimpleMarathon", ATLAS.state.data.training.currentAbility?.evidencePolicy?.marathonSimpleRiegelFromShorterDistances === false],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
