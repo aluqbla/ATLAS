@@ -2047,9 +2047,11 @@
 
             <div class="diagnostic-actions">
               <button class="button button--secondary" id="run-self-test" type="button">Ejecutar self-test</button>
+              <button class="button button--secondary" id="gear-diagnostic-button" type="button">Inspeccionar Gear Garmin</button>
               <button class="button button--secondary" id="atlas-logout" type="button">Cerrar sesión ATLAS</button>
             </div>
             <div class="diagnostics-output" id="diagnostics-output" aria-live="polite">Sin ejecutar.</div>
+            <pre class="diagnostics-output" id="gear-diagnostic-output" aria-live="polite" hidden></pre>
           </section>
 
           <section class="profile-panel" data-profile-panel="about" hidden>
@@ -2109,7 +2111,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.25",
+      version: "0.0.26",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2121,14 +2123,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.25",
+      version: "0.0.26",
       channel: "development",
-      buildId: "atlas-0.0.25-f7.4-gear-authoritative-reconcile",
+      buildId: "atlas-0.0.26-f7.4-gear-diagnostic",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
       workerCompatibility: "0.0.15",
-      bridgeCompatibility: "0.0.17-compatible"
+      bridgeCompatibility: "0.0.18-compatible"
     });
 
     /* =========================================================
@@ -2489,9 +2491,10 @@
       const getActivities = () => request("/activities");
       const getActivity = id => request(`/activities/${encodeURIComponent(id)}`);
       const getActivityDeep = id => request(`/activities/${encodeURIComponent(id)}/deep`);
+      const getGearDiagnostic = () => request("/diagnostics/gear", { timeoutMs: 30000 });
       const publishWorkout = workout => request("/workouts", { method: "POST", body: workout });
 
-      return { ApiError, workerConfigured, url, request, health, login, refreshAuth, capabilities, syncQuick, syncDeep, syncSupporting, getDaily, getActivities, getActivity, getActivityDeep, publishWorkout };
+      return { ApiError, workerConfigured, url, request, health, login, refreshAuth, capabilities, syncQuick, syncDeep, syncSupporting, getDaily, getActivities, getActivity, getActivityDeep, getGearDiagnostic, publishWorkout };
     })();
 
     /* =========================================================
@@ -3484,7 +3487,7 @@
         return true;
       }
 
-      return { version: "0.0.25", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.26", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -4620,7 +4623,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.25", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.26", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -4739,9 +4742,9 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.25", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.26", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.25", status: "domain-pending" });
+    ATLAS.training = Object.freeze({ version: "0.0.26", status: "domain-pending" });
     ATLAS.evolution = (() => {
       let currentView = "overview";
       let mounted = false;
@@ -4773,7 +4776,7 @@
         });
       }
 
-      return { version: "0.0.25", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.26", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -4801,7 +4804,7 @@
         });
       }
 
-      return { version: "0.0.25", status: "f3-profile-equipment-settings", mount, view, setView };
+      return { version: "0.0.26", status: "f3-profile-equipment-settings", mount, view, setView };
     })();
 
     /* =========================================================
@@ -4818,7 +4821,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.25"],
+          ["build.version", ATLAS.build.version === "0.0.26"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -5069,6 +5072,31 @@
             ATLAS.ui.toast(error?.code === "GARMIN_RATE_LIMITED" ? "Garmin ha limitado temporalmente el histórico. Puedes reanudarlo." : "No se pudo completar el histórico. Puedes reanudarlo.");
           } finally {
             ATLAS.render.profile();
+          }
+        });
+
+        document.getElementById("gear-diagnostic-button")?.addEventListener("click", async () => {
+          const button = document.getElementById("gear-diagnostic-button");
+          const output = document.getElementById("gear-diagnostic-output");
+          if (!output) return;
+          button.disabled = true;
+          output.hidden = false;
+          output.textContent = "Consultando Gear Garmin…";
+          try {
+            const response = await ATLAS.api.getGearDiagnostic();
+            const rows = response?.data?.gear || [];
+            output.textContent = rows.length
+              ? rows.map((row, index) => [
+                  `${index + 1}. ${row.name} · …${row.uuidSuffix}`,
+                  `legacy: ${JSON.stringify(row.legacy || {})}`,
+                  `v2List: ${JSON.stringify(row.v2List || {})}`,
+                  `v2Detail: ${JSON.stringify(row.v2Detail || {})}`
+                ].join("\n")).join("\n\n")
+              : "Garmin no devolvió Gear.";
+          } catch (error) {
+            output.textContent = `ERROR ${error.code || "UNKNOWN"}: ${error.message || "No se pudo inspeccionar Gear."}`;
+          } finally {
+            button.disabled = false;
           }
         });
 
