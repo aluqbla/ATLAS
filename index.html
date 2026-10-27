@@ -1121,6 +1121,157 @@
     }
 
 
+
+    .training-availability,
+    .training-weekly-skeleton {
+      width: min(100%, var(--content-standard));
+      margin: 0 auto 28px;
+      padding: 0 0 24px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-availability-form,
+    .training-override-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(180px, .7fr);
+      gap: 16px;
+      align-items: end;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--divider);
+    }
+    .training-day-fieldset {
+      min-width: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+    .training-day-fieldset legend {
+      margin-bottom: 8px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    .training-day-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .training-day-chips label {
+      position: relative;
+      cursor: pointer;
+    }
+    .training-day-chips input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .training-day-chips span {
+      display: grid;
+      place-items: center;
+      min-width: 48px;
+      min-height: 38px;
+      padding: 0 11px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 650;
+      border: 1px solid transparent;
+    }
+    .training-day-chips input:checked + span {
+      background: var(--atlas-blue);
+      color: #fff;
+    }
+    .training-day-chips input:focus-visible + span {
+      outline: 2px solid var(--atlas-blue-active);
+      outline-offset: 2px;
+    }
+    .training-week-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      border-top: 1px solid var(--divider);
+      margin-top: 18px;
+    }
+    .training-week-day {
+      min-width: 0;
+      min-height: 104px;
+      padding: 12px 9px;
+      border-right: 1px solid var(--divider);
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-week-day:last-child { border-right: 0; }
+    .training-week-day__name {
+      color: var(--text-tertiary);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .training-week-day__date {
+      margin-top: 2px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+    }
+    .training-week-day__role {
+      margin-top: 12px;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+    .training-week-day__sub {
+      margin-top: 4px;
+      color: var(--text-secondary);
+      font-size: 10px;
+      line-height: 1.35;
+    }
+    .training-week-day[data-hard="true"] .training-week-day__role {
+      color: var(--atlas-blue-active);
+    }
+    .training-skeleton-week-list {
+      margin-top: 14px;
+      border-top: 1px solid var(--divider);
+    }
+    .training-skeleton-week-row {
+      display: grid;
+      grid-template-columns: 44px 90px 95px 80px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--divider);
+      font-size: 12px;
+    }
+    .training-skeleton-week-row__index { color: var(--text-tertiary); }
+    .training-skeleton-week-row__phase { color: var(--text); font-weight: 650; text-transform: capitalize; }
+    .training-skeleton-week-row__type { color: var(--text-secondary); }
+    .training-skeleton-week-row__count { color: var(--text); font-variant-numeric: tabular-nums; }
+    .training-skeleton-week-row__roles { color: var(--text-secondary); text-align: right; }
+    @media (max-width: 899px) {
+      .training-week-grid {
+        grid-template-columns: 1fr;
+      }
+      .training-week-day {
+        display: grid;
+        grid-template-columns: 44px 70px 1fr;
+        gap: 10px;
+        min-height: 0;
+        border-right: 0;
+      }
+      .training-week-day__date { margin-top: 0; }
+      .training-week-day__role { margin-top: 0; }
+      .training-week-day__sub { grid-column: 3; margin-top: -6px; }
+      .training-skeleton-week-row {
+        grid-template-columns: 36px 1fr auto;
+      }
+      .training-skeleton-week-row__type { grid-column: 2; }
+      .training-skeleton-week-row__roles { grid-column: 2 / 4; text-align: left; }
+    }
+    @media (max-width: 599px) {
+      .training-availability-form,
+      .training-override-form {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .training-macrocycle {
       width: min(100%, var(--content-standard));
       margin: 0 auto 28px;
@@ -2134,6 +2285,108 @@
             </details>
           </section>
 
+          <section class="training-availability" id="training-availability-section">
+            <div class="training-ability__header">
+              <div>
+                <p class="eyebrow">Disponibilidad</p>
+                <h2 class="section-title">Cuándo puedes entrenar</h2>
+                <p class="section-copy">La disponibilidad es una decisión tuya. ATLAS la respeta y aplica los cambios sólo hacia el futuro.</p>
+              </div>
+              <div class="training-ability__status" id="training-availability-status">SIN DEFINIR</div>
+            </div>
+
+            <form class="training-availability-form" id="training-availability-form">
+              <fieldset class="training-day-fieldset">
+                <legend>Días disponibles habituales</legend>
+                <div class="training-day-chips" id="training-default-day-chips">
+                  <label><input type="checkbox" value="1"><span>Lun</span></label>
+                  <label><input type="checkbox" value="2"><span>Mar</span></label>
+                  <label><input type="checkbox" value="3"><span>Mié</span></label>
+                  <label><input type="checkbox" value="4"><span>Jue</span></label>
+                  <label><input type="checkbox" value="5"><span>Vie</span></label>
+                  <label><input type="checkbox" value="6"><span>Sáb</span></label>
+                  <label><input type="checkbox" value="7"><span>Dom</span></label>
+                </div>
+              </fieldset>
+
+              <label class="training-goal-field">
+                <span>Dobles sesiones</span>
+                <select id="training-double-preference" required>
+                  <option value="">Selecciona</option>
+                  <option value="avoid">Evitar</option>
+                  <option value="if_needed">Sólo si hace falta</option>
+                  <option value="no_preference">Sin preferencia</option>
+                </select>
+              </label>
+
+              <div class="training-goal-form__error" id="training-availability-error" hidden></div>
+              <div class="training-goal-actions">
+                <button class="button" type="submit">Guardar disponibilidad</button>
+              </div>
+            </form>
+
+            <details class="training-snapshot-details" id="training-override-details">
+              <summary>Excepción para una semana</summary>
+              <form class="training-override-form" id="training-override-form">
+                <label class="training-goal-field training-goal-field--wide">
+                  <span>Semana</span>
+                  <select id="training-override-week"></select>
+                </label>
+                <fieldset class="training-day-fieldset training-goal-field--wide">
+                  <legend>Días disponibles esa semana</legend>
+                  <div class="training-day-chips" id="training-override-day-chips">
+                    <label><input type="checkbox" value="1"><span>Lun</span></label>
+                    <label><input type="checkbox" value="2"><span>Mar</span></label>
+                    <label><input type="checkbox" value="3"><span>Mié</span></label>
+                    <label><input type="checkbox" value="4"><span>Jue</span></label>
+                    <label><input type="checkbox" value="5"><span>Vie</span></label>
+                    <label><input type="checkbox" value="6"><span>Sáb</span></label>
+                    <label><input type="checkbox" value="7"><span>Dom</span></label>
+                  </div>
+                </fieldset>
+                <div class="training-goal-actions training-goal-field--wide">
+                  <button class="button button--secondary" type="submit">Guardar excepción</button>
+                  <button class="button button--secondary" id="training-override-delete" type="button">Eliminar excepción</button>
+                </div>
+              </form>
+            </details>
+          </section>
+
+          <section class="training-weekly-skeleton" id="training-weekly-skeleton-section">
+            <div class="training-ability__header">
+              <div>
+                <p class="eyebrow">Weekly Skeleton</p>
+                <h2 class="section-title">Estructura semanal</h2>
+                <p class="section-copy">Coloca roles y días. La prescripción exacta de kilómetros, ritmos y series llega en el siguiente módulo.</p>
+              </div>
+              <div class="training-ability__status" id="training-skeleton-status">NEEDS_AVAILABILITY</div>
+            </div>
+
+            <div class="training-week-current" id="training-current-week" hidden>
+              <div class="training-base-grid">
+                <div class="training-base-metric"><strong id="training-week-running-days">—</strong><span>Días de carrera</span></div>
+                <div class="training-base-metric"><strong id="training-week-strength">—</strong><span>Fuerza</span></div>
+                <div class="training-base-metric"><strong id="training-week-rest">—</strong><span>Días libres</span></div>
+              </div>
+              <div class="training-week-grid" id="training-current-week-grid"></div>
+              <div class="training-base-notes">
+                <div class="training-base-note" id="training-week-frequency-policy">Frecuencia: —</div>
+                <div class="training-base-note" id="training-week-separation">Separación: —</div>
+              </div>
+            </div>
+
+            <div class="empty-state" id="training-skeleton-empty">
+              <strong>Define tu disponibilidad semanal</strong>
+              ATLAS no asignará días de entrenamiento hasta que indiques cuándo puedes entrenar y tu preferencia sobre dobles sesiones.
+            </div>
+
+            <details class="training-snapshot-details" id="training-skeleton-details">
+              <summary>Ver las 17 semanas</summary>
+              <div class="training-skeleton-week-list" id="training-skeleton-week-list"></div>
+              <div class="training-fingerprint">Fingerprint: <span id="training-skeleton-fingerprint">—</span></div>
+            </details>
+          </section>
+
           <section class="training-base" id="training-base-section">
             <p class="eyebrow">Base actual</p>
             <div class="training-base__headline">
@@ -2782,7 +3035,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.38",
+      version: "0.0.39",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2794,9 +3047,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.38",
+      version: "0.0.39",
       channel: "development",
-      buildId: "atlas-0.0.38-f8.5-macrocycle",
+      buildId: "atlas-0.0.39-f8.6-weekly-skeleton",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -2870,7 +3123,7 @@
        Pure / deterministic / no IO.
        ========================================================= */
     ATLAS.trainingEngine = (() => {
-      const ENGINE_VERSION = "8.5.0";
+      const ENGINE_VERSION = "8.6.0";
       const WINDOW_WEEKS = 8;
 
       const DISTANCES = Object.freeze({
@@ -3486,6 +3739,439 @@
           evidenceCount: normalizedEvidence.length,
           abilities,
           durabilityProfile: durability
+        };
+
+        return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+      }
+
+      const WEEKDAY_NAMES = Object.freeze({
+        1: "MONDAY",
+        2: "TUESDAY",
+        3: "WEDNESDAY",
+        4: "THURSDAY",
+        5: "FRIDAY",
+        6: "SATURDAY",
+        7: "SUNDAY"
+      });
+
+      const PREFERRED_RUNNING_DAYS = Object.freeze({
+        3: Object.freeze([3, 5, 7]),
+        4: Object.freeze([1, 3, 5, 7]),
+        5: Object.freeze([1, 2, 3, 5, 7])
+      });
+
+      const WEEKLY_SKELETON_POLICY = Object.freeze({
+        placementPriority: Object.freeze([
+          "COMPETITION",
+          "LONG_RUN",
+          "QUALITY_PRIMARY",
+          "QUALITY_SECONDARY",
+          "STRENGTH",
+          "EASY_AEROBIC_RECOVERY",
+          "REST"
+        ]),
+        preferredLongRunDays: Object.freeze([7, 6]),
+        preferredQualityDays: Object.freeze([3, 2, 4, 5, 1]),
+        preferredStrengthDays: Object.freeze([4, 2]),
+        protectedRestDay: 6,
+        hardSeparationDays: 2,
+        raceWeekRunningDaysApprox: 3,
+        frequencyGrowth: "HABITUAL_TO_DEMAND_CEILING_BY_PHASE"
+      });
+
+      function normalizeAvailability(input) {
+        if (!input || typeof input !== "object") return null;
+        const days = [...new Set(
+          (Array.isArray(input.availableDays) ? input.availableDays : [])
+            .map(Number)
+            .filter(day => Number.isInteger(day) && day >= 1 && day <= 7)
+        )].sort((a, b) => a - b);
+        const doubleSessionPreference = DOUBLE_SESSION_PREFERENCES.includes(input.doubleSessionPreference)
+          ? input.doubleSessionPreference
+          : null;
+        if (!days.length || !doubleSessionPreference) return null;
+        return Object.freeze({
+          availableDays: Object.freeze(days),
+          doubleSessionPreference
+        });
+      }
+
+      function weekdayOf(dateOnlyValue) {
+        const date = utcDate(dateOnlyValue);
+        if (!date) return null;
+        const day = date.getUTCDay();
+        return day === 0 ? 7 : day;
+      }
+
+      function dateForWeekday(weekStart, weekday) {
+        return addDays(weekStart, weekday - 1);
+      }
+
+      function desiredRunningDaysForWeek(week, snapshot, macrocycle) {
+        const habitual = clampNumber(
+          Math.round(Number(snapshot?.metrics?.frequencyMedian) || 3),
+          2,
+          Number(macrocycle?.demand?.maxRunningDays) || 5
+        );
+        const ceiling = Number(macrocycle?.demand?.maxRunningDays) || habitual;
+
+        if (week.type === "RACE_WEEK") return Math.min(WEEKLY_SKELETON_POLICY.raceWeekRunningDaysApprox, ceiling);
+
+        if (week.phase === "preparation") return habitual;
+
+        if (week.phase === "development") {
+          const phaseWeeks = macrocycle?.phases?.find(item => item.phase === "development")?.weeks || 1;
+          const late = week.phaseWeek > Math.ceil(phaseWeeks / 2);
+          return Math.min(ceiling, habitual + (late ? 1 : 0));
+        }
+
+        if (week.phase === "specific") {
+          const phaseWeeks = macrocycle?.phases?.find(item => item.phase === "specific")?.weeks || 1;
+          const late = week.phaseWeek > Math.ceil(phaseWeeks / 2);
+          return Math.min(ceiling, habitual + 1 + (late ? 1 : 0));
+        }
+
+        if (week.phase === "taper") {
+          return Math.min(ceiling, Math.max(habitual, Math.min(4, habitual + 1)));
+        }
+
+        return habitual;
+      }
+
+      function strengthRoleForWeek(week, availableCount) {
+        if (week.type === "RACE_WEEK") return null;
+        if (week.type === "PARTIAL_ENTRY") return availableCount >= 3 ? "PRINCIPAL" : null;
+        if (week.phase === "preparation") return "PRINCIPAL";
+        if (week.phase === "development") return "PRINCIPAL";
+        if (week.phase === "specific") return "MAINTENANCE";
+        if (week.phase === "taper" && week.phaseWeek === 1) return "MICRODOSE";
+        return null;
+      }
+
+      function qualityDoseCap(week, snapshot) {
+        if (["PARTIAL_ENTRY", "CONSOLIDATION", "RACE_WEEK"].includes(week.type) || week.phase === "taper") return "LOW";
+        if (snapshot?.base?.effective === "HIGH" && week.phase === "specific" && week.phaseWeek >= 3) return "HIGH";
+        return snapshot?.base?.effective === "LOW" ? "LOW" : "MEDIUM";
+      }
+
+      function chooseDay(candidates, preferred, predicate = () => true) {
+        for (const day of preferred) {
+          if (candidates.includes(day) && predicate(day)) return day;
+        }
+        return candidates.find(predicate) ?? null;
+      }
+
+      function buildWeekSkeleton({
+        week,
+        macrocycle,
+        snapshot,
+        availability,
+        override,
+        asOfDate,
+        previousHardDate
+      }) {
+        const effective = normalizeAvailability(override) || availability;
+        if (!effective) return null;
+
+        const isCurrentPartial = week.type === "PARTIAL_ENTRY";
+        const availableDays = effective.availableDays.filter(day => {
+          if (!isCurrentPartial) return true;
+          const date = dateForWeekday(week.startDate, day);
+          return date >= asOfDate;
+        });
+
+        const dayMap = Object.fromEntries(
+          Array.from({ length: 7 }, (_, index) => {
+            const weekday = index + 1;
+            return [weekday, {
+              weekday,
+              weekdayName: WEEKDAY_NAMES[weekday],
+              date: dateForWeekday(week.startDate, weekday),
+              available: availableDays.includes(weekday),
+              roles: []
+            }];
+          })
+        );
+
+        let hardDate = previousHardDate || null;
+        const unplaced = [];
+        const usedTrainingDays = new Set();
+
+        const assign = (day, role, meta = {}) => {
+          if (!day || !dayMap[day]) return false;
+          dayMap[day].roles.push(Object.freeze({ role, ...meta }));
+          usedTrainingDays.add(day);
+          return true;
+        };
+
+        const raceDate = macrocycle?.goal?.raceDate;
+        const raceWeek = week.type === "RACE_WEEK";
+        if (raceWeek && isDateOnly(raceDate)) {
+          const raceWeekday = weekdayOf(raceDate);
+          assign(raceWeekday, "COMPETITION", { hard: true, fixed: true });
+          hardDate = raceDate;
+        }
+
+        const longRunCandidates = availableDays.filter(day => !dayMap[day].roles.length);
+        let longRunDay = null;
+        if (!raceWeek) {
+          longRunDay = chooseDay(
+            longRunCandidates,
+            WEEKLY_SKELETON_POLICY.preferredLongRunDays
+          );
+          if (!longRunDay) {
+            longRunDay = longRunCandidates.at(-1) || null;
+          }
+          if (longRunDay) {
+            assign(longRunDay, "LONG_RUN", {
+              hard: true,
+              specificCandidate: week.phase === "specific"
+            });
+          } else {
+            unplaced.push("LONG_RUN");
+          }
+        }
+
+        const longRunDate = longRunDay ? dateForWeekday(week.startDate, longRunDay) : null;
+
+        if (!raceWeek) {
+          const qualityCandidates = availableDays.filter(day => !dayMap[day].roles.length);
+          const qualityDay = chooseDay(
+            qualityCandidates,
+            WEEKLY_SKELETON_POLICY.preferredQualityDays,
+            day => {
+              const date = dateForWeekday(week.startDate, day);
+              const fromLongRun = longRunDate ? Math.abs(daysBetween(date, longRunDate)) : 99;
+              const fromPreviousHard = hardDate ? daysBetween(hardDate, date) : 99;
+              return fromLongRun >= WEEKLY_SKELETON_POLICY.hardSeparationDays &&
+                     fromPreviousHard >= WEEKLY_SKELETON_POLICY.hardSeparationDays;
+            }
+          );
+
+          if (qualityDay) {
+            assign(qualityDay, "QUALITY_PRIMARY", {
+              hard: true,
+              doseCap: qualityDoseCap(week, snapshot),
+              family: "UNRESOLVED_UNTIL_PRESCRIPTION_CORE"
+            });
+            const qDate = dateForWeekday(week.startDate, qualityDay);
+            if (!hardDate || qDate > hardDate) hardDate = qDate;
+          } else {
+            unplaced.push("QUALITY_PRIMARY");
+          }
+        }
+
+        const strengthRole = strengthRoleForWeek(week, availableDays.length);
+        if (strengthRole) {
+          const free = availableDays.filter(day => !dayMap[day].roles.length);
+          let strengthDay = chooseDay(free, WEEKLY_SKELETON_POLICY.preferredStrengthDays);
+
+          if (!strengthDay && strengthRole !== "PRINCIPAL" &&
+              effective.doubleSessionPreference !== "avoid") {
+            const easyPair = availableDays.find(day =>
+              dayMap[day].roles.every(role => !role.hard)
+            );
+            strengthDay = easyPair || null;
+          }
+
+          if (strengthDay) {
+            assign(strengthDay, "STRENGTH", {
+              level: strengthRole,
+              variant: week.index % 2 === 1 ? "A" : "B"
+            });
+          } else {
+            unplaced.push(`STRENGTH_${strengthRole}`);
+          }
+        }
+
+        let targetRunningDays = desiredRunningDaysForWeek(week, snapshot, macrocycle);
+        const existingRunDays = () => Object.values(dayMap).filter(day =>
+          day.roles.some(role =>
+            ["COMPETITION", "LONG_RUN", "QUALITY_PRIMARY", "QUALITY_SECONDARY", "EASY_AEROBIC_RECOVERY"].includes(role.role)
+          )
+        ).length;
+
+        const preferredRunDays = PREFERRED_RUNNING_DAYS[
+          Math.min(5, Math.max(3, targetRunningDays))
+        ] || PREFERRED_RUNNING_DAYS[5];
+
+        const fillOrder = [
+          ...preferredRunDays,
+          ...[1, 2, 3, 4, 5, 7, 6].filter(day => !preferredRunDays.includes(day))
+        ];
+
+        for (const day of fillOrder) {
+          if (existingRunDays() >= targetRunningDays) break;
+          if (!availableDays.includes(day)) continue;
+          if (dayMap[day].roles.some(role => role.hard || role.role === "STRENGTH")) continue;
+          if (day === WEEKLY_SKELETON_POLICY.protectedRestDay && availableDays.length >= 6) continue;
+          assign(day, "EASY_AEROBIC_RECOVERY", {
+            family: "UNRESOLVED_UNTIL_PRESCRIPTION_CORE"
+          });
+        }
+
+        const achievedRunningDays = existingRunDays();
+
+        // If limited availability prevents the desired frequency, never force arbitrary doubles.
+        if (achievedRunningDays < targetRunningDays) {
+          unplaced.push(`RUNNING_FREQUENCY_${targetRunningDays - achievedRunningDays}`);
+        }
+
+        // Preserve at least one complete no-training day in normal conditions.
+        let restDays = Object.values(dayMap).filter(day => day.roles.length === 0).length;
+        if (restDays === 0) {
+          const removableEasy = [6, 2, 1, 5, 4, 3, 7].find(day =>
+            dayMap[day].roles.length === 1 &&
+            dayMap[day].roles[0].role === "EASY_AEROBIC_RECOVERY"
+          );
+          if (removableEasy) {
+            dayMap[removableEasy].roles = [];
+            usedTrainingDays.delete(removableEasy);
+            restDays = 1;
+          }
+        }
+
+        for (const day of Object.values(dayMap)) {
+          if (!day.roles.length) {
+            day.roles.push(Object.freeze({
+              role: day.date < asOfDate && week.type === "PARTIAL_ENTRY" ? "PAST_UNPLANNED" : "REST"
+            }));
+          }
+        }
+
+        const hardDates = Object.values(dayMap)
+          .flatMap(day => day.roles.some(role => role.hard) ? [day.date] : [])
+          .sort();
+
+        const lastHardDate = hardDates.at(-1) || previousHardDate || null;
+
+        return Object.freeze({
+          weekIndex: week.index,
+          startDate: week.startDate,
+          endDate: week.endDate,
+          phase: week.phase,
+          weekType: week.type,
+          availability: effective,
+          targetRunningDays,
+          achievedRunningDays,
+          strengthRole,
+          qualityDoseCap: qualityDoseCap(week, snapshot),
+          restDays: Object.values(dayMap).filter(day => day.roles.some(role => role.role === "REST")).length,
+          doubleSessionsUsed: Object.values(dayMap).filter(day => day.roles.length > 1).length,
+          unplaced: Object.freeze(unplaced),
+          days: Object.freeze(Object.values(dayMap).map(day => Object.freeze({
+            ...day,
+            roles: Object.freeze(day.roles)
+          }))),
+          hardDates: Object.freeze(hardDates),
+          lastHardDate,
+          status: unplaced.length ? "LIMITED_AVAILABILITY" : "READY"
+        });
+      }
+
+      function buildWeeklySkeleton(input) {
+        const asOfDate = input?.asOfDate;
+        if (!isDateOnly(asOfDate)) {
+          throw Object.assign(
+            new Error("Weekly Skeleton requires an explicit YYYY-MM-DD asOfDate."),
+            { code: "ENGINE_AS_OF_DATE_REQUIRED" }
+          );
+        }
+
+        const macrocycle = input?.macrocycle;
+        const snapshot = input?.athleteSnapshot;
+        const defaultAvailability = normalizeAvailability(input?.availability?.default);
+        const overrides = Array.isArray(input?.availability?.overrides)
+          ? input.availability.overrides
+          : [];
+
+        if (!macrocycle?.weeks?.length || !snapshot) {
+          const core = {
+            version: ENGINE_VERSION,
+            asOfDate,
+            status: "INSUFFICIENT_INPUT",
+            availability: null,
+            weeks: [],
+            policy: WEEKLY_SKELETON_POLICY
+          };
+          return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+        }
+
+        if (!defaultAvailability) {
+          const core = {
+            version: ENGINE_VERSION,
+            asOfDate,
+            status: "NEEDS_AVAILABILITY",
+            availability: null,
+            weeks: [],
+            policy: WEEKLY_SKELETON_POLICY,
+            trace: {
+              macrocycleFingerprint: macrocycle?.fingerprint || null,
+              athleteSnapshotFingerprint: snapshot?.fingerprint || null
+            }
+          };
+          return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+        }
+
+        const overrideMap = new Map(
+          overrides
+            .filter(row => row && isDateOnly(row.weekStart))
+            .map(row => [row.weekStart, normalizeAvailability(row)])
+            .filter(([, value]) => Boolean(value))
+        );
+
+        const weeks = [];
+        let previousHardDate = null;
+
+        for (const week of macrocycle.weeks) {
+          const override = week.endDate >= asOfDate
+            ? overrideMap.get(week.startDate) || null
+            : null;
+
+          const built = buildWeekSkeleton({
+            week,
+            macrocycle,
+            snapshot,
+            availability: defaultAvailability,
+            override,
+            asOfDate,
+            previousHardDate
+          });
+
+          weeks.push(built);
+          previousHardDate = built?.lastHardDate || previousHardDate;
+        }
+
+        const limitedWeeks = weeks.filter(week => week?.status === "LIMITED_AVAILABILITY").length;
+        const allAvoid = weeks.every(week =>
+          week?.availability?.doubleSessionPreference === "avoid"
+            ? week.doubleSessionsUsed === 0
+            : true
+        );
+        const allRest = weeks.every(week => week?.restDays >= 1 || week?.weekType === "PARTIAL_ENTRY");
+        const raceWeek = weeks.find(week => week?.weekType === "RACE_WEEK") || null;
+
+        const core = {
+          version: ENGINE_VERSION,
+          asOfDate,
+          status: limitedWeeks ? "LIMITED_AVAILABILITY" : "READY",
+          availability: Object.freeze({
+            default: defaultAvailability,
+            overridesApplied: weeks.filter(week => overrideMap.has(week.startDate)).map(week => week.startDate)
+          }),
+          weeks: Object.freeze(weeks),
+          summary: Object.freeze({
+            totalWeeks: weeks.length,
+            limitedWeeks,
+            doublesPolicyRespected: allAvoid,
+            restDayPolicyRespected: allRest,
+            raceWeekRunningDays: raceWeek?.achievedRunningDays ?? null
+          }),
+          policy: WEEKLY_SKELETON_POLICY,
+          trace: Object.freeze({
+            macrocycleFingerprint: macrocycle?.fingerprint || null,
+            athleteSnapshotFingerprint: snapshot?.fingerprint || null
+          })
         };
 
         return Object.freeze({ ...core, fingerprint: fingerprint(core) });
@@ -4340,6 +5026,66 @@
           goalAssessment: goalPendingEvidence
         });
 
+        const availability3 = {
+          default: { availableDays: [3, 4, 5, 7], doubleSessionPreference: "avoid" },
+          overrides: []
+        };
+        const skeleton3 = buildWeeklySkeleton({
+          asOfDate,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          availability: availability3
+        });
+
+        const skeletonMissing = buildWeeklySkeleton({
+          asOfDate,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          availability: { default: null, overrides: [] }
+        });
+
+        const skeletonLimited = buildWeeklySkeleton({
+          asOfDate,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          availability: {
+            default: { availableDays: [3, 7], doubleSessionPreference: "avoid" },
+            overrides: []
+          }
+        });
+
+        const skeletonOverride = buildWeeklySkeleton({
+          asOfDate,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          availability: {
+            default: { availableDays: [1, 3, 4, 5, 7], doubleSessionPreference: "avoid" },
+            overrides: [
+              { weekStart: macroSevilla.weeks[2].startDate, availableDays: [2, 4, 7], doubleSessionPreference: "avoid" }
+            ]
+          }
+        });
+
+        const skeletonDeterministicA = buildWeeklySkeleton({
+          asOfDate,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          availability: availability3
+        });
+        const skeletonDeterministicB = buildWeeklySkeleton({
+          asOfDate,
+          macrocycle: macroSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          availability: availability3
+        });
+
+        const readyWeek = skeleton3.weeks.find(week => week?.status === "READY" && week.weekType === "PROGRESSION");
+        const hardDatesReady = readyWeek?.hardDates || [];
+        const hardSeparated = hardDatesReady.length < 2 ||
+          hardDatesReady.every((date, index) =>
+            index === 0 || daysBetween(hardDatesReady[index - 1], date) >= 2
+          );
+
         return Object.freeze({
           window8: low.weeks.length === 8,
           excludesCurrentWeek: low.window.endDate === "2026-10-25",
@@ -4406,7 +5152,22 @@
           macroLowProgressionPolicy: macroLow5k.progression.lowMaxConsecutive === 2,
           macroNoDirectSpecific: macroSevilla.policy.directSpecificEntryUsed === false &&
                                  macroSevilla.policy.directSpecificEntryEligible === false,
-          macroDeterministic: macroDeterministicA.fingerprint === macroDeterministicB.fingerprint
+          macroDeterministic: macroDeterministicA.fingerprint === macroDeterministicB.fingerprint,
+          skeletonNeedsAvailability: skeletonMissing.status === "NEEDS_AVAILABILITY",
+          skeletonPreferredPattern: skeleton3.weeks[0]?.days?.find(day => day.weekday === 7)?.roles?.some(role => role.role === "LONG_RUN") === true &&
+                                    skeleton3.weeks[0]?.days?.find(day => day.weekday === 3)?.roles?.some(role => role.role === "QUALITY_PRIMARY") === true,
+          skeletonHardEasyHard: hardSeparated,
+          skeletonLimitedAvailability: skeletonLimited.status === "LIMITED_AVAILABILITY",
+          skeletonDoublesAvoided: skeleton3.summary.doublesPolicyRespected === true &&
+                                  skeleton3.weeks.every(week => week.doubleSessionsUsed === 0),
+          skeletonRestDay: skeleton3.summary.restDayPolicyRespected === true,
+          skeletonRaceWeek: skeleton3.summary.raceWeekRunningDays <= 3,
+          skeletonStrengthPhases: skeleton3.weeks.find(week => week.phase === "preparation" && week.weekType !== "PARTIAL_ENTRY")?.strengthRole === "PRINCIPAL" &&
+                                  skeleton3.weeks.find(week => week.phase === "specific")?.strengthRole === "MAINTENANCE" &&
+                                  skeleton3.weeks.find(week => week.weekType === "RACE_WEEK")?.strengthRole === null,
+          skeletonOverrideSingleWeek: skeletonOverride.availability.overridesApplied.length === 1 &&
+                                      skeletonOverride.availability.overridesApplied[0] === macroSevilla.weeks[2].startDate,
+          skeletonDeterministic: skeletonDeterministicA.fingerprint === skeletonDeterministicB.fingerprint
         });
       }
 
@@ -4422,6 +5183,9 @@
         buildCurrentAbility,
         buildGoalAssessment,
         buildMacrocycle,
+        buildWeeklySkeleton,
+        WEEKLY_SKELETON_POLICY,
+        PREFERRED_RUNNING_DAYS,
         MACROCYCLE_PHASE_RANGES,
         MACROCYCLE_POLICY,
         GOAL_ASSESSMENT_STATES,
@@ -4484,7 +5248,7 @@
           trainingStatus: null
         },
         activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
-        training: { activePlan: null, activeGoal: null, goalAssessment: null, macrocycle: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", goalStatus: "idle", macroStatus: "idle", engineError: null, abilityError: null, paceError: null, goalError: null, macroError: null },
+        training: { activePlan: null, activeGoal: null, goalAssessment: null, macrocycle: null, availability: null, weeklySkeleton: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", goalStatus: "idle", macroStatus: "idle", skeletonStatus: "idle", engineError: null, abilityError: null, paceError: null, goalError: null, macroError: null, skeletonError: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null, vo2History: [], thresholdHistory: [], trainingStatusHistory: [], sleepHistory: [], hrvHistory: [], readinessHistory: [] },
         settings: {},
         ui: { toast: null },
@@ -4578,6 +5342,10 @@
           case "MACROCYCLE_LOADING": state.training.macroStatus = "loading"; state.training.macroError = null; mark("training"); break;
           case "MACROCYCLE_LOADED": state.training.macrocycle = payload || null; state.training.macroStatus = "ready"; state.training.macroError = null; mark("training"); break;
           case "MACROCYCLE_ERROR": state.training.macroStatus = "error"; state.training.macroError = payload || null; mark("training"); break;
+          case "TRAINING_AVAILABILITY_LOADED": state.training.availability = payload || null; mark("training"); break;
+          case "WEEKLY_SKELETON_LOADING": state.training.skeletonStatus = "loading"; state.training.skeletonError = null; mark("training"); break;
+          case "WEEKLY_SKELETON_LOADED": state.training.weeklySkeleton = payload || null; state.training.skeletonStatus = "ready"; state.training.skeletonError = null; mark("training"); break;
+          case "WEEKLY_SKELETON_ERROR": state.training.skeletonStatus = "error"; state.training.skeletonError = payload || null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADING": state.training.engineStatus = "loading"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADED": state.training.athleteSnapshot = payload || null; state.training.engineStatus = "ready"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_ERROR": state.training.engineStatus = "error"; state.training.engineError = payload || null; mark("training"); break;
@@ -5768,7 +6536,7 @@
         return true;
       }
 
-      return { version: "0.0.38", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.39", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -6485,6 +7253,177 @@
         }
 
         const macro = state.macrocycle;
+        const availability = state.availability;
+        const skeleton = state.weeklySkeleton;
+
+        const setDayChecks = (hostId, days) => {
+          document.querySelectorAll(`#${hostId} input[type="checkbox"]`).forEach(input => {
+            input.checked = (days || []).includes(Number(input.value));
+          });
+        };
+
+        const defaultAvailability = availability?.default || null;
+        text(
+          "training-availability-status",
+          defaultAvailability
+            ? `${defaultAvailability.availableDays.length} DÍAS · ${String(defaultAvailability.doubleSessionPreference).toUpperCase()}`
+            : "SIN DEFINIR"
+        );
+        setDayChecks("training-default-day-chips", defaultAvailability?.availableDays || []);
+        const doubleSelect = document.getElementById("training-double-preference");
+        if (doubleSelect && defaultAvailability?.doubleSessionPreference) {
+          doubleSelect.value = defaultAvailability.doubleSessionPreference;
+        }
+
+        const overrideSelect = document.getElementById("training-override-week");
+        if (overrideSelect && macro?.weeks?.length) {
+          const currentValue = overrideSelect.value;
+          overrideSelect.replaceChildren();
+          for (const week of macro.weeks) {
+            if (week.endDate < ATLAS.core.localDate()) continue;
+            const option = document.createElement("option");
+            option.value = week.startDate;
+            option.textContent = `W${week.index} · ${week.startDate} · ${week.phase}`;
+            overrideSelect.append(option);
+          }
+          if ([...overrideSelect.options].some(option => option.value === currentValue)) {
+            overrideSelect.value = currentValue;
+          }
+          const selectedWeek = overrideSelect.value;
+          const selectedOverride = availability?.overrides?.find(row => row.weekStart === selectedWeek);
+          setDayChecks(
+            "training-override-day-chips",
+            selectedOverride?.availableDays || defaultAvailability?.availableDays || []
+          );
+        }
+
+        const skeletonEmpty = document.getElementById("training-skeleton-empty");
+        const currentWeekBlock = document.getElementById("training-current-week");
+        const skeletonDetails = document.getElementById("training-skeleton-details");
+        const currentWeekGrid = document.getElementById("training-current-week-grid");
+        const skeletonList = document.getElementById("training-skeleton-week-list");
+        currentWeekGrid?.replaceChildren();
+        skeletonList?.replaceChildren();
+
+        text("training-skeleton-status", skeleton?.status || "NEEDS_AVAILABILITY");
+        text("training-skeleton-fingerprint", skeleton?.fingerprint || "—");
+
+        const weekdayShort = {
+          MONDAY: "Lun",
+          TUESDAY: "Mar",
+          WEDNESDAY: "Mié",
+          THURSDAY: "Jue",
+          FRIDAY: "Vie",
+          SATURDAY: "Sáb",
+          SUNDAY: "Dom"
+        };
+        const roleLabels = {
+          COMPETITION: "Competición",
+          LONG_RUN: "Tirada larga",
+          QUALITY_PRIMARY: "Calidad principal",
+          QUALITY_SECONDARY: "Calidad secundaria",
+          STRENGTH: "Fuerza",
+          EASY_AEROBIC_RECOVERY: "Rodaje",
+          REST: "Descanso",
+          PAST_UNPLANNED: "Pasado"
+        };
+
+        const currentWeek = skeleton?.weeks?.find(week =>
+          week.startDate <= ATLAS.core.localDate() && week.endDate >= ATLAS.core.localDate()
+        ) || skeleton?.weeks?.[0] || null;
+
+        if (skeleton?.status !== "NEEDS_AVAILABILITY" && currentWeek) {
+          if (skeletonEmpty) skeletonEmpty.hidden = true;
+          if (currentWeekBlock) currentWeekBlock.hidden = false;
+          if (skeletonDetails) skeletonDetails.hidden = false;
+
+          text("training-week-running-days", `${currentWeek.achievedRunningDays}/${currentWeek.targetRunningDays}`);
+          text("training-week-strength", currentWeek.strengthRole || "—");
+          text("training-week-rest", String(currentWeek.restDays));
+          text(
+            "training-week-frequency-policy",
+            `Frecuencia: ${skeleton.policy?.frequencyGrowth || "—"} · techo ${macro?.demand?.maxRunningDays || "—"} d/sem`
+          );
+          text(
+            "training-week-separation",
+            currentWeek.unplaced?.length
+              ? `Disponibilidad limitada: ${currentWeek.unplaced.join(", ")}`
+              : "Separación hard–easy–hard respetada · sin carga prescrita todavía"
+          );
+
+          for (const day of currentWeek.days || []) {
+            const cell = document.createElement("div");
+            cell.className = "training-week-day";
+            cell.dataset.hard = String(day.roles?.some(role => role.hard) || false);
+
+            const name = document.createElement("div");
+            name.className = "training-week-day__name";
+            name.textContent = weekdayShort[day.weekdayName] || day.weekdayName;
+
+            const date = document.createElement("div");
+            date.className = "training-week-day__date";
+            date.textContent = day.date.slice(5);
+
+            const role = document.createElement("div");
+            role.className = "training-week-day__role";
+            role.textContent = (day.roles || []).map(item => roleLabels[item.role] || item.role).join(" + ");
+
+            const sub = document.createElement("div");
+            sub.className = "training-week-day__sub";
+            const strength = day.roles?.find(item => item.role === "STRENGTH");
+            const quality = day.roles?.find(item => item.role === "QUALITY_PRIMARY");
+            sub.textContent = strength
+              ? `${strength.level} · variante ${strength.variant}`
+              : quality
+                ? `dosis máx. ${quality.doseCap} · familia en F8.7`
+                : "";
+
+            cell.append(name, date, role, sub);
+            currentWeekGrid?.append(cell);
+          }
+
+          for (const week of skeleton.weeks || []) {
+            const row = document.createElement("div");
+            row.className = "training-skeleton-week-row";
+
+            const index = document.createElement("div");
+            index.className = "training-skeleton-week-row__index";
+            index.textContent = `W${week.weekIndex}`;
+
+            const phase = document.createElement("div");
+            phase.className = "training-skeleton-week-row__phase";
+            phase.textContent = week.phase;
+
+            const type = document.createElement("div");
+            type.className = "training-skeleton-week-row__type";
+            type.textContent = week.weekType;
+
+            const count = document.createElement("div");
+            count.className = "training-skeleton-week-row__count";
+            count.textContent = `${week.achievedRunningDays}/${week.targetRunningDays} d`;
+
+            const roles = document.createElement("div");
+            roles.className = "training-skeleton-week-row__roles";
+            const roleSet = [...new Set(
+              week.days.flatMap(day => day.roles.map(item => item.role))
+                .filter(role => !["REST", "PAST_UNPLANNED"].includes(role))
+            )];
+            roles.textContent = roleSet.map(role => roleLabels[role] || role).join(" · ");
+
+            row.append(index, phase, type, count, roles);
+            skeletonList?.append(row);
+          }
+        } else {
+          if (skeletonEmpty) skeletonEmpty.hidden = false;
+          if (currentWeekBlock) currentWeekBlock.hidden = true;
+          if (skeletonDetails) skeletonDetails.hidden = true;
+          text("training-week-running-days", "—");
+          text("training-week-strength", "—");
+          text("training-week-rest", "—");
+          text("training-week-frequency-policy", "Frecuencia: —");
+          text("training-week-separation", "Separación: —");
+        }
+
         const phaseHost = document.getElementById("training-phase-list");
         const macroWeekHost = document.getElementById("training-macro-week-list");
         phaseHost?.replaceChildren();
@@ -7388,7 +8327,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.38", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.39", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -7507,7 +8446,7 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.38", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.39", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
       const PR_DISTANCE_BY_TYPE = Object.freeze({
@@ -7773,6 +8712,101 @@
         return { ok: true };
       }
 
+      async function loadAvailability() {
+        const rows = await ATLAS.storage.query("preferences", {
+          filter: row => row?.category === "training_availability"
+        });
+        const defaultRow = rows.find(row => row.id === "training_availability_default") || null;
+        const overrides = rows
+          .filter(row => row.type === "weekly_override")
+          .sort((a, b) => String(a.weekStart).localeCompare(String(b.weekStart)));
+
+        const availability = {
+          default: defaultRow ? {
+            availableDays: defaultRow.availableDays || [],
+            doubleSessionPreference: defaultRow.doubleSessionPreference || null
+          } : null,
+          overrides: overrides.map(row => ({
+            weekStart: row.weekStart,
+            availableDays: row.availableDays || [],
+            doubleSessionPreference: row.doubleSessionPreference || defaultRow?.doubleSessionPreference || null
+          }))
+        };
+        ATLAS.state.dispatch({ type: "TRAINING_AVAILABILITY_LOADED", payload: availability });
+        return availability;
+      }
+
+      async function refreshWeeklySkeleton(asOfDate = ATLAS.core.localDate()) {
+        ATLAS.state.dispatch({ type: "WEEKLY_SKELETON_LOADING" });
+        try {
+          const availability = await loadAvailability();
+          const skeleton = ATLAS.trainingEngine.buildWeeklySkeleton({
+            asOfDate,
+            macrocycle: ATLAS.state.data.training.macrocycle,
+            athleteSnapshot: ATLAS.state.data.training.athleteSnapshot,
+            availability
+          });
+          ATLAS.state.dispatch({ type: "WEEKLY_SKELETON_LOADED", payload: skeleton });
+          return skeleton;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "WEEKLY_SKELETON_FAILED");
+          ATLAS.state.dispatch({ type: "WEEKLY_SKELETON_ERROR", payload: safe });
+          ATLAS.diagnostics?.recordError?.(safe);
+          return null;
+        }
+      }
+
+      async function saveAvailability({ availableDays, doubleSessionPreference }) {
+        const days = [...new Set((availableDays || []).map(Number).filter(day => day >= 1 && day <= 7))].sort((a, b) => a - b);
+        if (!days.length) throw Object.assign(new Error("Selecciona al menos un día disponible."), { code: "AVAILABILITY_DAYS_REQUIRED" });
+        if (!ATLAS.trainingEngine.DOUBLE_SESSION_PREFERENCES.includes(doubleSessionPreference)) {
+          throw Object.assign(new Error("Selecciona una preferencia sobre dobles sesiones."), { code: "DOUBLE_PREFERENCE_REQUIRED" });
+        }
+
+        await ATLAS.storage.put("preferences", {
+          id: "training_availability_default",
+          category: "training_availability",
+          type: "default",
+          availableDays: days,
+          doubleSessionPreference,
+          updatedAt: ATLAS.core.nowIso()
+        });
+
+        return refreshWeeklySkeleton();
+      }
+
+      async function saveAvailabilityOverride({ weekStart, availableDays }) {
+        const macroWeek = ATLAS.state.data.training.macrocycle?.weeks?.find(week => week.startDate === weekStart);
+        if (!macroWeek) throw Object.assign(new Error("Selecciona una semana válida."), { code: "AVAILABILITY_WEEK_INVALID" });
+        if (macroWeek.endDate < ATLAS.core.localDate()) {
+          throw Object.assign(new Error("La disponibilidad pasada no puede reescribirse."), { code: "AVAILABILITY_FUTURE_ONLY" });
+        }
+
+        const days = [...new Set((availableDays || []).map(Number).filter(day => day >= 1 && day <= 7))].sort((a, b) => a - b);
+        if (!days.length) throw Object.assign(new Error("Selecciona al menos un día disponible para la excepción."), { code: "AVAILABILITY_DAYS_REQUIRED" });
+
+        const defaultPref = ATLAS.state.data.training.availability?.default?.doubleSessionPreference;
+        if (!defaultPref) throw Object.assign(new Error("Guarda primero la disponibilidad habitual."), { code: "AVAILABILITY_DEFAULT_REQUIRED" });
+
+        await ATLAS.storage.put("preferences", {
+          id: `training_availability_override:${weekStart}`,
+          category: "training_availability",
+          type: "weekly_override",
+          weekStart,
+          availableDays: days,
+          doubleSessionPreference: defaultPref,
+          updatedAt: ATLAS.core.nowIso()
+        });
+
+        return refreshWeeklySkeleton();
+      }
+
+      async function deleteAvailabilityOverride(weekStart) {
+        if (!weekStart) return refreshWeeklySkeleton();
+        await ATLAS.storage.delete("preferences", `training_availability_override:${weekStart}`);
+        return refreshWeeklySkeleton();
+      }
+
       async function refreshMacrocycle(asOfDate = ATLAS.core.localDate()) {
         ATLAS.state.dispatch({ type: "MACROCYCLE_LOADING" });
         try {
@@ -7783,6 +8817,7 @@
             goalAssessment: ATLAS.state.data.training.goalAssessment
           });
           ATLAS.state.dispatch({ type: "MACROCYCLE_LOADED", payload: macrocycle });
+          await refreshWeeklySkeleton(asOfDate);
           return macrocycle;
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "MACROCYCLE_FAILED");
@@ -7854,6 +8889,57 @@
         if (mounted) return;
         mounted = true;
 
+        const checkedDays = hostId => [...document.querySelectorAll(`#${hostId} input[type="checkbox"]:checked`)]
+          .map(input => Number(input.value))
+          .filter(Number.isFinite);
+
+        document.getElementById("training-availability-form")?.addEventListener("submit", async event => {
+          event.preventDefault();
+          const errorHost = document.getElementById("training-availability-error");
+          if (errorHost) { errorHost.hidden = true; errorHost.textContent = ""; }
+          try {
+            await saveAvailability({
+              availableDays: checkedDays("training-default-day-chips"),
+              doubleSessionPreference: document.getElementById("training-double-preference")?.value
+            });
+          } catch (error) {
+            if (errorHost) {
+              errorHost.hidden = false;
+              errorHost.textContent = error?.message || "No se pudo guardar la disponibilidad.";
+            }
+          }
+        });
+
+        document.getElementById("training-override-form")?.addEventListener("submit", async event => {
+          event.preventDefault();
+          try {
+            await saveAvailabilityOverride({
+              weekStart: document.getElementById("training-override-week")?.value,
+              availableDays: checkedDays("training-override-day-chips")
+            });
+          } catch (error) {
+            const errorHost = document.getElementById("training-availability-error");
+            if (errorHost) {
+              errorHost.hidden = false;
+              errorHost.textContent = error?.message || "No se pudo guardar la excepción.";
+            }
+          }
+        });
+
+        document.getElementById("training-override-delete")?.addEventListener("click", async () => {
+          await deleteAvailabilityOverride(document.getElementById("training-override-week")?.value);
+        });
+
+        document.getElementById("training-override-week")?.addEventListener("change", event => {
+          const weekStart = event.target.value;
+          const override = ATLAS.state.data.training.availability?.overrides?.find(row => row.weekStart === weekStart);
+          const inherited = ATLAS.state.data.training.availability?.default?.availableDays || [];
+          const days = override?.availableDays || inherited;
+          document.querySelectorAll('#training-override-day-chips input[type="checkbox"]').forEach(input => {
+            input.checked = days.includes(Number(input.value));
+          });
+        });
+
         document.getElementById("training-goal-form")?.addEventListener("submit", async event => {
           event.preventDefault();
           const errorHost = document.getElementById("training-goal-form-error");
@@ -7920,8 +9006,8 @@
       }
 
       return Object.freeze({
-        version: "0.0.38",
-        status: "f8.5-macrocycle",
+        version: "0.0.39",
+        status: "f8.6-weekly-skeleton",
         normalizeActivity,
         normalizePersonalRecordEvidence,
         buildSnapshotInput,
@@ -7931,6 +9017,11 @@
         refreshPaceAnchors,
         refreshGoalAssessment,
         refreshMacrocycle,
+        refreshWeeklySkeleton,
+        loadAvailability,
+        saveAvailability,
+        saveAvailabilityOverride,
+        deleteAvailabilityOverride,
         saveGoal,
         deleteGoal,
         parseTargetTime,
@@ -7969,7 +9060,7 @@
         });
       }
 
-      return { version: "0.0.38", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.39", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -7997,7 +9088,7 @@
         });
       }
 
-      return { version: "0.0.38", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.39", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -8014,7 +9105,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.38"],
+          ["build.version", ATLAS.build.version === "0.0.39"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -8110,6 +9201,11 @@
                                       ATLAS.state.data.training.macrocycle.phases.map(item => item.phase).join(">") === "preparation>development>specific>taper"],
           ["engine.macro.partialEntry", !ATLAS.state.data.training.activeGoal ||
                                         ATLAS.state.data.training.macrocycle?.weeks?.[0]?.type === "PARTIAL_ENTRY"],
+          ["engine.skeleton.contract", typeof ATLAS.trainingEngine.buildWeeklySkeleton === "function" &&
+                                          ATLAS.trainingEngine.WEEKLY_SKELETON_POLICY.hardSeparationDays === 2],
+          ["engine.skeleton.live", !ATLAS.state.data.training.availability?.default ||
+                                   Boolean(ATLAS.state.data.training.weeklySkeleton?.fingerprint)],
+          ["engine.skeleton.futureOnly", typeof ATLAS.training.saveAvailabilityOverride === "function"],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
