@@ -1120,6 +1120,92 @@
       font-weight: 650;
     }
 
+
+    .training-macrocycle {
+      width: min(100%, var(--content-standard));
+      margin: 0 auto 28px;
+      padding: 0 0 24px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-phase-list {
+      display: grid;
+      gap: 0;
+      border-top: 1px solid var(--divider);
+      margin-top: 18px;
+    }
+    .training-phase-row {
+      display: grid;
+      grid-template-columns: 140px 100px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-phase-row__name {
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+    .training-phase-row__weeks {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .training-phase-row__dates {
+      color: var(--text-secondary);
+      font-size: 12px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    .training-macro-week-list {
+      margin-top: 14px;
+      border-top: 1px solid var(--divider);
+    }
+    .training-macro-week-row {
+      display: grid;
+      grid-template-columns: 56px 120px 110px 1fr;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--divider);
+      font-size: 12px;
+    }
+    .training-macro-week-row__index {
+      color: var(--text-tertiary);
+      font-variant-numeric: tabular-nums;
+    }
+    .training-macro-week-row__phase {
+      color: var(--text);
+      font-weight: 650;
+      text-transform: capitalize;
+    }
+    .training-macro-week-row__type {
+      color: var(--text-secondary);
+    }
+    .training-macro-week-row__dates {
+      color: var(--text-secondary);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+    @media (max-width: 599px) {
+      .training-phase-row {
+        grid-template-columns: 1fr auto;
+      }
+      .training-phase-row__dates {
+        grid-column: 1 / -1;
+        text-align: left;
+      }
+      .training-macro-week-row {
+        grid-template-columns: 40px 1fr auto;
+      }
+      .training-macro-week-row__dates {
+        grid-column: 2 / 4;
+        text-align: left;
+      }
+    }
+
     .training-goal {
       width: min(100%, var(--content-standard));
       margin: 0 auto 28px;
@@ -2017,6 +2103,37 @@
             </form>
           </section>
 
+          <section class="training-macrocycle" id="training-macrocycle-section">
+            <div class="training-ability__header">
+              <div>
+                <p class="eyebrow">Macrocycle</p>
+                <h2 class="section-title">Estructura de preparación</h2>
+                <p class="section-copy">Fases de preparación hacia el objetivo. Todavía no asigna sesiones concretas.</p>
+              </div>
+              <div class="training-ability__status" id="training-macro-status">—</div>
+            </div>
+
+            <div class="training-macro-summary">
+              <div class="training-base-grid">
+                <div class="training-base-metric"><strong id="training-macro-weeks">—</strong><span>Bloques semanales</span></div>
+                <div class="training-base-metric"><strong id="training-macro-peak">—</strong><span>Pico orientativo</span></div>
+                <div class="training-base-metric"><strong id="training-macro-longrun">—</strong><span>Tirada larga pico</span></div>
+              </div>
+              <div class="training-base-notes">
+                <div class="training-base-note" id="training-macro-step">Paso inicial: —</div>
+                <div class="training-base-note" id="training-macro-policy">Política: —</div>
+              </div>
+            </div>
+
+            <div class="training-phase-list" id="training-phase-list"></div>
+
+            <details class="training-snapshot-details">
+              <summary>Ver calendario macro completo</summary>
+              <div class="training-macro-week-list" id="training-macro-week-list"></div>
+              <div class="training-fingerprint">Fingerprint: <span id="training-macro-fingerprint">—</span></div>
+            </details>
+          </section>
+
           <section class="training-base" id="training-base-section">
             <p class="eyebrow">Base actual</p>
             <div class="training-base__headline">
@@ -2665,7 +2782,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.37",
+      version: "0.0.38",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2677,9 +2794,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.37",
+      version: "0.0.38",
       channel: "development",
-      buildId: "atlas-0.0.37-f8.4-goal-assessment",
+      buildId: "atlas-0.0.38-f8.5-macrocycle",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -2753,7 +2870,7 @@
        Pure / deterministic / no IO.
        ========================================================= */
     ATLAS.trainingEngine = (() => {
-      const ENGINE_VERSION = "8.4.0";
+      const ENGINE_VERSION = "8.5.0";
       const WINDOW_WEEKS = 8;
 
       const DISTANCES = Object.freeze({
@@ -3374,6 +3491,301 @@
         return Object.freeze({ ...core, fingerprint: fingerprint(core) });
       }
 
+      const MACROCYCLE_PHASE_RANGES = Object.freeze({
+        "5K": Object.freeze({
+          preparation: Object.freeze([0, 3]),
+          development: Object.freeze([3, 5]),
+          specific: Object.freeze([3, 5]),
+          taper: Object.freeze([1, 1])
+        }),
+        "10K": Object.freeze({
+          preparation: Object.freeze([0, 3]),
+          development: Object.freeze([3, 5]),
+          specific: Object.freeze([3, 5]),
+          taper: Object.freeze([1, 1])
+        }),
+        "HALF": Object.freeze({
+          preparation: Object.freeze([0, 4]),
+          development: Object.freeze([3, 5]),
+          specific: Object.freeze([4, 6]),
+          taper: Object.freeze([2, 2])
+        }),
+        "MARATHON": Object.freeze({
+          preparation: Object.freeze([0, 6]),
+          development: Object.freeze([3, 7]),
+          specific: Object.freeze([4, 8]),
+          taper: Object.freeze([3, 3])
+        })
+      });
+
+      const MACROCYCLE_POLICY = Object.freeze({
+        userApprovedMarathonMedium: Object.freeze({
+          preparation: 3,
+          development: 5,
+          specific: 6,
+          taper: 3
+        }),
+        partialEntryCountsInsidePreparation: true,
+        mediumHighProgressionMaxConsecutive: 3,
+        lowProgressionMaxConsecutive: 2
+      });
+
+      function clampNumber(value, min, max) {
+        return Math.min(max, Math.max(min, value));
+      }
+
+      function roundKm(value) {
+        return Math.round(value);
+      }
+
+      function peakDemandForGoal(distanceKey, targetTimeSec, habitualVolumeM) {
+        const habitualKm = Number.isFinite(habitualVolumeM) ? habitualVolumeM / 1000 : 0;
+        let peakKm = habitualKm;
+        let longRunKm = null;
+        let maxDays = null;
+
+        if (distanceKey === "MARATHON") {
+          if (targetTimeSec <= 10800)      { peakKm = 84; longRunKm = 34; maxDays = 6; }
+          else if (targetTimeSec <= 11700) { peakKm = 76; longRunKm = 33; maxDays = 5; }
+          else if (targetTimeSec <= 12600) { peakKm = 70; longRunKm = 32; maxDays = 5; }
+          else if (targetTimeSec <= 14400) { peakKm = 60; longRunKm = 30; maxDays = 5; }
+          else                             { peakKm = 52; longRunKm = 28; maxDays = 4; }
+        } else if (distanceKey === "HALF") {
+          if (targetTimeSec <= 5100)       { peakKm = 76; longRunKm = 24; maxDays = 6; }
+          else if (targetTimeSec <= 5700)  { peakKm = 66; longRunKm = 23; maxDays = 5; }
+          else if (targetTimeSec <= 6600)  { peakKm = 56; longRunKm = 21; maxDays = 5; }
+          else                             { peakKm = 48; longRunKm = 19; maxDays = 4; }
+        } else if (distanceKey === "10K") {
+          if (targetTimeSec <= 2280)       { peakKm = 66; longRunKm = 18; maxDays = 6; }
+          else if (targetTimeSec <= 2520)  { peakKm = 56; longRunKm = 17; maxDays = 5; }
+          else if (targetTimeSec <= 3000)  { peakKm = 46; longRunKm = 15; maxDays = 5; }
+          else                             { peakKm = 40; longRunKm = 13; maxDays = 4; }
+        } else if (distanceKey === "5K") {
+          if (targetTimeSec <= 1080)       { peakKm = 58; longRunKm = 15; maxDays = 6; }
+          else if (targetTimeSec <= 1200)  { peakKm = 50; longRunKm = 14; maxDays = 5; }
+          else if (targetTimeSec <= 1500)  { peakKm = 42; longRunKm = 12; maxDays = 5; }
+          else                             { peakKm = 36; longRunKm = 10; maxDays = 4; }
+        }
+
+        peakKm = Math.max(peakKm, habitualKm);
+        return Object.freeze({ peakKm, longRunKm, maxDays });
+      }
+
+      function phaseAllocationFor({ distanceKey, baseLevel, totalCalendarWeeks }) {
+        const ranges = MACROCYCLE_PHASE_RANGES[distanceKey];
+        if (!ranges) return null;
+
+        if (distanceKey === "MARATHON" && baseLevel === "MEDIUM" && totalCalendarWeeks === 17) {
+          return Object.freeze({ ...MACROCYCLE_POLICY.userApprovedMarathonMedium });
+        }
+
+        const mid = key => Math.round((ranges[key][0] + ranges[key][1]) / 2);
+        let allocation = {
+          preparation: mid("preparation"),
+          development: mid("development"),
+          specific: mid("specific"),
+          taper: ranges.taper[1]
+        };
+
+        let sum = Object.values(allocation).reduce((a, b) => a + b, 0);
+        let delta = totalCalendarWeeks - sum;
+
+        const growOrder = ["specific", "development", "preparation"];
+        const shrinkOrder = ["preparation", "development", "specific"];
+
+        while (delta > 0) {
+          let changed = false;
+          for (const key of growOrder) {
+            if (allocation[key] < ranges[key][1]) {
+              allocation[key] += 1;
+              delta -= 1;
+              changed = true;
+              if (delta === 0) break;
+            }
+          }
+          if (!changed) break;
+        }
+
+        while (delta < 0) {
+          let changed = false;
+          for (const key of shrinkOrder) {
+            if (allocation[key] > ranges[key][0]) {
+              allocation[key] -= 1;
+              delta += 1;
+              changed = true;
+              if (delta === 0) break;
+            }
+          }
+          if (!changed) break;
+        }
+
+        return Object.freeze(allocation);
+      }
+
+      function buildMacrocycle(input) {
+        const asOfDate = input?.asOfDate;
+        if (!isDateOnly(asOfDate)) {
+          throw Object.assign(new Error("Macrocycle requires an explicit YYYY-MM-DD asOfDate."), { code: "ENGINE_AS_OF_DATE_REQUIRED" });
+        }
+
+        const goal = input?.goal;
+        const snapshot = input?.athleteSnapshot;
+        const assessment = input?.goalAssessment;
+
+        if (!goal || !snapshot) {
+          const core = {
+            version: ENGINE_VERSION,
+            asOfDate,
+            status: "INSUFFICIENT_INPUT",
+            phases: [],
+            weeks: [],
+            demand: null,
+            progression: null,
+            rationale: ["GOAL_AND_SNAPSHOT_REQUIRED"]
+          };
+          return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+        }
+
+        const distanceKey = String(goal.distanceKey || "");
+        const raceDate = String(goal.raceDate || goal.eventDate || "");
+        const targetTimeSec = Number(goal.targetTimeSec ?? goal.targetTime);
+
+        if (!MACROCYCLE_PHASE_RANGES[distanceKey] || !isDateOnly(raceDate) || !Number.isFinite(targetTimeSec)) {
+          throw Object.assign(new Error("Macrocycle goal contract invalid."), { code: "MACROCYCLE_GOAL_INVALID" });
+        }
+
+        const currentWeekStart = startOfIsoWeek(asOfDate);
+        const raceWeekStart = startOfIsoWeek(raceDate);
+        const totalCalendarWeeks = Math.floor(daysBetween(currentWeekStart, raceWeekStart) / 7) + 1;
+        const baseLevel = snapshot?.base?.effective || "LOW";
+
+        const allocation = phaseAllocationFor({
+          distanceKey,
+          baseLevel,
+          totalCalendarWeeks
+        });
+
+        if (!allocation) {
+          throw Object.assign(new Error("Macrocycle allocation unavailable."), { code: "MACROCYCLE_ALLOCATION_UNAVAILABLE" });
+        }
+
+        const allocatedWeeks = Object.values(allocation).reduce((a, b) => a + b, 0);
+        const rangeOverflow = allocatedWeeks !== totalCalendarWeeks;
+
+        const habitualVolumeM = Number(snapshot?.metrics?.habitualVolumeM);
+        const habitualKm = Number.isFinite(habitualVolumeM) ? habitualVolumeM / 1000 : 0;
+        const initialStepKm = clampNumber(roundKm(habitualKm * 0.06), 2, 5);
+        const peak = peakDemandForGoal(distanceKey, targetTimeSec, habitualVolumeM);
+
+        const phaseOrder = ["preparation", "development", "specific", "taper"];
+        const phases = [];
+        const weeks = [];
+        let cursorStart = currentWeekStart;
+        let globalWeekIndex = 0;
+
+        for (const phase of phaseOrder) {
+          const count = allocation[phase];
+          if (count <= 0) continue;
+
+          const phaseStart = cursorStart;
+          let phaseEnd = phaseStart;
+
+          for (let i = 0; i < count; i += 1) {
+            globalWeekIndex += 1;
+            const weekStart = addDays(cursorStart, i * 7);
+            const weekEnd = addDays(weekStart, 6);
+
+            let weekType = "PROGRESSION";
+            if (globalWeekIndex === 1 && asOfDate !== currentWeekStart) {
+              weekType = "PARTIAL_ENTRY";
+            } else if (phase === "taper") {
+              weekType = globalWeekIndex === totalCalendarWeeks ? "RACE_WEEK" : "TAPER";
+            } else {
+              const progressionMax = baseLevel === "LOW"
+                ? MACROCYCLE_POLICY.lowProgressionMaxConsecutive
+                : MACROCYCLE_POLICY.mediumHighProgressionMaxConsecutive;
+              const phaseWeekNumber = i + 1;
+              if (phaseWeekNumber > 1 && phaseWeekNumber % (progressionMax + 1) === 0) {
+                weekType = "CONSOLIDATION";
+              }
+            }
+
+            weeks.push(Object.freeze({
+              index: globalWeekIndex,
+              startDate: weekStart,
+              endDate: weekEnd,
+              phase,
+              phaseWeek: i + 1,
+              type: weekType,
+              partialEntry: weekType === "PARTIAL_ENTRY",
+              raceWeek: weekType === "RACE_WEEK"
+            }));
+
+            phaseEnd = weekEnd;
+          }
+
+          phases.push(Object.freeze({
+            phase,
+            weeks: count,
+            startDate: phaseStart,
+            endDate: phaseEnd
+          }));
+
+          cursorStart = addDays(phaseEnd, 1);
+        }
+
+        const directSpecificEligible =
+          baseLevel === "HIGH" &&
+          snapshot?.metrics?.qualityEstablished === true &&
+          Number(snapshot?.longRunBase?.distanceM) >= Number(peak.longRunKm || 0) * 1000 * 0.85;
+
+        const core = {
+          version: ENGINE_VERSION,
+          asOfDate,
+          status: rangeOverflow ? "COMPRESSED_OR_EXTENDED" : "READY",
+          goal: Object.freeze({
+            distanceKey,
+            raceDate,
+            targetTimeSec
+          }),
+          baseLevel,
+          totalCalendarWeeks,
+          allocation,
+          phases,
+          weeks,
+          demand: Object.freeze({
+            habitualKm,
+            initialStepKm,
+            peakKm: peak.peakKm,
+            peakLongRunKm: peak.longRunKm,
+            maxRunningDays: peak.maxDays
+          }),
+          progression: Object.freeze({
+            lowMaxConsecutive: MACROCYCLE_POLICY.lowProgressionMaxConsecutive,
+            mediumHighMaxConsecutive: MACROCYCLE_POLICY.mediumHighProgressionMaxConsecutive,
+            consolidationInserted: weeks.some(week => week.type === "CONSOLIDATION")
+          }),
+          policy: Object.freeze({
+            partialEntryCountsInsidePreparation: true,
+            directSpecificEntryEligible: directSpecificEligible,
+            directSpecificEntryUsed: false,
+            taperWeeks: allocation.taper,
+            userApprovedAllocation:
+              distanceKey === "MARATHON" &&
+              baseLevel === "MEDIUM" &&
+              totalCalendarWeeks === 17
+                ? "3/5/6/3"
+                : null
+          }),
+          trace: Object.freeze({
+            snapshotFingerprint: snapshot?.fingerprint || null,
+            goalAssessmentFingerprint: assessment?.fingerprint || null
+          })
+        };
+
+        return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+      }
+
       const GOAL_ASSESSMENT_STATES = Object.freeze([
         "SUPPORTED",
         "DEMANDING",
@@ -3884,6 +4296,50 @@
           paceAnchors: goalPaceReady
         });
 
+        const macroSnapshotMedium = {
+          fingerprint: "snapshot-medium",
+          base: { effective: "MEDIUM" },
+          metrics: { habitualVolumeM: 33500, qualityEstablished: false },
+          longRunBase: { distanceM: 16000 }
+        };
+        const macroGoalSevilla = {
+          id: "sevilla-2027",
+          distanceKey: "MARATHON",
+          raceDate: "2027-02-21",
+          targetTimeSec: 11400
+        };
+        const macroSevilla = buildMacrocycle({
+          asOfDate,
+          goal: macroGoalSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          goalAssessment: goalPendingEvidence
+        });
+
+        const macroLow5k = buildMacrocycle({
+          asOfDate,
+          goal: { id: "5k", distanceKey: "5K", raceDate: "2027-01-03", targetTimeSec: 1200 },
+          athleteSnapshot: {
+            fingerprint: "snapshot-low",
+            base: { effective: "LOW" },
+            metrics: { habitualVolumeM: 20000, qualityEstablished: false },
+            longRunBase: { distanceM: 8000 }
+          },
+          goalAssessment: null
+        });
+
+        const macroDeterministicA = buildMacrocycle({
+          asOfDate,
+          goal: macroGoalSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          goalAssessment: goalPendingEvidence
+        });
+        const macroDeterministicB = buildMacrocycle({
+          asOfDate,
+          goal: macroGoalSevilla,
+          athleteSnapshot: macroSnapshotMedium,
+          goalAssessment: goalPendingEvidence
+        });
+
         return Object.freeze({
           window8: low.weeks.length === 8,
           excludesCurrentWeek: low.window.endDate === "2026-10-25",
@@ -3932,7 +4388,25 @@
           goalCompressedHorizon: goalCompressed.assessmentState === "PREPARATION_INSUFFICIENT",
           goalNeedsAnchor: goalNeedsAnchor.assessmentState === "NEEDS_ANCHOR_TEST",
           goalPendingEvidence: goalPendingEvidence.status === "PENDING_EVIDENCE" && goalPendingEvidence.assessmentState === null,
-          goalDeterministic: goalDeterministicA.fingerprint === goalDeterministicB.fingerprint
+          goalDeterministic: goalDeterministicA.fingerprint === goalDeterministicB.fingerprint,
+          macroSevillaAllocation: macroSevilla.allocation.preparation === 3 &&
+                                  macroSevilla.allocation.development === 5 &&
+                                  macroSevilla.allocation.specific === 6 &&
+                                  macroSevilla.allocation.taper === 3,
+          macroSevilla17Weeks: macroSevilla.totalCalendarWeeks === 17 && macroSevilla.weeks.length === 17,
+          macroPartialEntry: macroSevilla.weeks[0]?.type === "PARTIAL_ENTRY" &&
+                             macroSevilla.weeks[0]?.phase === "preparation",
+          macroRaceWeek: macroSevilla.weeks.at(-1)?.type === "RACE_WEEK" &&
+                         macroSevilla.weeks.at(-1)?.phase === "taper",
+          macroPeakDemand: macroSevilla.demand.peakKm === 76 &&
+                           macroSevilla.demand.peakLongRunKm === 33 &&
+                           macroSevilla.demand.maxRunningDays === 5,
+          macroInitialStep: macroSevilla.demand.initialStepKm === 2,
+          macroConsolidation: macroSevilla.progression.consolidationInserted === true,
+          macroLowProgressionPolicy: macroLow5k.progression.lowMaxConsecutive === 2,
+          macroNoDirectSpecific: macroSevilla.policy.directSpecificEntryUsed === false &&
+                                 macroSevilla.policy.directSpecificEntryEligible === false,
+          macroDeterministic: macroDeterministicA.fingerprint === macroDeterministicB.fingerprint
         });
       }
 
@@ -3947,6 +4421,9 @@
         buildAthleteSnapshot,
         buildCurrentAbility,
         buildGoalAssessment,
+        buildMacrocycle,
+        MACROCYCLE_PHASE_RANGES,
+        MACROCYCLE_POLICY,
         GOAL_ASSESSMENT_STATES,
         GOAL_MINIMUM_PREPARATION_WEEKS,
         buildPaceAnchors,
@@ -4007,7 +4484,7 @@
           trainingStatus: null
         },
         activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
-        training: { activePlan: null, activeGoal: null, goalAssessment: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", goalStatus: "idle", engineError: null, abilityError: null, paceError: null, goalError: null },
+        training: { activePlan: null, activeGoal: null, goalAssessment: null, macrocycle: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", goalStatus: "idle", macroStatus: "idle", engineError: null, abilityError: null, paceError: null, goalError: null, macroError: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null, vo2History: [], thresholdHistory: [], trainingStatusHistory: [], sleepHistory: [], hrvHistory: [], readinessHistory: [] },
         settings: {},
         ui: { toast: null },
@@ -4098,6 +4575,9 @@
           case "GOAL_ASSESSMENT_LOADING": state.training.goalStatus = "loading"; state.training.goalError = null; mark("training"); break;
           case "GOAL_ASSESSMENT_LOADED": state.training.goalAssessment = payload || null; state.training.goalStatus = "ready"; state.training.goalError = null; mark("training", "profile"); break;
           case "GOAL_ASSESSMENT_ERROR": state.training.goalStatus = "error"; state.training.goalError = payload || null; mark("training"); break;
+          case "MACROCYCLE_LOADING": state.training.macroStatus = "loading"; state.training.macroError = null; mark("training"); break;
+          case "MACROCYCLE_LOADED": state.training.macrocycle = payload || null; state.training.macroStatus = "ready"; state.training.macroError = null; mark("training"); break;
+          case "MACROCYCLE_ERROR": state.training.macroStatus = "error"; state.training.macroError = payload || null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADING": state.training.engineStatus = "loading"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADED": state.training.athleteSnapshot = payload || null; state.training.engineStatus = "ready"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_ERROR": state.training.engineStatus = "error"; state.training.engineError = payload || null; mark("training"); break;
@@ -5288,7 +5768,7 @@
         return true;
       }
 
-      return { version: "0.0.37", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.38", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -6002,6 +6482,78 @@
           text("training-goal-demand", "Demanda objetivo: —");
           text("training-goal-horizon", "Horizonte: —");
           text("training-goal-rationale", "Evaluación: —");
+        }
+
+        const macro = state.macrocycle;
+        const phaseHost = document.getElementById("training-phase-list");
+        const macroWeekHost = document.getElementById("training-macro-week-list");
+        phaseHost?.replaceChildren();
+        macroWeekHost?.replaceChildren();
+
+        if (macro && macro.status !== "INSUFFICIENT_INPUT") {
+          text("training-macro-status", macro.status);
+          text("training-macro-weeks", `${macro.totalCalendarWeeks}`);
+          text("training-macro-peak", Number.isFinite(macro.demand?.peakKm) ? `${macro.demand.peakKm} km` : "—");
+          text("training-macro-longrun", Number.isFinite(macro.demand?.peakLongRunKm) ? `${macro.demand.peakLongRunKm} km` : "—");
+          text("training-macro-step", `Paso inicial: +${macro.demand?.initialStepKm ?? "—"} km sobre H por escalón inicial`);
+          text(
+            "training-macro-policy",
+            `Política: ${macro.policy?.userApprovedAllocation || "asignación determinista canónica"} · ` +
+            `consolidación tras máx. ${macro.baseLevel === "LOW" ? 2 : 3} semanas progresivas`
+          );
+          text("training-macro-fingerprint", macro.fingerprint || "—");
+
+          for (const phase of macro.phases || []) {
+            const row = document.createElement("div");
+            row.className = "training-phase-row";
+
+            const name = document.createElement("div");
+            name.className = "training-phase-row__name";
+            name.textContent = phase.phase;
+
+            const weeks = document.createElement("div");
+            weeks.className = "training-phase-row__weeks";
+            weeks.textContent = `${phase.weeks} sem`;
+
+            const dates = document.createElement("div");
+            dates.className = "training-phase-row__dates";
+            dates.textContent = `${phase.startDate} → ${phase.endDate}`;
+
+            row.append(name, weeks, dates);
+            phaseHost?.append(row);
+          }
+
+          for (const week of macro.weeks || []) {
+            const row = document.createElement("div");
+            row.className = "training-macro-week-row";
+
+            const index = document.createElement("div");
+            index.className = "training-macro-week-row__index";
+            index.textContent = `W${week.index}`;
+
+            const phase = document.createElement("div");
+            phase.className = "training-macro-week-row__phase";
+            phase.textContent = week.phase;
+
+            const type = document.createElement("div");
+            type.className = "training-macro-week-row__type";
+            type.textContent = week.type;
+
+            const dates = document.createElement("div");
+            dates.className = "training-macro-week-row__dates";
+            dates.textContent = `${week.startDate} → ${week.endDate}`;
+
+            row.append(index, phase, type, dates);
+            macroWeekHost?.append(row);
+          }
+        } else {
+          text("training-macro-status", state.macroStatus === "error" ? "ERROR" : "SIN OBJETIVO");
+          text("training-macro-weeks", "—");
+          text("training-macro-peak", "—");
+          text("training-macro-longrun", "—");
+          text("training-macro-step", "Paso inicial: —");
+          text("training-macro-policy", "Política: —");
+          text("training-macro-fingerprint", "—");
         }
 
         if (!snapshot) {
@@ -6836,7 +7388,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.37", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.38", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -6955,7 +7507,7 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.37", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.38", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
       const PR_DISTANCE_BY_TYPE = Object.freeze({
@@ -7221,6 +7773,25 @@
         return { ok: true };
       }
 
+      async function refreshMacrocycle(asOfDate = ATLAS.core.localDate()) {
+        ATLAS.state.dispatch({ type: "MACROCYCLE_LOADING" });
+        try {
+          const macrocycle = ATLAS.trainingEngine.buildMacrocycle({
+            asOfDate,
+            goal: ATLAS.state.data.training.activeGoal,
+            athleteSnapshot: ATLAS.state.data.training.athleteSnapshot,
+            goalAssessment: ATLAS.state.data.training.goalAssessment
+          });
+          ATLAS.state.dispatch({ type: "MACROCYCLE_LOADED", payload: macrocycle });
+          return macrocycle;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "MACROCYCLE_FAILED");
+          ATLAS.state.dispatch({ type: "MACROCYCLE_ERROR", payload: safe });
+          ATLAS.diagnostics?.recordError?.(safe);
+          return null;
+        }
+      }
+
       async function refreshGoalAssessment(asOfDate = ATLAS.core.localDate()) {
         ATLAS.state.dispatch({ type: "GOAL_ASSESSMENT_LOADING" });
         try {
@@ -7231,6 +7802,7 @@
             paceAnchors: ATLAS.state.data.training.paceAnchors
           });
           ATLAS.state.dispatch({ type: "GOAL_ASSESSMENT_LOADED", payload: assessment });
+          await refreshMacrocycle(asOfDate);
           return assessment;
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "GOAL_ASSESSMENT_FAILED");
@@ -7348,8 +7920,8 @@
       }
 
       return Object.freeze({
-        version: "0.0.37",
-        status: "f8.4-goal-assessment",
+        version: "0.0.38",
+        status: "f8.5-macrocycle",
         normalizeActivity,
         normalizePersonalRecordEvidence,
         buildSnapshotInput,
@@ -7358,6 +7930,7 @@
         refreshCurrentAbility,
         refreshPaceAnchors,
         refreshGoalAssessment,
+        refreshMacrocycle,
         saveGoal,
         deleteGoal,
         parseTargetTime,
@@ -7396,7 +7969,7 @@
         });
       }
 
-      return { version: "0.0.37", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.38", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -7424,7 +7997,7 @@
         });
       }
 
-      return { version: "0.0.37", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.38", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -7441,7 +8014,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.37"],
+          ["build.version", ATLAS.build.version === "0.0.38"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -7532,6 +8105,11 @@
                                       ATLAS.trainingEngine.GOAL_ASSESSMENT_STATES.length === 5],
           ["engine.goal.noSilentMutation", typeof ATLAS.training.saveGoal === "function" && typeof ATLAS.training.deleteGoal === "function"],
           ["engine.goal.live", !ATLAS.state.data.training.activeGoal || Boolean(ATLAS.state.data.training.goalAssessment?.fingerprint)],
+          ["engine.macro.live", !ATLAS.state.data.training.activeGoal || Boolean(ATLAS.state.data.training.macrocycle?.fingerprint)],
+          ["engine.macro.phaseOrder", !ATLAS.state.data.training.macrocycle?.phases?.length ||
+                                      ATLAS.state.data.training.macrocycle.phases.map(item => item.phase).join(">") === "preparation>development>specific>taper"],
+          ["engine.macro.partialEntry", !ATLAS.state.data.training.activeGoal ||
+                                        ATLAS.state.data.training.macrocycle?.weeks?.[0]?.type === "PARTIAL_ENTRY"],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
