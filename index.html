@@ -3035,7 +3035,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.39",
+      version: "0.0.40",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -3047,9 +3047,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.39",
+      version: "0.0.40",
       channel: "development",
-      buildId: "atlas-0.0.39-f8.6-weekly-skeleton",
+      buildId: "atlas-0.0.40-f8.6-weekly-skeleton-consolidation",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -3123,7 +3123,7 @@
        Pure / deterministic / no IO.
        ========================================================= */
     ATLAS.trainingEngine = (() => {
-      const ENGINE_VERSION = "8.6.0";
+      const ENGINE_VERSION = "8.6.1";
       const WINDOW_WEEKS = 8;
 
       const DISTANCES = Object.freeze({
@@ -3868,7 +3868,8 @@
         availability,
         override,
         asOfDate,
-        previousHardDate
+        previousHardDate,
+        previousTargetRunningDays
       }) {
         const effective = normalizeAvailability(override) || availability;
         if (!effective) return null;
@@ -3985,6 +3986,10 @@
         }
 
         let targetRunningDays = desiredRunningDaysForWeek(week, snapshot, macrocycle);
+        if (week.type === "CONSOLIDATION" && Number.isFinite(previousTargetRunningDays)) {
+          targetRunningDays = Math.min(targetRunningDays, previousTargetRunningDays);
+        }
+
         const existingRunDays = () => Object.values(dayMap).filter(day =>
           day.roles.some(role =>
             ["COMPETITION", "LONG_RUN", "QUALITY_PRIMARY", "QUALITY_SECONDARY", "EASY_AEROBIC_RECOVERY"].includes(role.role)
@@ -4122,6 +4127,7 @@
 
         const weeks = [];
         let previousHardDate = null;
+        let previousTargetRunningDays = null;
 
         for (const week of macrocycle.weeks) {
           const override = week.endDate >= asOfDate
@@ -4135,11 +4141,13 @@
             availability: defaultAvailability,
             override,
             asOfDate,
-            previousHardDate
+            previousHardDate,
+            previousTargetRunningDays
           });
 
           weeks.push(built);
           previousHardDate = built?.lastHardDate || previousHardDate;
+          previousTargetRunningDays = built?.targetRunningDays ?? previousTargetRunningDays;
         }
 
         const limitedWeeks = weeks.filter(week => week?.status === "LIMITED_AVAILABILITY").length;
@@ -5161,6 +5169,11 @@
           skeletonDoublesAvoided: skeleton3.summary.doublesPolicyRespected === true &&
                                   skeleton3.weeks.every(week => week.doubleSessionsUsed === 0),
           skeletonRestDay: skeleton3.summary.restDayPolicyRespected === true,
+          skeletonConsolidationNoFrequencyIncrease: skeleton3.weeks.every((week, index, rows) =>
+            week.weekType !== "CONSOLIDATION" ||
+            index === 0 ||
+            week.targetRunningDays <= rows[index - 1].targetRunningDays
+          ),
           skeletonRaceWeek: skeleton3.summary.raceWeekRunningDays <= 3,
           skeletonStrengthPhases: skeleton3.weeks.find(week => week.phase === "preparation" && week.weekType !== "PARTIAL_ENTRY")?.strengthRole === "PRINCIPAL" &&
                                   skeleton3.weeks.find(week => week.phase === "specific")?.strengthRole === "MAINTENANCE" &&
@@ -6536,7 +6549,7 @@
         return true;
       }
 
-      return { version: "0.0.39", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.40", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -7438,7 +7451,7 @@
           text(
             "training-macro-policy",
             `Política: ${macro.policy?.userApprovedAllocation || "asignación determinista canónica"} · ` +
-            `consolidación tras máx. ${macro.baseLevel === "LOW" ? 2 : 3} semanas progresivas`
+            `consolidación tras máx. ${macro.baseLevel === "LOW" ? 2 : 3} semanas progresivas · sin estrenar frecuencia`
           );
           text("training-macro-fingerprint", macro.fingerprint || "—");
 
@@ -8327,7 +8340,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.39", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.40", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -8446,7 +8459,7 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.39", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.40", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
       const PR_DISTANCE_BY_TYPE = Object.freeze({
@@ -9006,7 +9019,7 @@
       }
 
       return Object.freeze({
-        version: "0.0.39",
+        version: "0.0.40",
         status: "f8.6-weekly-skeleton",
         normalizeActivity,
         normalizePersonalRecordEvidence,
@@ -9060,7 +9073,7 @@
         });
       }
 
-      return { version: "0.0.39", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.40", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -9088,7 +9101,7 @@
         });
       }
 
-      return { version: "0.0.39", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.40", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -9105,7 +9118,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.39"],
+          ["build.version", ATLAS.build.version === "0.0.40"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
