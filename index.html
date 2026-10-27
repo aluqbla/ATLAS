@@ -2109,7 +2109,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.22",
+      version: "0.0.23",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2121,9 +2121,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.22",
+      version: "0.0.23",
       channel: "development",
-      buildId: "atlas-0.0.22-f7.4-profile-equipment-settings",
+      buildId: "atlas-0.0.23-f7.4-profile-equipment-settings",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -3477,7 +3477,7 @@
         return true;
       }
 
-      return { version: "0.0.22", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.23", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -4578,7 +4578,14 @@
           ? (caps?.syncQuick ? "Disponible · autenticado" : "Disponible · sync pendiente")
           : "No disponible");
         text("diag-fit", caps?.fit ? "Disponible" : "No disponible");
-        text("diag-general-state", ATLAS.state.data.errors.length ? "Parcial" : "Correcto");
+        text(
+          "diag-general-state",
+          ["FATAL", "DEGRADED", "OFFLINE"].includes(ATLAS.state.data.session.phase) ||
+          Boolean(ATLAS.state.data.session.error) ||
+          Boolean(ATLAS.state.data.sync.error)
+            ? "Parcial"
+            : "Correcto"
+        );
 
         text("about-atlas-version", `v${ATLAS.build.version}`);
         text("about-bridge-version", health?.bridge || health?.bridgeVersion || ATLAS.build.bridgeCompatibility || "—");
@@ -4606,7 +4613,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.22", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.23", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -4725,9 +4732,9 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.22", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.23", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.22", status: "domain-pending" });
+    ATLAS.training = Object.freeze({ version: "0.0.23", status: "domain-pending" });
     ATLAS.evolution = (() => {
       let currentView = "overview";
       let mounted = false;
@@ -4759,7 +4766,7 @@
         });
       }
 
-      return { version: "0.0.22", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.23", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -4787,7 +4794,7 @@
         });
       }
 
-      return { version: "0.0.22", status: "f3-profile-equipment-settings", mount, view, setView };
+      return { version: "0.0.23", status: "f3-profile-equipment-settings", mount, view, setView };
     })();
 
     /* =========================================================
@@ -4804,7 +4811,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.22"],
+          ["build.version", ATLAS.build.version === "0.0.23"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
