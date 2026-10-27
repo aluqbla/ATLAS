@@ -1872,6 +1872,12 @@
                 No hay equipamiento retirado para mostrar.
               </div>
             </div>
+
+            <div class="gear-section" id="profile-gear-unknown-section" hidden>
+              <div class="profile-group-label">Sin clasificar</div>
+              <div class="gear-list" id="profile-gear-unknown"></div>
+              <p class="settings-note">Garmin ha devuelto estas zapatillas sin un estado ACTIVE/RETIRED normalizable. ATLAS no las oculta ni asume que estén activas.</p>
+            </div>
           </section>
 
           <section class="profile-panel" data-profile-panel="garmin" hidden>
@@ -2109,7 +2115,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.28",
+      version: "0.0.29",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2121,9 +2127,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.28",
+      version: "0.0.29",
       channel: "development",
-      buildId: "atlas-0.0.28-f7.4-gear-retired-precedence",
+      buildId: "atlas-0.0.29-f7.4-gear-empty-guard",
       builtAt: "2026-10-26T19:45:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -2783,8 +2789,22 @@
 
           const quickResult = await quick();
           if (capabilities.data?.supportingData) {
-            try { await supporting(false); }
-            catch (error) { ATLAS.diagnostics.recordError(ATLAS.core.safeError(error, "SUPPORTING_SYNC_FAILED")); }
+            try {
+              const currentGear = Array.isArray(ATLAS.state.data.profile.gear) ? ATLAS.state.data.profile.gear : [];
+              const hasUnknownGear = currentGear.some(item => !["ACTIVE", "RETIRED"].includes(String(item?.status || "").toUpperCase()));
+              const repairKey = `atlas:gear-repair:${ATLAS.build.version}`;
+              const repairAlreadyAttempted = sessionStorage.getItem(repairKey) === "1";
+              const shouldForceGearRepair = !repairAlreadyAttempted && (currentGear.length === 0 || hasUnknownGear);
+
+              if (shouldForceGearRepair) {
+                sessionStorage.setItem(repairKey, "1");
+                await supporting(true);
+              } else {
+                await supporting(false);
+              }
+            } catch (error) {
+              ATLAS.diagnostics.recordError(ATLAS.core.safeError(error, "SUPPORTING_SYNC_FAILED"));
+            }
           }
           return quickResult;
         } catch (error) {
@@ -3484,7 +3504,7 @@
         return true;
       }
 
-      return { version: "0.0.28", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.29", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -4491,10 +4511,13 @@
 
         renderGearList("profile-gear-active", activeGear);
         renderGearList("profile-gear-retired", retiredGear);
+        renderGearList("profile-gear-unknown", unknownGear);
         const activeEmpty = document.getElementById("profile-gear-active-empty");
         const retiredEmpty = document.getElementById("profile-gear-retired-empty");
+        const unknownSection = document.getElementById("profile-gear-unknown-section");
         if (activeEmpty) activeEmpty.hidden = activeGear.length > 0;
         if (retiredEmpty) retiredEmpty.hidden = retiredGear.length > 0;
+        if (unknownSection) unknownSection.hidden = unknownGear.length === 0;
 
         const connected = Boolean(caps?.garminPrivate);
         text("profile-garmin-connected", connected ? "Conectado" : "No conectado");
@@ -4626,7 +4649,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.28", status: "canonical-today-ux" });
+    ATLAS.today = Object.freeze({ version: "0.0.29", status: "canonical-today-ux" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -4745,9 +4768,9 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.28", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.29", status: "f3-activity-experience", mount, open, close, filter };
     })();
-    ATLAS.training = Object.freeze({ version: "0.0.28", status: "domain-pending" });
+    ATLAS.training = Object.freeze({ version: "0.0.29", status: "domain-pending" });
     ATLAS.evolution = (() => {
       let currentView = "overview";
       let mounted = false;
@@ -4779,7 +4802,7 @@
         });
       }
 
-      return { version: "0.0.28", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.29", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -4807,7 +4830,7 @@
         });
       }
 
-      return { version: "0.0.28", status: "f3-profile-equipment-settings", mount, view, setView };
+      return { version: "0.0.29", status: "f3-profile-equipment-settings", mount, view, setView };
     })();
 
     /* =========================================================
@@ -4824,7 +4847,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.28"],
+          ["build.version", ATLAS.build.version === "0.0.29"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -4858,6 +4881,7 @@
           })()],
           ["ux.profile.secondary", Boolean(document.querySelector('[data-profile-panel="overview"]'))],
           ["ux.profile.equipment", Boolean(document.getElementById("profile-gear-active")) && Boolean(document.getElementById("profile-gear-retired"))],
+          ["ux.profile.gearUnknownVisible", Boolean(document.getElementById("profile-gear-unknown"))],
           ["ux.profile.garminSimple", Boolean(document.getElementById("profile-garmin-connected")) && Boolean(document.getElementById("profile-garmin-device"))],
           ["ux.profile.settings", Boolean(document.querySelector('[data-profile-panel="settings"]')) && Boolean(document.querySelector('[data-profile-panel="privacy"]'))],
           ["ux.profile.technicalIsolated", !String(document.querySelector('[data-profile-panel="overview"]')?.textContent || "").includes("Private API") && Boolean(document.querySelector('[data-profile-panel="diagnostics"]'))],
