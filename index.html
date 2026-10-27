@@ -1926,6 +1926,7 @@
 
             <div class="training-base-notes">
               <div class="training-base-note" id="training-ability-policy">Confianza: —</div>
+              <div class="training-base-note" id="training-ability-evidence-diagnostics">Evidencia local: —</div>
               <div class="training-base-note" id="training-ability-durability">Durabilidad maratón: —</div>
             </div>
 
@@ -2479,7 +2480,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.32",
+      version: "0.0.33",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2491,14 +2492,14 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.32",
+      version: "0.0.33",
       channel: "development",
-      buildId: "atlas-0.0.32-f8.2-current-ability",
+      buildId: "atlas-0.0.33-f8.2-pr-date-fix",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
-      workerCompatibility: "0.0.21",
-      bridgeCompatibility: "0.0.21-compatible"
+      workerCompatibility: "0.0.22",
+      bridgeCompatibility: "0.0.22-compatible"
     });
 
     /* =========================================================
@@ -3424,7 +3425,7 @@
           trainingStatus: null
         },
         activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
-        training: { activePlan: null, athleteSnapshot: null, currentAbility: null, engineStatus: "idle", abilityStatus: "idle", engineError: null, abilityError: null },
+        training: { activePlan: null, athleteSnapshot: null, currentAbility: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", engineError: null, abilityError: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null, vo2History: [], thresholdHistory: [], trainingStatusHistory: [], sleepHistory: [], hrvHistory: [], readinessHistory: [] },
         settings: {},
         ui: { toast: null },
@@ -3515,7 +3516,7 @@
           case "TRAINING_SNAPSHOT_LOADED": state.training.athleteSnapshot = payload || null; state.training.engineStatus = "ready"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_ERROR": state.training.engineStatus = "error"; state.training.engineError = payload || null; mark("training"); break;
           case "CURRENT_ABILITY_LOADING": state.training.abilityStatus = "loading"; state.training.abilityError = null; mark("training"); break;
-          case "CURRENT_ABILITY_LOADED": state.training.currentAbility = payload || null; state.training.abilityStatus = "ready"; state.training.abilityError = null; mark("training"); break;
+          case "CURRENT_ABILITY_LOADED": state.training.currentAbility = payload?.ability || payload || null; state.training.abilityDiagnostics = payload?.diagnostics || null; state.training.abilityStatus = "ready"; state.training.abilityError = null; mark("training"); break;
           case "CURRENT_ABILITY_ERROR": state.training.abilityStatus = "error"; state.training.abilityError = payload || null; mark("training"); break;
           case "TOAST": state.ui.toast = payload || null; mark("toast"); ATLAS.events.emit("ui:toast", payload); break;
           default: return false;
@@ -4695,7 +4696,7 @@
         return true;
       }
 
-      return { version: "0.0.32", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.33", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -5476,6 +5477,13 @@
             "training-ability-policy",
             `Confianza: ${ability.confidencePolicy?.default || "UNRATED"} por defecto · ${ability.confidencePolicy?.marathonDurability || "LOW"} sólo en maratón por durabilidad`
           );
+          const inputDiag = state.abilityDiagnostics || {};
+          text(
+            "training-ability-evidence-diagnostics",
+            `Evidencia local: ${inputDiag.usableWithin180 ?? 0} utilizable(s) ≤180 d · ` +
+            `${inputDiag.undatedRunningTimeRecords ?? 0} PR sin fecha · ` +
+            `${inputDiag.expiredEvidence ?? 0} expirada(s)`
+          );
           text(
             "training-ability-durability",
             ability.durabilityProfile?.available
@@ -5526,6 +5534,7 @@
         } else {
           text("training-ability-status", state.abilityStatus === "error" ? "ERROR" : "—");
           text("training-ability-policy", "Confianza: UNRATED salvo maratón por durabilidad.");
+          text("training-ability-evidence-diagnostics", "Evidencia local: —");
           text("training-ability-durability", "Durabilidad maratón: —");
           text("training-ability-fingerprint", "—");
         }
@@ -6087,7 +6096,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.32", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.33", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -6206,7 +6215,7 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.32", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.33", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
       const PR_DISTANCE_BY_TYPE = Object.freeze({
@@ -6348,15 +6357,53 @@
           ATLAS.storage.query("personalRecords")
         ]);
         const activities = rawActivities.map(normalizeActivity);
+        const records = personalRecords || [];
+
+        const explicitRaceEvidence = activities
+          .map(normalizeExplicitActivityEvidence)
+          .filter(Boolean);
+        const prEvidence = records
+          .map(record => normalizePersonalRecordEvidence(record, activities))
+          .filter(Boolean);
 
         const evidence = dedupeEvidence([
-          ...activities.map(normalizeExplicitActivityEvidence),
-          ...(personalRecords || []).map(record => normalizePersonalRecordEvidence(record, activities))
+          ...explicitRaceEvidence,
+          ...prEvidence
         ]);
+
+        const runningTimeRecords = records.filter(record =>
+          [3, 4, 5, 6].includes(Number(record?.typeId))
+        );
+        const datedRunningTimeRecords = runningTimeRecords.filter(record => {
+          const linked = activities.find(activity =>
+            String(activity.remoteId || "") === String(record?.remoteActivityId || "")
+          );
+          return Boolean(dateOnlyFrom(record?.observedAt) || dateOnlyFrom(linked?.startTime));
+        });
+
+        let usableWithin180 = 0;
+        let expiredEvidence = 0;
+        for (const row of evidence) {
+          const recency = ATLAS.trainingEngine.recencyOf(row.date, asOfDate);
+          if (["CURRENT", "VALID", "CONTEXT"].includes(recency?.bucket)) usableWithin180 += 1;
+          else if (recency?.bucket === "EXPIRED") expiredEvidence += 1;
+        }
+
+        const diagnostics = Object.freeze({
+          personalRecordsTotal: records.length,
+          runningTimeRecords: runningTimeRecords.length,
+          datedRunningTimeRecords: datedRunningTimeRecords.length,
+          undatedRunningTimeRecords: runningTimeRecords.length - datedRunningTimeRecords.length,
+          explicitRaceTests: explicitRaceEvidence.length,
+          evidenceProduced: evidence.length,
+          usableWithin180,
+          expiredEvidence
+        });
 
         return Object.freeze({
           asOfDate,
-          evidence
+          evidence,
+          diagnostics
         });
       }
 
@@ -6365,7 +6412,10 @@
         try {
           const input = await buildCurrentAbilityInput(asOfDate);
           const ability = ATLAS.trainingEngine.buildCurrentAbility(input);
-          ATLAS.state.dispatch({ type: "CURRENT_ABILITY_LOADED", payload: ability });
+          ATLAS.state.dispatch({
+            type: "CURRENT_ABILITY_LOADED",
+            payload: { ability, diagnostics: input.diagnostics }
+          });
           return ability;
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "CURRENT_ABILITY_FAILED");
@@ -6392,7 +6442,7 @@
       }
 
       return Object.freeze({
-        version: "0.0.32",
+        version: "0.0.33",
         status: "f8.2-current-ability",
         normalizeActivity,
         normalizePersonalRecordEvidence,
@@ -6433,7 +6483,7 @@
         });
       }
 
-      return { version: "0.0.32", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.33", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -6461,7 +6511,7 @@
         });
       }
 
-      return { version: "0.0.32", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.33", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -6478,7 +6528,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.32"],
+          ["build.version", ATLAS.build.version === "0.0.33"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -6553,6 +6603,8 @@
           ["engine.ability.confidencePolicy", ATLAS.trainingEngine.CURRENT_ABILITY_CONFIDENCE_POLICY.default === "UNRATED" &&
                                              ATLAS.trainingEngine.CURRENT_ABILITY_CONFIDENCE_POLICY.marathonDurability === "LOW"],
           ["engine.ability.noSimpleMarathon", ATLAS.state.data.training.currentAbility?.evidencePolicy?.marathonSimpleRiegelFromShorterDistances === false],
+          ["engine.ability.inputDiagnostics", Number.isFinite(ATLAS.state.data.training.abilityDiagnostics?.personalRecordsTotal) &&
+                                               Number.isFinite(ATLAS.state.data.training.abilityDiagnostics?.usableWithin180)],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
