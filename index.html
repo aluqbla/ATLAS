@@ -1120,6 +1120,55 @@
       font-weight: 650;
     }
 
+    .training-goal {
+      width: min(100%, var(--content-standard));
+      margin: 0 auto 28px;
+      padding: 0 0 24px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .training-goal-form {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--divider);
+    }
+    .training-goal-field {
+      display: grid;
+      gap: 7px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    .training-goal-field--wide { grid-column: 1 / -1; }
+    .training-goal-field input,
+    .training-goal-field select {
+      width: 100%;
+      min-height: 48px;
+      padding: 0 12px;
+      border: 1px solid var(--divider);
+      border-radius: var(--radius-control);
+      background: var(--surface-1);
+      color: var(--text);
+      font: inherit;
+      font-size: 15px;
+    }
+    .training-goal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .training-goal-form__error {
+      grid-column: 1 / -1;
+      color: var(--red);
+      font-size: 13px;
+    }
+    @media (max-width: 599px) {
+      .training-goal-form { grid-template-columns: 1fr; }
+      .training-goal-field--wide { grid-column: auto; }
+    }
+
     .training-pace-anchors {
       width: min(100%, var(--content-standard));
       margin: 0 auto 28px;
@@ -1911,6 +1960,63 @@
             </div>
           </div>
 
+          <section class="training-goal" id="training-goal-section">
+            <div class="training-ability__header">
+              <div>
+                <p class="eyebrow">Objetivo principal</p>
+                <h2 class="section-title" id="training-goal-title">Sin objetivo definido</h2>
+                <p class="section-copy" id="training-goal-copy">Define distancia, fecha y tiempo objetivo. ATLAS no modifica el objetivo sin tu decisión.</p>
+              </div>
+              <div class="training-ability__status" id="training-goal-status">PENDIENTE</div>
+            </div>
+
+            <div class="training-goal-summary" id="training-goal-summary" hidden>
+              <div class="training-base-grid">
+                <div class="training-base-metric"><strong id="training-goal-distance">—</strong><span>Distancia</span></div>
+                <div class="training-base-metric"><strong id="training-goal-time">—</strong><span>Tiempo objetivo</span></div>
+                <div class="training-base-metric"><strong id="training-goal-date">—</strong><span>Fecha carrera</span></div>
+              </div>
+              <div class="training-base-notes">
+                <div class="training-base-note" id="training-goal-demand">Demanda objetivo: —</div>
+                <div class="training-base-note" id="training-goal-horizon">Horizonte: —</div>
+                <div class="training-base-note" id="training-goal-rationale">Evaluación: —</div>
+              </div>
+              <div class="training-goal-actions">
+                <button class="button button--secondary" id="training-goal-edit" type="button">Editar objetivo</button>
+                <button class="button button--secondary" id="training-goal-delete" type="button">Eliminar objetivo</button>
+              </div>
+            </div>
+
+            <form class="training-goal-form" id="training-goal-form">
+              <label class="training-goal-field">
+                <span>Distancia</span>
+                <select id="training-goal-distance-input" required>
+                  <option value="5K">5 km</option>
+                  <option value="10K">10 km</option>
+                  <option value="HALF">Media maratón</option>
+                  <option value="MARATHON">Maratón</option>
+                </select>
+              </label>
+              <label class="training-goal-field">
+                <span>Fecha de carrera</span>
+                <input id="training-goal-date-input" type="date" required />
+              </label>
+              <label class="training-goal-field">
+                <span>Tiempo objetivo</span>
+                <input id="training-goal-time-input" type="text" inputmode="numeric" placeholder="1:30:00" required />
+              </label>
+              <label class="training-goal-field training-goal-field--wide">
+                <span>Nombre del evento <small>(opcional)</small></span>
+                <input id="training-goal-event-input" type="text" maxlength="80" placeholder="Carrera objetivo" />
+              </label>
+              <div class="training-goal-form__error" id="training-goal-form-error" role="alert" hidden></div>
+              <div class="training-goal-actions training-goal-field--wide">
+                <button class="button" type="submit">Guardar objetivo</button>
+                <button class="button button--secondary" id="training-goal-cancel" type="button" hidden>Cancelar</button>
+              </div>
+            </form>
+          </section>
+
           <section class="training-base" id="training-base-section">
             <p class="eyebrow">Base actual</p>
             <div class="training-base__headline">
@@ -2227,7 +2333,7 @@
             <div class="profile-menu">
               <button class="profile-menu-row" type="button" data-profile-view="goal">
                 <span class="profile-menu-row__label">Objetivo de entrenamiento</span>
-                <span class="profile-menu-row__value">No definido</span>
+                <span class="profile-menu-row__value" id="profile-overview-goal">No definido</span>
                 <span class="profile-menu-row__chevron" aria-hidden="true">›</span>
               </button>
             </div>
@@ -2280,9 +2386,15 @@
             <button class="profile-back" type="button" data-profile-view="overview">‹ Perfil</button>
             <header class="profile-panel-header">
               <p class="eyebrow">Objetivo</p>
-              <h2 class="hero-title">Sin objetivo definido</h2>
-              <p class="section-copy">La creación de objetivos y del plan pertenece a F8. F7 no inventa ni anticipa un objetivo deportivo.</p>
+              <h2 class="hero-title" id="profile-goal-title">Sin objetivo definido</h2>
+              <p class="section-copy" id="profile-goal-copy">Define y evalúa el objetivo principal desde Plan.</p>
             </header>
+            <div class="profile-info-list">
+              <div class="profile-info-row"><span class="profile-info-row__label">Distancia</span><span class="profile-info-row__value" id="profile-goal-distance">—</span></div>
+              <div class="profile-info-row"><span class="profile-info-row__label">Tiempo</span><span class="profile-info-row__value" id="profile-goal-time">—</span></div>
+              <div class="profile-info-row"><span class="profile-info-row__label">Fecha</span><span class="profile-info-row__value" id="profile-goal-date">—</span></div>
+              <div class="profile-info-row"><span class="profile-info-row__label">Evaluación</span><span class="profile-info-row__value" id="profile-goal-assessment">—</span></div>
+            </div>
           </section>
 
           <section class="profile-panel" data-profile-panel="equipment" hidden>
@@ -2553,7 +2665,7 @@
     window.ATLAS = window.ATLAS || {};
 
     ATLAS.config = Object.freeze({
-      version: "0.0.36",
+      version: "0.0.37",
       apiVersion: "v1",
       environment: "production",
       workerUrl: "https://atlas.aj-luque.workers.dev",
@@ -2565,9 +2677,9 @@
        05 · ATLAS BUILD
        ========================================================= */
     ATLAS.build = Object.freeze({
-      version: "0.0.36",
+      version: "0.0.37",
       channel: "development",
-      buildId: "atlas-0.0.36-f8.3-pace-anchors",
+      buildId: "atlas-0.0.37-f8.4-goal-assessment",
       builtAt: "2026-10-27T17:10:00+01:00",
       apiVersion: "v1",
       dbSchema: 5,
@@ -2616,6 +2728,7 @@
           await ATLAS.training.refreshSnapshot();
           ATLAS.navigation.mount();
           ATLAS.activities.mount();
+          ATLAS.training.mount();
           ATLAS.evolution.mount();
           ATLAS.profile.mount();
           ATLAS.render.all();
@@ -2640,7 +2753,7 @@
        Pure / deterministic / no IO.
        ========================================================= */
     ATLAS.trainingEngine = (() => {
-      const ENGINE_VERSION = "8.3.0";
+      const ENGINE_VERSION = "8.4.0";
       const WINDOW_WEEKS = 8;
 
       const DISTANCES = Object.freeze({
@@ -3261,6 +3374,157 @@
         return Object.freeze({ ...core, fingerprint: fingerprint(core) });
       }
 
+      const GOAL_ASSESSMENT_STATES = Object.freeze([
+        "SUPPORTED",
+        "DEMANDING",
+        "NOT_SUPPORTED_CURRENTLY",
+        "PREPARATION_INSUFFICIENT",
+        "NEEDS_ANCHOR_TEST"
+      ]);
+
+      const GOAL_MINIMUM_PREPARATION_WEEKS = Object.freeze({
+        "5K": 7,
+        "10K": 7,
+        "HALF": 9,
+        "MARATHON": 10
+      });
+
+      function goalDistanceLabel(key) {
+        return ({ "5K": "5 km", "10K": "10 km", "HALF": "Media maratón", "MARATHON": "Maratón" })[key] || key;
+      }
+
+      function buildGoalAssessment(input) {
+        const asOfDate = input?.asOfDate;
+        if (!isDateOnly(asOfDate)) {
+          throw Object.assign(new Error("Goal Assessment requires an explicit YYYY-MM-DD asOfDate."), { code: "ENGINE_AS_OF_DATE_REQUIRED" });
+        }
+
+        const goal = input?.goal;
+        if (!goal) {
+          const core = {
+            version: ENGINE_VERSION,
+            asOfDate,
+            status: "NO_GOAL",
+            assessmentState: null,
+            goal: null,
+            demand: null,
+            horizon: null,
+            rationale: ["NO_GOAL_DEFINED"]
+          };
+          return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+        }
+
+        const key = String(goal.distanceKey || "");
+        if (!Object.prototype.hasOwnProperty.call(DISTANCES, key)) {
+          throw Object.assign(new Error("Goal distance is not supported."), { code: "GOAL_DISTANCE_UNSUPPORTED" });
+        }
+
+        const raceDate = String(goal.raceDate || goal.eventDate || "");
+        const targetTimeSec = Number(goal.targetTimeSec ?? goal.targetTime);
+        if (!isDateOnly(raceDate) || !Number.isFinite(targetTimeSec) || targetTimeSec <= 0) {
+          throw Object.assign(new Error("Goal requires raceDate and targetTimeSec."), { code: "GOAL_INVALID" });
+        }
+
+        const daysRemaining = daysBetween(asOfDate, raceDate);
+        if (!Number.isFinite(daysRemaining) || daysRemaining <= 0) {
+          throw Object.assign(new Error("Goal race date must be in the future."), { code: "GOAL_DATE_NOT_FUTURE" });
+        }
+
+        const distanceM = DISTANCES[key];
+        const targetPaceSecPerKm = targetTimeSec / (distanceM / 1000);
+        const minimumWeeks = GOAL_MINIMUM_PREPARATION_WEEKS[key];
+        const minimumDays = minimumWeeks * 7;
+
+        const currentAbility = input?.currentAbility || null;
+        const sameDistanceAbility = currentAbility?.abilities?.[key] || null;
+        const paceAnchors = input?.paceAnchors || null;
+
+        const shorterKeys = CURRENT_ABILITY_KEYS.filter(candidate => DISTANCES[candidate] < distanceM);
+        const incoherentShorter = shorterKeys
+          .map(candidate => currentAbility?.abilities?.[candidate] ? {
+            key: candidate,
+            ability: currentAbility.abilities[candidate]
+          } : null)
+          .filter(Boolean)
+          .find(item =>
+            Number.isFinite(item.ability?.paceSecPerKm) &&
+            targetPaceSecPerKm <= item.ability.paceSecPerKm
+          ) || null;
+
+        let assessmentState = null;
+        const rationale = [];
+        let status = "PENDING_EVIDENCE";
+
+        if (daysRemaining < minimumDays) {
+          assessmentState = "PREPARATION_INSUFFICIENT";
+          status = "ASSESSED";
+          rationale.push("HORIZON_BELOW_CANONICAL_MINIMUM");
+        } else if (incoherentShorter) {
+          assessmentState = "NOT_SUPPORTED_CURRENTLY";
+          status = "ASSESSED";
+          rationale.push(`TARGET_LONGER_DISTANCE_NOT_SLOWER_THAN_${incoherentShorter.key}_ABILITY`);
+        } else if (sameDistanceAbility && Number.isFinite(sameDistanceAbility.timeSec)) {
+          assessmentState = sameDistanceAbility.timeSec <= targetTimeSec ? "SUPPORTED" : "DEMANDING";
+          status = "ASSESSED";
+          rationale.push(
+            assessmentState === "SUPPORTED"
+              ? "CURRENT_ABILITY_SUPPORTS_TARGET"
+              : "TARGET_FASTER_THAN_CURRENT_ABILITY"
+          );
+        } else if (paceAnchors?.physiological?.status === "NEEDS_ANCHOR_TEST") {
+          assessmentState = "NEEDS_ANCHOR_TEST";
+          status = "ASSESSED";
+          rationale.push("OFFICIAL_THRESHOLD_MISSING");
+        } else {
+          rationale.push("CURRENT_ABILITY_REQUIRED_FOR_SUPPORT_CLASSIFICATION");
+        }
+
+        const gapSec = sameDistanceAbility && Number.isFinite(sameDistanceAbility.timeSec)
+          ? targetTimeSec - sameDistanceAbility.timeSec
+          : null;
+        const gapPct = Number.isFinite(gapSec) && sameDistanceAbility.timeSec > 0
+          ? gapSec / sameDistanceAbility.timeSec
+          : null;
+
+        const core = {
+          version: ENGINE_VERSION,
+          asOfDate,
+          status,
+          assessmentState,
+          goal: Object.freeze({
+            id: goal.id || null,
+            distanceKey: key,
+            distanceM,
+            distanceLabel: goalDistanceLabel(key),
+            raceDate,
+            targetTimeSec,
+            eventName: goal.eventName || null
+          }),
+          demand: Object.freeze({
+            targetPaceSecPerKm,
+            sameDistanceAbilityTimeSec: Number.isFinite(sameDistanceAbility?.timeSec) ? sameDistanceAbility.timeSec : null,
+            sameDistanceAbilityPaceSecPerKm: Number.isFinite(sameDistanceAbility?.paceSecPerKm) ? sameDistanceAbility.paceSecPerKm : null,
+            gapSec,
+            gapPct
+          }),
+          horizon: Object.freeze({
+            daysRemaining,
+            weeksRemaining: daysRemaining / 7,
+            minimumWeeks,
+            minimumDays,
+            source: "DERIVED_FROM_CANONICAL_PHASE_MINIMA"
+          }),
+          trace: Object.freeze({
+            currentAbilityFingerprint: currentAbility?.fingerprint || null,
+            paceAnchorsFingerprint: paceAnchors?.fingerprint || null,
+            shorterIncoherenceKey: incoherentShorter?.key || null
+          }),
+          rationale
+        };
+
+        return Object.freeze({ ...core, fingerprint: fingerprint(core) });
+      }
+
       const PHYSIOLOGICAL_PACE_BANDS = Object.freeze({
         RECOVERY: Object.freeze({ minSpeedFraction: 0.68, maxSpeedFraction: 0.76 }),
         EASY: Object.freeze({ minSpeedFraction: 0.75, maxSpeedFraction: 0.84 }),
@@ -3559,6 +3823,67 @@
           currentAbility: abilityDirect
         });
 
+        const goalAbility = {
+          fingerprint: "fixture-ability",
+          abilities: {
+            "5K": { timeSec: 1200, paceSecPerKm: 240, fingerprint: "5k" },
+            "10K": { timeSec: 2500, paceSecPerKm: 250, fingerprint: "10k" },
+            "HALF": { timeSec: 5400, paceSecPerKm: 255.95, fingerprint: "half" },
+            "MARATHON": null
+          }
+        };
+        const goalPaceReady = { fingerprint: "fixture-pace", physiological: { status: "READY" } };
+        const goalPaceMissing = { fingerprint: "fixture-pace-missing", physiological: { status: "NEEDS_ANCHOR_TEST" } };
+
+        const goalSupported = buildGoalAssessment({
+          asOfDate,
+          goal: { id: "g1", distanceKey: "10K", raceDate: "2027-02-01", targetTimeSec: 2550 },
+          currentAbility: goalAbility,
+          paceAnchors: goalPaceReady
+        });
+        const goalDemanding = buildGoalAssessment({
+          asOfDate,
+          goal: { id: "g2", distanceKey: "10K", raceDate: "2027-02-01", targetTimeSec: 2450 },
+          currentAbility: goalAbility,
+          paceAnchors: goalPaceReady
+        });
+        const goalUnsupported = buildGoalAssessment({
+          asOfDate,
+          goal: { id: "g3", distanceKey: "HALF", raceDate: "2027-02-01", targetTimeSec: 5000 },
+          currentAbility: goalAbility,
+          paceAnchors: goalPaceReady
+        });
+        const goalCompressed = buildGoalAssessment({
+          asOfDate,
+          goal: { id: "g4", distanceKey: "MARATHON", raceDate: "2026-12-15", targetTimeSec: 12600 },
+          currentAbility: goalAbility,
+          paceAnchors: goalPaceReady
+        });
+        const goalNeedsAnchor = buildGoalAssessment({
+          asOfDate,
+          goal: { id: "g5", distanceKey: "MARATHON", raceDate: "2027-04-01", targetTimeSec: 12600 },
+          currentAbility: { fingerprint: "empty", abilities: {} },
+          paceAnchors: goalPaceMissing
+        });
+        const goalPendingEvidence = buildGoalAssessment({
+          asOfDate,
+          goal: { id: "g6", distanceKey: "MARATHON", raceDate: "2027-04-01", targetTimeSec: 12600 },
+          currentAbility: { fingerprint: "empty", abilities: {} },
+          paceAnchors: goalPaceReady
+        });
+        const goalDeterministicA = buildGoalAssessment({
+          asOfDate,
+          goal: { id: "g7", distanceKey: "10K", raceDate: "2027-02-01", targetTimeSec: 2500 },
+          currentAbility: goalAbility,
+          paceAnchors: goalPaceReady
+        });
+        const goalDeterministicB = buildGoalAssessment({
+          asOfDate,
+          goal: { id: "g7", distanceKey: "10K", raceDate: "2027-02-01", targetTimeSec: 2500 },
+          currentAbility: goalAbility,
+          paceAnchors: goalPaceReady
+        });
+
         return Object.freeze({
           window8: low.weeks.length === 8,
           excludesCurrentWeek: low.window.endDate === "2026-10-25",
@@ -3600,7 +3925,14 @@
           paceFamilySeparation: paceAnchorsFull.separationPolicy.crossContaminationAllowed === false &&
                                 paceAnchorsFull.physiological.sourceType === "OFFICIAL_THRESHOLD" &&
                                 paceAnchorsFull.specific.sourceType === "CURRENT_ABILITY",
-          paceDeterministic: paceDeterministicA.fingerprint === paceDeterministicB.fingerprint
+          paceDeterministic: paceDeterministicA.fingerprint === paceDeterministicB.fingerprint,
+          goalSupported: goalSupported.assessmentState === "SUPPORTED",
+          goalDemanding: goalDemanding.assessmentState === "DEMANDING",
+          goalNotSupported: goalUnsupported.assessmentState === "NOT_SUPPORTED_CURRENTLY",
+          goalCompressedHorizon: goalCompressed.assessmentState === "PREPARATION_INSUFFICIENT",
+          goalNeedsAnchor: goalNeedsAnchor.assessmentState === "NEEDS_ANCHOR_TEST",
+          goalPendingEvidence: goalPendingEvidence.status === "PENDING_EVIDENCE" && goalPendingEvidence.assessmentState === null,
+          goalDeterministic: goalDeterministicA.fingerprint === goalDeterministicB.fingerprint
         });
       }
 
@@ -3614,6 +3946,9 @@
         startOfIsoWeek,
         buildAthleteSnapshot,
         buildCurrentAbility,
+        buildGoalAssessment,
+        GOAL_ASSESSMENT_STATES,
+        GOAL_MINIMUM_PREPARATION_WEEKS,
         buildPaceAnchors,
         paceBandFromThreshold,
         PHYSIOLOGICAL_PACE_BANDS,
@@ -3672,7 +4007,7 @@
           trainingStatus: null
         },
         activities: { items: [], selectedId: null, detail: null, detailStatus: "idle", detailError: null, deep: null, deepStatus: "idle", deepError: null },
-        training: { activePlan: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", engineError: null, abilityError: null, paceError: null },
+        training: { activePlan: null, activeGoal: null, goalAssessment: null, athleteSnapshot: null, currentAbility: null, paceAnchors: null, abilityDiagnostics: null, engineStatus: "idle", abilityStatus: "idle", paceStatus: "idle", goalStatus: "idle", engineError: null, abilityError: null, paceError: null, goalError: null },
         evolution: { vo2max: null, threshold: null, trainingStatus: null, vo2History: [], thresholdHistory: [], trainingStatusHistory: [], sleepHistory: [], hrvHistory: [], readinessHistory: [] },
         settings: {},
         ui: { toast: null },
@@ -3759,6 +4094,10 @@
           case "ACTIVITY_DEEP_ERROR": state.activities.deepStatus = "error"; state.activities.deepError = payload || null; mark("activities"); break;
           case "ACTIVITY_DETAIL_CLOSED": state.activities.selectedId = null; state.activities.detail = null; state.activities.detailStatus = "idle"; state.activities.detailError = null; state.activities.deep = null; state.activities.deepStatus = "idle"; state.activities.deepError = null; mark("activities"); break;
           case "PLAN_LOADED": state.training.activePlan = payload || null; mark("training", "today"); break;
+          case "GOAL_LOADED": state.training.activeGoal = payload || null; mark("training", "profile"); break;
+          case "GOAL_ASSESSMENT_LOADING": state.training.goalStatus = "loading"; state.training.goalError = null; mark("training"); break;
+          case "GOAL_ASSESSMENT_LOADED": state.training.goalAssessment = payload || null; state.training.goalStatus = "ready"; state.training.goalError = null; mark("training", "profile"); break;
+          case "GOAL_ASSESSMENT_ERROR": state.training.goalStatus = "error"; state.training.goalError = payload || null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADING": state.training.engineStatus = "loading"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_LOADED": state.training.athleteSnapshot = payload || null; state.training.engineStatus = "ready"; state.training.engineError = null; mark("training"); break;
           case "TRAINING_SNAPSHOT_ERROR": state.training.engineStatus = "error"; state.training.engineError = payload || null; mark("training"); break;
@@ -4065,6 +4404,7 @@
           activities,
           dailyStates,
           activePlans,
+          activeGoals,
           sleeps,
           hrvRows,
           bodyBatteryRows,
@@ -4093,6 +4433,7 @@
           ATLAS.storage.query("activities", { sort: (a, b) => String(b.startTime || "").localeCompare(String(a.startTime || "")), limit: 100 }),
           ATLAS.storage.query("dailyStates", { filter: row => row.date === todayId, limit: 1 }),
           ATLAS.storage.query("trainingPlans", { filter: row => row.status === "active", limit: 1 }),
+          ATLAS.storage.query("goals", { filter: row => row.status === "active", limit: 1 }),
           ATLAS.storage.query("sleep", { filter: row => row.date === todayId, limit: 1 }),
           ATLAS.storage.query("hrv", { filter: row => row.date === todayId, limit: 1 }),
           ATLAS.storage.query("bodyBattery", { filter: row => row.date === todayId, limit: 1 }),
@@ -4137,6 +4478,7 @@
         ATLAS.state.dispatch({ type: "ACTIVITIES_LOADED", payload: activities });
         ATLAS.state.dispatch({ type: "DAILY_STATE_LOADED", payload: dailyStates[0] || null });
         ATLAS.state.dispatch({ type: "PLAN_LOADED", payload: activePlans[0] || null });
+        ATLAS.state.dispatch({ type: "GOAL_LOADED", payload: activeGoals[0] || null });
         ATLAS.state.dispatch({
           type: "PHYSIOLOGY_LOADED",
           payload: {
@@ -4946,7 +5288,7 @@
         return true;
       }
 
-      return { version: "0.0.36", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
+      return { version: "0.0.37", status: "activity-series", paceDirection: "faster-up", renderActivity, clearActivity };
     })();
 
     /* =========================================================
@@ -5610,6 +5952,57 @@
       function training() {
         const state = ATLAS.state.data.training;
         const snapshot = state.athleteSnapshot;
+        const goal = state.activeGoal;
+        const assessment = state.goalAssessment;
+
+        const goalForm = document.getElementById("training-goal-form");
+        const goalSummary = document.getElementById("training-goal-summary");
+        if (goal) {
+          if (goalForm && !goalForm.hasAttribute("data-editing")) goalForm.hidden = true;
+          if (goalSummary) goalSummary.hidden = false;
+          text("training-goal-title", goal.eventName || "Objetivo principal");
+          text("training-goal-distance", ({ "5K": "5 km", "10K": "10 km", "HALF": "Media", "MARATHON": "Maratón" })[goal.distanceKey] || goal.distanceKey);
+          text("training-goal-time", formatDurationClock(goal.targetTimeSec || goal.targetTime) || "—");
+          text("training-goal-date", goal.raceDate || goal.eventDate || "—");
+        } else {
+          if (goalForm) goalForm.hidden = false;
+          if (goalSummary) goalSummary.hidden = true;
+          text("training-goal-title", "Sin objetivo definido");
+        }
+
+        if (assessment) {
+          const stateLabel = assessment.assessmentState || (assessment.status === "PENDING_EVIDENCE" ? "PENDIENTE_EVIDENCIA" : assessment.status);
+          text("training-goal-status", stateLabel);
+          text(
+            "training-goal-demand",
+            assessment.demand
+              ? `Demanda objetivo: ${formatPace(assessment.demand.targetPaceSecPerKm)}${Number.isFinite(assessment.demand.gapSec) ? ` · diferencia ${assessment.demand.gapSec >= 0 ? "+" : ""}${Math.round(assessment.demand.gapSec)} s` : ""}`
+              : "Demanda objetivo: —"
+          );
+          text(
+            "training-goal-horizon",
+            assessment.horizon
+              ? `Horizonte: ${Math.floor(assessment.horizon.daysRemaining)} días · mínimo canónico ${assessment.horizon.minimumWeeks} sem`
+              : "Horizonte: —"
+          );
+          const rationaleMap = {
+            CURRENT_ABILITY_SUPPORTS_TARGET: "La capacidad actual respalda el objetivo.",
+            TARGET_FASTER_THAN_CURRENT_ABILITY: "El objetivo es más rápido que la capacidad actual y orienta la progresión.",
+            HORIZON_BELOW_CANONICAL_MINIMUM: "El horizonte comprime la preparación por debajo del mínimo canónico.",
+            OFFICIAL_THRESHOLD_MISSING: "Falta un umbral oficial válido.",
+            CURRENT_ABILITY_REQUIRED_FOR_SUPPORT_CLASSIFICATION: "Falta capacidad actual utilizable para clasificar apoyo del objetivo."
+          };
+          const rationale = assessment.rationale?.[0] || null;
+          text(
+            "training-goal-rationale",
+            `Evaluación: ${rationaleMap[rationale] || (rationale ? rationale.replaceAll("_", " ") : "—")}`
+          );
+        } else {
+          text("training-goal-status", state.goalStatus === "error" ? "ERROR" : "PENDIENTE");
+          text("training-goal-demand", "Demanda objetivo: —");
+          text("training-goal-horizon", "Horizonte: —");
+          text("training-goal-rationale", "Evaluación: —");
+        }
 
         if (!snapshot) {
           text("training-base-level", state.engineStatus === "error" ? "Sin datos" : "—");
@@ -6279,6 +6672,18 @@
         const unknownGear = allGear.filter(item => !gearIsActive(item) && !gearIsRetired(item));
 
         text("profile-overview-athlete", displayName);
+        const activeGoal = ATLAS.state.data.training.activeGoal;
+        const goalAssessment = ATLAS.state.data.training.goalAssessment;
+        const goalLabel = activeGoal
+          ? `${({ "5K": "5K", "10K": "10K", "HALF": "Media", "MARATHON": "Maratón" })[activeGoal.distanceKey] || activeGoal.distanceKey} · ${formatDurationClock(activeGoal.targetTimeSec || activeGoal.targetTime) || "—"}`
+          : "No definido";
+        text("profile-overview-goal", goalLabel);
+        text("profile-goal-title", activeGoal?.eventName || (activeGoal ? "Objetivo principal" : "Sin objetivo definido"));
+        text("profile-goal-copy", activeGoal ? "Objetivo definido por el usuario y evaluado por el Training Engine." : "Define y evalúa el objetivo principal desde Plan.");
+        text("profile-goal-distance", activeGoal ? (({ "5K": "5 km", "10K": "10 km", "HALF": "Media maratón", "MARATHON": "Maratón" })[activeGoal.distanceKey] || activeGoal.distanceKey) : "—");
+        text("profile-goal-time", activeGoal ? (formatDurationClock(activeGoal.targetTimeSec || activeGoal.targetTime) || "—") : "—");
+        text("profile-goal-date", activeGoal?.raceDate || activeGoal?.eventDate || "—");
+        text("profile-goal-assessment", goalAssessment?.assessmentState || (goalAssessment?.status === "PENDING_EVIDENCE" ? "Pendiente de evidencia" : "—"));
         text("profile-overview-equipment", unknownGear.length ? `${activeGear.length} activas · ${unknownGear.length} sin clasificar` : `${activeGear.length} activas`);
         text("profile-overview-garmin", caps?.garminPrivate ? "Conectado" : "No conectado");
 
@@ -6431,7 +6836,7 @@
     /* =========================================================
        16 · ATLAS TODAY / ACTIVITIES / TRAINING / EVOLUTION / PROFILE
        ========================================================= */
-    ATLAS.today = Object.freeze({ version: "0.0.36", status: "f7-ux-stable" });
+    ATLAS.today = Object.freeze({ version: "0.0.37", status: "f7-ux-stable" });
     ATLAS.activities = (() => {
       const DETAIL_TTL_MS = 6 * 60 * 60 * 1000;
       let mounted = false;
@@ -6550,7 +6955,7 @@
 
       function filter() { return selectedFilter; }
 
-      return { version: "0.0.36", status: "f3-activity-experience", mount, open, close, filter };
+      return { version: "0.0.37", status: "f3-activity-experience", mount, open, close, filter };
     })();
     ATLAS.training = (() => {
       const PR_DISTANCE_BY_TYPE = Object.freeze({
@@ -6755,6 +7160,7 @@
             currentAbility
           });
           ATLAS.state.dispatch({ type: "PACE_ANCHORS_LOADED", payload: paceAnchors });
+          if (typeof refreshGoalAssessment === "function") await refreshGoalAssessment(asOfDate);
           return paceAnchors;
         } catch (error) {
           const safe = ATLAS.core.safeError(error, "PACE_ANCHORS_FAILED");
@@ -6783,6 +7189,148 @@
         }
       }
 
+      function parseTargetTime(value) {
+        const parts = String(value || "").trim().split(":").map(Number);
+        if (parts.some(part => !Number.isFinite(part) || part < 0)) return null;
+        if (parts.length === 2) {
+          const [minutes, seconds] = parts;
+          if (seconds >= 60) return null;
+          return minutes * 60 + seconds;
+        }
+        if (parts.length === 3) {
+          const [hours, minutes, seconds] = parts;
+          if (minutes >= 60 || seconds >= 60) return null;
+          return hours * 3600 + minutes * 60 + seconds;
+        }
+        return null;
+      }
+
+      function validateGoalDraft(draft, asOfDate = ATLAS.core.localDate()) {
+        const distanceKey = String(draft?.distanceKey || "");
+        const raceDate = String(draft?.raceDate || "");
+        const targetTimeSec = Number(draft?.targetTimeSec);
+        if (!Object.prototype.hasOwnProperty.call(ATLAS.trainingEngine.DISTANCES, distanceKey)) {
+          return { ok: false, message: "Selecciona una distancia válida." };
+        }
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(raceDate) || raceDate <= asOfDate) {
+          return { ok: false, message: "La fecha de carrera debe ser posterior a hoy." };
+        }
+        if (!Number.isFinite(targetTimeSec) || targetTimeSec <= 0) {
+          return { ok: false, message: "Introduce un tiempo objetivo válido." };
+        }
+        return { ok: true };
+      }
+
+      async function refreshGoalAssessment(asOfDate = ATLAS.core.localDate()) {
+        ATLAS.state.dispatch({ type: "GOAL_ASSESSMENT_LOADING" });
+        try {
+          const assessment = ATLAS.trainingEngine.buildGoalAssessment({
+            asOfDate,
+            goal: ATLAS.state.data.training.activeGoal,
+            currentAbility: ATLAS.state.data.training.currentAbility,
+            paceAnchors: ATLAS.state.data.training.paceAnchors
+          });
+          ATLAS.state.dispatch({ type: "GOAL_ASSESSMENT_LOADED", payload: assessment });
+          return assessment;
+        } catch (error) {
+          const safe = ATLAS.core.safeError(error, "GOAL_ASSESSMENT_FAILED");
+          ATLAS.state.dispatch({ type: "GOAL_ASSESSMENT_ERROR", payload: safe });
+          ATLAS.diagnostics?.recordError?.(safe);
+          return null;
+        }
+      }
+
+      async function saveGoal(draft) {
+        const validation = validateGoalDraft(draft);
+        if (!validation.ok) throw Object.assign(new Error(validation.message), { code: "GOAL_VALIDATION_FAILED" });
+
+        const now = ATLAS.core.nowIso();
+        const existing = ATLAS.state.data.training.activeGoal;
+        const goal = {
+          id: existing?.id || "goal_primary",
+          userId: existing?.userId || "atlas-user-1",
+          type: "race_time",
+          distanceKey: draft.distanceKey,
+          distanceM: ATLAS.trainingEngine.DISTANCES[draft.distanceKey],
+          eventName: String(draft.eventName || "").trim() || null,
+          eventDate: draft.raceDate,
+          raceDate: draft.raceDate,
+          targetTime: draft.targetTimeSec,
+          targetTimeSec: draft.targetTimeSec,
+          priority: "primary",
+          status: "active",
+          createdAt: existing?.createdAt || now,
+          updatedAt: now
+        };
+
+        await ATLAS.storage.put("goals", goal);
+        ATLAS.state.dispatch({ type: "GOAL_LOADED", payload: goal });
+        await refreshGoalAssessment();
+        return goal;
+      }
+
+      async function deleteGoal() {
+        const existing = ATLAS.state.data.training.activeGoal;
+        if (!existing?.id) return;
+        await ATLAS.storage.delete("goals", existing.id);
+        ATLAS.state.dispatch({ type: "GOAL_LOADED", payload: null });
+        await refreshGoalAssessment();
+      }
+
+      let mounted = false;
+      function mount() {
+        if (mounted) return;
+        mounted = true;
+
+        document.getElementById("training-goal-form")?.addEventListener("submit", async event => {
+          event.preventDefault();
+          const errorHost = document.getElementById("training-goal-form-error");
+          if (errorHost) { errorHost.hidden = true; errorHost.textContent = ""; }
+
+          const targetTimeSec = parseTargetTime(document.getElementById("training-goal-time-input")?.value);
+          const draft = {
+            distanceKey: document.getElementById("training-goal-distance-input")?.value,
+            raceDate: document.getElementById("training-goal-date-input")?.value,
+            targetTimeSec,
+            eventName: document.getElementById("training-goal-event-input")?.value
+          };
+
+          try {
+            await saveGoal(draft);
+            document.getElementById("training-goal-form")?.setAttribute("hidden", "");
+            document.getElementById("training-goal-cancel")?.setAttribute("hidden", "");
+          } catch (error) {
+            if (errorHost) {
+              errorHost.hidden = false;
+              errorHost.textContent = error?.message || "No se pudo guardar el objetivo.";
+            }
+          }
+        });
+
+        document.getElementById("training-goal-edit")?.addEventListener("click", () => {
+          const goal = ATLAS.state.data.training.activeGoal;
+          if (!goal) return;
+          document.getElementById("training-goal-form")?.removeAttribute("hidden");
+          document.getElementById("training-goal-cancel")?.removeAttribute("hidden");
+          document.getElementById("training-goal-distance-input").value = goal.distanceKey;
+          document.getElementById("training-goal-date-input").value = goal.raceDate || goal.eventDate || "";
+          document.getElementById("training-goal-time-input").value = formatDurationClock(goal.targetTimeSec || goal.targetTime) || "";
+          document.getElementById("training-goal-event-input").value = goal.eventName || "";
+        });
+
+        document.getElementById("training-goal-cancel")?.addEventListener("click", () => {
+          if (ATLAS.state.data.training.activeGoal) {
+            document.getElementById("training-goal-form")?.setAttribute("hidden", "");
+          }
+          document.getElementById("training-goal-cancel")?.setAttribute("hidden", "");
+        });
+
+        document.getElementById("training-goal-delete")?.addEventListener("click", async () => {
+          await deleteGoal();
+          document.getElementById("training-goal-form")?.removeAttribute("hidden");
+        });
+      }
+
       async function refreshSnapshot(asOfDate = ATLAS.core.localDate()) {
         ATLAS.state.dispatch({ type: "TRAINING_SNAPSHOT_LOADING" });
         try {
@@ -6800,15 +7348,21 @@
       }
 
       return Object.freeze({
-        version: "0.0.36",
-        status: "f8.3-pace-anchors",
+        version: "0.0.37",
+        status: "f8.4-goal-assessment",
         normalizeActivity,
         normalizePersonalRecordEvidence,
         buildSnapshotInput,
         buildCurrentAbilityInput,
         refreshSnapshot,
         refreshCurrentAbility,
-        refreshPaceAnchors
+        refreshPaceAnchors,
+        refreshGoalAssessment,
+        saveGoal,
+        deleteGoal,
+        parseTargetTime,
+        validateGoalDraft,
+        mount
       });
     })();
     ATLAS.evolution = (() => {
@@ -6842,7 +7396,7 @@
         });
       }
 
-      return { version: "0.0.36", status: "f3-evolution-experience", mount, view, setView };
+      return { version: "0.0.37", status: "f3-evolution-experience", mount, view, setView };
     })();
     ATLAS.profile = (() => {
       const views = new Set([
@@ -6870,7 +7424,7 @@
         });
       }
 
-      return { version: "0.0.36", status: "f7-profile-stable", mount, view, setView };
+      return { version: "0.0.37", status: "f7-profile-stable", mount, view, setView };
     })();
 
     /* =========================================================
@@ -6887,7 +7441,7 @@
 
       function assertions() {
         return [
-          ["build.version", ATLAS.build.version === "0.0.36"],
+          ["build.version", ATLAS.build.version === "0.0.37"],
           ["api.version", ATLAS.config.apiVersion === "v1"],
           ["db.schema", ATLAS.storage.DB_VERSION === 5],
           ["namespace.storage", typeof ATLAS.storage.open === "function"],
@@ -6974,6 +7528,10 @@
           ["engine.pace.familySeparation", ATLAS.state.data.training.paceAnchors?.separationPolicy?.crossContaminationAllowed === false],
           ["engine.pace.currentAbilityOnly", ATLAS.state.data.training.paceAnchors?.specific?.sourceType === null ||
                                              ATLAS.state.data.training.paceAnchors?.specific?.sourceType === "CURRENT_ABILITY"],
+          ["engine.goal.contract", Array.isArray(ATLAS.trainingEngine.GOAL_ASSESSMENT_STATES) &&
+                                      ATLAS.trainingEngine.GOAL_ASSESSMENT_STATES.length === 5],
+          ["engine.goal.noSilentMutation", typeof ATLAS.training.saveGoal === "function" && typeof ATLAS.training.deleteGoal === "function"],
+          ["engine.goal.live", !ATLAS.state.data.training.activeGoal || Boolean(ATLAS.state.data.training.goalAssessment?.fingerprint)],
           ["storage.store.activities", ATLAS.storage.STORES.includes("activities")],
           ["storage.store.activityDetails", ATLAS.storage.STORES.includes("activityDetails")],
           ["storage.store.activityStreams", ATLAS.storage.STORES.includes("activityStreams")],
