@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.8",
+      APP_VERSION: "0.0.9",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -602,16 +602,51 @@
       },
 
       normalizeActivityDetail(raw) {
+        const s = raw?.summaryDTO || {};
+        const m = raw?.metadataDTO || {};
+
         return {
           raw,
-          distanceM: Number(raw?.summaryDTO?.distance ?? 0),
-          durationSec: Number(raw?.summaryDTO?.duration ?? 0),
-          averageHR: raw?.summaryDTO?.averageHR ?? null,
-          maxHR: raw?.summaryDTO?.maxHR ?? null,
-          averagePower: raw?.summaryDTO?.averagePower ?? null,
-          trainingLoad: raw?.summaryDTO?.activityTrainingLoad ?? null,
-          trainingEffect: raw?.summaryDTO?.trainingEffect ?? null,
-          workoutId: raw?.metadataDTO?.associatedWorkoutId ?? null
+          startTimeLocal: s.startTimeLocal ?? raw?.activityDTO?.startTimeLocal ?? null,
+          distanceM: Number(s.distance ?? 0),
+          durationSec: Number(s.duration ?? 0),
+          calories: s.calories ?? null,
+          averageHR: s.averageHR ?? null,
+          maxHR: s.maxHR ?? null,
+          averagePower: s.averagePower ?? s.avgPower ?? null,
+          normalizedPower: s.normalizedPower ?? null,
+          averageSpeed: s.averageSpeed ?? null,
+          elevationGainM: s.elevationGain ?? s.totalElevationGain ?? null,
+          minElevationM: s.minElevation ?? null,
+          maxElevationM: s.maxElevation ?? null,
+          averageTemperatureC: s.averageTemperature ?? s.avgTemperature ?? null,
+          trainingLoad: s.activityTrainingLoad ?? null,
+          trainingEffect: s.trainingEffect ?? s.aerobicTrainingEffect ?? null,
+          trainingEffectLabel:
+            s.trainingEffectLabel ??
+            s.aerobicTrainingEffectMessage ??
+            s.activityTrainingEffectLabel ??
+            null,
+          anaerobicTrainingEffect: s.anaerobicTrainingEffect ?? null,
+          rpe:
+            s.directWorkoutFeel ??
+            s.directWorkoutRpe ??
+            raw?.selfEvaluationDTO?.rpe ??
+            null,
+          feeling:
+            s.directWorkoutFeel ??
+            raw?.selfEvaluationDTO?.feeling ??
+            null,
+          workoutId: m.associatedWorkoutId ?? null,
+          equipment:
+            raw?.gearDTOs ??
+            raw?.activityGearDTOs ??
+            raw?.gear ??
+            null,
+          encodedPolyline:
+            raw?.geoPolylineDTO?.polyline ??
+            raw?.geoPolylineDTO?.encodedPolyline ??
+            null
         };
       },
 
@@ -1211,9 +1246,106 @@
         `;
       }
 
+      function formatPace(distanceM, durationSec) {
+        if (!distanceM || !durationSec) return "—";
+        const secPerKm = durationSec / (distanceM / 1000);
+        const min = Math.floor(secPerKm / 60);
+        const sec = Math.round(secPerKm % 60);
+        return `${min}:${String(sec).padStart(2, "0")} /km`;
+      }
+
+      function formatActivityDateTime(value, fallbackDate) {
+        if (!value) return fallbackDate || "—";
+        const raw = String(value).replace(" ", "T");
+        const date = new Date(raw);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleString("es-ES", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
+      }
+
+      function decodePolyline(encoded) {
+        if (!encoded || typeof encoded !== "string") return [];
+        const points = [];
+        let index = 0, lat = 0, lng = 0;
+
+        while (index < encoded.length) {
+          let b, shift = 0, result = 0;
+          do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+          } while (b >= 0x20 && index <= encoded.length);
+
+          const dlat = (result & 1) ? ~(result >> 1) : (result >> 1);
+          lat += dlat;
+
+          shift = 0;
+          result = 0;
+          do {
+            b = encoded.charCodeAt(index++) - 63;
+            result |= (b & 0x1f) << shift;
+            shift += 5;
+          } while (b >= 0x20 && index <= encoded.length);
+
+          const dlng = (result & 1) ? ~(result >> 1) : (result >> 1);
+          lng += dlng;
+          points.push([lat / 1e5, lng / 1e5]);
+        }
+
+        return points;
+      }
+
+      function routeSvg(encoded) {
+        const points = decodePolyline(encoded);
+        if (points.length < 2) {
+          return `<div class="empty">Ruta no disponible.</div>`;
+        }
+
+        const lats = points.map((p) => p[0]);
+        const lngs = points.map((p) => p[1]);
+        const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
+        const latSpan = maxLat - minLat || 1;
+        const lngSpan = maxLng - minLng || 1;
+
+        const coords = points.map(([lat, lng]) => {
+          const x = 12 + ((lng - minLng) / lngSpan) * 276;
+          const y = 168 - ((lat - minLat) / latSpan) * 156;
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(" ");
+
+        return `
+          <svg viewBox="0 0 300 180" role="img" aria-label="Ruta de la actividad"
+            style="width:100%;height:auto;display:block;border-radius:12px;background:var(--surface-2)">
+            <polyline points="${coords}" fill="none" stroke="var(--blue)"
+              stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+      }
+
+      function equipmentText(value) {
+        if (!value) return "—";
+        const items = Array.isArray(value) ? value : [value];
+        const names = items.map((item) =>
+          item?.displayName ||
+          item?.gearName ||
+          item?.name ||
+          item?.customMakeModel ||
+          null
+        ).filter(Boolean);
+        return names.length ? names.join(", ") : "—";
+      }
+
       function renderActivityDetail(id) {
         const activity = state.activities.find((item) => String(item.id) === String(id));
         const summary = activity?.summary || {};
+        const detail = activity?.detail || {};
+        const d = { ...summary, ...detail };
 
         if (!activity) {
           return `
@@ -1225,30 +1357,62 @@
           `;
         }
 
+        const loadingNote = activity.detailLoaded
+          ? ""
+          : `<div class="row-meta" style="margin-top:8px">Cargando detalle de Garmin…</div>`;
+
         return `
           ${backButton()}
           ${header(summary.title || "Actividad")}
+
           <section class="section">
             <div class="card">
               <div class="row">
                 <div>
-                  <div class="row-title">${escapeHtml(summary.date)}</div>
-                  <div class="row-meta">${escapeHtml(summary.sport)}</div>
+                  <div class="row-title">${escapeHtml(formatActivityDateTime(d.startTimeLocal, summary.date))}</div>
+                  <div class="row-meta">${escapeHtml(summary.sport || "—")}</div>
                 </div>
-                <span class="chip blue">${formatDistance(summary.distanceM)}</span>
+                <span class="chip blue">${formatDistance(d.distanceM)}</span>
               </div>
-              <div class="row">
-                <div class="row-title">Duración</div>
-                <div class="row-meta">${formatDuration(summary.durationSec)}</div>
-              </div>
-              <div class="row">
-                <div class="row-title">Calorías</div>
-                <div class="row-meta">${summary.calories || "—"}</div>
-              </div>
-              <div class="row">
-                <div class="row-title">FC media</div>
-                <div class="row-meta">${summary.averageHR ?? "—"}</div>
-              </div>
+              ${loadingNote}
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Resumen</h2>
+            <div class="card">
+              <div class="row"><div class="row-title">Distancia</div><div class="row-meta">${formatDistance(d.distanceM)}</div></div>
+              <div class="row"><div class="row-title">Tiempo</div><div class="row-meta">${formatDuration(d.durationSec)}</div></div>
+              <div class="row"><div class="row-title">Ritmo</div><div class="row-meta">${formatPace(d.distanceM, d.durationSec)}</div></div>
+              <div class="row"><div class="row-title">Calorías</div><div class="row-meta">${d.calories ?? "—"}</div></div>
+              <div class="row"><div class="row-title">FC media / máx.</div><div class="row-meta">${d.averageHR ?? "—"} / ${d.maxHR ?? "—"} bpm</div></div>
+              <div class="row"><div class="row-title">Potencia media</div><div class="row-meta">${d.averagePower != null ? `${Math.round(d.averagePower)} W` : "—"}</div></div>
+              <div class="row"><div class="row-title">Desnivel +</div><div class="row-meta">${d.elevationGainM != null ? `${Math.round(d.elevationGainM)} m` : "—"}</div></div>
+              <div class="row"><div class="row-title">Temperatura</div><div class="row-meta">${d.averageTemperatureC != null ? `${Number(d.averageTemperatureC).toFixed(1)} °C` : "—"}</div></div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Sensaciones</h2>
+            <div class="card">
+              <div class="row"><div class="row-title">RPE</div><div class="row-meta">${d.rpe ?? "—"}</div></div>
+              <div class="row"><div class="row-title">Sensación</div><div class="row-meta">${escapeHtml(d.feeling ?? "—")}</div></div>
+              <div class="row"><div class="row-title">Equipamiento</div><div class="row-meta">${escapeHtml(equipmentText(d.equipment))}</div></div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Ruta</h2>
+            <div class="card">${routeSvg(d.encodedPolyline)}</div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Análisis Garmin</h2>
+            <div class="card">
+              <div class="row"><div class="row-title">Carga</div><div class="row-meta">${d.trainingLoad ?? "—"}</div></div>
+              <div class="row"><div class="row-title">Efecto aeróbico</div><div class="row-meta">${d.trainingEffect ?? "—"}</div></div>
+              <div class="row"><div class="row-title">Efecto anaeróbico</div><div class="row-meta">${d.anaerobicTrainingEffect ?? "—"}</div></div>
+              <div class="row"><div class="row-title">Beneficio</div><div class="row-meta">${escapeHtml(d.trainingEffectLabel ?? "—")}</div></div>
             </div>
           </section>
         `;
@@ -1339,12 +1503,24 @@
         }
 
         document.querySelectorAll("[data-activity-id]").forEach((button) => {
-          button.addEventListener("click", () => {
+          button.addEventListener("click", async () => {
+            const id = button.dataset.activityId;
+
             navigate({
               tab: "activities",
               view: "activity-detail",
-              id: button.dataset.activityId
+              id
             });
+
+            const activity = state.activities.find((item) => String(item.id) === String(id));
+            if (!activity?.detailLoaded) {
+              try {
+                await AtlasApp.ensureActivityDetail(id);
+                render();
+              } catch (error) {
+                console.error("ATLAS activity detail:", error);
+              }
+            }
           });
         });
 
