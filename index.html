@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.9",
+      APP_VERSION: "0.0.11",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -595,6 +595,46 @@
           averageHR: raw?.averageHR ?? null,
           maxHR: raw?.maxHR ?? null,
           averagePower: raw?.avgPower ?? null,
+          maxPower: raw?.maxPower ?? null,
+          normalizedPower: raw?.normalizedPower ?? null,
+          averageCadence:
+            raw?.averageRunningCadenceInStepsPerMinute ??
+            raw?.averageRunCadence ??
+            raw?.averageCadence ??
+            null,
+          maxCadence:
+            raw?.maxRunningCadenceInStepsPerMinute ??
+            raw?.maxRunCadence ??
+            raw?.maxCadence ??
+            null,
+          averageStrideLength:
+            raw?.avgStrideLength ??
+            raw?.averageStrideLength ??
+            null,
+          averageVerticalOscillation:
+            raw?.avgVerticalOscillation ??
+            raw?.averageVerticalOscillation ??
+            null,
+          averageVerticalRatio:
+            raw?.avgVerticalRatio ??
+            raw?.averageVerticalRatio ??
+            null,
+          averageGroundContactTime:
+            raw?.avgGroundContactTime ??
+            raw?.averageGroundContactTime ??
+            null,
+          averageGroundContactBalance:
+            raw?.avgGroundContactBalance ??
+            raw?.averageGroundContactBalance ??
+            null,
+          bestPace:
+            raw?.bestPace ??
+            raw?.bestRunPace ??
+            null,
+          vo2MaxValue:
+            raw?.vO2MaxValue ??
+            raw?.vo2MaxValue ??
+            null,
           trainingLoad: raw?.activityTrainingLoad ?? null,
           trainingEffect: raw?.aerobicTrainingEffect ?? null,
           workoutId: raw?.workoutId ?? null
@@ -614,8 +654,48 @@
           averageHR: s.averageHR ?? null,
           maxHR: s.maxHR ?? null,
           averagePower: s.averagePower ?? s.avgPower ?? null,
+          maxPower: s.maxPower ?? null,
           normalizedPower: s.normalizedPower ?? null,
           averageSpeed: s.averageSpeed ?? null,
+          maxSpeed: s.maxSpeed ?? null,
+          averageCadence:
+            s.averageRunCadence ??
+            s.avgRunCadence ??
+            s.averageCadence ??
+            null,
+          maxCadence:
+            s.maxRunCadence ??
+            s.maxCadence ??
+            null,
+          averageStrideLength:
+            s.averageStrideLength ??
+            s.avgStrideLength ??
+            null,
+          averageVerticalOscillation:
+            s.averageVerticalOscillation ??
+            s.avgVerticalOscillation ??
+            null,
+          averageVerticalRatio:
+            s.averageVerticalRatio ??
+            s.avgVerticalRatio ??
+            null,
+          averageGroundContactTime:
+            s.averageGroundContactTime ??
+            s.avgGroundContactTime ??
+            null,
+          averageGroundContactBalance:
+            s.averageGroundContactBalance ??
+            s.avgGroundContactBalance ??
+            null,
+          bestPace:
+            s.bestPace ??
+            s.bestRunPace ??
+            null,
+          vo2MaxPreciseValue:
+            s.vo2MaxPreciseValue ??
+            raw?.vo2MaxPreciseValue ??
+            raw?.activityVO2MaxDTO?.vo2MaxPreciseValue ??
+            null,
           elevationGainM: s.elevationGain ?? s.totalElevationGain ?? null,
           minElevationM: s.minElevation ?? null,
           maxElevationM: s.maxElevation ?? null,
@@ -793,6 +873,13 @@
 
       activityDetail(baseUrl, id) {
         return this.get(baseUrl, `/activities/${encodeURIComponent(id)}`);
+      },
+
+      activityRunning(baseUrl, id, date) {
+        return this.get(
+          baseUrl,
+          `/activities/${encodeURIComponent(id)}/running?date=${encodeURIComponent(date)}`
+        );
       },
 
       async activityFit(baseUrl, id) {
@@ -1246,12 +1333,152 @@
         `;
       }
 
+      function firstNonNull(...values) {
+        for (const value of values) {
+          if (value !== null && value !== undefined && value !== "") return value;
+        }
+        return null;
+      }
+
+      function preciseVo2FromPayload(payload) {
+        if (!payload) return null;
+
+        const candidates = [
+          payload?.generic?.vo2MaxPreciseValue,
+          payload?.vo2MaxPreciseValue,
+          payload?.maxMetrics?.generic?.vo2MaxPreciseValue
+        ];
+
+        if (Array.isArray(payload)) {
+          for (const item of payload) {
+            const v = preciseVo2FromPayload(item);
+            if (v != null) return v;
+          }
+        }
+
+        for (const value of candidates) {
+          if (value != null && Number.isFinite(Number(value))) {
+            return Number(value);
+          }
+        }
+
+        if (typeof payload === "object") {
+          for (const value of Object.values(payload)) {
+            if (value && typeof value === "object") {
+              const found = preciseVo2FromPayload(value);
+              if (found != null) return found;
+            }
+          }
+        }
+
+        return null;
+      }
+
+      function summarizeDetailMetrics(payload) {
+        const descriptors = Array.isArray(payload?.metricDescriptors)
+          ? payload.metricDescriptors
+          : [];
+        const rows = Array.isArray(payload?.activityDetailMetrics)
+          ? payload.activityDetailMetrics
+          : [];
+
+        const keyMap = new Map();
+        descriptors.forEach((d) => {
+          if (Number.isInteger(d?.metricsIndex) && d?.key) {
+            keyMap.set(String(d.key), d.metricsIndex);
+          }
+        });
+
+        const valuesFor = (...keys) => {
+          const indices = keys
+            .map((key) => keyMap.get(key))
+            .filter((index) => Number.isInteger(index));
+
+          const values = [];
+          for (const row of rows) {
+            const metrics = row?.metrics;
+            if (!Array.isArray(metrics)) continue;
+
+            for (const index of indices) {
+              const value = metrics[index];
+              if (value != null && Number.isFinite(Number(value))) {
+                values.push(Number(value));
+                break;
+              }
+            }
+          }
+          return values;
+        };
+
+        const avg = (values) =>
+          values.length
+            ? values.reduce((a, b) => a + b, 0) / values.length
+            : null;
+
+        const max = (values) => values.length ? Math.max(...values) : null;
+
+        const cadence = valuesFor(
+          "directRunCadence",
+          "directCadence",
+          "cadence"
+        );
+        const groundContact = valuesFor(
+          "directGroundContactTime",
+          "groundContactTime"
+        );
+        const verticalOscillation = valuesFor(
+          "directVerticalOscillation",
+          "verticalOscillation"
+        );
+        const verticalRatio = valuesFor(
+          "directVerticalRatio",
+          "verticalRatio"
+        );
+        const groundBalance = valuesFor(
+          "directGroundContactBalance",
+          "groundContactBalance"
+        );
+        const power = valuesFor(
+          "directPower",
+          "power"
+        );
+        const speed = valuesFor(
+          "directSpeed",
+          "speed"
+        );
+
+        return {
+          averageCadence: avg(cadence),
+          maxCadence: max(cadence),
+          averageGroundContactTime: avg(groundContact),
+          averageVerticalOscillation: avg(verticalOscillation),
+          averageVerticalRatio: avg(verticalRatio),
+          averageGroundContactBalance: avg(groundBalance),
+          averagePower: avg(power),
+          maxPower: max(power),
+          maxSpeed: max(speed)
+        };
+      }
+
       function formatPace(distanceM, durationSec) {
         if (!distanceM || !durationSec) return "—";
         const secPerKm = durationSec / (distanceM / 1000);
         const min = Math.floor(secPerKm / 60);
         const sec = Math.round(secPerKm % 60);
         return `${min}:${String(sec).padStart(2, "0")} /km`;
+      }
+
+      function formatGarminPace(value) {
+        if (value == null || Number.isNaN(Number(value))) return "—";
+        const n = Number(value);
+
+        if (n > 100) {
+          const min = Math.floor(n / 60);
+          const sec = Math.round(n % 60);
+          return `${min}:${String(sec).padStart(2, "0")} /km`;
+        }
+
+        return String(value);
       }
 
       function formatActivityDateTime(value, fallbackDate) {
@@ -1345,7 +1572,22 @@
         const activity = state.activities.find((item) => String(item.id) === String(id));
         const summary = activity?.summary || {};
         const detail = activity?.detail || {};
-        const d = { ...summary, ...detail };
+        const running = activity?.running || {};
+
+        const d = {};
+        const keys = new Set([
+          ...Object.keys(summary),
+          ...Object.keys(detail),
+          ...Object.keys(running)
+        ]);
+
+        for (const key of keys) {
+          d[key] = firstNonNull(
+            running[key],
+            detail[key],
+            summary[key]
+          );
+        }
 
         if (!activity) {
           return `
@@ -1405,6 +1647,25 @@
             <h2 class="section-title">Ruta</h2>
             <div class="card">${routeSvg(d.encodedPolyline)}</div>
           </section>
+
+          ${String(summary.sport || "").toLowerCase().includes("run") ? `
+            <section class="section">
+              <h2 class="section-title">Running</h2>
+              <div class="card">
+                <div class="row"><div class="row-title">VO₂ max preciso</div><div class="row-meta">${d.vo2MaxPreciseValue != null ? Number(d.vo2MaxPreciseValue).toFixed(1) : "—"}</div></div>
+                <div class="row"><div class="row-title">Ritmo medio</div><div class="row-meta">${formatPace(d.distanceM, d.durationSec)}</div></div>
+                <div class="row"><div class="row-title">Mejor ritmo</div><div class="row-meta">${formatGarminPace(d.bestPace)}</div></div>
+                <div class="row"><div class="row-title">Cadencia media / máx.</div><div class="row-meta">${d.averageCadence ?? "—"} / ${d.maxCadence ?? "—"} spm</div></div>
+                <div class="row"><div class="row-title">Longitud de zancada</div><div class="row-meta">${d.averageStrideLength != null ? `${Number(d.averageStrideLength).toFixed(2)} m` : "—"}</div></div>
+                <div class="row"><div class="row-title">Oscilación vertical</div><div class="row-meta">${d.averageVerticalOscillation != null ? `${Number(d.averageVerticalOscillation).toFixed(1)} cm` : "—"}</div></div>
+                <div class="row"><div class="row-title">Ratio vertical</div><div class="row-meta">${d.averageVerticalRatio != null ? `${Number(d.averageVerticalRatio).toFixed(1)} %` : "—"}</div></div>
+                <div class="row"><div class="row-title">Contacto con suelo</div><div class="row-meta">${d.averageGroundContactTime != null ? `${Math.round(d.averageGroundContactTime)} ms` : "—"}</div></div>
+                <div class="row"><div class="row-title">Balance contacto</div><div class="row-meta">${d.averageGroundContactBalance != null ? `${Number(d.averageGroundContactBalance).toFixed(1)} %` : "—"}</div></div>
+                <div class="row"><div class="row-title">Potencia media / máx.</div><div class="row-meta">${d.averagePower != null ? `${Math.round(d.averagePower)} W` : "—"} / ${d.maxPower != null ? `${Math.round(d.maxPower)} W` : "—"}</div></div>
+                <div class="row"><div class="row-title">Potencia normalizada</div><div class="row-meta">${d.normalizedPower != null ? `${Math.round(d.normalizedPower)} W` : "—"}</div></div>
+              </div>
+            </section>
+          ` : ""}
 
           <section class="section">
             <h2 class="section-title">Análisis Garmin</h2>
@@ -1521,6 +1782,18 @@
                 console.error("ATLAS activity detail:", error);
               }
             }
+
+            if (
+              String(activity?.summary?.sport || "").toLowerCase().includes("run") &&
+              !activity?.runningLoaded
+            ) {
+              try {
+                await AtlasApp.ensureActivityRunning(id);
+                render();
+              } catch (error) {
+                console.error("ATLAS running detail:", error);
+              }
+            }
           });
         });
 
@@ -1625,7 +1898,10 @@
               detailLoaded: previous?.detailLoaded === true,
               fitBlob: previous?.fitBlob ?? null,
               fitUpdatedAt: previous?.fitUpdatedAt ?? null,
-              fitLoaded: previous?.fitLoaded === true
+              fitLoaded: previous?.fitLoaded === true,
+              running: previous?.running ?? null,
+              runningUpdatedAt: previous?.runningUpdatedAt ?? null,
+              runningLoaded: previous?.runningLoaded === true
             };
 
             await AtlasStorage.put("activities", record);
@@ -1701,7 +1977,10 @@
               ...item,
               fitBlob: item.fitBlob ?? null,
               fitUpdatedAt: item.fitUpdatedAt ?? null,
-              fitLoaded: item.fitLoaded === true
+              fitLoaded: item.fitLoaded === true,
+              running: item.running ?? null,
+              runningUpdatedAt: item.runningUpdatedAt ?? null,
+              runningLoaded: item.runningLoaded === true
             };
             if (
               normalized.fitBlob !== item.fitBlob ||
@@ -1738,7 +2017,10 @@
             detailLoaded: false,
             fitBlob: null,
             fitUpdatedAt: null,
-            fitLoaded: false
+            fitLoaded: false,
+            running: null,
+            runningUpdatedAt: null,
+            runningLoaded: false
           };
 
           await AtlasStorage.put("activities", migrated);
@@ -1926,6 +2208,101 @@
         return detail;
       }
 
+      async function ensureActivityRunning(id) {
+        const existing = await AtlasStorage.get("activities", String(id));
+        if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
+
+        if (existing.runningLoaded && existing.running) {
+          return existing.running;
+        }
+
+        const date = existing?.summary?.date;
+        if (!date) throw new Error("ACTIVITY_DATE_NOT_FOUND");
+
+        const response = await AtlasServices.activityRunning(
+          AtlasUI.state.bridgeUrl,
+          String(id),
+          date
+        );
+
+        const activityPayload = response?.data?.activity || {};
+        const detailsPayload = response?.data?.details || {};
+        const detailSummary = AtlasDomain.normalizeActivityDetail(activityPayload);
+        const metricsSummary = summarizeDetailMetrics(detailsPayload);
+        const preciseVo2 = preciseVo2FromPayload(response?.data?.vo2max);
+
+        const running = {
+          averageCadence: firstNonNull(
+            detailSummary.averageCadence,
+            metricsSummary.averageCadence,
+            existing?.summary?.averageCadence
+          ),
+          maxCadence: firstNonNull(
+            detailSummary.maxCadence,
+            metricsSummary.maxCadence,
+            existing?.summary?.maxCadence
+          ),
+          averageStrideLength: firstNonNull(
+            detailSummary.averageStrideLength,
+            existing?.summary?.averageStrideLength
+          ),
+          averageVerticalOscillation: firstNonNull(
+            detailSummary.averageVerticalOscillation,
+            metricsSummary.averageVerticalOscillation,
+            existing?.summary?.averageVerticalOscillation
+          ),
+          averageVerticalRatio: firstNonNull(
+            detailSummary.averageVerticalRatio,
+            metricsSummary.averageVerticalRatio,
+            existing?.summary?.averageVerticalRatio
+          ),
+          averageGroundContactTime: firstNonNull(
+            detailSummary.averageGroundContactTime,
+            metricsSummary.averageGroundContactTime,
+            existing?.summary?.averageGroundContactTime
+          ),
+          averageGroundContactBalance: firstNonNull(
+            detailSummary.averageGroundContactBalance,
+            metricsSummary.averageGroundContactBalance,
+            existing?.summary?.averageGroundContactBalance
+          ),
+          averagePower: firstNonNull(
+            detailSummary.averagePower,
+            metricsSummary.averagePower,
+            existing?.summary?.averagePower
+          ),
+          maxPower: firstNonNull(
+            detailSummary.maxPower,
+            metricsSummary.maxPower,
+            existing?.summary?.maxPower
+          ),
+          normalizedPower: firstNonNull(
+            detailSummary.normalizedPower,
+            existing?.summary?.normalizedPower
+          ),
+          bestPace: firstNonNull(
+            detailSummary.bestPace,
+            existing?.summary?.bestPace
+          ),
+          vo2MaxPreciseValue: firstNonNull(
+            preciseVo2,
+            detailSummary.vo2MaxPreciseValue,
+            existing?.summary?.vo2MaxValue
+          )
+        };
+
+        const updated = {
+          ...existing,
+          running,
+          runningLoaded: true,
+          runningUpdatedAt: new Date().toISOString()
+        };
+
+        await AtlasStorage.put("activities", updated);
+        await hydrateLocal();
+        return running;
+      }
+
       async function ensureActivityFit(id) {
         const existing = await AtlasStorage.get("activities", String(id));
         if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
@@ -1977,7 +2354,14 @@
         AtlasUI.render();
       }
 
-      return { init, saveBridgeUrl, syncNow, ensureActivityDetail, ensureActivityFit };
+      return {
+        init,
+        saveBridgeUrl,
+        syncNow,
+        ensureActivityDetail,
+        ensureActivityRunning,
+        ensureActivityFit
+      };
     })();
 
     AtlasApp.init();
