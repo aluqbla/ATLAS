@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.21",
+      APP_VERSION: "0.0.22",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -708,12 +708,22 @@
           acuteLoad: readiness.acuteLoad ?? null
         });
 
-        const vo2 = payload?.vo2max?.ok ? payload.vo2max.data?.generic : null;
+        const vo2Payload = payload?.vo2max?.ok ? payload.vo2max.data : null;
+        const vo2Rows = Array.isArray(vo2Payload)
+          ? vo2Payload
+          : (vo2Payload ? [vo2Payload] : []);
+
+        const vo2Row = vo2Rows.find((row) =>
+          String(row?.generic?.calendarDate || row?.calendarDate || "") === String(date)
+        ) || vo2Rows[0] || null;
+
+        const vo2 = vo2Row?.generic || vo2Row;
         if (vo2) out.push({
           id: `vo2max:${date}`,
           type: "vo2max",
           date,
           value: vo2.vo2MaxPreciseValue ?? vo2.vo2MaxValue ?? null,
+          preciseValue: vo2.vo2MaxPreciseValue ?? null,
           unit: "ml/kg/min"
         });
 
@@ -776,10 +786,20 @@
         if (!baseUrl) throw new Error("GARMIN_BRIDGE_NOT_CONFIGURED");
 
         const base = String(baseUrl).replace(/\/+$/, "");
-        const response = await fetch(`${base}${path}`, {
-          method: "GET",
-          headers: { "Accept": "application/json" }
-        });
+        let response;
+
+        try {
+          response = await fetch(`${base}${path}`, {
+            method: "GET",
+            headers: { "Accept": "application/json" }
+          });
+        } catch {
+          throw new Error(
+            location.protocol === "https:"
+              ? "BRIDGE_NETWORK_OR_CORS"
+              : "BRIDGE_NETWORK_ERROR"
+          );
+        }
 
         let payload;
         try {
@@ -1973,7 +1993,24 @@
         );
         AtlasUI.state.metrics = metrics;
         AtlasUI.state.training = training.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
-        AtlasUI.state.bridgeUrl = bridge?.value || ATLAS_CONFIG.GARMIN_BRIDGE_URL || "";
+        const bridgeFromUrl = (() => {
+          try {
+            const value = new URL(location.href).searchParams.get("bridge");
+            return value ? value.trim().replace(/\/+$/, "") : "";
+          } catch {
+            return "";
+          }
+        })();
+
+        if (bridgeFromUrl) {
+          await AtlasStorage.put("settings", {
+            key: "garminBridgeUrl",
+            value: bridgeFromUrl
+          });
+        }
+
+        AtlasUI.state.bridgeUrl =
+          bridgeFromUrl || bridge?.value || ATLAS_CONFIG.GARMIN_BRIDGE_URL || "";
         AtlasUI.state.lastSync = lastSync?.value || null;
         AtlasUI.state.activitySync = activitySync;
 
@@ -2164,28 +2201,24 @@
           date
         );
 
-        const precise =
-          response?.data?.vo2max?.ok
-            ? response.data.vo2max.data?.generic?.vo2MaxPreciseValue
-            : null;
-
         const normalized = AtlasDomain.normalizeMetrics(
           response.data,
           date
         );
 
         for (const item of normalized) {
-          if (item.type === "vo2max") {
-            item.preciseValue =
-              precise != null && Number.isFinite(Number(precise))
-                ? Number(precise)
-                : null;
-          }
           await AtlasStorage.put("metrics", item);
         }
 
-        if (precise != null && Number.isFinite(Number(precise))) {
-          return Number(precise);
+        const vo2 = normalized.find(
+          (item) => item.type === "vo2max"
+        );
+
+        if (
+          vo2?.preciseValue != null &&
+          Number.isFinite(Number(vo2.preciseValue))
+        ) {
+          return Number(vo2.preciseValue);
         }
 
         return null;
