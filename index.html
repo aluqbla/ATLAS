@@ -466,11 +466,11 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.30",
+      APP_VERSION: "0.0.31",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
-      GARMIN_BRIDGE_URL: ""
+      GARMIN_BRIDGE_URL: "https://atlas.aj-luque.workers.dev"
     });
 
     // ============================================================
@@ -891,6 +891,7 @@
         dbReady: false,
         dbError: null,
         bridgeUrl: "",
+        bridgeHealth: null,
         syncing: false,
         syncError: null,
         syncStatus: {
@@ -1237,8 +1238,12 @@
               </div>
               <div class="row">
                 <button class="button secondary" data-action="save-bridge">Guardar URL</button>
+                <button class="button secondary" data-action="test-bridge">Probar Bridge</button>
                 <button class="button" data-action="sync" ${state.syncing ? "disabled" : ""}>${state.syncing ? "Sincronizando…" : "Sincronizar Garmin"}</button>
               </div>
+              ${state.bridgeHealth ? `
+                <div class="row-meta">${state.bridgeHealth.ok ? "✅" : "⚠️"} ${escapeHtml(state.bridgeHealth.message)}</div>
+              ` : ""}
               ${state.syncError ? `<div class="row-meta">⚠️ ${escapeHtml(state.syncError)}</div>` : ""}
             </div>
           </section>
@@ -1933,6 +1938,13 @@
           });
         });
 
+        const testBridgeButton = document.querySelector("[data-action='test-bridge']");
+        if (testBridgeButton) {
+          testBridgeButton.addEventListener("click", () => {
+            AtlasApp.testBridgeConnection();
+          });
+        }
+
         const portableLinkButton = document.querySelector("[data-action='copy-portable-link']");
         if (portableLinkButton) {
           portableLinkButton.addEventListener("click", () => {
@@ -2254,6 +2266,55 @@
           AtlasUI.state.syncError = Array.isArray(lastSyncErrors?.value)
             ? `Última sincronización parcial: ${lastSyncErrors.value.join(" · ")}`
             : "Última sincronización parcial.";
+        }
+      }
+
+      async function testBridgeConnection() {
+        const base = String(
+          AtlasUI.state.bridgeUrl ||
+          ATLAS_CONFIG.GARMIN_BRIDGE_URL ||
+          ""
+        ).trim().replace(/\/+$/, "");
+
+        if (!base) {
+          AtlasUI.state.bridgeHealth = {
+            ok: false,
+            message: "URL del Bridge no configurada."
+          };
+          AtlasUI.render();
+          return false;
+        }
+
+        try {
+          const response = await fetch(`${base}/health`, {
+            method: "GET",
+            cache: "no-store"
+          });
+
+          if (!response.ok) {
+            AtlasUI.state.bridgeHealth = {
+              ok: false,
+              message: `Bridge responde con HTTP ${response.status}.`
+            };
+            AtlasUI.render();
+            return false;
+          }
+
+          const payload = await response.json();
+          AtlasUI.state.bridgeHealth = {
+            ok: true,
+            message: `Bridge OK · v${payload?.data?.version || "?"}`
+          };
+          AtlasUI.render();
+          return true;
+        } catch (error) {
+          AtlasUI.state.bridgeHealth = {
+            ok: false,
+            message:
+              "Safari no puede acceder al Worker. Revisa CORS/origen de GitHub Pages o bloqueo de red."
+          };
+          AtlasUI.render();
+          return false;
         }
       }
 
@@ -2680,7 +2741,8 @@
         ensureActivityRunning,
         ensureActivityLaps,
         ensureActivityFit,
-        copyPortableSetupLink
+        copyPortableSetupLink,
+        testBridgeConnection
       };
     })();
 
