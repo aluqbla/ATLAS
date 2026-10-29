@@ -466,11 +466,11 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.34",
+      APP_VERSION: "0.0.35",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
-      GARMIN_BRIDGE_URL: ""
+      GARMIN_BRIDGE_URL: "https://atlas.aj-luque.workers.dev"
     });
 
     // ============================================================
@@ -1238,6 +1238,19 @@
           </section>
 
           <section class="section">
+            <h2 class="section-title">Otros dispositivos</h2>
+            <div class="card">
+              <div class="row">
+                <div>
+                  <div class="row-title">Configurar otro dispositivo</div>
+                  <div class="row-meta">Copia un enlace para abrir ATLAS con este Bridge en otro navegador/dispositivo.</div>
+                </div>
+                <button class="chip blue" data-action="copy-portable-link">Copiar enlace</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
             <h2 class="section-title">Estado de sincronización</h2>
             <div class="card">
               ${[
@@ -1622,6 +1635,13 @@
             }
           });
         });
+
+        const portableLinkButton = document.querySelector("[data-action='copy-portable-link']");
+        if (portableLinkButton) {
+          portableLinkButton.addEventListener("click", () => {
+            AtlasApp.copyPortableSetupLink();
+          });
+        }
 
         const back = document.querySelector("[data-action='back']");
         if (back) back.addEventListener("click", goBack);
@@ -2357,6 +2377,62 @@
         }
       }
 
+      async function bootstrapBridgeFromUrl() {
+        try {
+          const url = new URL(window.location.href);
+          let bridge = url.searchParams.get("bridge");
+
+          if (!bridge && url.hash.startsWith("#bridge=")) {
+            bridge = decodeURIComponent(url.hash.slice("#bridge=".length));
+          }
+
+          if (!bridge) return;
+
+          const normalized = String(bridge).trim().replace(/\/+$/, "");
+          if (!/^https:\/\//i.test(normalized)) return;
+
+          await AtlasStorage.put("settings", {
+            key: "garminBridgeUrl",
+            value: normalized
+          });
+
+          AtlasUI.state.bridgeUrl = normalized;
+
+          url.searchParams.delete("bridge");
+          url.hash = "";
+          window.history.replaceState({}, "", url.toString());
+        } catch (error) {
+          console.error("ATLAS bridge bootstrap:", error);
+        }
+      }
+
+      function portableSetupLink() {
+        const bridge = String(
+          AtlasUI.state.bridgeUrl ||
+          ATLAS_CONFIG.GARMIN_BRIDGE_URL ||
+          ""
+        ).trim();
+
+        if (!bridge) return "";
+
+        const url = new URL(window.location.href);
+        url.searchParams.delete("bridge");
+        url.hash = `bridge=${encodeURIComponent(bridge)}`;
+        return url.toString();
+      }
+
+      async function copyPortableSetupLink() {
+        const link = portableSetupLink();
+        if (!link) return;
+
+        try {
+          await navigator.clipboard.writeText(link);
+          alert("Enlace de configuración copiado.");
+        } catch {
+          prompt("Copia este enlace y ábrelo en el otro dispositivo:", link);
+        }
+      }
+
       async function init() {
         AtlasUI.render();
 
@@ -2404,7 +2480,8 @@
         ensureActivityDetail,
         ensureActivityRunning,
         refreshActivityData,
-        ensureActivityFit
+        ensureActivityFit,
+        copyPortableSetupLink
       };
     })();
 
