@@ -466,11 +466,11 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.33",
+      APP_VERSION: "0.0.34",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
-      GARMIN_BRIDGE_URL: "https://atlas.aj-luque.workers.dev"
+      GARMIN_BRIDGE_URL: ""
     });
 
     // ============================================================
@@ -840,13 +840,6 @@
         );
       },
 
-      activityLaps(baseUrl, id) {
-        return this.get(
-          baseUrl,
-          `/activities/${encodeURIComponent(id)}/laps`
-        );
-      },
-
       async activityFit(baseUrl, id) {
         if (!baseUrl) throw new Error("GARMIN_BRIDGE_NOT_CONFIGURED");
 
@@ -891,9 +884,9 @@
         dbReady: false,
         dbError: null,
         bridgeUrl: "",
-        bridgeHealth: null,
         syncing: false,
         syncError: null,
+        autoSyncDone: false,
         syncStatus: {
           profile: "idle",
           metrics: "idle",
@@ -1238,25 +1231,9 @@
               </div>
               <div class="row">
                 <button class="button secondary" data-action="save-bridge">Guardar URL</button>
-                <button class="button secondary" data-action="test-bridge">Probar Bridge</button>
                 <button class="button" data-action="sync" ${state.syncing ? "disabled" : ""}>${state.syncing ? "Sincronizando…" : "Sincronizar Garmin"}</button>
               </div>
-              ${state.bridgeHealth ? `
-                <div class="row-meta">${state.bridgeHealth.ok ? "✅" : "⚠️"} ${escapeHtml(state.bridgeHealth.message)}</div>
-              ` : ""}
               ${state.syncError ? `<div class="row-meta">⚠️ ${escapeHtml(state.syncError)}</div>` : ""}
-            </div>
-          </section>
-          <section class="section">
-            <h2 class="section-title">Otros dispositivos</h2>
-            <div class="card">
-              <div class="row">
-                <div>
-                  <div class="row-title">Configurar otro dispositivo</div>
-                  <div class="row-meta">Copia un enlace que guarda este Bridge al abrir ATLAS.</div>
-                </div>
-                <button class="chip blue" data-action="copy-portable-link">Copiar enlace</button>
-              </div>
             </div>
           </section>
 
@@ -1433,252 +1410,6 @@
         return `${meters.toFixed(2)} m`;
       }
 
-      function normalizeLapRows(payload) {
-        const raw =
-          Array.isArray(payload?.lapDTOs) ? payload.lapDTOs :
-          Array.isArray(payload) ? payload :
-          [];
-
-        return raw.map((lap, index) => {
-          const distanceM = Number(
-            lap?.distance ??
-            lap?.summaryDTO?.distance ??
-            0
-          );
-          const durationSec = Number(
-            lap?.duration ??
-            lap?.movingDuration ??
-            lap?.summaryDTO?.duration ??
-            0
-          );
-
-          return {
-            number: index + 1,
-            distanceM,
-            durationSec,
-            averageHR:
-              lap?.averageHR ??
-              lap?.avgHr ??
-              lap?.summaryDTO?.averageHR ??
-              null,
-            averagePower:
-              lap?.averagePower ??
-              lap?.avgPower ??
-              lap?.summaryDTO?.averagePower ??
-              null,
-            startTimeLocal:
-              lap?.startTimeLocal ??
-              lap?.summaryDTO?.startTimeLocal ??
-              null
-          };
-        }).filter((lap) => lap.distanceM > 0 || lap.durationSec > 0);
-      }
-
-      function workoutSegmentLabels(workout, lapCount) {
-        if (!workout || !lapCount) return Array(lapCount).fill(null);
-
-        const classify = (step) => {
-          const type =
-            step?.stepType ??
-            step?.stepTypeDTO ??
-            step?.workoutStepType ??
-            {};
-
-          const id = Number(
-            type?.stepTypeId ??
-            step?.stepTypeId ??
-            0
-          );
-
-          const key = String(
-            type?.stepTypeKey ??
-            step?.stepTypeKey ??
-            step?.stepType ??
-            ""
-          ).toLowerCase();
-
-          if (id === 1 || key.includes("warmup")) return "WU";
-          if (id === 2 || key.includes("cooldown")) return "CD";
-
-          if (
-            id === 3 ||
-            id === 4 ||
-            id === 5 ||
-            id === 8 ||
-            key.includes("interval") ||
-            key.includes("recovery") ||
-            key.includes("rest") ||
-            key.includes("main")
-          ) {
-            return "MAIN";
-          }
-
-          return null;
-        };
-
-        const flatten = (steps) => {
-          const result = [];
-
-          for (const step of steps || []) {
-            const nested = Array.isArray(step?.workoutSteps)
-              ? step.workoutSteps
-              : [];
-
-            const typeText = String(
-              step?.type ??
-              step?.executableStepType ??
-              step?.stepType?.stepTypeKey ??
-              ""
-            ).toLowerCase();
-
-            const isRepeat =
-              typeText.includes("repeat") ||
-              Number(step?.stepType?.stepTypeId) === 6 ||
-              Number(step?.stepTypeId) === 6;
-
-            if (isRepeat && nested.length) {
-              const iterations = Math.max(
-                1,
-                Number(
-                  step?.numberOfIterations ??
-                  step?.repeatValue ??
-                  step?.repeatCount ??
-                  1
-                ) || 1
-              );
-
-              for (let i = 0; i < iterations; i++) {
-                result.push(...flatten(nested));
-              }
-              continue;
-            }
-
-            if (nested.length) {
-              result.push(...flatten(nested));
-              continue;
-            }
-
-            const label = classify(step);
-            if (label) result.push(label);
-          }
-
-          return result;
-        };
-
-        const rootSteps = [];
-
-        if (Array.isArray(workout?.workoutSegments)) {
-          for (const segment of workout.workoutSegments) {
-            if (Array.isArray(segment?.workoutSteps)) {
-              rootSteps.push(...segment.workoutSteps);
-            }
-          }
-        }
-
-        if (!rootSteps.length && Array.isArray(workout?.workoutSteps)) {
-          rootSteps.push(...workout.workoutSteps);
-        }
-
-        const labels = flatten(rootSteps);
-
-        if (!labels.length) {
-          return Array(lapCount).fill(null);
-        }
-
-        if (labels.length === lapCount) {
-          return labels;
-        }
-
-        // Garmin sometimes creates more laps than executable workout steps
-        // (manual/autolap splits). Preserve only broad workout sections.
-        const hasWU = labels.includes("WU");
-        const hasCD = labels.includes("CD");
-
-        if (hasWU || hasCD) {
-          const broad = Array(lapCount).fill("MAIN");
-          if (hasWU) broad[0] = "WU";
-          if (hasCD && lapCount > 1) broad[lapCount - 1] = "CD";
-          return broad;
-        }
-
-        return Array(lapCount).fill(null);
-      }
-
-      function lapsPaceChart(laps) {
-        if (!laps.length) return `<div class="empty">Vueltas no disponibles.</div>`;
-
-        const paces = laps.map((lap) =>
-          lap.distanceM > 0 && lap.durationSec > 0
-            ? lap.durationSec / (lap.distanceM / 1000)
-            : null
-        );
-
-        const valid = paces.filter((v) => Number.isFinite(v));
-        if (!valid.length) return `<div class="empty">Ritmo por vuelta no disponible.</div>`;
-
-        const fastest = Math.min(...valid);
-        const slowest = Math.max(...valid);
-        const span = slowest - fastest || 1;
-
-        return `
-          <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:12px">
-            ${paces.map((pace, index) => {
-              if (!Number.isFinite(pace)) return `<div style="flex:1"></div>`;
-              const height = 45 + ((slowest - pace) / span) * 85;
-              return `
-                <div style="flex:1;min-width:10px;text-align:center">
-                  <div title="Vuelta ${index + 1}: ${formatPace(laps[index].distanceM, laps[index].durationSec)}"
-                    style="height:${height.toFixed(0)}px;background:var(--blue);border-radius:6px 6px 2px 2px"></div>
-                  <div class="row-meta" style="font-size:10px;margin-top:4px">${index + 1}</div>
-                </div>
-              `;
-            }).join("")}
-          </div>
-        `;
-      }
-
-      function lapsTable(laps, labels) {
-        if (!laps.length) return "";
-
-        const hasSegments = Array.isArray(labels) && labels.some(Boolean);
-
-        return `
-          ${hasSegments ? "" : `
-            <div class="row-meta" style="margin-bottom:8px">
-              Segmentación WU / MAIN / CD no disponible de forma fiable para esta actividad.
-            </div>
-          `}
-          <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:13px">
-              <thead>
-                <tr style="text-align:left;color:var(--text-secondary)">
-                  <th style="padding:10px 6px">#</th>
-                  ${hasSegments ? `<th style="padding:10px 6px">Seg.</th>` : ""}
-                  <th style="padding:10px 6px">Dist.</th>
-                  <th style="padding:10px 6px">Tiempo</th>
-                  <th style="padding:10px 6px">Ritmo</th>
-                  <th style="padding:10px 6px">FC</th>
-                  <th style="padding:10px 6px">Pot.</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${laps.map((lap, index) => `
-                  <tr style="border-top:1px solid var(--divider)">
-                    <td style="padding:10px 6px">${lap.number}</td>
-                    ${hasSegments ? `<td style="padding:10px 6px">${labels[index]}</td>` : ""}
-                    <td style="padding:10px 6px">${formatDistance(lap.distanceM)}</td>
-                    <td style="padding:10px 6px">${formatDuration(lap.durationSec)}</td>
-                    <td style="padding:10px 6px">${formatPace(lap.distanceM, lap.durationSec)}</td>
-                    <td style="padding:10px 6px">${lap.averageHR != null ? `${Math.round(lap.averageHR)}` : "—"}</td>
-                    <td style="padding:10px 6px">${lap.averagePower != null ? `${Math.round(lap.averagePower)} W` : "—"}</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
-
       function renderActivityDetail(id) {
         const activity = state.activities.find((item) => String(item.id) === String(id));
         const summary = activity?.summary || {};
@@ -1699,12 +1430,6 @@
             summary[key]
           );
         }
-
-        const lapRows = normalizeLapRows(activity?.laps?.laps);
-        const lapLabels = workoutSegmentLabels(
-          activity?.laps?.workout,
-          lapRows.length
-        );
 
         if (!activity) {
           return `
@@ -1781,26 +1506,6 @@
                 <div class="row"><div class="row-title">Potencia normalizada</div><div class="row-meta">${d.normalizedPower != null ? `${Math.round(Number(d.normalizedPower))} W` : "—"}</div></div>
               </div>
             </section>
-          ` : ""}
-
-          ${String(summary.sport || "").toLowerCase().includes("run") ? `
-            <section class="section">
-              <h2 class="section-title">Vueltas</h2>
-              <div class="card">
-                ${activity.lapsLoaded
-                  ? lapsPaceChart(lapRows)
-                  : `<div class="empty">Cargando vueltas…</div>`}
-              </div>
-            </section>
-
-            ${activity.lapsLoaded && lapRows.length ? `
-              <section class="section">
-                <h2 class="section-title">Detalle de vueltas</h2>
-                <div class="card">
-                  ${lapsTable(lapRows, lapLabels)}
-                </div>
-              </section>
-            ` : ""}
           ` : ""}
 
           <section class="section">
@@ -1909,55 +1614,14 @@
               id
             });
 
-            const activity = state.activities.find((item) => String(item.id) === String(id));
-            if (!activity?.detailLoaded) {
-              try {
-                await AtlasApp.ensureActivityDetail(id);
-                render();
-              } catch (error) {
-                console.error("ATLAS activity detail:", error);
-              }
-            }
-
-            if (
-              String(activity?.summary?.sport || "").toLowerCase().includes("run") &&
-              !activity?.runningLoaded
-            ) {
-              try {
-                await AtlasApp.ensureActivityRunning(id);
-                render();
-              } catch (error) {
-                console.error("ATLAS running:", error);
-              }
-            }
-
-            if (
-              String(activity?.summary?.sport || "").toLowerCase().includes("run") &&
-              !activity?.lapsLoaded
-            ) {
-              try {
-                await AtlasApp.ensureActivityLaps(id);
-                render();
-              } catch (error) {
-                console.error("ATLAS laps:", error);
-              }
+            try {
+              await AtlasApp.refreshActivityData(id);
+              render();
+            } catch (error) {
+              console.error("ATLAS activity refresh:", error);
             }
           });
         });
-
-        const testBridgeButton = document.querySelector("[data-action='test-bridge']");
-        if (testBridgeButton) {
-          testBridgeButton.addEventListener("click", () => {
-            AtlasApp.testBridgeConnection();
-          });
-        }
-
-        const portableLinkButton = document.querySelector("[data-action='copy-portable-link']");
-        if (portableLinkButton) {
-          portableLinkButton.addEventListener("click", () => {
-            AtlasApp.copyPortableSetupLink();
-          });
-        }
 
         const back = document.querySelector("[data-action='back']");
         if (back) back.addEventListener("click", goBack);
@@ -2122,11 +1786,7 @@
               fitLoaded: previous?.fitLoaded === true,
               running: previous?.running ?? null,
               runningUpdatedAt: previous?.runningUpdatedAt ?? null,
-              runningLoaded: previous?.runningLoaded === true,
-              laps: previous?.laps ?? null,
-              lapsUpdatedAt: previous?.lapsUpdatedAt ?? null,
-              lapsLoaded: previous?.lapsLoaded === true,
-              lapsSource: previous?.lapsSource ?? null
+              runningLoaded: previous?.runningLoaded === true
             };
 
             await AtlasStorage.put("activities", record);
@@ -2205,11 +1865,7 @@
               fitLoaded: item.fitLoaded === true,
               running: item.running ?? null,
               runningUpdatedAt: item.runningUpdatedAt ?? null,
-              runningLoaded: item.runningLoaded === true,
-              laps: item.laps ?? null,
-              lapsUpdatedAt: item.lapsUpdatedAt ?? null,
-              lapsLoaded: item.lapsLoaded === true,
-              lapsSource: item.lapsSource ?? null
+              runningLoaded: item.runningLoaded === true
             };
             if (
               normalized.fitBlob !== item.fitBlob ||
@@ -2249,11 +1905,7 @@
             fitLoaded: false,
             running: null,
             runningUpdatedAt: null,
-            runningLoaded: false,
-            laps: null,
-            lapsUpdatedAt: null,
-            lapsLoaded: false,
-            lapsSource: null
+            runningLoaded: false
           };
 
           await AtlasStorage.put("activities", migrated);
@@ -2273,55 +1925,6 @@
           AtlasUI.state.syncError = Array.isArray(lastSyncErrors?.value)
             ? `Última sincronización parcial: ${lastSyncErrors.value.join(" · ")}`
             : "Última sincronización parcial.";
-        }
-      }
-
-      async function testBridgeConnection() {
-        const base = String(
-          AtlasUI.state.bridgeUrl ||
-          ATLAS_CONFIG.GARMIN_BRIDGE_URL ||
-          ""
-        ).trim().replace(/\/+$/, "");
-
-        if (!base) {
-          AtlasUI.state.bridgeHealth = {
-            ok: false,
-            message: "URL del Bridge no configurada."
-          };
-          AtlasUI.render();
-          return false;
-        }
-
-        try {
-          const response = await fetch(`${base}/health`, {
-            method: "GET",
-            cache: "no-store"
-          });
-
-          if (!response.ok) {
-            AtlasUI.state.bridgeHealth = {
-              ok: false,
-              message: `Bridge responde con HTTP ${response.status}.`
-            };
-            AtlasUI.render();
-            return false;
-          }
-
-          const payload = await response.json();
-          AtlasUI.state.bridgeHealth = {
-            ok: true,
-            message: `Bridge OK · v${payload?.data?.version || "?"}`
-          };
-          AtlasUI.render();
-          return true;
-        } catch (error) {
-          AtlasUI.state.bridgeHealth = {
-            ok: false,
-            message:
-              "Safari no puede acceder al Worker. Revisa CORS/origen de GitHub Pages o bloqueo de red."
-          };
-          AtlasUI.render();
-          return false;
         }
       }
 
@@ -2467,10 +2070,6 @@
         const existing = await AtlasStorage.get("activities", String(id));
         if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
 
-        if (existing.detailLoaded && existing.detail) {
-          return existing.detail;
-        }
-
         const response = await AtlasServices.activityDetail(
           AtlasUI.state.bridgeUrl,
           String(id)
@@ -2493,10 +2092,6 @@
       async function ensureActivityRunning(id) {
         const existing = await AtlasStorage.get("activities", String(id));
         if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
-
-        if (existing.runningLoaded && existing.running) {
-          return existing.running;
-        }
 
         const date = existing?.summary?.date;
         if (!date) throw new Error("ACTIVITY_DATE_NOT_FOUND");
@@ -2595,41 +2190,121 @@
         return running;
       }
 
-      async function ensureActivityLaps(id) {
+      async function refreshActivityData(id) {
         const existing = await AtlasStorage.get("activities", String(id));
         if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
 
-        if (
-          existing.lapsLoaded &&
-          existing.laps &&
-          existing.lapsSource === "activity-detail-workout-v2"
-        ) {
-          return existing.laps;
-        }
-
-        const response = await AtlasServices.activityLaps(
+        const detailResponse = await AtlasServices.activityDetail(
           AtlasUI.state.bridgeUrl,
           String(id)
         );
 
-        const laps = {
-          laps: response?.data?.laps ?? null,
-          activityWorkouts: response?.data?.activityWorkouts ?? null,
-          workout: response?.data?.workout ?? null,
-          workoutId: response?.data?.workoutId ?? null
-        };
+        const detail = AtlasDomain.normalizeActivityDetail(
+          detailResponse.data
+        );
+
+        let running = existing.running ?? null;
+
+        if (
+          String(existing?.summary?.sport || "")
+            .toLowerCase()
+            .includes("run")
+        ) {
+          try {
+            const response = await AtlasServices.activityRunning(
+              AtlasUI.state.bridgeUrl,
+              String(id),
+              existing?.summary?.date
+            );
+
+            const activityRaw = response?.data?.activity || null;
+            const detailsRaw = response?.data?.details || null;
+
+            const freshSummary = activityRaw
+              ? AtlasDomain.normalizeActivitySummary(activityRaw)
+              : existing.summary;
+
+            const chart = summarizeRunningMetrics(detailsRaw);
+
+            const choose = (...values) => {
+              for (const value of values) {
+                if (
+                  value !== null &&
+                  value !== undefined &&
+                  value !== ""
+                ) {
+                  return value;
+                }
+              }
+              return null;
+            };
+
+            running = {
+              activityVo2Max: choose(
+                freshSummary?.activityVo2Max,
+                existing?.summary?.activityVo2Max
+              ),
+              averageCadence: choose(
+                freshSummary?.averageCadence,
+                chart.averageCadence
+              ),
+              maxCadence: choose(
+                freshSummary?.maxCadence,
+                chart.maxCadence
+              ),
+              averageStrideLength: choose(
+                freshSummary?.averageStrideLength,
+                existing?.summary?.averageStrideLength
+              ),
+              averageVerticalOscillation: choose(
+                freshSummary?.averageVerticalOscillation,
+                chart.averageVerticalOscillation
+              ),
+              averageVerticalRatio: choose(
+                freshSummary?.averageVerticalRatio,
+                chart.averageVerticalRatio
+              ),
+              averageGroundContactTime: choose(
+                freshSummary?.averageGroundContactTime,
+                chart.averageGroundContactTime
+              ),
+              averageGroundContactBalance: choose(
+                freshSummary?.averageGroundContactBalance,
+                chart.averageGroundContactBalance
+              ),
+              averagePower: choose(
+                freshSummary?.averagePower,
+                chart.averagePower
+              ),
+              maxPower: choose(
+                freshSummary?.maxPower,
+                chart.maxPower
+              ),
+              normalizedPower: choose(
+                freshSummary?.normalizedPower,
+                existing?.summary?.normalizedPower
+              )
+            };
+          } catch (error) {
+            console.error("ATLAS running refresh:", error);
+          }
+        }
 
         const updated = {
           ...existing,
-          laps,
-          lapsLoaded: true,
-          lapsUpdatedAt: new Date().toISOString(),
-          lapsSource: "activity-detail-workout-v2"
+          detail,
+          detailLoaded: true,
+          detailUpdatedAt: new Date().toISOString(),
+          running,
+          runningLoaded: Boolean(running),
+          runningUpdatedAt: running
+            ? new Date().toISOString()
+            : existing.runningUpdatedAt ?? null
         };
 
         await AtlasStorage.put("activities", updated);
         await hydrateLocal();
-        return laps;
+        return updated;
       }
 
       async function ensureActivityFit(id) {
@@ -2661,11 +2336,7 @@
       async function bootstrapBridgeFromUrl() {
         try {
           const url = new URL(window.location.href);
-          let bridge = url.searchParams.get("bridge");
-
-          if (!bridge && url.hash.startsWith("#bridge=")) {
-            bridge = decodeURIComponent(url.hash.slice("#bridge=".length));
-          }
+          const bridge = url.searchParams.get("bridge");
 
           if (!bridge) return;
 
@@ -2680,37 +2351,9 @@
           AtlasUI.state.bridgeUrl = normalized;
 
           url.searchParams.delete("bridge");
-          url.hash = "";
           window.history.replaceState({}, "", url.toString());
         } catch (error) {
           console.error("ATLAS bridge bootstrap:", error);
-        }
-      }
-
-      function portableSetupLink() {
-        const bridge = String(AtlasUI.state.bridgeUrl || "").trim();
-        if (!bridge || !/^https:\/\//i.test(bridge)) return "";
-
-        const base = new URL(window.location.href);
-        base.searchParams.delete("bridge");
-        base.hash = `bridge=${encodeURIComponent(bridge)}`;
-        return base.toString();
-      }
-
-      async function copyPortableSetupLink() {
-        const link = portableSetupLink();
-        if (!link) {
-          AtlasUI.state.syncError = "Configura primero la URL del Garmin Bridge.";
-          AtlasUI.render();
-          return;
-        }
-
-        try {
-          await navigator.clipboard.writeText(link);
-          AtlasUI.state.syncError = null;
-          alert("Enlace de configuración copiado.");
-        } catch {
-          prompt("Copia este enlace y ábrelo en el otro dispositivo:", link);
         }
       }
 
@@ -2733,6 +2376,20 @@
 
           await bootstrapBridgeFromUrl();
           await hydrateLocal();
+
+          if (
+            AtlasUI.state.bridgeUrl &&
+            !AtlasUI.state.autoSyncDone
+          ) {
+            AtlasUI.state.autoSyncDone = true;
+
+            // Fire after initial render; do not block app startup.
+            setTimeout(() => {
+              syncNow().catch((error) => {
+                console.error("ATLAS auto sync:", error);
+              });
+            }, 0);
+          }
         } catch (error) {
           AtlasUI.state.dbError = String(error?.message || error);
         }
@@ -2746,10 +2403,8 @@
         syncNow,
         ensureActivityDetail,
         ensureActivityRunning,
-        ensureActivityLaps,
-        ensureActivityFit,
-        copyPortableSetupLink,
-        testBridgeConnection
+        refreshActivityData,
+        ensureActivityFit
       };
     })();
 
