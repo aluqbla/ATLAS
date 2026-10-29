@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.32",
+      APP_VERSION: "0.0.33",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -2602,7 +2602,7 @@
         if (
           existing.lapsLoaded &&
           existing.laps &&
-          existing.lapsSource === "activity-workout-v1"
+          existing.lapsSource === "activity-detail-workout-v2"
         ) {
           return existing.laps;
         }
@@ -2624,7 +2624,7 @@
           laps,
           lapsLoaded: true,
           lapsUpdatedAt: new Date().toISOString(),
-          lapsSource: "activity-workout-v1"
+          lapsSource: "activity-detail-workout-v2"
         };
 
         await AtlasStorage.put("activities", updated);
