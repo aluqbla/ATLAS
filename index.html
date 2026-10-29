@@ -476,7 +476,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.38",
+      APP_VERSION: "0.0.39",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -927,7 +927,8 @@
           search: "",
           sport: "all",
           year: "all"
-        }
+        },
+        activitiesScrollY: 0
       };
 
       function navigate(route, options = {}) {
@@ -944,6 +945,15 @@
         if (!previous) return;
         state.route = previous;
         render();
+
+        if (
+          previous.tab === "activities" &&
+          previous.view === "main"
+        ) {
+          requestAnimationFrame(() => {
+            window.scrollTo(0, state.activitiesScrollY || 0);
+          });
+        }
       }
 
       function goTab(tab) {
@@ -1855,6 +1865,8 @@
             if (!button) return;
 
             const id = button.dataset.activityId;
+            state.activitiesScrollY = window.scrollY || 0;
+
             const activity = state.activities.find(
               (item) => String(item.id) === String(id)
             );
