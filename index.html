@@ -274,11 +274,12 @@
       border-radius: 50%;
       display: grid;
       place-items: center;
-      border: 5px solid var(--text-3);
+      border: 7px solid var(--text-3);
       font-size: 28px;
       font-weight: 750;
       line-height: 1;
       background: #000;
+      color: var(--text-main);
     }
 
     .readiness-factor-grid {
@@ -372,6 +373,121 @@
       margin-top: var(--space-2);
       font-size: 13px;
       color: var(--text-3);
+    }
+
+    .activity-card {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 42px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+      padding: 14px 0;
+      border: 0;
+      border-bottom: 1px solid var(--divider);
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      font: inherit;
+      min-width: 0;
+    }
+
+    button.activity-card {
+      cursor: pointer;
+    }
+
+    button.activity-card:hover {
+      background: var(--surface-2);
+    }
+
+    .activity-card:last-child {
+      border-bottom: 0;
+    }
+
+    .activity-date-block {
+      width: 42px;
+      margin-left: -4px;
+      text-align: center;
+      line-height: 1;
+      flex: 0 0 auto;
+    }
+
+    .activity-date-weekday,
+    .activity-date-month {
+      font-size: 10px;
+      line-height: 1.1;
+      font-weight: 700;
+      color: var(--text-3);
+      letter-spacing: .04em;
+    }
+
+    .activity-date-day {
+      margin: 3px 0;
+      font-size: 24px;
+      line-height: 1;
+      font-weight: 750;
+      color: var(--text-main);
+    }
+
+    .activity-card-main {
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .activity-card-title {
+      display: flex;
+      align-items: center;
+      max-width: 100%;
+      font-weight: 600;
+      line-height: 1.18;
+      white-space: nowrap;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .activity-card-emoji {
+      flex: 0 0 auto;
+      font-size: 17px;
+      line-height: 1;
+      margin-right: 5px;
+    }
+
+    .activity-card-title-text {
+      flex: 1 1 auto;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: visible;
+      text-overflow: clip;
+    }
+
+    .activity-card-meta {
+      margin-top: 5px;
+      color: var(--text-2);
+      font-size: 15px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 520px) {
+      .activity-card {
+        grid-template-columns: 38px minmax(0, 1fr);
+        gap: 6px;
+        padding: 12px 0;
+      }
+
+      .activity-date-block {
+        width: 38px;
+        margin-left: -6px;
+      }
+
+      .activity-date-day {
+        font-size: 22px;
+      }
+
+      .activity-card-meta {
+        font-size: 14px;
+      }
     }
 
     .row {
@@ -581,7 +697,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.67",
+      APP_VERSION: "0.0.80",
       DB_NAME: "ATLAS",
       DB_VERSION: 6,
       DATA_SCHEMA_VERSION: 1,
@@ -971,11 +1087,28 @@
             date: row.calendarDate || null,
             workoutScheduleId: row.workoutScheduleId,
             workoutId: workout.workoutId ?? null,
-            title: workout.workoutName || "Entrenamiento",
-            description: workout.description || "",
-            sport: workout.sportType?.sportTypeKey || "unknown",
-            estimatedDistanceM: workout.estimatedDistanceInMeters ?? null,
-            estimatedDurationSec: workout.estimatedDurationInSecs ?? null,
+            title:
+              workout.workoutName ||
+              row.workoutName ||
+              row.workoutPhrase ||
+              "Entrenamiento",
+            description:
+              workout.description ||
+              row.description ||
+              "",
+            sport:
+              workout.sportType?.sportTypeKey ||
+              row.sportType?.sportTypeKey ||
+              row.sportTypeKey ||
+              "unknown",
+            estimatedDistanceM:
+              workout.estimatedDistanceInMeters ??
+              row.estimatedDistanceInMeters ??
+              null,
+            estimatedDurationSec:
+              workout.estimatedDurationInSecs ??
+              row.estimatedDurationInSecs ??
+              null,
             associatedActivityId: row.associatedActivityId ?? null
           };
         });
@@ -1111,12 +1244,11 @@
         );
       },
 
-      lactateThreshold(baseUrl, startDate, endDate, aggregation = "daily") {
+      lactateThreshold(baseUrl, startDate, endDate) {
         return this.get(
           baseUrl,
           `/lactate-threshold?startDate=${encodeURIComponent(startDate)}` +
-          `&endDate=${encodeURIComponent(endDate)}` +
-          `&aggregation=${encodeURIComponent(aggregation)}`
+          `&endDate=${encodeURIComponent(endDate)}`
         );
       },
 
@@ -1280,9 +1412,42 @@
       }
 
       function formatDistance(meters) {
-        return Number.isFinite(Number(meters))
-          ? `${(Number(meters) / 1000).toFixed(1)} km`
-          : "—";
+        const value = Number(meters);
+        if (!Number.isFinite(value)) return "—";
+
+        const km = value / 1000;
+        return `${km.toLocaleString("es-ES", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 2
+        })} km`;
+      }
+
+      function formatCardDuration(seconds) {
+        const total = Math.max(0, Math.round(Number(seconds) || 0));
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const secs = total % 60;
+
+        if (hours > 0) {
+          return `${hours}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+        }
+
+        return `${minutes}:${String(secs).padStart(2, "0")}`;
+      }
+
+      function formatCardPace(distanceM, durationSec) {
+        const distance = Number(distanceM);
+        const duration = Number(durationSec);
+
+        if (!Number.isFinite(distance) || distance <= 0 ||
+            !Number.isFinite(duration) || duration <= 0) {
+          return null;
+        }
+
+        const pace = Math.round(duration / (distance / 1000));
+        const minutes = Math.floor(pace / 60);
+        const seconds = pace % 60;
+        return `${minutes}:${String(seconds).padStart(2, "0")} min/km`;
       }
 
       function formatDuration(seconds) {
@@ -1425,7 +1590,25 @@
         const volumeKm = runningVolumeKm(7);
         const lastActivity = state.activities[0] || null;
         const today = localDate(0);
-        const nextTraining = state.training.filter(x => x.date >= today).slice(0, 3);
+        const nextTraining = state.training
+          .filter((item) => {
+            const date = String(item?.date || "");
+            const completed =
+              Boolean(item?.associatedActivityId) ||
+              item?.completed === true ||
+              String(item?.status || "").toLowerCase() === "completed" ||
+              String(item?.status || "").toLowerCase() === "done";
+
+            return (
+              /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+              date >= today &&
+              !completed
+            );
+          })
+          .sort((a, b) =>
+            String(a.date || "").localeCompare(String(b.date || ""))
+          )
+          .slice(0, 3);
 
         return `
           ${header("Hoy")}
@@ -1433,7 +1616,7 @@
             <h2 class="section-title">Estado ATLAS</h2>
             <div class="card readiness-card" data-readiness-detail>
               <div class="readiness-score-wrap">
-                <div class="readiness-circle" style="border-color:${readinessState.color};color:${readinessState.color}">
+                <div class="readiness-circle" style="border-color:${readinessState.color}">
                   ${escapeHtml(readinessState.score)}
                 </div>
                 <div>
@@ -1468,8 +1651,15 @@
             <h2 class="section-title">Último entrenamiento</h2>
             ${lastActivity ? `
               <div class="card">
-                <div class="row-title">${escapeHtml(lastActivity.summary?.title)}</div>
-                <div class="row-meta">${escapeHtml(lastActivity.summary?.date)} · ${formatDistance(lastActivity.summary?.distanceM)} · ${formatDuration(lastActivity.summary?.durationSec)}</div>
+                ${activityCardHtml({
+                  id: lastActivity.id,
+                  date: lastActivity.summary?.date,
+                  title: lastActivity.summary?.title,
+                  sport: lastActivity.summary?.sport,
+                  distanceM: lastActivity.summary?.distanceM,
+                  durationSec: lastActivity.summary?.durationSec,
+                  pace: true
+                })}
               </div>
             ` : `<div class="card empty">Todavía no hay actividades sincronizadas.</div>`}
           </section>
@@ -1477,15 +1667,18 @@
           <section class="section">
             <h2 class="section-title">Próximos entrenamientos</h2>
             <div class="card">
-              ${nextTraining.length ? nextTraining.map(item => `
-                <div class="row">
-                  <div>
-                    <div class="row-title">${escapeHtml(item.title)}</div>
-                    <div class="row-meta">${escapeHtml(item.date)}${item.estimatedDistanceM ? ` · ${formatDistance(item.estimatedDistanceM)}` : ""}</div>
-                  </div>
-                  <span class="chip blue">${escapeHtml(item.sport)}</span>
-                </div>
-              `).join("") : `<div class="empty">No hay próximos entrenamientos.</div>`}
+              ${nextTraining.length ? nextTraining.map(item =>
+                activityCardHtml({
+                  id: item.associatedActivityId || null,
+                  date: item.date,
+                  title: item.title,
+                  sport: item.sport,
+                  distanceM: item.estimatedDistanceM,
+                  durationSec: item.estimatedDurationSec,
+                  pace: true,
+                  status: null
+                })
+              ).join("") : `<div class="empty">No hay próximos entrenamientos.</div>`}
             </div>
           </section>
         `;
@@ -1546,7 +1739,7 @@
           <section class="section">
             <div class="card">
               <div class="readiness-score-wrap">
-                <div class="readiness-circle" style="border-color:${presentation.color};color:${presentation.color}">
+                <div class="readiness-circle" style="border-color:${presentation.color}">
                   ${escapeHtml(presentation.score)}
                 </div>
                 <div>
@@ -1588,29 +1781,114 @@
         return String(number).replace(".", ",");
       }
 
-      function sportLabel(sport) {
-        const key = String(sport || "").toLowerCase();
+      function sportKey(sport) {
+        return String(sport || "").trim().toLowerCase();
+      }
+
+      function resolvedSportKey(sport, title = "") {
+        const key = sportKey(sport);
+        const name = String(title || "").trim().toLowerCase();
+
+        if (
+          key === "paddleball" ||
+          name === "paddleball" ||
+          name.includes("pádel") ||
+          name.includes("padel")
+        ) {
+          return "padel";
+        }
+
+        if (key === "kayaking_v2") return "kayaking";
+        if (key === "trail_running" || name === "trail") return "trail_running";
+
+        if (
+          key === "soccer" ||
+          key === "football" ||
+          name.includes("fútbol") ||
+          name.includes("futbol") ||
+          name.includes("football") ||
+          name.includes("soccer")
+        ) {
+          return "soccer";
+        }
+
+        return key;
+      }
+
+      function localizedActivityTitle(title, sport = "") {
+        const raw = String(title || "Actividad").trim();
+        const lower = raw.toLowerCase();
+        const resolved = resolvedSportKey(sport, raw);
+
+        if (lower === "paddleball") return "Pádel";
+        if (lower === "kayaking v2" || lower === "kayaking_v2") return "Piragüismo";
+        if (lower === "trail") return "Carrera de montaña";
+        if (lower === "other") return resolved === "soccer" ? "Fútbol" : "Otros";
+
+        return raw;
+      }
+
+      function sportEmoji(sport, title = "") {
+        const key = resolvedSportKey(sport, title);
+
+        if (key.includes("treadmill")) return "🏃🏻‍♂️";
+        if (key.includes("track") && key.includes("run")) return "🏃🏻‍♂️";
+        if (key.includes("trail")) return "🏔️";
+        if (key.includes("run") || key.includes("running") || key.includes("carrera")) return "🏃🏻‍♂️";
+        if (key.includes("walk")) return "🚶🏻‍♂️";
+        if (key.includes("hiking") || key.includes("sender")) return "🥾";
+        if (key.includes("padel") || key.includes("pádel") || key.includes("paddleball")) return "🎾";
+        if (key.includes("tennis") || key.includes("tenis")) return "🎾";
+        if (key.includes("soccer") || key.includes("football") || key.includes("fútbol")) return "⚽";
+        if (key.includes("swim") || key.includes("natac")) return "🏊🏻‍♂️";
+        if (key.includes("cycling") || key.includes("biking") || key.includes("bike") || key.includes("cicl")) return "🚴🏻‍♂️";
+        if (key.includes("strength") || key.includes("fuerza") || key.includes("weight")) return "🏋🏻‍♂️";
+        if (key.includes("hiit")) return "🔥";
+        if (key.includes("kayak") || key.includes("canoe") || key.includes("pirag")) return "🛶";
+        if (key.includes("rowing") || key.includes("remo")) return "🚣🏻‍♂️";
+        if (key.includes("ski")) return "⛷️";
+        if (key.includes("yoga")) return "🧘🏻‍♂️";
+        if (key.includes("pilates")) return "🧘🏻";
+        if (key.includes("elliptical")) return "🏃🏻‍♂️";
+        return "🏅";
+      }
+
+      function sportLabel(sport, title = "") {
+        const key = resolvedSportKey(sport, title);
+
         const labels = {
           running: "Carrera",
-          trail_running: "Carrera por montaña",
+          trail_running: "Carrera de montaña",
           treadmill_running: "Carrera en cinta",
+          track_running: "Carrera en pista",
+          indoor_track: "Carrera en pista",
           cycling: "Ciclismo",
           road_biking: "Ciclismo",
           mountain_biking: "Ciclismo de montaña",
           indoor_cycling: "Ciclismo indoor",
-          walking: "Caminata",
+          walking: "Andar",
           hiking: "Senderismo",
           swimming: "Natación",
           lap_swimming: "Natación",
           open_water_swimming: "Natación en aguas abiertas",
           strength_training: "Fuerza",
           cardio_training: "Cardio",
+          hiit: "HIIT",
+          padel: "Pádel",
+          paddleball: "Pádel",
+          tennis: "Tenis",
+          soccer: "Fútbol",
+          football: "Fútbol",
+          kayaking: "Piragüismo",
+          kayaking_v2: "Piragüismo",
+          canoeing: "Piragüismo",
           yoga: "Yoga",
           pilates: "Pilates",
           elliptical: "Elíptica",
           rowing: "Remo",
           indoor_rowing: "Remo indoor",
           multisport: "Multideporte",
+          other: "Otros",
           skiing: "Esquí",
           resort_skiing_snowboarding: "Esquí",
           cross_country_skiing: "Esquí de fondo"
@@ -1623,23 +1901,118 @@
           .replace(/^./, (letter) => letter.toUpperCase());
       }
 
-      function activityRowsHtml(rows) {
-        return rows.length ? rows.map((item) => {
-          const summary = item.summary || {};
-          return `
-            <button
-              class="row"
-              data-activity-id="${escapeHtml(item.id)}"
-              style="width:100%;text-align:left;background:none;border:0;color:inherit"
-            >
-              <div>
-                <div class="row-title">${escapeHtml(summary.title)}</div>
-                <div class="row-meta">${escapeHtml(summary.date)} · ${formatDistance(summary.distanceM)} · ${formatDuration(summary.durationSec)}</div>
+      function activityDateParts(dateString) {
+        const match = String(dateString || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) {
+          return { weekday: "—", day: "—", month: "—" };
+        }
+
+        const date = new Date(
+          Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+        );
+
+        const weekdays = ["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"];
+        const months = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+
+        return {
+          weekday: weekdays[date.getUTCDay()],
+          day: String(date.getUTCDate()),
+          month: months[date.getUTCMonth()]
+        };
+      }
+
+      function activityTitleFontSize(title) {
+        const length = String(title || "").length;
+        if (length > 58) return 12;
+        if (length > 44) return 13;
+        if (length > 32) return 14;
+        if (length > 24) return 15;
+        return 17;
+      }
+
+      function activityCardHtml({
+        id = null,
+        date = null,
+        title = "Actividad",
+        sport = "unknown",
+        distanceM = null,
+        durationSec = null,
+        pace = true,
+        status = null
+      } = {}) {
+        const parts = activityDateParts(date);
+        const displayTitle = localizedActivityTitle(title, sport);
+        const emoji = sportEmoji(sport, displayTitle);
+        const distance = Number(distanceM);
+        const duration = Number(durationSec);
+
+        const meta = [];
+
+        if (Number.isFinite(distance) && distance > 0) {
+          meta.push(formatDistance(distance));
+        }
+
+        if (Number.isFinite(duration) && duration > 0) {
+          meta.push(formatCardDuration(duration));
+        }
+
+        if (pace) {
+          const paceText = formatCardPace(distance, duration);
+          if (paceText) meta.push(paceText);
+        }
+
+        if (status) meta.push(status);
+
+        const tag = id ? "button" : "div";
+        const clickAttr = id
+          ? ` data-activity-id="${escapeHtml(id)}"`
+          : "";
+
+        return `
+          <${tag}
+            class="activity-card"
+            ${clickAttr}
+            ${id ? 'type="button"' : ""}
+          >
+            <div class="activity-date-block" aria-label="${escapeHtml(date || "")}">
+              <div class="activity-date-weekday">${escapeHtml(parts.weekday)}</div>
+              <div class="activity-date-day">${escapeHtml(parts.day)}</div>
+              <div class="activity-date-month">${escapeHtml(parts.month)}</div>
+            </div>
+
+            <div class="activity-card-main">
+              <div
+                class="activity-card-title"
+                title="${escapeHtml(displayTitle)}"
+              >
+                <span class="activity-card-emoji">${emoji}</span>
+                <span
+                  class="activity-card-title-text"
+                  data-fit-title
+                  style="font-size:${activityTitleFontSize(displayTitle)}px"
+                >${escapeHtml(displayTitle)}</span>
               </div>
-              <span class="chip">${escapeHtml(sportLabel(summary.sport))}</span>
-            </button>
-          `;
-        }).join("") : `<div class="empty">No hay actividades con estos filtros.</div>`;
+              <div class="activity-card-meta">${meta.length ? meta.join(" · ") : "—"}</div>
+            </div>
+          </${tag}>
+        `;
+      }
+
+      function activityRowsHtml(rows) {
+        return rows.length
+          ? rows.map((item) => {
+              const summary = item.summary || {};
+              return activityCardHtml({
+                id: item.id,
+                date: summary.date,
+                title: summary.title,
+                sport: summary.sport,
+                distanceM: summary.distanceM,
+                durationSec: summary.durationSec,
+                pace: true
+              });
+            }).join("")
+          : `<div class="empty">No hay actividades con estos filtros.</div>`;
       }
 
       function updateActivityArchiveResults() {
@@ -1666,7 +2039,7 @@
 
           return (
             (!query || title.includes(query)) &&
-            (sport === "all" || summary.sport === sport) &&
+            (sport === "all" || resolvedSportKey(summary.sport, summary.title) === sport) &&
             (year === "all" || String(summary.year) === String(year))
           );
         });
@@ -1674,7 +2047,9 @@
 
       function renderActivities() {
         const sports = [...new Set(
-          state.activities.map((item) => item?.summary?.sport).filter(Boolean)
+          state.activities
+            .map((item) => resolvedSportKey(item?.summary?.sport, item?.summary?.title))
+            .filter(Boolean)
         )].sort((a, b) =>
           sportLabel(a).localeCompare(sportLabel(b), "es")
         );
@@ -1707,9 +2082,9 @@
                   id="activity-sport"
                   style="flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"
                 >
-                  <option value="all">Todos los deportes</option>
+                  <option value="all">🏅 Todos los deportes</option>
                   ${sports.map((sport) => `
-                    <option value="${escapeHtml(sport)}" ${state.activityFilters.sport === sport ? "selected" : ""}>${escapeHtml(sportLabel(sport))}</option>
+                    <option value="${escapeHtml(sport)}" ${state.activityFilters.sport === sport ? "selected" : ""}>${sportEmoji(sport)} ${escapeHtml(sportLabel(sport))}</option>
                   `).join("")}
                 </select>
 
@@ -1717,7 +2092,7 @@
                   id="activity-year"
                   style="flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"
                 >
-                  <option value="all">Todos los años</option>
+                  <option value="all">Año</option>
                   ${years.map((year) => `
                     <option value="${year}" ${String(state.activityFilters.year) === String(year) ? "selected" : ""}>${year}</option>
                   `).join("")}
@@ -1743,15 +2118,20 @@
           ${header("Plan")}
           <section class="section">
             <div class="card">
-              ${state.training.length ? state.training.map(item => `
-                <div class="row">
-                  <div>
-                    <div class="row-title">${escapeHtml(item.title)}</div>
-                    <div class="row-meta">${escapeHtml(item.date)}${item.estimatedDistanceM ? ` · ${formatDistance(item.estimatedDistanceM)}` : ""}</div>
-                  </div>
-                  <span class="chip ${item.associatedActivityId ? "" : "blue"}">${item.associatedActivityId ? "Hecho" : "Próximo"}</span>
-                </div>
-              `).join("") : `<div class="empty">No hay entrenamientos programados.</div>`}
+              ${state.training.length
+                ? state.training.map((item) =>
+                    activityCardHtml({
+                      id: item.associatedActivityId || null,
+                      date: item.date,
+                      title: item.title,
+                      sport: item.sport,
+                      distanceM: item.estimatedDistanceM,
+                      durationSec: item.estimatedDurationSec,
+                      pace: true,
+                      status: item.associatedActivityId ? "Hecho" : "Próximo"
+                    })
+                  ).join("")
+                : `<div class="empty">No hay entrenamientos programados.</div>`}
             </div>
           </section>
         `;
@@ -2161,14 +2541,14 @@
 
         return `
           ${backButton()}
-          ${header(summary.title || "Actividad")}
+          ${header(localizedActivityTitle(summary.title || "Actividad", summary.sport))}
 
           <section class="section">
             <div class="card">
               <div class="row">
                 <div>
                   <div class="row-title">${escapeHtml(formatActivityDateTime(d.startTimeLocal, summary.date))}</div>
-                  <div class="row-meta">${escapeHtml(summary.sport || "—")}</div>
+                  <div class="row-meta">${escapeHtml(sportLabel(summary.sport || "—", summary.title || ""))}</div>
                 </div>
                 <span class="chip blue">${formatDistance(d.distanceM)}</span>
               </div>
@@ -2923,36 +3303,9 @@
         `;
       }
 
-      function thresholdRawToPaceSecKm(raw) {
-        const value = Number(raw);
-        if (!Number.isFinite(value) || value <= 0) return null;
-
-        // Garmin biometric lactateThresholdSpeed puede venir en km/h.
-        // Ej.: 13.69 km/h => 4:23 min/km.
-        if (value >= 8 && value <= 30) {
-          return 3600 / value;
-        }
-
-        // Algunas respuestas Garmin pueden venir en m/s.
-        if (value >= 1.2 && value < 8) {
-          return 1000 / value;
-        }
-
-        // Compatibilidad defensiva con s/m.
-        if (value > 0.05 && value < 1.2) {
-          return value * 1000;
-        }
-
-        // Ya expresado como s/km.
-        if (value >= 120 && value <= 900) {
-          return value;
-        }
-
-        return null;
-      }
-
       function lactateThresholdSeries() {
         const byDate = new Map();
+        let current = null;
 
         for (const chunk of state.lactateThreshold) {
           const rows = Array.isArray(chunk?.payload?.rows)
@@ -2961,10 +3314,10 @@
 
           for (const row of rows) {
             const date = String(row?.date || "");
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
-
-            const paceSecKm = thresholdRawToPaceSecKm(row?.speed);
+            const paceSecKm = Number(row?.paceSecKm);
             const heartRate = Number(row?.heartRate);
+
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
 
             if (
               !Number.isFinite(paceSecKm) &&
@@ -2975,61 +3328,72 @@
 
             byDate.set(date, {
               date,
-              paceSecKm: Number.isFinite(paceSecKm) ? paceSecKm : null,
+              paceSecKm:
+                Number.isFinite(paceSecKm)
+                  ? paceSecKm
+                  : null,
               heartRate:
-                Number.isFinite(heartRate) && heartRate > 30 && heartRate < 250
+                Number.isFinite(heartRate) &&
+                heartRate > 30 &&
+                heartRate < 250
                   ? heartRate
                   : null
             });
           }
 
-          const latest = chunk?.payload?.latest;
-          if (latest && typeof latest === "object") {
-            const latestDate =
-              String(latest.calendarDate || "").match(/^\d{4}-\d{2}-\d{2}$/)
-                ? latest.calendarDate
-                : chunk?.endDate || localDate(0);
-
-            // Garmin latestLactateThreshold is authoritative for the current
-            // threshold. It must override any range sample for the same date.
-            let paceSecKm = null;
-            const latestSpeed = Number(latest.speed);
-
-            if (Number.isFinite(latestSpeed) && latestSpeed > 0) {
-              // Garmin's latest threshold speed is inverse pace (seconds/metre).
-              // Example: 0.263 s/m => 263 s/km => 4:23/km.
-              if (latestSpeed > 0.05 && latestSpeed < 1.2) {
-                paceSecKm = latestSpeed * 1000;
-              } else {
-                paceSecKm = thresholdRawToPaceSecKm(latestSpeed);
-              }
-            }
-
-            const heartRate = Number(latest.heartRate);
+          const candidate = chunk?.payload?.current;
+          if (candidate && typeof candidate === "object") {
+            const paceSecKm = Number(candidate.paceSecKm);
+            const heartRate = Number(candidate.heartRate);
+            const date = String(
+              candidate.date ||
+              chunk?.endDate ||
+              ""
+            );
 
             if (
-              Number.isFinite(paceSecKm) ||
-              (Number.isFinite(heartRate) && heartRate > 30 && heartRate < 250)
+              /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+              (
+                Number.isFinite(paceSecKm) ||
+                (Number.isFinite(heartRate) && heartRate > 30 && heartRate < 250)
+              )
             ) {
-              const previous = byDate.get(latestDate) || {
-                date: latestDate,
-                paceSecKm: null,
-                heartRate: null
-              };
-
-              byDate.set(latestDate, {
-                date: latestDate,
+              current = {
+                date,
                 paceSecKm:
                   Number.isFinite(paceSecKm)
                     ? paceSecKm
-                    : previous.paceSecKm,
+                    : null,
                 heartRate:
-                  Number.isFinite(heartRate) && heartRate > 30 && heartRate < 250
+                  Number.isFinite(heartRate) &&
+                  heartRate > 30 &&
+                  heartRate < 250
                     ? heartRate
-                    : previous.heartRate
-              });
+                    : null
+              };
             }
           }
+        }
+
+        // El valor actual de Garmin es autoritativo para su fecha.
+        if (current) {
+          const previous = byDate.get(current.date) || {
+            date: current.date,
+            paceSecKm: null,
+            heartRate: null
+          };
+
+          byDate.set(current.date, {
+            date: current.date,
+            paceSecKm:
+              Number.isFinite(current.paceSecKm)
+                ? current.paceSecKm
+                : previous.paceSecKm,
+            heartRate:
+              Number.isFinite(current.heartRate)
+                ? current.heartRate
+                : previous.heartRate
+          });
         }
 
         return [...byDate.values()].sort(
@@ -3063,6 +3427,85 @@
         const min = Math.floor(total / 60);
         const sec = String(total % 60).padStart(2, "0");
         return `${min}:${sec}/km`;
+      }
+
+
+      function lactateRowsForRange(allRows, range) {
+        const filtered = filterMetricSeries(allRows, range);
+        if (!allRows.length || range === "all") {
+          return {
+            rows: filtered,
+            inheritedOnly: false,
+            inheritedDate: null
+          };
+        }
+
+        const lastDate =
+          state.healthDays[state.healthDays.length - 1]?.date ||
+          allRows[allRows.length - 1]?.date ||
+          localDate(0);
+
+        const start = rangeStartDate(range, lastDate);
+
+        if (!start) {
+          return {
+            rows: filtered,
+            inheritedOnly: false,
+            inheritedDate: null
+          };
+        }
+
+        const previous = [...allRows]
+          .reverse()
+          .find((item) => item.date < start);
+
+        if (!previous) {
+          return {
+            rows: filtered,
+            inheritedOnly: false,
+            inheritedDate: null
+          };
+        }
+
+        // No real update inside range: show a horizontal reference built from
+        // the last known value at both ends of the selected window.
+        if (!filtered.length) {
+          const end = lastDate;
+          return {
+            rows: [
+              {
+                ...previous,
+                date: start,
+                inherited: true,
+                inheritedSourceDate: previous.date
+              },
+              {
+                ...previous,
+                date: end,
+                inherited: true,
+                inheritedSourceDate: previous.date
+              }
+            ],
+            inheritedOnly: true,
+            inheritedDate: previous.date
+          };
+        }
+
+        // Real updates exist: prepend the previous known value as context so
+        // the first update connects from the existing threshold.
+        return {
+          rows: [
+            {
+              ...previous,
+              date: start,
+              inherited: true,
+              inheritedSourceDate: previous.date
+            },
+            ...filtered
+          ],
+          inheritedOnly: false,
+          inheritedDate: previous.date
+        };
       }
 
       function lactateChartHtml(rows) {
@@ -3167,14 +3610,20 @@
           return `
             ${Number.isFinite(item.paceSecKm) ? `
               <circle cx="${x(index)}" cy="${yPace(item.paceSecKm)}"
-                r="3.5" fill="var(--cyan)" ${attrs}>
-                <title>${escapeHtml(item.date)} · ${escapeHtml(paceText)} · ${escapeHtml(hrText)}</title>
+                r="${item.inherited ? 2.6 : 3.5}"
+                fill="var(--cyan)"
+                fill-opacity="${item.inherited ? ".45" : "1"}"
+                ${attrs}>
+                <title>${escapeHtml(item.inherited ? `Último valor conocido (${item.inheritedSourceDate || "—"})` : item.date)} · ${escapeHtml(paceText)} · ${escapeHtml(hrText)}</title>
               </circle>
             ` : ""}
             ${Number.isFinite(item.heartRate) ? `
               <circle cx="${x(index)}" cy="${yHr(item.heartRate)}"
-                r="3.5" fill="var(--orange)" ${attrs}>
-                <title>${escapeHtml(item.date)} · ${escapeHtml(paceText)} · ${escapeHtml(hrText)}</title>
+                r="${item.inherited ? 2.6 : 3.5}"
+                fill="var(--orange)"
+                fill-opacity="${item.inherited ? ".45" : "1"}"
+                ${attrs}>
+                <title>${escapeHtml(item.inherited ? `Último valor conocido (${item.inheritedSourceDate || "—"})` : item.date)} · ${escapeHtml(paceText)} · ${escapeHtml(hrText)}</title>
               </circle>
             ` : ""}
           `;
@@ -3211,6 +3660,9 @@
           <div class="chart-legend">
             <span><span class="legend-dot" style="background:var(--cyan)"></span>Ritmo</span>
             <span><span class="legend-dot" style="background:var(--orange)"></span>FC</span>
+            ${rows.some((item) => item.inherited) ? `
+              <span>· Último valor conocido usado como referencia</span>
+            ` : ""}
           </div>
         `;
       }
@@ -3228,9 +3680,14 @@
         const definition = definitions[id] || { name: "Métrica", unit: "" };
         const allRows = metricSeries(id);
 
+        const lactateRange =
+          id === "lactate"
+            ? lactateRowsForRange(allRows, state.metricRange)
+            : null;
+
         const rows =
           id === "lactate"
-            ? filterMetricSeries(allRows, state.metricRange)
+            ? lactateRange.rows
             : displayRowsForMetric(id, allRows, state.metricRange);
 
         const latest = allRows[allRows.length - 1] || null;
@@ -3294,7 +3751,13 @@
               <div class="row">
                 <div>
                   <div class="row-title">Datos mostrados</div>
-                  <div class="row-meta">${rows.length} de ${allRows.length} registros históricos locales</div>
+                  <div class="row-meta">${
+                    id === "lactate" && lactateRange?.inheritedOnly
+                      ? `0 actualizaciones en el rango · referencia desde ${escapeHtml(lactateRange.inheritedDate || "—")}`
+                      : id === "lactate"
+                        ? `${rows.filter((item) => !item.inherited).length} actualizaciones reales · ${allRows.length} históricas`
+                        : `${rows.length} de ${allRows.length} registros históricos locales`
+                  }</div>
                 </div>
                 <span class="chip blue">IndexedDB</span>
               </div>
@@ -3324,6 +3787,26 @@
           case "today":
           default: return renderToday();
         }
+      }
+
+      function fitActivityTitles() {
+        document.querySelectorAll("[data-fit-title]").forEach((el) => {
+          const parent = el.parentElement;
+          if (!parent) return;
+
+          let size = Number.parseFloat(el.style.fontSize) || 17;
+          const minSize = 9;
+
+          el.style.fontSize = `${size}px`;
+
+          while (
+            size > minSize &&
+            el.scrollWidth > el.clientWidth
+          ) {
+            size -= 0.5;
+            el.style.fontSize = `${size}px`;
+          }
+        });
       }
 
       function bindEvents() {
@@ -3400,13 +3883,16 @@
           });
         }
 
-        const activityResults = document.getElementById("activity-results");
-        if (activityResults) {
-          activityResults.addEventListener("click", async (event) => {
+        const activityClickHost = document.getElementById("app");
+        if (activityClickHost && !activityClickHost.dataset.activityClicksBound) {
+          activityClickHost.dataset.activityClicksBound = "1";
+          activityClickHost.addEventListener("click", async (event) => {
             const button = event.target.closest("[data-activity-id]");
             if (!button) return;
 
             const id = button.dataset.activityId;
+            if (!id) return;
+
             state.activitiesScrollY = window.scrollY || 0;
 
             const activity = state.activities.find(
@@ -3461,6 +3947,7 @@
           ${tabbar()}
         `;
         bindEvents();
+        requestAnimationFrame(() => fitActivityTitles());
       }
 
       return { state, render, navigate, goBack, goTab };
@@ -4596,36 +5083,35 @@
       }
 
       async function syncLactateThresholdHistory() {
-        const SYNC_SCHEMA = 4;
+        const SYNC_SCHEMA = 9;
         const metaRow = await AtlasStorage.get("sync", "lactateThresholdSyncMeta");
         const normalization = await AtlasStorage.get("sync", "healthNormalizationMeta");
+        const previous = metaRow?.value || null;
         const today = localDate(0);
 
-        let startDate;
-        let full = false;
+        const firstDate =
+          normalization?.value?.firstDate ||
+          state.healthDays[0]?.date ||
+          state.activities.at(-1)?.summary?.date ||
+          today;
 
-        const previous = metaRow?.value || null;
-        const previousValid =
-          previous?.schema === SYNC_SCHEMA &&
-          /^\d{4}-\d{2}-\d{2}$/.test(String(previous?.lastDate || ""));
+        const needsReset = previous?.schema !== SYNC_SCHEMA;
 
-        if (previousValid) {
-          startDate = addDaysIso(previous.lastDate, -1);
-        } else {
-          startDate =
-            normalization?.value?.firstDate ||
-            state.activities.at(-1)?.summary?.date ||
-            today;
-          full = true;
+        if (needsReset) {
           await AtlasStorage.clear("lactateThreshold");
         }
 
-        const failures = [];
-        let saved = 0;
+        const startDate = needsReset
+          ? firstDate
+          : addDaysIso(previous?.lastDate || today, -1);
 
-        const chunks = full
-          ? historyChunks(startDate, today, 180)
+        const chunks = needsReset
+          ? historyChunks(startDate, today, 365)
           : [[startDate, today]];
+
+        let saved = 0;
+        let rowCount = 0;
+        const failures = [];
 
         for (const [from, to] of chunks) {
           try {
@@ -4633,25 +5119,27 @@
               () => AtlasServices.lactateThreshold(
                 AtlasUI.state.bridgeUrl,
                 from,
-                to,
-                "daily"
+                to
               ),
               1
             );
 
-            const partial = response?.meta?.partial === true;
-            if (partial) {
-              const detail = response?.data || {};
-              const failed = Object.entries(detail)
-                .filter(([, value]) => value?.ok === false)
-                .map(([key, value]) => `${key}:${value?.error?.code || "GARMIN_REQUEST_FAILED"}`)
-                .join(",");
-
-              throw new Error(`GARMIN_LT_PARTIAL_${failed || "UNKNOWN"}`);
+            if (!response?.ok) {
+              throw new Error("GARMIN_LT_EMPTY");
             }
 
-            await saveLactateThresholdChunk(from, to, response);
+            await AtlasStorage.put("lactateThreshold", {
+              id: `${from}:${to}`,
+              startDate: from,
+              endDate: to,
+              payload: response,
+              fetchedAt: new Date().toISOString()
+            });
+
             saved += 1;
+            rowCount += Array.isArray(response?.rows)
+              ? response.rows.length
+              : 0;
           } catch (error) {
             failures.push(`${from}:${to}:${String(error?.message || error)}`);
           }
@@ -4659,10 +5147,12 @@
 
         const meta = {
           schema: SYNC_SCHEMA,
-          firstDate: full ? startDate : (previous?.firstDate || startDate),
+          firstDate,
           lastDate: today,
           saved,
+          rowCount,
           failures,
+          source: "garmin-biometric-lactate-threshold",
           completedAt: failures.length ? null : new Date().toISOString()
         };
 
@@ -4674,6 +5164,13 @@
         if (failures.length) {
           throw new Error(`LACTATE_THRESHOLD_PARTIAL_${failures.length}`);
         }
+
+        // Refresh in-memory data immediately after rebuild.
+        AtlasUI.state.lactateThreshold = (
+          await AtlasStorage.getAll("lactateThreshold")
+        ).sort((a, b) =>
+          String(a.startDate || "").localeCompare(String(b.startDate || ""))
+        );
 
         return meta;
       }
