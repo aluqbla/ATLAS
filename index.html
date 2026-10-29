@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.25",
+      APP_VERSION: "0.0.26",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -996,7 +996,11 @@
       }
 
       function metric(type) {
-        return state.metrics.find((item) => item.type === type) || null;
+        return state.metrics
+          .filter((item) => item.type === type)
+          .sort((a, b) =>
+            String(b?.date || "").localeCompare(String(a?.date || ""))
+          )[0] || null;
       }
 
       function formatDistance(meters) {
