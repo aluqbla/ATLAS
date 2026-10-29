@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.29",
+      APP_VERSION: "0.0.30",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -1469,10 +1469,10 @@
         }).filter((lap) => lap.distanceM > 0 || lap.durationSec > 0);
       }
 
-      function workoutSegmentLabels(stepdetails, lapCount) {
-        if (!stepdetails || !lapCount) return Array(lapCount).fill(null);
+      function workoutSegmentLabels(workout, lapCount) {
+        if (!workout || !lapCount) return Array(lapCount).fill(null);
 
-        const stepTypeInfo = (step) => {
+        const classify = (step) => {
           const type =
             step?.stepType ??
             step?.stepTypeDTO ??
@@ -1491,12 +1491,6 @@
             step?.stepType ??
             ""
           ).toLowerCase();
-
-          return { id, key };
-        };
-
-        const classify = (step) => {
-          const { id, key } = stepTypeInfo(step);
 
           if (id === 1 || key.includes("warmup")) return "WU";
           if (id === 2 || key.includes("cooldown")) return "CD";
@@ -1517,7 +1511,7 @@
           return null;
         };
 
-        const flattenSteps = (steps) => {
+        const flatten = (steps) => {
           const result = [];
 
           for (const step of steps || []) {
@@ -1525,10 +1519,17 @@
               ? step.workoutSteps
               : [];
 
+            const typeText = String(
+              step?.type ??
+              step?.executableStepType ??
+              step?.stepType?.stepTypeKey ??
+              ""
+            ).toLowerCase();
+
             const isRepeat =
-              String(step?.type || "").toLowerCase().includes("repeat") ||
+              typeText.includes("repeat") ||
               Number(step?.stepType?.stepTypeId) === 6 ||
-              String(step?.stepType?.stepTypeKey || "").toLowerCase() === "repeat";
+              Number(step?.stepTypeId) === 6;
 
             if (isRepeat && nested.length) {
               const iterations = Math.max(
@@ -1536,18 +1537,19 @@
                 Number(
                   step?.numberOfIterations ??
                   step?.repeatValue ??
+                  step?.repeatCount ??
                   1
                 ) || 1
               );
 
               for (let i = 0; i < iterations; i++) {
-                result.push(...flattenSteps(nested));
+                result.push(...flatten(nested));
               }
               continue;
             }
 
             if (nested.length) {
-              result.push(...flattenSteps(nested));
+              result.push(...flatten(nested));
               continue;
             }
 
@@ -1558,58 +1560,42 @@
           return result;
         };
 
-        let rootSteps = [];
+        const rootSteps = [];
 
-        if (Array.isArray(stepdetails?.workoutSegments)) {
-          for (const segment of stepdetails.workoutSegments) {
+        if (Array.isArray(workout?.workoutSegments)) {
+          for (const segment of workout.workoutSegments) {
             if (Array.isArray(segment?.workoutSteps)) {
               rootSteps.push(...segment.workoutSteps);
             }
           }
         }
 
-        if (!rootSteps.length && Array.isArray(stepdetails?.workoutSteps)) {
-          rootSteps = stepdetails.workoutSteps;
+        if (!rootSteps.length && Array.isArray(workout?.workoutSteps)) {
+          rootSteps.push(...workout.workoutSteps);
         }
 
-        if (!rootSteps.length && Array.isArray(stepdetails?.steps)) {
-          rootSteps = stepdetails.steps;
-        }
+        const labels = flatten(rootSteps);
 
-        if (!rootSteps.length && Array.isArray(stepdetails?.stepDTOs)) {
-          rootSteps = stepdetails.stepDTOs;
-        }
-
-        if (!rootSteps.length && Array.isArray(stepdetails)) {
-          rootSteps = stepdetails;
-        }
-
-        const flattened = flattenSteps(rootSteps);
-
-        if (!flattened.length) {
+        if (!labels.length) {
           return Array(lapCount).fill(null);
         }
 
-        // Exact mapping when Garmin's executable-step count matches lap count.
-        if (flattened.length === lapCount) {
-          return flattened;
-        }
-
-        // Structured-workout fallback:
-        // only infer broad sections when Garmin explicitly exposes WU/CD.
-        const hasWU = flattened.includes("WU");
-        const hasCD = flattened.includes("CD");
-
-        if (hasWU || hasCD) {
-          const labels = Array(lapCount).fill("MAIN");
-
-          if (hasWU && lapCount > 0) labels[0] = "WU";
-          if (hasCD && lapCount > 1) labels[lapCount - 1] = "CD";
-
+        if (labels.length === lapCount) {
           return labels;
         }
 
-        // No reliable structure -> do not invent segmentation.
+        // Garmin sometimes creates more laps than executable workout steps
+        // (manual/autolap splits). Preserve only broad workout sections.
+        const hasWU = labels.includes("WU");
+        const hasCD = labels.includes("CD");
+
+        if (hasWU || hasCD) {
+          const broad = Array(lapCount).fill("MAIN");
+          if (hasWU) broad[0] = "WU";
+          if (hasCD && lapCount > 1) broad[lapCount - 1] = "CD";
+          return broad;
+        }
+
         return Array(lapCount).fill(null);
       }
 
@@ -1704,7 +1690,7 @@
 
         const lapRows = normalizeLapRows(activity?.laps?.laps);
         const lapLabels = workoutSegmentLabels(
-          activity?.laps?.stepdetails,
+          activity?.laps?.workout,
           lapRows.length
         );
 
@@ -2120,7 +2106,8 @@
               runningLoaded: previous?.runningLoaded === true,
               laps: previous?.laps ?? null,
               lapsUpdatedAt: previous?.lapsUpdatedAt ?? null,
-              lapsLoaded: previous?.lapsLoaded === true
+              lapsLoaded: previous?.lapsLoaded === true,
+              lapsSource: previous?.lapsSource ?? null
             };
 
             await AtlasStorage.put("activities", record);
@@ -2202,7 +2189,8 @@
               runningLoaded: item.runningLoaded === true,
               laps: item.laps ?? null,
               lapsUpdatedAt: item.lapsUpdatedAt ?? null,
-              lapsLoaded: item.lapsLoaded === true
+              lapsLoaded: item.lapsLoaded === true,
+              lapsSource: item.lapsSource ?? null
             };
             if (
               normalized.fitBlob !== item.fitBlob ||
@@ -2245,7 +2233,8 @@
             runningLoaded: false,
             laps: null,
             lapsUpdatedAt: null,
-            lapsLoaded: false
+            lapsLoaded: false,
+            lapsSource: null
           };
 
           await AtlasStorage.put("activities", migrated);
@@ -2542,7 +2531,11 @@
         const existing = await AtlasStorage.get("activities", String(id));
         if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
 
-        if (existing.lapsLoaded && existing.laps) {
+        if (
+          existing.lapsLoaded &&
+          existing.laps &&
+          existing.lapsSource === "activity-workout-v1"
+        ) {
           return existing.laps;
         }
 
@@ -2553,14 +2546,17 @@
 
         const laps = {
           laps: response?.data?.laps ?? null,
-          stepdetails: response?.data?.stepdetails ?? null
+          activityWorkouts: response?.data?.activityWorkouts ?? null,
+          workout: response?.data?.workout ?? null,
+          workoutId: response?.data?.workoutId ?? null
         };
 
         const updated = {
           ...existing,
           laps,
           lapsLoaded: true,
-          lapsUpdatedAt: new Date().toISOString()
+          lapsUpdatedAt: new Date().toISOString(),
+          lapsSource: "activity-workout-v1"
         };
 
         await AtlasStorage.put("activities", updated);
