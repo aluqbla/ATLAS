@@ -226,8 +226,120 @@
 
     .metric-grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: var(--space-3);
+    }
+
+    .today-metrics .metric {
+      padding: clamp(10px, 2.2vw, 20px);
+    }
+
+    .today-metrics .metric-label {
+      font-size: clamp(10px, 2.7vw, 13px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .today-metrics .metric-value {
+      font-size: clamp(20px, 6.5vw, 34px);
+      white-space: nowrap;
+    }
+
+    .today-metrics .metric-caption {
+      font-size: clamp(9px, 2.4vw, 13px);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .readiness-card {
+      cursor: pointer;
+    }
+
+    .readiness-card:hover {
+      background: var(--surface-2);
+    }
+
+    .readiness-score-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .readiness-circle {
+      width: 72px;
+      height: 72px;
+      min-width: 72px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      border: 5px solid var(--text-3);
+      font-size: 28px;
+      font-weight: 750;
+      line-height: 1;
+      background: #000;
+    }
+
+    .readiness-factor-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .readiness-factor {
+      background: var(--surface-1);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .readiness-factor-name {
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .readiness-factor-value {
+      margin-top: 6px;
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .readiness-factor-meta {
+      margin-top: 5px;
+      font-size: 12px;
+      color: var(--text-3);
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .chart-wrap {
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .chart-wrap svg {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+    }
+
+    .chart-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
     }
 
     .metric {
@@ -359,9 +471,6 @@
     }
 
     @media (max-width: 900px) {
-      .metric-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
     }
 
     @media (max-width: 767px) {
@@ -387,10 +496,6 @@
 
       .mobile-profile {
         display: inline-grid;
-      }
-
-      .metric-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .tabbar-wrap {
@@ -448,7 +553,7 @@
     }
 
     @media (max-width: 420px) {
-      .metric-grid {
+      .readiness-factor-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -476,9 +581,9 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.46",
+      APP_VERSION: "0.0.67",
       DB_NAME: "ATLAS",
-      DB_VERSION: 1,
+      DB_VERSION: 6,
       DATA_SCHEMA_VERSION: 1,
       GARMIN_BRIDGE_URL: "https://atlas.aj-luque.workers.dev"
     });
@@ -534,6 +639,33 @@
             if (!database.objectStoreNames.contains("sync")) {
               database.createObjectStore("sync", { keyPath: "key" });
             }
+
+            if (event.oldVersion < 3 && database.objectStoreNames.contains("rawHistory")) {
+              database.deleteObjectStore("rawHistory");
+            }
+
+            if (!database.objectStoreNames.contains("rawHistory")) {
+              const store = database.createObjectStore("rawHistory", { keyPath: "id" });
+              store.createIndex("dataset", "dataset", { unique: false });
+              store.createIndex("startDate", "startDate", { unique: false });
+              store.createIndex("endDate", "endDate", { unique: false });
+            }
+
+            if (!database.objectStoreNames.contains("healthDays")) {
+              const store = database.createObjectStore("healthDays", { keyPath: "id" });
+              store.createIndex("date", "date", { unique: true });
+            }
+
+            if (!database.objectStoreNames.contains("lactateThreshold")) {
+              const store = database.createObjectStore("lactateThreshold", { keyPath: "id" });
+              store.createIndex("startDate", "startDate", { unique: false });
+              store.createIndex("endDate", "endDate", { unique: false });
+            }
+
+            if (!database.objectStoreNames.contains("restingHeartRateHistory")) {
+              const store = database.createObjectStore("restingHeartRateHistory", { keyPath: "date" });
+              store.createIndex("date", "date", { unique: true });
+            }
           };
 
           request.onsuccess = () => {
@@ -572,7 +704,16 @@
         });
       }
 
-      return { open, put, get, getAll };
+      function clear(storeName) {
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction(storeName, "readwrite");
+          tx.objectStore(storeName).clear();
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => reject(tx.error);
+        });
+      }
+
+      return { open, put, get, getAll, clear };
     })();
 
     // ============================================================
@@ -714,8 +855,23 @@
           value: readiness.score ?? null,
           unit: "score",
           level: readiness.level || null,
+          sleepScore: readiness.sleepScore ?? null,
+          sleepScoreFactorPercent: readiness.sleepScoreFactorPercent ?? null,
+          sleepScoreFactorFeedback: readiness.sleepScoreFactorFeedback ?? null,
           recoveryTimeMin: readiness.recoveryTime ?? null,
-          acuteLoad: readiness.acuteLoad ?? null
+          recoveryTimeFactorPercent: readiness.recoveryTimeFactorPercent ?? null,
+          recoveryTimeFactorFeedback: readiness.recoveryTimeFactorFeedback ?? null,
+          acuteLoad: readiness.acuteLoad ?? null,
+          acwrFactorPercent: readiness.acwrFactorPercent ?? null,
+          acwrFactorFeedback: readiness.acwrFactorFeedback ?? null,
+          hrvWeeklyAverage: readiness.hrvWeeklyAverage ?? null,
+          hrvFactorPercent: readiness.hrvFactorPercent ?? null,
+          hrvFactorFeedback: readiness.hrvFactorFeedback ?? null,
+          sleepHistoryFactorPercent: readiness.sleepHistoryFactorPercent ?? null,
+          sleepHistoryFactorFeedback: readiness.sleepHistoryFactorFeedback ?? null,
+          stressHistoryFactorPercent: readiness.stressHistoryFactorPercent ?? null,
+          stressHistoryFactorFeedback: readiness.stressHistoryFactorFeedback ?? null,
+          feedbackShort: readiness.feedbackShort ?? null
         });
 
         const vo2 = payload?.vo2max?.ok ? payload.vo2max.data?.generic : null;
@@ -938,6 +1094,32 @@
         return this.get(baseUrl, `/metrics?date=${encodeURIComponent(date)}`);
       },
 
+      history(baseUrl, dataset, startDate, endDate) {
+        return this.get(
+          baseUrl,
+          `/history?dataset=${encodeURIComponent(dataset)}` +
+          `&startDate=${encodeURIComponent(startDate)}` +
+          `&endDate=${encodeURIComponent(endDate)}`
+        );
+      },
+
+      restingHeartRateHistory(baseUrl, startDate, endDate) {
+        return this.get(
+          baseUrl,
+          `/resting-heart-rate-history?startDate=${encodeURIComponent(startDate)}` +
+          `&endDate=${encodeURIComponent(endDate)}`
+        );
+      },
+
+      lactateThreshold(baseUrl, startDate, endDate, aggregation = "daily") {
+        return this.get(
+          baseUrl,
+          `/lactate-threshold?startDate=${encodeURIComponent(startDate)}` +
+          `&endDate=${encodeURIComponent(endDate)}` +
+          `&aggregation=${encodeURIComponent(aggregation)}`
+        );
+      },
+
       training(baseUrl, startDate, endDate) {
         return this.get(
           baseUrl,
@@ -964,14 +1146,24 @@
           profile: "idle",
           metrics: "idle",
           training: "idle",
-          activities: "idle"
+          activities: "idle",
+          history: "idle"
         },
         lastSync: null,
         activitySync: null,
+        historySync: null,
+        healthNormalization: null,
+        healthIncremental: null,
+        integrityAudit: null,
         profile: null,
         activities: [],
         metrics: [],
         training: [],
+        healthDays: [],
+        lactateThreshold: [],
+        restingHeartRateHistory: [],
+        metricRange: "7d",
+        chartSelection: null,
         activityFilters: {
           search: "",
           sport: "all",
@@ -1109,37 +1301,117 @@
         }[value] || "—";
       }
 
+      function readinessZone(score) {
+        const value = Number(score);
+        if (!Number.isFinite(value)) {
+          return { color: "var(--text-3)", label: "Sin datos" };
+        }
+        if (value >= 95) return { color: "var(--purple)", label: "Excelente" };
+        if (value >= 75) return { color: "var(--blue-active)", label: "Alta" };
+        if (value >= 50) return { color: "var(--green)", label: "Moderada" };
+        if (value >= 25) return { color: "var(--orange)", label: "Baja" };
+        return { color: "var(--red)", label: "Deficiente" };
+      }
+
       function trainingReadinessPresentation(readiness) {
+        const zone = readinessZone(readiness?.value);
         if (!readiness || readiness.value == null) {
           return {
+            score: "—",
             title: "Sin datos de preparación",
             detail: "Garmin no ha devuelto Training Readiness para hoy.",
-            color: "var(--text-3)"
+            color: zone.color
           };
         }
 
-        const key = String(readiness.level || "")
-          .trim()
-          .toLowerCase()
-          .replace(/[\s_-]+/g, "");
-
-        const levels = {
-          prime: ["Preparación óptima", "var(--green)"],
-          high: ["Preparación alta", "var(--green)"],
-          moderate: ["Preparación moderada", "var(--yellow)"],
-          low: ["Preparación baja", "var(--orange)"],
-          poor: ["Preparación muy baja", "var(--red)"]
-        };
-
-        const known = levels[key] || null;
         const score = formatGarminDecimal(readiness.value);
-        const rawLevel = readiness.level ? ` · Garmin: ${escapeHtml(readiness.level)}` : "";
-
         return {
-          title: known ? known[0] : "Preparación disponible",
-          detail: `Training Readiness: ${score}${known ? "" : rawLevel}`,
-          color: known ? known[1] : "var(--blue)"
+          score,
+          title: `Preparación ${zone.label.toLowerCase()}`,
+          detail: readiness.feedbackShort
+            ? String(readiness.feedbackShort)
+            : `Training Readiness · ${score}/100`,
+          color: zone.color
         };
+      }
+
+      function localDate(offsetDays = 0) {
+        const date = new Date();
+        date.setDate(date.getDate() + Number(offsetDays || 0));
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function addDaysIso(dateString, days) {
+        const match = String(dateString || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) return dateString;
+        const date = new Date(
+          Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+        );
+        date.setUTCDate(date.getUTCDate() + Number(days || 0));
+        return date.toISOString().slice(0, 10);
+      }
+
+      function atlasDateFromRecord(value) {
+        if (!value || typeof value !== "object") return null;
+
+        const direct = [
+          value.calendarDate,
+          value.date,
+          value.startDate,
+          value.measurementDate,
+          value.timestampLocal,
+          value.timestamp,
+          value.measurementTimeGMT,
+          value.measurementTimeLocal
+        ];
+
+        for (const candidate of direct) {
+          if (candidate == null || candidate === "") continue;
+
+          if (typeof candidate === "string") {
+            const match = candidate.match(/(\d{4}-\d{2}-\d{2})/);
+            if (match) return match[1];
+          }
+
+          if (typeof candidate === "number" && Number.isFinite(candidate)) {
+            const ms = candidate > 1e12 ? candidate : candidate * 1000;
+            const date = new Date(ms);
+            if (!Number.isNaN(date.getTime())) {
+              return date.toISOString().slice(0, 10);
+            }
+          }
+        }
+
+        return null;
+      }
+
+      function isRunningActivity(activity) {
+        const sport = String(
+          activity?.summary?.sport ||
+          activity?.sport ||
+          activity?.summary?.raw?.activityType?.typeKey ||
+          ""
+        ).toLowerCase();
+        return sport.includes("run") || sport.includes("running") || sport.includes("carrera");
+      }
+
+      function runningVolumeKm(days = 7) {
+        const today = localDate(0);
+        const start = addDaysIso(today, -(days - 1));
+        const meters = state.activities.reduce((sum, activity) => {
+          const date = String(activity?.summary?.date || "");
+          if (!isRunningActivity(activity) || date < start || date > today) return sum;
+          return sum + (Number(activity?.summary?.distanceM) || 0);
+        }, 0);
+        return meters / 1000;
+      }
+
+      function latestLactatePoint() {
+        const rows = lactateThresholdSeries();
+        return rows[rows.length - 1] || null;
       }
 
       function renderToday() {
@@ -1148,32 +1420,40 @@
         const vo2 = metric("vo2max");
         const readiness = metric("training-readiness");
         const restingHR = metric("resting-hr");
-        const stress = metric("stress");
         const readinessState = trainingReadinessPresentation(readiness);
+        const lactate = latestLactatePoint();
+        const volumeKm = runningVolumeKm(7);
         const lastActivity = state.activities[0] || null;
-        const today = new Date().toISOString().slice(0, 10);
+        const today = localDate(0);
         const nextTraining = state.training.filter(x => x.date >= today).slice(0, 3);
 
         return `
           ${header("Hoy")}
           <section class="section">
             <h2 class="section-title">Estado ATLAS</h2>
-            <div class="card">
-              <div class="row-title"><span class="status-dot" style="background:${readinessState.color}"></span>${escapeHtml(readinessState.title)}</div>
-              <div class="row-meta">${readinessState.detail}${state.syncing ? " · Actualizando Garmin…" : ""}</div>
+            <div class="card readiness-card" data-readiness-detail>
+              <div class="readiness-score-wrap">
+                <div class="readiness-circle" style="border-color:${readinessState.color};color:${readinessState.color}">
+                  ${escapeHtml(readinessState.score)}
+                </div>
+                <div>
+                  <div class="row-title">${escapeHtml(readinessState.title)}</div>
+                  <div class="row-meta">${escapeHtml(readinessState.detail)}${state.syncing ? " · Actualizando Garmin…" : ""}</div>
+                </div>
+              </div>
             </div>
           </section>
 
           <section class="section">
             <h2 class="section-title">Métricas principales</h2>
-            <div class="metric-grid">
+            <div class="metric-grid today-metrics">
               ${[
-                ["Preparación", readiness?.value ?? "—", readiness?.level || "Sin datos", "readiness"],
-                ["Sueño", sleep?.value ?? "—", sleep ? formatDuration(sleep.durationSec) : "Sin datos", "sleep"],
-                ["VFC", hrv?.value ?? "—", hrv ? `${hrv.status || "—"} · ${hrv.weeklyAvg ?? "—"} ms` : "Sin datos", "hrv"],
+                ["Sueño", sleep?.value ?? "—", sleep ? "puntos" : "Sin datos", "sleep"],
+                ["VFC", hrv?.value ?? "—", hrv?.value != null ? "ms" : "Sin datos", "hrv"],
                 ["FC reposo", restingHR?.value ?? "—", restingHR?.value != null ? "bpm" : "Sin datos", "resting-hr"],
-                ["Estrés", stress?.value ?? "—", stress?.value != null ? "Garmin" : "Sin datos", "stress"],
-                ["VO₂ máx.", vo2?.value != null ? formatGarminDecimal(vo2.value) : "—", "ml/kg/min", "vo2max"]
+                ["VO₂ máx.", vo2?.value != null ? formatGarminDecimal(vo2.value) : "—", "ml/kg/min", "vo2max"],
+                ["Umbral lactato", lactate ? formatPace(lactate.paceSecKm) : "—", lactate?.heartRate != null ? `${Math.round(lactate.heartRate)} bpm` : "Sin datos", "lactate"],
+                ["Volumen", volumeKm.toFixed(1).replace(".", ","), "km · últimos 7 días", "volume"]
               ].map(([label, value, caption, id]) => `
                 <article class="metric" data-metric="${id}">
                   <div class="metric-label">${label}</div>
@@ -1206,6 +1486,96 @@
                   <span class="chip blue">${escapeHtml(item.sport)}</span>
                 </div>
               `).join("") : `<div class="empty">No hay próximos entrenamientos.</div>`}
+            </div>
+          </section>
+        `;
+      }
+
+      function renderReadinessDetail() {
+        const readiness = metric("training-readiness");
+        const presentation = trainingReadinessPresentation(readiness);
+
+        const factorValue = (value, suffix = "") =>
+          value == null || value === "" ? "—" : `${formatGarminDecimal(value)}${suffix}`;
+
+        const factors = [
+          {
+            name: "Sueño · última noche",
+            value: factorValue(readiness?.sleepScore, "/100"),
+            factor: readiness?.sleepScoreFactorPercent,
+            feedback: readiness?.sleepScoreFactorFeedback
+          },
+          {
+            name: "Tiempo de recuperación",
+            value: readiness?.recoveryTimeMin != null
+              ? formatDuration(Number(readiness.recoveryTimeMin) * 60)
+              : "—",
+            factor: readiness?.recoveryTimeFactorPercent,
+            feedback: readiness?.recoveryTimeFactorFeedback
+          },
+          {
+            name: "Estado de VFC",
+            value: factorValue(readiness?.hrvWeeklyAverage, " ms"),
+            factor: readiness?.hrvFactorPercent,
+            feedback: readiness?.hrvFactorFeedback
+          },
+          {
+            name: "Carga aguda",
+            value: factorValue(readiness?.acuteLoad),
+            factor: readiness?.acwrFactorPercent,
+            feedback: readiness?.acwrFactorFeedback
+          },
+          {
+            name: "Historial de sueño · 3 noches",
+            value: factorValue(readiness?.sleepHistoryFactorPercent, "%"),
+            factor: readiness?.sleepHistoryFactorPercent,
+            feedback: readiness?.sleepHistoryFactorFeedback
+          },
+          {
+            name: "Historial de estrés · 3 días",
+            value: factorValue(readiness?.stressHistoryFactorPercent, "%"),
+            factor: readiness?.stressHistoryFactorPercent,
+            feedback: readiness?.stressHistoryFactorFeedback
+          }
+        ];
+
+        return `
+          ${backButton()}
+          ${header("Estado ATLAS")}
+
+          <section class="section">
+            <div class="card">
+              <div class="readiness-score-wrap">
+                <div class="readiness-circle" style="border-color:${presentation.color};color:${presentation.color}">
+                  ${escapeHtml(presentation.score)}
+                </div>
+                <div>
+                  <div class="row-title">${escapeHtml(presentation.title)}</div>
+                  <div class="row-meta">${escapeHtml(presentation.detail)}</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Factores Garmin</h2>
+            <div class="readiness-factor-grid">
+              ${factors.map((factor) => `
+                <article class="readiness-factor">
+                  <div class="readiness-factor-name">${escapeHtml(factor.name)}</div>
+                  <div class="readiness-factor-value">${escapeHtml(factor.value)}</div>
+                  <div class="readiness-factor-meta">
+                    ${factor.factor != null ? `Factor Garmin: ${escapeHtml(formatGarminDecimal(factor.factor))}%` : "Factor Garmin: —"}
+                    ${factor.feedback ? `<br>${escapeHtml(factor.feedback)}` : ""}
+                  </div>
+                </article>
+              `).join("")}
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="card empty">
+              ATLAS muestra los seis factores que Garmin utiliza para Training Readiness sin recalcular ni sustituir la puntuación Garmin.
             </div>
           </section>
         `;
@@ -1448,7 +1818,8 @@
                 ["👤 Perfil", state.syncStatus.profile],
                 ["❤️ Métricas", state.syncStatus.metrics],
                 ["📅 Training", state.syncStatus.training],
-                ["🏃 Actividades", state.syncStatus.activities]
+                ["🏃 Actividades", state.syncStatus.activities],
+                ["🗄️ Histórico", state.syncStatus.history]
               ].map(([label, status]) => `
                 <div class="row">
                   <div class="row-title">${label}</div>
@@ -1473,6 +1844,29 @@
                   <div class="row-meta">${state.activitySync?.lastDate ? `Última actividad: ${escapeHtml(state.activitySync.lastDate)}` : "Sin histórico incremental todavía"}</div>
                 </div>
                 <span class="chip">${state.activities.length} act.</span>
+              </div>
+              <div class="row">
+                <div>
+                  <div class="row-title">Histórico Garmin bruto</div>
+                  <div class="row-meta">${state.historySync?.firstDate ? `Desde ${escapeHtml(state.historySync.firstDate)} · ${state.historySync.datasets || 0}/7 datasets${state.historySync.failures?.length ? ` · ${state.historySync.failures.length} fallos` : ""}` : "Pendiente de primera sincronización completa"}</div>
+                </div>
+                <span class="chip">${state.historySync?.chunks || 0} bloques</span>
+              </div>
+              <div class="row">
+                <div>
+                  <div class="row-title">Histórico ATLAS normalizado</div>
+                  <div class="row-meta">${state.healthNormalization?.firstDate ? `Desde ${escapeHtml(state.healthNormalization.firstDate)} hasta ${escapeHtml(state.healthNormalization.lastDate)} · ${state.healthNormalization.sources || 0}/7 fuentes${state.healthIncremental?.lastDate ? ` · incremental ${escapeHtml(state.healthIncremental.startDate)}→${escapeHtml(state.healthIncremental.lastDate)}` : ""}` : "Pendiente de normalización"}</div>
+                </div>
+                <span class="chip">${state.healthNormalization?.days || 0} días</span>
+              </div>
+              <div class="row">
+                <div>
+                  <div class="row-title">Auditoría de integridad</div>
+                  <div class="row-meta">${state.integrityAudit
+                    ? `${state.integrityAudit.ok ? "Sin incidencias" : "Revisar"} · actividades: ${state.integrityAudit.activities?.duplicates || 0} duplicadas / ${state.integrityAudit.activities?.invalidDates || 0} fechas inválidas · salud: ${state.integrityAudit.health?.missingDays || 0} días ausentes · bruto: ${state.integrityAudit.raw?.coverageGaps || 0} huecos`
+                    : "Pendiente de auditoría"}</div>
+                </div>
+                <span class="chip ${state.integrityAudit?.ok ? "blue" : ""}">${state.integrityAudit ? (state.integrityAudit.ok ? "OK" : "Revisar") : "…"}</span>
               </div>
               <div class="row">
                 <div>
@@ -1860,22 +2254,1050 @@
         `;
       }
 
-      function renderMetricDetail(id) {
-        const names = {
-          "readiness": "Preparación",
-          "sleep": "Sueño",
-          "hrv": "VFC",
-          "resting-hr": "FC reposo",
-          "stress": "Estrés",
-          "vo2max": "VO₂ máx."
+      function firstNumber(...values) {
+        for (const value of values) {
+          if (value === null || value === undefined || value === "") continue;
+          const number = Number(value);
+          if (Number.isFinite(number)) return number;
+        }
+        return null;
+      }
+
+      function findObject(value, predicate) {
+        if (value == null) return null;
+        if (Array.isArray(value)) {
+          for (const item of value) {
+            const found = findObject(item, predicate);
+            if (found) return found;
+          }
+          return null;
+        }
+        if (typeof value !== "object") return null;
+        if (predicate(value)) return value;
+        for (const child of Object.values(value)) {
+          if (child && typeof child === "object") {
+            const found = findObject(child, predicate);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+
+      function metricValueFromHealthDay(day, id) {
+        const sources = day?.sources || {};
+
+        if (id === "readiness") {
+          const rows = sources.trainingReadiness || [];
+          const candidates = [];
+          for (const root of rows) {
+            const visit = (value) => {
+              if (value == null) return;
+              if (Array.isArray(value)) {
+                value.forEach(visit);
+                return;
+              }
+              if (typeof value !== "object") return;
+              const score = firstNumber(value.score);
+              if (
+                score != null &&
+                score >= 0 &&
+                score <= 100 &&
+                (
+                  value.level != null ||
+                  value.recoveryTime != null ||
+                  value.acuteLoad != null ||
+                  value.timestampLocal != null ||
+                  value.timestamp != null
+                )
+              ) {
+                candidates.push({
+                  value: score,
+                  stamp: String(value.timestampLocal || value.timestamp || "")
+                });
+              }
+              Object.values(value).forEach((child) => {
+                if (child && typeof child === "object") visit(child);
+              });
+            };
+            visit(root);
+          }
+          candidates.sort((a, b) => b.stamp.localeCompare(a.stamp));
+          return candidates[0]?.value ?? null;
+        }
+
+        if (id === "sleep") {
+          const root = findObject(
+            sources.sleep || [],
+            (value) => firstNumber(
+              value?.sleepScores?.overall?.value,
+              value?.overallSleepScore,
+              value?.sleepScore
+            ) != null
+          );
+          return root
+            ? firstNumber(
+                root?.sleepScores?.overall?.value,
+                root?.overallSleepScore,
+                root?.sleepScore
+              )
+            : null;
+        }
+
+        if (id === "hrv") {
+          const root = findObject(
+            sources.hrv || [],
+            (value) => firstNumber(
+              value?.lastNightAvg,
+              value?.hrvSummary?.lastNightAvg
+            ) != null
+          );
+          return root
+            ? firstNumber(
+                root?.lastNightAvg,
+                root?.hrvSummary?.lastNightAvg
+              )
+            : null;
+        }
+
+        if (id === "resting-hr") {
+          const root = findObject(
+            sources.dailySummaries || [],
+            (value) => firstNumber(
+              value?.heartRate?.restingHeartRate,
+              value?.restingHeartRate
+            ) != null
+          );
+          return root
+            ? firstNumber(
+                root?.heartRate?.restingHeartRate,
+                root?.restingHeartRate
+              )
+            : null;
+        }
+
+        if (id === "stress") {
+          const root = findObject(
+            sources.dailySummaries || [],
+            (value) => firstNumber(
+              value?.stress?.averageStressLevel,
+              value?.stress?.overallStressLevel,
+              value?.averageStressLevel,
+              value?.overallStressLevel
+            ) != null
+          );
+          return root
+            ? firstNumber(
+                root?.stress?.averageStressLevel,
+                root?.stress?.overallStressLevel,
+                root?.averageStressLevel,
+                root?.overallStressLevel
+              )
+            : null;
+        }
+
+        if (id === "vo2max") {
+          const root = findObject(
+            sources.vo2max || [],
+            (value) => {
+              const precise = firstNumber(value?.vo2MaxPreciseValue);
+              return precise != null && precise > 10 && precise < 100;
+            }
+          );
+          return root ? firstNumber(root.vo2MaxPreciseValue) : null;
+        }
+
+        return null;
+      }
+
+      function hrvPointFromHealthDay(day) {
+        const root = findObject(
+          day?.sources?.hrv || [],
+          (value) => {
+            const n = firstNumber(value?.lastNightAvg, value?.hrvSummary?.lastNightAvg);
+            return n != null && n > 0;
+          }
+        );
+        if (!root) return null;
+
+        const summary = root?.hrvSummary || root;
+        const value = firstNumber(summary?.lastNightAvg);
+        if (value == null || value <= 0) return null;
+
+        return {
+          date: day.date,
+          value,
+          baselineLow: firstNumber(
+            summary?.baseline?.balancedLow,
+            summary?.baselineBalancedLow
+          ),
+          baselineHigh: firstNumber(
+            summary?.baseline?.balancedUpper,
+            summary?.baselineBalancedHigh
+          )
         };
+      }
+
+      function sleepPointFromHealthDay(day) {
+        const root = findObject(
+          day?.sources?.sleep || [],
+          (value) => {
+            const seconds = firstNumber(
+              value?.sleepTimeSeconds,
+              value?.dailySleepDTO?.sleepTimeSeconds
+            );
+            return seconds != null && seconds > 0;
+          }
+        );
+
+        if (!root) return null;
+
+        const dto = root?.dailySleepDTO || root;
+        const durationSec = firstNumber(dto?.sleepTimeSeconds);
+        if (durationSec == null || durationSec <= 0) return null;
+
+        const score = firstNumber(
+          dto?.sleepScores?.overall?.value,
+          dto?.overallSleepScore,
+          dto?.sleepScore
+        );
+
+        return {
+          date: day.date,
+          value: durationSec / 3600,
+          durationSec,
+          score:
+            score != null && score >= 0 && score <= 100
+              ? score
+              : null
+        };
+      }
+
+      function restingHrPointFromHealthDay(day) {
+        const row = state.restingHeartRateHistory.find(
+          (item) => item?.date === day?.date
+        );
+
+        const value = Number(row?.value);
+        if (Number.isFinite(value) && value > 20 && value < 250) {
+          return {
+            date: day.date,
+            value,
+            source: "FC reposo Garmin"
+          };
+        }
+
+        return null;
+      }
+
+      function metricSeries(id) {
+        if (id === "volume") return runningVolumeSeries();
+        if (id === "lactate") return lactateThresholdSeries();
+
+        return state.healthDays
+          .map((day) => {
+            if (id === "sleep") return sleepPointFromHealthDay(day);
+            if (id === "hrv") return hrvPointFromHealthDay(day);
+            if (id === "resting-hr") return restingHrPointFromHealthDay(day);
+
+            return {
+              date: day.date,
+              value: metricValueFromHealthDay(day, id)
+            };
+          })
+          .filter((item) => {
+            if (!item) return false;
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(String(item.date || ""))) return false;
+
+            // Importante: null NO es 0. Evita ceros falsos en VO₂, FC, etc.
+            if (item.value === null || item.value === undefined || item.value === "") {
+              return false;
+            }
+
+            const number = Number(item.value);
+            if (!Number.isFinite(number)) return false;
+            if (id === "vo2max" && (number <= 10 || number >= 100)) return false;
+            if (id === "resting-hr" && (number <= 0 || number >= 250)) return false;
+            return true;
+          })
+          .map((item) => ({ ...item, value: Number(item.value) }))
+          .sort((a, b) => a.date.localeCompare(b.date));
+      }
+
+      function rangeStartDate(range, lastDate) {
+        if (!lastDate || range === "all") return null;
+        const [y, m, d] = lastDate.split("-").map(Number);
+        const date = new Date(Date.UTC(y, m - 1, d));
+
+        if (range === "7d") date.setUTCDate(date.getUTCDate() - 6);
+        if (range === "1m") date.setUTCMonth(date.getUTCMonth() - 1);
+        if (range === "1y") date.setUTCFullYear(date.getUTCFullYear() - 1);
+
+        return date.toISOString().slice(0, 10);
+      }
+
+      function filterMetricSeries(series, range) {
+        if (!series.length || range === "all") return series;
+        const lastDate =
+          state.healthDays[state.healthDays.length - 1]?.date ||
+          series[series.length - 1]?.date ||
+          localDate(0);
+        const start = rangeStartDate(range, lastDate);
+        return start ? series.filter((item) => item.date >= start) : series;
+      }
+
+      function periodKey(date, mode) {
+        if (mode === "month") return String(date).slice(0, 7);
+        if (mode === "year") return String(date).slice(0, 4);
+        return String(date);
+      }
+
+      function aggregateSeries(rows, mode, reducer = "average") {
+        if (mode === "day") return rows;
+
+        const groups = new Map();
+        for (const row of rows) {
+          const key = periodKey(row.date, mode);
+          if (!groups.has(key)) groups.set(key, []);
+          groups.get(key).push(row);
+        }
+
+        return [...groups.entries()].map(([key, group]) => {
+          const values = group
+            .map((x) => Number(x.value))
+            .filter(Number.isFinite);
+
+          if (!values.length) return null;
+
+          const value = reducer === "sum"
+            ? values.reduce((a, b) => a + b, 0)
+            : values.reduce((a, b) => a + b, 0) / values.length;
+
+          const durations = group
+            .map((x) => Number(x.durationSec))
+            .filter(Number.isFinite);
+
+          const scores = group
+            .map((x) => Number(x.score))
+            .filter((x) => Number.isFinite(x) && x >= 0 && x <= 100);
+
+          return {
+            date: mode === "month" ? `${key}-01` : `${key}-01-01`,
+            label: key,
+            value,
+            durationSec: durations.length
+              ? durations.reduce((a, b) => a + b, 0) / durations.length
+              : null,
+            score: scores.length
+              ? scores.reduce((a, b) => a + b, 0) / scores.length
+              : null
+          };
+        }).filter(Boolean);
+      }
+
+      function displayRowsForMetric(id, allRows, range) {
+        const filtered = filterMetricSeries(allRows, range);
+
+        if (id === "sleep" || id === "volume") {
+          const mode =
+            range === "1y"
+              ? "month"
+              : range === "all"
+                ? "year"
+                : "day";
+
+          return aggregateSeries(
+            filtered,
+            mode,
+            id === "volume" ? "sum" : "average"
+          );
+        }
+
+        return filtered;
+      }
+
+      function formatMetricChartValue(id, value) {
+        if (!Number.isFinite(Number(value))) return "—";
+        const number = Number(value);
+
+        if (id === "vo2max") return `${formatGarminDecimal(number)} ml/kg/min`;
+        if (id === "hrv") return `${Math.round(number)} ms`;
+        if (id === "resting-hr") return `${Math.round(number)} bpm`;
+        if (id === "volume") return `${number.toFixed(1).replace(".", ",")} km`;
+        if (id === "sleep") return `${number.toFixed(1).replace(".", ",")} h`;
+        return String(Math.round(number));
+      }
+
+      function formatSleepDuration(seconds) {
+        const total = Math.max(0, Math.round(Number(seconds) || 0));
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.round((total % 3600) / 60);
+        if (minutes === 60) return `${hours + 1}h00m`;
+        return `${hours}h${String(minutes).padStart(2, "0")}m`;
+      }
+
+      function sleepScoreColor(score) {
+        const value = Number(score);
+        if (!Number.isFinite(value)) return "var(--text-3)";
+        if (value >= 90) return "var(--purple)";
+        if (value >= 80) return "var(--blue-active)";
+        if (value >= 60) return "var(--orange)";
+        return "var(--red)";
+      }
+
+      function integerAxisScale(values, options = {}) {
+        const finite = values.map(Number).filter(Number.isFinite);
+        if (!finite.length) return { min: 0, max: 1 };
+
+        let min = options.zeroMin ? 0 : Math.min(...finite);
+        let max = Math.max(...finite);
+
+        if (!options.zeroMin) {
+          const pad = Math.max(1, (max - min) * 0.08);
+          min -= pad;
+          max += pad;
+        } else {
+          max *= 1.08;
+        }
+
+        min = Math.floor(min);
+        max = Math.ceil(max);
+
+        if (max <= min) max = min + 1;
+        return { min, max };
+      }
+
+      function axisTickIndices(rows, range) {
+        const count = rows.length;
+        if (!count) return [];
+        const target =
+          range === "7d"
+            ? Math.min(7, count)
+            : range === "1m"
+              ? Math.min(6, count)
+              : range === "1y"
+                ? Math.min(6, count)
+                : Math.min(5, count);
+
+        if (target <= 1) return [0];
+
+        const indexes = new Set();
+        for (let i = 0; i < target; i++) {
+          indexes.add(Math.round((i / (target - 1)) * (count - 1)));
+        }
+        return [...indexes].sort((a, b) => a - b);
+      }
+
+      function axisDateLabel(item, range) {
+        const label = String(item?.label || "");
+        if (/^\d{4}-\d{2}$/.test(label)) {
+          return `${label.slice(5, 7)}/${label.slice(2, 4)}`;
+        }
+        if (/^\d{4}$/.test(label)) return label;
+
+        const date = String(item?.date || "");
+        const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) return label || date;
+
+        if (range === "all") return `${match[2]}/${match[1].slice(2)}`;
+        return `${match[3]}/${match[2]}`;
+      }
+
+      function chartSelectionHtml(id) {
+        const selected = state.chartSelection;
+        if (!selected || selected.metricId !== id) return "";
+
+        return `
+          <div class="row" style="margin-top:12px;border-top:1px solid var(--divider);padding-top:12px">
+            <div>
+              <div class="row-title">${escapeHtml(selected.date || "—")}</div>
+              <div class="row-meta">${escapeHtml(selected.primary || "—")}${selected.secondary ? ` · ${escapeHtml(selected.secondary)}` : ""}</div>
+            </div>
+            <span class="chip blue">Detalle</span>
+          </div>
+        `;
+      }
+
+      function pointDataAttrs(id, date, primary, secondary = "") {
+        return `
+          data-chart-point
+          data-chart-metric="${escapeHtml(id)}"
+          data-chart-date="${escapeHtml(date)}"
+          data-chart-primary="${escapeHtml(primary)}"
+          data-chart-secondary="${escapeHtml(secondary)}"
+          style="cursor:pointer"
+        `;
+      }
+
+      function metricChartHtml(id, rows) {
+        if (!rows.length) {
+          return `<div class="empty">No hay datos históricos disponibles para este rango.</div>`;
+        }
+
+        const width = 720;
+        const height = 330;
+        const left = 52;
+        const right = 18;
+        const top = 48;
+        const bottom = 52;
+        const plotW = width - left - right;
+        const plotH = height - top - bottom;
+        const isBars = id === "sleep" || id === "volume";
+
+        const values = rows
+          .map((item) => Number(item.value))
+          .filter(Number.isFinite);
+
+        const scale = integerAxisScale(values, { zeroMin: isBars });
+
+        const x = (index) =>
+          left + (
+            rows.length <= 1
+              ? plotW / 2
+              : (index / (rows.length - 1)) * plotW
+          );
+
+        const y = (value) =>
+          top + (
+            (scale.max - Number(value)) /
+            (scale.max - scale.min || 1)
+          ) * plotH;
+
+        const grid = [0, .25, .5, .75, 1].map((ratio) => {
+          const yy = top + ratio * plotH;
+          const label = Math.round(
+            scale.max - ratio * (scale.max - scale.min)
+          );
+          return `
+            <line x1="${left}" y1="${yy}" x2="${width - right}" y2="${yy}"
+              stroke="var(--divider)" stroke-width="1"/>
+            <text x="${left - 9}" y="${yy + 4}" text-anchor="end"
+              fill="var(--text-3)" font-size="11">${label}</text>
+          `;
+        }).join("");
+
+        const xTicks = axisTickIndices(rows, state.metricRange)
+          .map((index) => {
+            const xx = x(index);
+            return `
+              <text x="${xx}" y="${height - 16}" text-anchor="middle"
+                fill="var(--text-3)" font-size="10">
+                ${escapeHtml(axisDateLabel(rows[index], state.metricRange))}
+              </text>
+            `;
+          }).join("");
+
+        let marks = "";
+
+        if (isBars) {
+          const slot = plotW / Math.max(rows.length, 1);
+          const barW = Math.max(2, Math.min(30, slot * .68));
+
+          marks = rows.map((item, index) => {
+            const xx = x(index) - barW / 2;
+            const yy = y(item.value);
+            const hh = top + plotH - yy;
+
+            const fill =
+              id === "sleep"
+                ? sleepScoreColor(item.score)
+                : "var(--blue)";
+
+            const primary =
+              id === "sleep"
+                ? formatSleepDuration(
+                    Number.isFinite(Number(item.durationSec))
+                      ? Number(item.durationSec)
+                      : Number(item.value) * 3600
+                  )
+                : formatMetricChartValue(id, item.value);
+
+            const secondary =
+              id === "sleep" && Number.isFinite(Number(item.score))
+                ? `Puntuación ${Math.round(Number(item.score))}`
+                : "";
+
+            const labelY = Math.max(13, yy - 7);
+            const rotate = rows.length > 14;
+            const labelSize = rows.length > 24 ? 8 : rows.length > 14 ? 9 : 10;
+
+            return `
+              <rect x="${xx.toFixed(2)}" y="${yy.toFixed(2)}"
+                width="${barW.toFixed(2)}"
+                height="${Math.max(1, hh).toFixed(2)}"
+                rx="${Math.min(3, barW / 2).toFixed(2)}"
+                fill="${fill}"
+                ${pointDataAttrs(
+                  id,
+                  item.label || item.date,
+                  primary,
+                  secondary
+                )}>
+                <title>${escapeHtml(item.label || item.date)} · ${escapeHtml(primary)}${secondary ? ` · ${escapeHtml(secondary)}` : ""}</title>
+              </rect>
+              <text x="${x(index).toFixed(2)}" y="${labelY.toFixed(2)}"
+                text-anchor="${rotate ? "start" : "middle"}"
+                fill="var(--text-2)"
+                font-size="${labelSize}"
+                ${rotate ? `transform="rotate(-62 ${x(index).toFixed(2)} ${labelY.toFixed(2)})"` : ""}>
+                ${escapeHtml(primary)}
+              </text>
+            `;
+          }).join("");
+        } else {
+          let band = "";
+
+          if (id === "hrv") {
+            const bandRows = rows
+              .map((item, index) => ({ item, index }))
+              .filter(({ item }) =>
+                Number.isFinite(Number(item.baselineLow)) &&
+                Number.isFinite(Number(item.baselineHigh))
+              );
+
+            if (bandRows.length >= 2) {
+              const topPoints = bandRows.map(({ item, index }) =>
+                `${x(index).toFixed(2)},${y(item.baselineHigh).toFixed(2)}`
+              );
+
+              const bottomPoints = [...bandRows].reverse().map(({ item, index }) =>
+                `${x(index).toFixed(2)},${y(item.baselineLow).toFixed(2)}`
+              );
+
+              band = `
+                <polygon points="${[...topPoints, ...bottomPoints].join(" ")}"
+                  fill="var(--green)" fill-opacity=".13" stroke="none"/>
+              `;
+            }
+          }
+
+          const points = rows
+            .map((item, index) =>
+              `${x(index).toFixed(2)},${y(item.value).toFixed(2)}`
+            )
+            .join(" ");
+
+          const circles = rows.map((item, index) => {
+            const primary = formatMetricChartValue(id, item.value);
+            const secondary =
+              id === "hrv" &&
+              Number.isFinite(Number(item.baselineLow)) &&
+              Number.isFinite(Number(item.baselineHigh))
+                ? `Referencia ${Math.round(item.baselineLow)}–${Math.round(item.baselineHigh)} ms`
+                : item.source || "";
+
+            return `
+              <circle cx="${x(index).toFixed(2)}"
+                cy="${y(item.value).toFixed(2)}"
+                r="${rows.length > 500 ? 2.1 : rows.length > 120 ? 2.5 : 3.5}"
+                fill="var(--blue)"
+                ${pointDataAttrs(id, item.date, primary, secondary)}>
+                <title>${escapeHtml(item.date)} · ${escapeHtml(primary)}${secondary ? ` · ${escapeHtml(secondary)}` : ""}</title>
+              </circle>
+            `;
+          }).join("");
+
+          marks = `
+            ${band}
+            <polyline points="${points}" fill="none"
+              stroke="var(--blue)" stroke-width="2.3"
+              stroke-linecap="round" stroke-linejoin="round"/>
+            ${circles}
+          `;
+        }
+
+        return `
+          <div class="chart-wrap">
+            <svg viewBox="0 0 ${width} ${height}"
+              role="img" aria-label="Histórico de la métrica">
+              ${grid}
+              ${marks}
+              ${xTicks}
+            </svg>
+          </div>
+          ${id === "hrv" ? `
+            <div class="chart-legend">
+              <span><span class="legend-dot" style="background:var(--blue)"></span>VFC nocturna</span>
+              <span><span class="legend-dot" style="background:var(--green)"></span>Rango Garmin histórico</span>
+            </div>
+          ` : ""}
+        `;
+      }
+
+      function thresholdRawToPaceSecKm(raw) {
+        const value = Number(raw);
+        if (!Number.isFinite(value) || value <= 0) return null;
+
+        // Garmin biometric lactateThresholdSpeed puede venir en km/h.
+        // Ej.: 13.69 km/h => 4:23 min/km.
+        if (value >= 8 && value <= 30) {
+          return 3600 / value;
+        }
+
+        // Algunas respuestas Garmin pueden venir en m/s.
+        if (value >= 1.2 && value < 8) {
+          return 1000 / value;
+        }
+
+        // Compatibilidad defensiva con s/m.
+        if (value > 0.05 && value < 1.2) {
+          return value * 1000;
+        }
+
+        // Ya expresado como s/km.
+        if (value >= 120 && value <= 900) {
+          return value;
+        }
+
+        return null;
+      }
+
+      function lactateThresholdSeries() {
+        const byDate = new Map();
+
+        for (const chunk of state.lactateThreshold) {
+          const rows = Array.isArray(chunk?.payload?.rows)
+            ? chunk.payload.rows
+            : [];
+
+          for (const row of rows) {
+            const date = String(row?.date || "");
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
+
+            const paceSecKm = thresholdRawToPaceSecKm(row?.speed);
+            const heartRate = Number(row?.heartRate);
+
+            if (
+              !Number.isFinite(paceSecKm) &&
+              !(Number.isFinite(heartRate) && heartRate > 30 && heartRate < 250)
+            ) {
+              continue;
+            }
+
+            byDate.set(date, {
+              date,
+              paceSecKm: Number.isFinite(paceSecKm) ? paceSecKm : null,
+              heartRate:
+                Number.isFinite(heartRate) && heartRate > 30 && heartRate < 250
+                  ? heartRate
+                  : null
+            });
+          }
+
+          const latest = chunk?.payload?.latest;
+          if (latest && typeof latest === "object") {
+            const latestDate =
+              String(latest.calendarDate || "").match(/^\d{4}-\d{2}-\d{2}$/)
+                ? latest.calendarDate
+                : chunk?.endDate || localDate(0);
+
+            // Garmin latestLactateThreshold is authoritative for the current
+            // threshold. It must override any range sample for the same date.
+            let paceSecKm = null;
+            const latestSpeed = Number(latest.speed);
+
+            if (Number.isFinite(latestSpeed) && latestSpeed > 0) {
+              // Garmin's latest threshold speed is inverse pace (seconds/metre).
+              // Example: 0.263 s/m => 263 s/km => 4:23/km.
+              if (latestSpeed > 0.05 && latestSpeed < 1.2) {
+                paceSecKm = latestSpeed * 1000;
+              } else {
+                paceSecKm = thresholdRawToPaceSecKm(latestSpeed);
+              }
+            }
+
+            const heartRate = Number(latest.heartRate);
+
+            if (
+              Number.isFinite(paceSecKm) ||
+              (Number.isFinite(heartRate) && heartRate > 30 && heartRate < 250)
+            ) {
+              const previous = byDate.get(latestDate) || {
+                date: latestDate,
+                paceSecKm: null,
+                heartRate: null
+              };
+
+              byDate.set(latestDate, {
+                date: latestDate,
+                paceSecKm:
+                  Number.isFinite(paceSecKm)
+                    ? paceSecKm
+                    : previous.paceSecKm,
+                heartRate:
+                  Number.isFinite(heartRate) && heartRate > 30 && heartRate < 250
+                    ? heartRate
+                    : previous.heartRate
+              });
+            }
+          }
+        }
+
+        return [...byDate.values()].sort(
+          (a, b) => a.date.localeCompare(b.date)
+        );
+      }
+
+      function runningVolumeSeries() {
+        const byDate = new Map();
+
+        for (const activity of state.activities) {
+          if (!isRunningActivity(activity)) continue;
+
+          const date = String(activity?.summary?.date || "");
+          const km = (Number(activity?.summary?.distanceM) || 0) / 1000;
+
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || km <= 0) continue;
+          byDate.set(date, (byDate.get(date) || 0) + km);
+        }
+
+        return [...byDate.entries()]
+          .map(([date, value]) => ({ date, value }))
+          .sort((a, b) => a.date.localeCompare(b.date));
+      }
+
+      function formatPace(secondsPerKm) {
+        const seconds = Number(secondsPerKm);
+        if (!Number.isFinite(seconds) || seconds <= 0) return "—";
+
+        const total = Math.round(seconds);
+        const min = Math.floor(total / 60);
+        const sec = String(total % 60).padStart(2, "0");
+        return `${min}:${sec}/km`;
+      }
+
+      function lactateChartHtml(rows) {
+        if (!rows.length) {
+          return `<div class="empty">No hay histórico Garmin de umbral de lactato disponible.</div>`;
+        }
+
+        const width = 720;
+        const height = 330;
+        const left = 58;
+        const right = 58;
+        const top = 24;
+        const bottom = 52;
+        const plotW = width - left - right;
+        const plotH = height - top - bottom;
+
+        const x = (index) =>
+          left + (
+            rows.length <= 1
+              ? plotW / 2
+              : (index / (rows.length - 1)) * plotW
+          );
+
+        const paceValues = rows
+          .map((item) => Number(item.paceSecKm))
+          .filter(Number.isFinite);
+
+        const hrValues = rows
+          .map((item) => Number(item.heartRate))
+          .filter(Number.isFinite);
+
+        const paceScale = integerAxisScale(paceValues);
+        const hrScale = integerAxisScale(hrValues);
+
+        const yPace = (value) =>
+          top + (
+            (Number(value) - paceScale.min) /
+            (paceScale.max - paceScale.min || 1)
+          ) * plotH;
+
+        const yHr = (value) =>
+          top + (
+            (hrScale.max - Number(value)) /
+            (hrScale.max - hrScale.min || 1)
+          ) * plotH;
+
+        const grid = [0, .25, .5, .75, 1].map((ratio) => {
+          const yy = top + ratio * plotH;
+          const pace = Math.round(
+            paceScale.min + ratio * (paceScale.max - paceScale.min)
+          );
+          const hr = Math.round(
+            hrScale.max - ratio * (hrScale.max - hrScale.min)
+          );
+
+          return `
+            <line x1="${left}" y1="${yy}" x2="${width - right}" y2="${yy}"
+              stroke="var(--divider)" stroke-width="1"/>
+            <text x="${left - 8}" y="${yy + 4}" text-anchor="end"
+              fill="var(--cyan)" font-size="10">${escapeHtml(formatPace(pace).replace("/km", ""))}</text>
+            <text x="${width - right + 8}" y="${yy + 4}" text-anchor="start"
+              fill="var(--orange)" font-size="10">${hr}</text>
+          `;
+        }).join("");
+
+        const paceRows = rows
+          .map((item, index) => ({ item, index }))
+          .filter(({ item }) => Number.isFinite(item.paceSecKm));
+
+        const hrRows = rows
+          .map((item, index) => ({ item, index }))
+          .filter(({ item }) => Number.isFinite(item.heartRate));
+
+        const pacePoints = paceRows
+          .map(({ item, index }) =>
+            `${x(index).toFixed(2)},${yPace(item.paceSecKm).toFixed(2)}`
+          )
+          .join(" ");
+
+        const hrPoints = hrRows
+          .map(({ item, index }) =>
+            `${x(index).toFixed(2)},${yHr(item.heartRate).toFixed(2)}`
+          )
+          .join(" ");
+
+        const pointCircles = rows.map((item, index) => {
+          const paceText = Number.isFinite(item.paceSecKm)
+            ? formatPace(item.paceSecKm)
+            : "Ritmo —";
+
+          const hrText = Number.isFinite(item.heartRate)
+            ? `${Math.round(item.heartRate)} bpm`
+            : "FC —";
+
+          const attrs = pointDataAttrs(
+            "lactate",
+            item.date,
+            paceText,
+            hrText
+          );
+
+          return `
+            ${Number.isFinite(item.paceSecKm) ? `
+              <circle cx="${x(index)}" cy="${yPace(item.paceSecKm)}"
+                r="3.5" fill="var(--cyan)" ${attrs}>
+                <title>${escapeHtml(item.date)} · ${escapeHtml(paceText)} · ${escapeHtml(hrText)}</title>
+              </circle>
+            ` : ""}
+            ${Number.isFinite(item.heartRate) ? `
+              <circle cx="${x(index)}" cy="${yHr(item.heartRate)}"
+                r="3.5" fill="var(--orange)" ${attrs}>
+                <title>${escapeHtml(item.date)} · ${escapeHtml(paceText)} · ${escapeHtml(hrText)}</title>
+              </circle>
+            ` : ""}
+          `;
+        }).join("");
+
+        const xTicks = axisTickIndices(rows, state.metricRange)
+          .map((index) => `
+            <text x="${x(index)}" y="${height - 16}" text-anchor="middle"
+              fill="var(--text-3)" font-size="10">
+              ${escapeHtml(axisDateLabel(rows[index], state.metricRange))}
+            </text>
+          `).join("");
+
+        return `
+          <div class="chart-wrap">
+            <svg viewBox="0 0 ${width} ${height}" role="img"
+              aria-label="Umbral de lactato">
+              ${grid}
+              ${pacePoints ? `
+                <polyline points="${pacePoints}" fill="none"
+                  stroke="var(--cyan)" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+              ` : ""}
+              ${hrPoints ? `
+                <polyline points="${hrPoints}" fill="none"
+                  stroke="var(--orange)" stroke-width="2.4"
+                  stroke-linecap="round" stroke-linejoin="round"/>
+              ` : ""}
+              ${pointCircles}
+              ${xTicks}
+            </svg>
+          </div>
+
+          <div class="chart-legend">
+            <span><span class="legend-dot" style="background:var(--cyan)"></span>Ritmo</span>
+            <span><span class="legend-dot" style="background:var(--orange)"></span>FC</span>
+          </div>
+        `;
+      }
+
+      function renderMetricDetail(id) {
+        const definitions = {
+          "sleep": { name: "Sueño", unit: "duración" },
+          "hrv": { name: "VFC", unit: "ms" },
+          "resting-hr": { name: "FC reposo", unit: "bpm" },
+          "vo2max": { name: "VO₂ máx.", unit: "ml/kg/min" },
+          "lactate": { name: "Umbral de lactato", unit: "ritmo + FC" },
+          "volume": { name: "Volumen", unit: "km de carrera" }
+        };
+
+        const definition = definitions[id] || { name: "Métrica", unit: "" };
+        const allRows = metricSeries(id);
+
+        const rows =
+          id === "lactate"
+            ? filterMetricSeries(allRows, state.metricRange)
+            : displayRowsForMetric(id, allRows, state.metricRange);
+
+        const latest = allRows[allRows.length - 1] || null;
+
+        const ranges = [
+          ["7d", "7 días"],
+          ["1m", "1 mes"],
+          ["1y", "1 año"],
+          ["all", "Todo"]
+        ];
+
+        let latestValue = "—";
+
+        if (id === "sleep" && latest) {
+          latestValue = formatSleepDuration(latest.durationSec);
+        } else if (id === "lactate" && latest) {
+          latestValue = latest.paceSecKm
+            ? formatPace(latest.paceSecKm)
+            : `${Math.round(latest.heartRate)} bpm`;
+        } else if (latest) {
+          latestValue = formatMetricChartValue(id, latest.value);
+        }
 
         return `
           ${backButton()}
-          ${header(names[id] || "Métrica")}
+          ${header(definition.name)}
+
           <section class="section">
-            <div class="card empty">
-              La gráfica histórica se implementará cuando existan métricas sincronizadas.
+            <div class="card">
+              <div class="row">
+                <div>
+                  <div class="row-title">${escapeHtml(latestValue)}</div>
+                  <div class="row-meta">${latest ? `${escapeHtml(latest.date)} · ${escapeHtml(definition.unit)}` : "Sin histórico disponible"}</div>
+                </div>
+                <span class="chip">${allRows.length} datos</span>
+              </div>
+
+              <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:12px">
+                ${ranges.map(([key, label]) => `
+                  <button
+                    class="chip ${state.metricRange === key ? "blue" : ""}"
+                    data-metric-range="${key}"
+                    style="cursor:pointer;border:0"
+                  >${label}</button>
+                `).join("")}
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="card">
+              ${id === "lactate"
+                ? lactateChartHtml(rows)
+                : metricChartHtml(id, rows)}
+              ${chartSelectionHtml(id)}
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="card">
+              <div class="row">
+                <div>
+                  <div class="row-title">Datos mostrados</div>
+                  <div class="row-meta">${rows.length} de ${allRows.length} registros históricos locales</div>
+                </div>
+                <span class="chip blue">IndexedDB</span>
+              </div>
             </div>
           </section>
         `;
@@ -1884,6 +3306,10 @@
       function currentView() {
         if (state.route.view === "metric") {
           return renderMetricDetail(state.route.id);
+        }
+
+        if (state.route.view === "readiness") {
+          return renderReadinessDetail();
         }
 
         if (state.route.view === "activity-detail") {
@@ -1905,9 +3331,37 @@
           el.addEventListener("click", () => goTab(el.dataset.tab));
         });
 
+        document.querySelectorAll("[data-readiness-detail]").forEach((el) => {
+          el.addEventListener("click", () => {
+            navigate({ tab: "today", view: "readiness" });
+          });
+        });
+
         document.querySelectorAll("[data-metric]").forEach((el) => {
           el.addEventListener("click", () => {
+            AtlasUI.state.chartSelection = null;
             navigate({ tab: "today", view: "metric", id: el.dataset.metric });
+          });
+        });
+
+        document.querySelectorAll("[data-metric-range]").forEach((el) => {
+          el.addEventListener("click", () => {
+            AtlasUI.state.metricRange = el.dataset.metricRange || "7d";
+            AtlasUI.state.chartSelection = null;
+            render();
+          });
+        });
+
+        document.querySelectorAll("[data-chart-point]").forEach((el) => {
+          el.addEventListener("click", (event) => {
+            event.stopPropagation();
+            AtlasUI.state.chartSelection = {
+              metricId: el.dataset.chartMetric || "",
+              date: el.dataset.chartDate || "",
+              primary: el.dataset.chartPrimary || "",
+              secondary: el.dataset.chartSecondary || ""
+            };
+            render();
           });
         });
 
@@ -2442,15 +3896,15 @@
         const existingIds = new Set(existing.map((item) => String(item.id)));
         const bootstrapState = await AtlasStorage.get("sync", "activityBootstrapComplete");
 
-        const pageSize = 20;
-        const initialMax = 100;
+        const pageSize = 100;
         const overlapKnownCount = 5;
-        const bootstrap = bootstrapState?.value !== true || existing.length < initialMax;
+        const bootstrap = bootstrapState?.value !== true;
 
         let start = 0;
         let knownSeen = 0;
         let newest = null;
         let processed = 0;
+        let reachedEnd = false;
         let stop = false;
 
         while (!stop) {
@@ -2461,7 +3915,10 @@
           );
 
           const rows = Array.isArray(response.data) ? response.data : [];
-          if (!rows.length) break;
+          if (!rows.length) {
+            reachedEnd = true;
+            break;
+          }
 
           for (const raw of rows) {
             const summary = AtlasDomain.normalizeActivitySummary(raw);
@@ -2499,22 +3956,21 @@
             existingIds.add(String(summary.id));
             processed += 1;
 
-            if (bootstrap) {
-              if (existingIds.size >= initialMax) {
-                stop = true;
-                break;
-              }
-            } else if (knownSeen >= overlapKnownCount) {
+            if (!bootstrap && knownSeen >= overlapKnownCount) {
               stop = true;
               break;
             }
           }
 
-          if (rows.length < pageSize) break;
+          if (rows.length < pageSize) {
+            reachedEnd = true;
+            break;
+          }
+
           start += pageSize;
         }
 
-        if (existingIds.size >= initialMax) {
+        if (bootstrap && reachedEnd) {
           await AtlasStorage.put("sync", {
             key: "activityBootstrapComplete",
             value: true
@@ -2548,14 +4004,21 @@
       }
 
       async function hydrateLocal() {
-        const [profile, activities, metrics, training, bridge, lastSync, activitySync, lastSyncStatus, lastSyncErrors] = await Promise.all([
+        const [profile, activities, metrics, training, healthDays, lactateThreshold, restingHeartRateHistory, bridge, lastSync, activitySync, historySync, healthNormalization, healthIncremental, integrityAudit, lastSyncStatus, lastSyncErrors] = await Promise.all([
           AtlasStorage.get("profile", "athlete"),
           AtlasStorage.getAll("activities"),
           AtlasStorage.getAll("metrics"),
           AtlasStorage.getAll("training"),
+          AtlasStorage.getAll("healthDays"),
+          AtlasStorage.getAll("lactateThreshold"),
+          AtlasStorage.getAll("restingHeartRateHistory"),
           AtlasStorage.get("settings", "garminBridgeUrl"),
           AtlasStorage.get("sync", "lastGarminSync"),
           getActivitySyncMeta(),
+          AtlasStorage.get("sync", "fullHealthHistoryMeta"),
+          AtlasStorage.get("sync", "healthNormalizationMeta"),
+          AtlasStorage.get("sync", "incrementalHealthHistoryMeta"),
+          AtlasStorage.get("sync", "integrityAuditMeta"),
           AtlasStorage.get("sync", "lastGarminSyncStatus"),
           AtlasStorage.get("sync", "lastGarminSyncErrors")
         ]);
@@ -2623,9 +4086,16 @@
         );
         AtlasUI.state.metrics = metrics;
         AtlasUI.state.training = training.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
+        AtlasUI.state.healthDays = healthDays.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
+        AtlasUI.state.lactateThreshold = lactateThreshold.sort((a, b) => String(a.startDate || "").localeCompare(String(b.startDate || "")));
+        AtlasUI.state.restingHeartRateHistory = restingHeartRateHistory.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
         AtlasUI.state.bridgeUrl = bridge?.value || ATLAS_CONFIG.GARMIN_BRIDGE_URL || "";
         AtlasUI.state.lastSync = lastSync?.value || null;
         AtlasUI.state.activitySync = activitySync;
+        AtlasUI.state.historySync = historySync?.value || null;
+        AtlasUI.state.healthNormalization = healthNormalization?.value || null;
+        AtlasUI.state.healthIncremental = healthIncremental?.value || null;
+        AtlasUI.state.integrityAudit = integrityAudit?.value || null;
 
         if (!AtlasUI.state.syncing && lastSyncStatus?.value === "partial") {
           AtlasUI.state.syncError = Array.isArray(lastSyncErrors?.value)
@@ -2666,6 +4136,697 @@
         }
       }
 
+      function addDaysIso(iso, days) {
+        const [y, m, d] = String(iso).split("-").map(Number);
+        const date = new Date(Date.UTC(y, m - 1, d));
+        date.setUTCDate(date.getUTCDate() + days);
+        return date.toISOString().slice(0, 10);
+      }
+
+      function minIsoDate(...values) {
+        const valid = values.filter((v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || "")));
+        return valid.length ? valid.sort()[0] : null;
+      }
+
+      function extractIsoDates(value, out = []) {
+        if (value == null) return out;
+        if (typeof value === "string") {
+          const m = value.match(/^(\d{4}-\d{2}-\d{2})/);
+          if (m) out.push(m[1]);
+          return out;
+        }
+        if (Array.isArray(value)) {
+          for (const item of value) extractIsoDates(item, out);
+          return out;
+        }
+        if (typeof value === "object") {
+          for (const child of Object.values(value)) extractIsoDates(child, out);
+        }
+        return out;
+      }
+
+      async function saveRawHistoryChunk(dataset, startDate, endDate, response) {
+        const record = {
+          id: `${dataset}:${startDate}:${endDate}`,
+          dataset,
+          startDate,
+          endDate,
+          payload: response?.data ?? null,
+          meta: response?.meta ?? {},
+          fetchedAt: new Date().toISOString()
+        };
+        await AtlasStorage.put("rawHistory", record);
+        return record;
+      }
+
+      async function discoverGarminHistoryStart() {
+        const currentYear = Number(localDate(0).slice(0, 4));
+        const earliestActivity = AtlasUI.state.activities
+          .map((x) => x?.summary?.date)
+          .filter(Boolean)
+          .sort()[0] || null;
+
+        let earliestSummary = null;
+        let seenData = false;
+
+        for (let year = currentYear; year >= 2008; year--) {
+          const startDate = `${year}-01-01`;
+          const endDate = year === currentYear ? localDate(0) : `${year}-12-31`;
+          const response = await AtlasServices.withRetry(
+            () => AtlasServices.history(AtlasUI.state.bridgeUrl, "dailySummaries", startDate, endDate),
+            1
+          );
+          await saveRawHistoryChunk("dailySummaries", startDate, endDate, response);
+
+          const dates = extractIsoDates(response?.data).filter((d) => d >= startDate && d <= endDate);
+          if (dates.length) {
+            seenData = true;
+            const yearEarliest = dates.sort()[0];
+            earliestSummary = minIsoDate(earliestSummary, yearEarliest);
+          } else if (seenData) {
+            break;
+          }
+        }
+
+        return minIsoDate(earliestSummary, earliestActivity) || earliestActivity || localDate(0);
+      }
+
+      function historyChunks(startDate, endDate, daysPerChunk) {
+        const chunks = [];
+        let cursor = startDate;
+        while (cursor <= endDate) {
+          const candidate = addDaysIso(cursor, daysPerChunk - 1);
+          const chunkEnd = candidate < endDate ? candidate : endDate;
+          chunks.push([cursor, chunkEnd]);
+          cursor = addDaysIso(chunkEnd, 1);
+        }
+        return chunks;
+      }
+
+      async function syncIncrementalHealthHistory() {
+        const normalizationMeta = await AtlasStorage.get("sync", "healthNormalizationMeta");
+        const lastDate = normalizationMeta?.value?.lastDate;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(lastDate || ""))) {
+          throw new Error("HEALTH_INCREMENTAL_LAST_DATE_MISSING");
+        }
+
+        const today = localDate(0);
+        const startDate = addDaysIso(lastDate, -1); // Solape de 1 día para capturar cierres tardíos/cambios.
+        const datasets = [
+          "dailySummaries",
+          "sleep",
+          "hrv",
+          "trainingReadiness",
+          "vo2max",
+          "trainingStatus",
+          "weight"
+        ];
+
+        const failures = [];
+        let saved = 0;
+
+        for (const dataset of datasets) {
+          try {
+            const response = await AtlasServices.withRetry(
+              () => AtlasServices.history(
+                AtlasUI.state.bridgeUrl,
+                dataset,
+                startDate,
+                today
+              ),
+              1
+            );
+            await saveRawHistoryChunk(dataset, startDate, today, response);
+            saved += 1;
+          } catch (error) {
+            failures.push(`${dataset}:${String(error?.message || error)}`);
+          }
+        }
+
+        const meta = {
+          startDate,
+          lastDate: today,
+          datasets: datasets.length,
+          saved,
+          failures,
+          completedAt: failures.length ? null : new Date().toISOString()
+        };
+
+        await AtlasStorage.put("sync", {
+          key: "incrementalHealthHistoryMeta",
+          value: meta
+        });
+
+        if (failures.length) {
+          throw new Error(`HEALTH_INCREMENTAL_PARTIAL_${failures.length}`);
+        }
+
+        return meta;
+      }
+
+      async function syncFullHealthHistory() {
+        const complete = await AtlasStorage.get("sync", "fullHealthHistoryComplete");
+        if (complete?.value === true) return AtlasUI.state.historySync;
+
+        // Fuentes históricas canónicas. Evitamos duplicar métricas ya incluidas
+        // dentro de dailySummaries y respetamos límites conservadores de Garmin.
+        const datasets = [
+          ["dailySummaries", 365],
+          ["sleep", 28],
+          ["hrv", 180],
+          ["trainingReadiness", 28],
+          ["vo2max", 365],
+          ["trainingStatus", 365],
+          ["weight", 365]
+        ];
+
+        const firstDate = await discoverGarminHistoryStart();
+        const today = localDate(0);
+        let chunksSaved = 0;
+        const failures = [];
+
+        for (const [dataset, chunkDays] of datasets) {
+          if (dataset === "dailySummaries") continue; // Ya se guardó durante descubrimiento.
+          for (const [startDate, endDate] of historyChunks(firstDate, today, chunkDays)) {
+            try {
+              const response = await AtlasServices.withRetry(
+                () => AtlasServices.history(AtlasUI.state.bridgeUrl, dataset, startDate, endDate),
+                1
+              );
+              await saveRawHistoryChunk(dataset, startDate, endDate, response);
+              chunksSaved += 1;
+              if (chunksSaved % 5 === 0) {
+                AtlasUI.state.historySync = {
+                  firstDate,
+                  lastDate: today,
+                  datasets: datasets.length,
+                  chunks: chunksSaved,
+                  complete: false
+                };
+                AtlasUI.render();
+              }
+            } catch (error) {
+              failures.push(`${dataset}:${startDate}:${endDate}:${String(error?.message || error)}`);
+            }
+          }
+        }
+
+        const allRaw = await AtlasStorage.getAll("rawHistory");
+        const meta = {
+          firstDate,
+          lastDate: today,
+          datasets: new Set(allRaw.map((x) => x.dataset)).size,
+          chunks: allRaw.length,
+          complete: failures.length === 0,
+          completedAt: failures.length ? null : new Date().toISOString(),
+          failures
+        };
+
+        await AtlasStorage.put("sync", { key: "fullHealthHistoryMeta", value: meta });
+        if (!failures.length) {
+          await AtlasStorage.put("sync", { key: "fullHealthHistoryComplete", value: true });
+        }
+        AtlasUI.state.historySync = meta;
+
+        if (failures.length) {
+          throw new Error(`HISTORY_PARTIAL_${failures.length}`);
+        }
+        return meta;
+      }
+
+      function atlasDateFromRecord(value) {
+        if (!value || typeof value !== "object") return null;
+
+        const direct = [
+          value.calendarDate,
+          value.date,
+          value.measurementDate,
+          value.summaryDate
+        ];
+
+        const nested = [
+          value?.hrvSummary?.calendarDate,
+          value?.generic?.calendarDate,
+          value?.dailySleepDTO?.calendarDate,
+          value?.sleepSummary?.calendarDate
+        ];
+
+        for (const candidate of [...direct, ...nested]) {
+          const text = String(candidate || "");
+          const match = text.match(/^(\d{4}-\d{2}-\d{2})/);
+          if (match) return match[1];
+        }
+
+        const timestamps = [
+          value.measurementTimeLocal,
+          value.timestampLocal,
+          value.startTimestampLocal,
+          value.createTimeStamp
+        ];
+
+        for (const candidate of timestamps) {
+          const text = String(candidate || "");
+          const match = text.match(/^(\d{4}-\d{2}-\d{2})/);
+          if (match) return match[1];
+        }
+
+        return null;
+      }
+
+      function collectDatedGarminRecords(value, out = []) {
+        if (value == null) return out;
+
+        if (Array.isArray(value)) {
+          for (const item of value) collectDatedGarminRecords(item, out);
+          return out;
+        }
+
+        if (typeof value !== "object") return out;
+
+        const date = atlasDateFromRecord(value);
+        if (date) {
+          out.push({ date, value });
+          return out; // Conservar el objeto fechado completo; no duplicar hijos.
+        }
+
+        for (const child of Object.values(value)) {
+          if (child && typeof child === "object") {
+            collectDatedGarminRecords(child, out);
+          }
+        }
+
+        return out;
+      }
+
+      async function normalizeRawHistoryToHealthDays() {
+        const raw = await AtlasStorage.getAll("rawHistory");
+        if (!raw.length) throw new Error("RAW_HISTORY_EMPTY");
+
+        const days = new Map();
+        const sourceSet = new Set();
+
+        for (const chunk of raw) {
+          const dataset = String(chunk?.dataset || "");
+          if (!dataset) continue;
+          sourceSet.add(dataset);
+
+          const records = collectDatedGarminRecords(chunk?.payload);
+          for (const item of records) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(item.date)) continue;
+
+            let day = days.get(item.date);
+            if (!day) {
+              day = {
+                id: item.date,
+                date: item.date,
+                sources: {},
+                normalizedAt: null
+              };
+              days.set(item.date, day);
+            }
+
+            if (!Array.isArray(day.sources[dataset])) {
+              day.sources[dataset] = [];
+            }
+
+            // No interpretar el payload: conservar cada registro Garmin completo.
+            day.sources[dataset].push(item.value);
+          }
+        }
+
+        await AtlasStorage.clear("healthDays");
+        const stamp = new Date().toISOString();
+        const ordered = [...days.values()].sort((a, b) => a.date.localeCompare(b.date));
+
+        for (const day of ordered) {
+          day.normalizedAt = stamp;
+          await AtlasStorage.put("healthDays", day);
+        }
+
+        const meta = {
+          firstDate: ordered[0]?.date || null,
+          lastDate: ordered[ordered.length - 1]?.date || null,
+          days: ordered.length,
+          sources: sourceSet.size,
+          normalizedAt: stamp
+        };
+
+        await AtlasStorage.put("sync", {
+          key: "healthNormalizationMeta",
+          value: meta
+        });
+        await AtlasStorage.put("sync", {
+          key: "healthNormalizationComplete",
+          value: true
+        });
+
+        AtlasUI.state.healthNormalization = meta;
+        return meta;
+      }
+
+
+      function utcDayNumber(dateString) {
+        const match = String(dateString || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (!match) return null;
+        const ms = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        return Number.isFinite(ms) ? Math.floor(ms / 86400000) : null;
+      }
+
+      function isoFromUtcDay(dayNumber) {
+        if (!Number.isFinite(dayNumber)) return null;
+        return new Date(dayNumber * 86400000).toISOString().slice(0, 10);
+      }
+
+
+
+      async function syncRestingHeartRateHistory() {
+        const SYNC_SCHEMA = 2;
+        const metaRow = await AtlasStorage.get("sync", "restingHeartRateHistoryMeta");
+        const normalization = await AtlasStorage.get("sync", "healthNormalizationMeta");
+        const today = localDate(0);
+
+        const previous = metaRow?.value || null;
+        const valid =
+          previous?.schema === SYNC_SCHEMA &&
+          /^\d{4}-\d{2}-\d{2}$/.test(String(previous?.lastDate || ""));
+
+        const firstDate =
+          normalization?.value?.firstDate ||
+          state.healthDays[0]?.date ||
+          today;
+
+        const startDate = valid
+          ? addDaysIso(previous.lastDate, -1)
+          : firstDate;
+
+        if (!valid) {
+          await AtlasStorage.clear("restingHeartRateHistory");
+        }
+
+        const chunks = valid
+          ? [[startDate, today]]
+          : historyChunks(startDate, today, 28);
+
+        let saved = 0;
+        const failures = [];
+
+        for (const [from, to] of chunks) {
+          try {
+            const response = await AtlasServices.withRetry(
+              () => AtlasServices.restingHeartRateHistory(
+                AtlasUI.state.bridgeUrl,
+                from,
+                to
+              ),
+              1
+            );
+
+            const rows = Array.isArray(response?.rows) ? response.rows : [];
+            for (const row of rows) {
+              const date = String(row?.date || "");
+              const value = Number(row?.value);
+              if (
+                /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+                Number.isFinite(value) &&
+                value > 20 &&
+                value < 250
+              ) {
+                await AtlasStorage.put("restingHeartRateHistory", {
+                  date,
+                  value,
+                  fetchedAt: new Date().toISOString()
+                });
+                saved += 1;
+              }
+            }
+          } catch (error) {
+            failures.push(`${from}:${to}:${String(error?.message || error)}`);
+          }
+        }
+
+        const meta = {
+          schema: SYNC_SCHEMA,
+          firstDate,
+          lastDate: today,
+          saved,
+          failures,
+          completedAt: failures.length ? null : new Date().toISOString()
+        };
+
+        await AtlasStorage.put("sync", {
+          key: "restingHeartRateHistoryMeta",
+          value: meta
+        });
+
+        if (failures.length) {
+          throw new Error(`RHR_HISTORY_PARTIAL_${failures.length}`);
+        }
+
+        return meta;
+      }
+
+      async function saveLactateThresholdChunk(startDate, endDate, response) {
+        await AtlasStorage.put("lactateThreshold", {
+          id: `${startDate}:${endDate}`,
+          startDate,
+          endDate,
+          payload: response,
+          fetchedAt: new Date().toISOString()
+        });
+      }
+
+      async function syncLactateThresholdHistory() {
+        const SYNC_SCHEMA = 4;
+        const metaRow = await AtlasStorage.get("sync", "lactateThresholdSyncMeta");
+        const normalization = await AtlasStorage.get("sync", "healthNormalizationMeta");
+        const today = localDate(0);
+
+        let startDate;
+        let full = false;
+
+        const previous = metaRow?.value || null;
+        const previousValid =
+          previous?.schema === SYNC_SCHEMA &&
+          /^\d{4}-\d{2}-\d{2}$/.test(String(previous?.lastDate || ""));
+
+        if (previousValid) {
+          startDate = addDaysIso(previous.lastDate, -1);
+        } else {
+          startDate =
+            normalization?.value?.firstDate ||
+            state.activities.at(-1)?.summary?.date ||
+            today;
+          full = true;
+          await AtlasStorage.clear("lactateThreshold");
+        }
+
+        const failures = [];
+        let saved = 0;
+
+        const chunks = full
+          ? historyChunks(startDate, today, 180)
+          : [[startDate, today]];
+
+        for (const [from, to] of chunks) {
+          try {
+            const response = await AtlasServices.withRetry(
+              () => AtlasServices.lactateThreshold(
+                AtlasUI.state.bridgeUrl,
+                from,
+                to,
+                "daily"
+              ),
+              1
+            );
+
+            const partial = response?.meta?.partial === true;
+            if (partial) {
+              const detail = response?.data || {};
+              const failed = Object.entries(detail)
+                .filter(([, value]) => value?.ok === false)
+                .map(([key, value]) => `${key}:${value?.error?.code || "GARMIN_REQUEST_FAILED"}`)
+                .join(",");
+
+              throw new Error(`GARMIN_LT_PARTIAL_${failed || "UNKNOWN"}`);
+            }
+
+            await saveLactateThresholdChunk(from, to, response);
+            saved += 1;
+          } catch (error) {
+            failures.push(`${from}:${to}:${String(error?.message || error)}`);
+          }
+        }
+
+        const meta = {
+          schema: SYNC_SCHEMA,
+          firstDate: full ? startDate : (previous?.firstDate || startDate),
+          lastDate: today,
+          saved,
+          failures,
+          completedAt: failures.length ? null : new Date().toISOString()
+        };
+
+        await AtlasStorage.put("sync", {
+          key: "lactateThresholdSyncMeta",
+          value: meta
+        });
+
+        if (failures.length) {
+          throw new Error(`LACTATE_THRESHOLD_PARTIAL_${failures.length}`);
+        }
+
+        return meta;
+      }
+
+      async function auditLocalIntegrity() {
+        const [activities, rawHistory, healthDays] = await Promise.all([
+          AtlasStorage.getAll("activities"),
+          AtlasStorage.getAll("rawHistory"),
+          AtlasStorage.getAll("healthDays")
+        ]);
+
+        const activityIds = new Set();
+        let activityDuplicates = 0;
+        let activityInvalidDates = 0;
+        const activityDates = [];
+
+        for (const item of activities) {
+          const id = String(item?.id ?? "");
+          if (id) {
+            if (activityIds.has(id)) activityDuplicates += 1;
+            activityIds.add(id);
+          }
+
+          const date = String(item?.summary?.date || "");
+          if (utcDayNumber(date) == null) {
+            activityInvalidDates += 1;
+          } else {
+            activityDates.push(date);
+          }
+        }
+
+        activityDates.sort();
+
+        const healthDateSet = new Set();
+        let healthDuplicates = 0;
+        let healthInvalidDates = 0;
+
+        for (const item of healthDays) {
+          const date = String(item?.date || item?.id || "");
+          if (utcDayNumber(date) == null) {
+            healthInvalidDates += 1;
+            continue;
+          }
+          if (healthDateSet.has(date)) healthDuplicates += 1;
+          healthDateSet.add(date);
+        }
+
+        const healthDates = [...healthDateSet].sort();
+        let missingHealthDays = 0;
+        const missingHealthSample = [];
+
+        if (healthDates.length) {
+          const first = utcDayNumber(healthDates[0]);
+          const last = utcDayNumber(healthDates[healthDates.length - 1]);
+
+          for (let day = first; day <= last; day++) {
+            const date = isoFromUtcDay(day);
+            if (!healthDateSet.has(date)) {
+              missingHealthDays += 1;
+              if (missingHealthSample.length < 10) missingHealthSample.push(date);
+            }
+          }
+        }
+
+        const rawDatasets = new Map();
+        let rawInvalidRanges = 0;
+
+        for (const chunk of rawHistory) {
+          const dataset = String(chunk?.dataset || "");
+          const start = utcDayNumber(chunk?.startDate);
+          const end = utcDayNumber(chunk?.endDate);
+
+          if (!dataset || start == null || end == null || start > end) {
+            rawInvalidRanges += 1;
+            continue;
+          }
+
+          if (!rawDatasets.has(dataset)) rawDatasets.set(dataset, []);
+          rawDatasets.get(dataset).push([start, end]);
+        }
+
+        let rawCoverageGaps = 0;
+        const rawGapDatasets = [];
+
+        for (const [dataset, ranges] of rawDatasets.entries()) {
+          ranges.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+          let mergedEnd = null;
+          let datasetGaps = 0;
+
+          for (const [start, end] of ranges) {
+            if (mergedEnd == null) {
+              mergedEnd = end;
+              continue;
+            }
+
+            if (start > mergedEnd + 1) {
+              datasetGaps += 1;
+              rawCoverageGaps += 1;
+            }
+
+            if (end > mergedEnd) mergedEnd = end;
+          }
+
+          if (datasetGaps) rawGapDatasets.push(dataset);
+        }
+
+        const audit = {
+          ok:
+            activityDuplicates === 0 &&
+            activityInvalidDates === 0 &&
+            healthDuplicates === 0 &&
+            healthInvalidDates === 0 &&
+            missingHealthDays === 0 &&
+            rawInvalidRanges === 0 &&
+            rawCoverageGaps === 0 &&
+            rawDatasets.size === 7,
+          checkedAt: new Date().toISOString(),
+          activities: {
+            count: activities.length,
+            uniqueIds: activityIds.size,
+            duplicates: activityDuplicates,
+            invalidDates: activityInvalidDates,
+            firstDate: activityDates[0] || null,
+            lastDate: activityDates[activityDates.length - 1] || null
+          },
+          health: {
+            count: healthDays.length,
+            uniqueDates: healthDateSet.size,
+            duplicates: healthDuplicates,
+            invalidDates: healthInvalidDates,
+            firstDate: healthDates[0] || null,
+            lastDate: healthDates[healthDates.length - 1] || null,
+            missingDays: missingHealthDays,
+            missingSample: missingHealthSample
+          },
+          raw: {
+            chunks: rawHistory.length,
+            datasets: rawDatasets.size,
+            invalidRanges: rawInvalidRanges,
+            coverageGaps: rawCoverageGaps,
+            gapDatasets: rawGapDatasets
+          }
+        };
+
+        await AtlasStorage.put("sync", {
+          key: "integrityAuditMeta",
+          value: audit
+        });
+
+        AtlasUI.state.integrityAudit = audit;
+        return audit;
+      }
+
       async function syncNow() {
         if (!AtlasUI.state.dbReady || AtlasUI.state.syncing) return;
 
@@ -2681,7 +4842,8 @@
           profile: "idle",
           metrics: "idle",
           training: "idle",
-          activities: "idle"
+          activities: "idle",
+          history: "idle"
         };
         AtlasUI.render();
 
@@ -2743,6 +4905,55 @@
 
           if (!activitiesR.ok) {
             errors.push(`Actividades: ${activitiesR.error}`);
+          }
+
+          const historyComplete = await AtlasStorage.get("sync", "fullHealthHistoryComplete");
+          let historyChanged = false;
+
+          if (historyComplete?.value !== true) {
+            const historyR = await runSyncBlock("history", () => syncFullHealthHistory());
+            if (!historyR.ok) {
+              errors.push(`Histórico: ${historyR.error}`);
+            } else {
+              historyChanged = true;
+            }
+          } else {
+            const historyR = await runSyncBlock("history", () => syncIncrementalHealthHistory());
+            if (!historyR.ok) {
+              errors.push(`Histórico incremental: ${historyR.error}`);
+            } else {
+              historyChanged = true;
+            }
+          }
+
+          const normalizationComplete = await AtlasStorage.get("sync", "healthNormalizationComplete");
+          if (normalizationComplete?.value !== true || historyChanged) {
+            try {
+              await normalizeRawHistoryToHealthDays();
+            } catch (error) {
+              errors.push(`Normalización: ${String(error?.message || error)}`);
+            }
+          }
+
+          try {
+            await syncRestingHeartRateHistory();
+          } catch (error) {
+            errors.push(`FC reposo histórica: ${String(error?.message || error)}`);
+          }
+
+          try {
+            await syncLactateThresholdHistory();
+          } catch (error) {
+            errors.push(`Umbral lactato: ${String(error?.message || error)}`);
+          }
+
+          try {
+            const audit = await auditLocalIntegrity();
+            if (!audit.ok) {
+              errors.push("Integridad: revisar datos locales");
+            }
+          } catch (error) {
+            errors.push(`Integridad: ${String(error?.message || error)}`);
           }
 
           const stamp = new Date().toISOString();
