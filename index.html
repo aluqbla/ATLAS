@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.23",
+      APP_VERSION: "0.0.24",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -708,22 +708,12 @@
           acuteLoad: readiness.acuteLoad ?? null
         });
 
-        const vo2Payload = payload?.vo2max?.ok ? payload.vo2max.data : null;
-        const vo2Rows = Array.isArray(vo2Payload)
-          ? vo2Payload
-          : (vo2Payload ? [vo2Payload] : []);
-
-        const vo2Row = vo2Rows.find((row) =>
-          String(row?.generic?.calendarDate || row?.calendarDate || "") === String(date)
-        ) || vo2Rows[0] || null;
-
-        const vo2 = vo2Row?.generic || vo2Row;
+        const vo2 = payload?.vo2max?.ok ? payload.vo2max.data?.generic : null;
         if (vo2) out.push({
           id: `vo2max:${date}`,
           type: "vo2max",
           date,
           value: vo2.vo2MaxPreciseValue ?? vo2.vo2MaxValue ?? null,
-          preciseValue: vo2.vo2MaxPreciseValue ?? null,
           unit: "ml/kg/min"
         });
 
@@ -786,20 +776,10 @@
         if (!baseUrl) throw new Error("GARMIN_BRIDGE_NOT_CONFIGURED");
 
         const base = String(baseUrl).replace(/\/+$/, "");
-        let response;
-
-        try {
-          response = await fetch(`${base}${path}`, {
-            method: "GET",
-            headers: { "Accept": "application/json" }
-          });
-        } catch {
-          throw new Error(
-            location.protocol === "https:"
-              ? "BRIDGE_NETWORK_OR_CORS"
-              : "BRIDGE_NETWORK_ERROR"
-          );
-        }
+        const response = await fetch(`${base}${path}`, {
+          method: "GET",
+          headers: { "Accept": "application/json" }
+        });
 
         let payload;
         try {
@@ -1425,26 +1405,6 @@
         return `${meters.toFixed(2)} m`;
       }
 
-      function activityPreciseVo2(activity) {
-        const date = activity?.summary?.date;
-        if (!date) return activity?.running?.activityVo2Max ?? activity?.summary?.activityVo2Max ?? null;
-
-        const precise = state.metrics.find(
-          (item) =>
-            item.type === "vo2max" &&
-            item.date === date &&
-            item.value != null
-        );
-
-        return firstVisible(
-          activity?.running?.activityVo2Precise,
-          precise?.preciseValue,
-          precise?.value,
-          activity?.running?.activityVo2Max,
-          activity?.summary?.activityVo2Max
-        );
-      }
-
       function renderActivityDetail(id) {
         const activity = state.activities.find((item) => String(item.id) === String(id));
         const summary = activity?.summary || {};
@@ -1465,8 +1425,6 @@
             summary[key]
           );
         }
-
-        const activityVo2Display = activityPreciseVo2(activity);
 
         if (!activity) {
           return `
@@ -1531,7 +1489,7 @@
             <section class="section">
               <h2 class="section-title">Running</h2>
               <div class="card">
-                <div class="row"><div class="row-title">VO₂ max actividad</div><div class="row-meta">${activityVo2Display != null ? Number(activityVo2Display).toFixed(1) : "—"}</div></div>
+                <div class="row"><div class="row-title">VO₂ max actividad</div><div class="row-meta">${d.activityVo2Max != null ? Math.round(Number(d.activityVo2Max)) : "—"}</div></div>
                 <div class="row"><div class="row-title">Ritmo medio</div><div class="row-meta">${formatPace(d.distanceM, d.durationSec)}</div></div>
                 <div class="row"><div class="row-title">Cadencia media / máx.</div><div class="row-meta">${formatCadence(d.averageCadence)} / ${formatCadence(d.maxCadence)} spm</div></div>
                 <div class="row"><div class="row-title">Longitud de zancada</div><div class="row-meta">${formatStrideLength(d.averageStrideLength)}</div></div>
@@ -1739,35 +1697,14 @@
           values.length
             ? values.reduce((sum, value) => sum + value, 0) / values.length
             : null;
+        const max = (values) => values.length ? Math.max(...values) : null;
 
-        const max = (values) =>
-          values.length ? Math.max(...values) : null;
-
-        const cadence = collect(
-          "directRunCadence",
-          "directCadence",
-          "cadence"
-        );
-        const groundContact = collect(
-          "directGroundContactTime",
-          "groundContactTime"
-        );
-        const verticalOscillation = collect(
-          "directVerticalOscillation",
-          "verticalOscillation"
-        );
-        const verticalRatio = collect(
-          "directVerticalRatio",
-          "verticalRatio"
-        );
-        const groundBalance = collect(
-          "directGroundContactBalance",
-          "groundContactBalance"
-        );
-        const power = collect(
-          "directPower",
-          "power"
-        );
+        const cadence = collect("directRunCadence", "directCadence", "cadence");
+        const groundContact = collect("directGroundContactTime", "groundContactTime");
+        const verticalOscillation = collect("directVerticalOscillation", "verticalOscillation");
+        const verticalRatio = collect("directVerticalRatio", "verticalRatio");
+        const groundBalance = collect("directGroundContactBalance", "groundContactBalance");
+        const power = collect("directPower", "power");
 
         return {
           averageCadence: avg(cadence),
@@ -1859,9 +1796,7 @@
               fitLoaded: previous?.fitLoaded === true,
               running: previous?.running ?? null,
               runningUpdatedAt: previous?.runningUpdatedAt ?? null,
-              runningVo2RefreshedAt: previous?.runningVo2RefreshedAt ?? null,
-              runningLoaded: previous?.runningLoaded === true,
-              runningSource: previous?.runningSource ?? null
+              runningLoaded: previous?.runningLoaded === true
             };
 
             await AtlasStorage.put("activities", record);
@@ -1940,9 +1875,7 @@
               fitLoaded: item.fitLoaded === true,
               running: item.running ?? null,
               runningUpdatedAt: item.runningUpdatedAt ?? null,
-              runningVo2RefreshedAt: item.runningVo2RefreshedAt ?? null,
-              runningLoaded: item.runningLoaded === true,
-              runningSource: item.runningSource ?? null
+              runningLoaded: item.runningLoaded === true
             };
             if (
               normalized.fitBlob !== item.fitBlob ||
@@ -1982,9 +1915,7 @@
             fitLoaded: false,
             running: null,
             runningUpdatedAt: null,
-            runningVo2RefreshedAt: null,
-            runningLoaded: false,
-            runningSource: null
+            runningLoaded: false
           };
 
           await AtlasStorage.put("activities", migrated);
@@ -1996,24 +1927,7 @@
         );
         AtlasUI.state.metrics = metrics;
         AtlasUI.state.training = training.sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")));
-        const bridgeFromUrl = (() => {
-          try {
-            const value = new URL(location.href).searchParams.get("bridge");
-            return value ? value.trim().replace(/\/+$/, "") : "";
-          } catch {
-            return "";
-          }
-        })();
-
-        if (bridgeFromUrl) {
-          await AtlasStorage.put("settings", {
-            key: "garminBridgeUrl",
-            value: bridgeFromUrl
-          });
-        }
-
-        AtlasUI.state.bridgeUrl =
-          bridgeFromUrl || bridge?.value || ATLAS_CONFIG.GARMIN_BRIDGE_URL || "";
+        AtlasUI.state.bridgeUrl = bridge?.value || ATLAS_CONFIG.GARMIN_BRIDGE_URL || "";
         AtlasUI.state.lastSync = lastSync?.value || null;
         AtlasUI.state.activitySync = activitySync;
 
@@ -2189,79 +2103,11 @@
         return detail;
       }
 
-      async function ensurePreciseVo2ForDate(date) {
-        const cached = await AtlasStorage.get("metrics", `vo2max:${date}`);
-
-        if (
-          cached?.preciseValue != null &&
-          Number.isFinite(Number(cached.preciseValue))
-        ) {
-          return Number(cached.preciseValue);
-        }
-
-        const response = await AtlasServices.metrics(
-          AtlasUI.state.bridgeUrl,
-          date
-        );
-
-        const normalized = AtlasDomain.normalizeMetrics(
-          response.data,
-          date
-        );
-
-        for (const item of normalized) {
-          await AtlasStorage.put("metrics", item);
-        }
-
-        const vo2 = normalized.find(
-          (item) => item.type === "vo2max"
-        );
-
-        if (
-          vo2?.preciseValue != null &&
-          Number.isFinite(Number(vo2.preciseValue))
-        ) {
-          return Number(vo2.preciseValue);
-        }
-
-        return null;
-      }
-
       async function ensureActivityRunning(id) {
         const existing = await AtlasStorage.get("activities", String(id));
         if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
 
-        if (
-          existing.runningLoaded &&
-          existing.running &&
-          existing.runningSource === "activity-row-v1"
-        ) {
-          const preciseCached =
-            existing.running.activityVo2Precise != null &&
-            Number.isFinite(Number(existing.running.activityVo2Precise));
-
-          if (!preciseCached) {
-            const precise = await ensurePreciseVo2ForDate(
-              existing?.summary?.date
-            );
-
-            if (precise != null) {
-              const refreshed = {
-                ...existing,
-                running: {
-                  ...existing.running,
-                  activityVo2Precise: Number(precise)
-                },
-                runningUpdatedAt: new Date().toISOString(),
-                runningVo2RefreshedAt: new Date().toISOString()
-              };
-
-              await AtlasStorage.put("activities", refreshed);
-              await hydrateLocal();
-              return refreshed.running;
-            }
-          }
-
+        if (existing.runningLoaded && existing.running) {
           return existing.running;
         }
 
@@ -2282,19 +2128,15 @@
           : existing.summary;
 
         const chart = summarizeRunningMetrics(detailsRaw);
-        const preciseVo2 = await ensurePreciseVo2ForDate(date);
 
         const choose = (...values) => {
           for (const value of values) {
-            if (value !== null && value !== undefined && value !== "") {
-              return value;
-            }
+            if (value !== null && value !== undefined && value !== "") return value;
           }
           return null;
         };
 
         const running = {
-          activityVo2Precise: preciseVo2,
           activityVo2Max: choose(
             freshSummary?.activityVo2Max,
             existing?.summary?.activityVo2Max
@@ -2357,12 +2199,7 @@
           },
           running,
           runningLoaded: true,
-          runningUpdatedAt: new Date().toISOString(),
-          runningVo2RefreshedAt:
-            running.activityVo2Precise != null
-              ? new Date().toISOString()
-              : existing?.runningVo2RefreshedAt ?? null,
-          runningSource: "activity-row-v1"
+          runningUpdatedAt: new Date().toISOString()
         };
 
         await AtlasStorage.put("activities", updated);
