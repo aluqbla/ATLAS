@@ -476,7 +476,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.39",
+      APP_VERSION: "0.0.46",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -751,6 +751,55 @@
           lightSec: sleep.lightSleepSeconds ?? null,
           avgHeartRate: sleep.avgHeartRate ?? null,
           avgStress: sleep.avgSleepStress ?? null
+        });
+
+        const heartRateRow = payload?.heartRate?.ok
+          ? payload.heartRate.data
+          : null;
+        const restingHeartRate = heartRateRow?.restingHeartRate ?? null;
+        if (restingHeartRate != null) out.push({
+          id: `resting-hr:${date}`,
+          type: "resting-hr",
+          date,
+          value: restingHeartRate,
+          unit: "bpm"
+        });
+
+        const stressRows = payload?.stress?.ok ? payload.stress.data || [] : [];
+        const stressRow = Array.isArray(stressRows) ? stressRows[0] : null;
+        const stress = stressRow?.values || null;
+        if (stress?.overallStressLevel != null) out.push({
+          id: `stress:${date}`,
+          type: "stress",
+          date,
+          value: stress.overallStressLevel,
+          unit: "score"
+        });
+
+        const trainingStatus = payload?.trainingStatus?.ok ? payload.trainingStatus.data : null;
+        if (trainingStatus) out.push({
+          id: `training-status:${date}`,
+          type: "training-status",
+          date,
+          value:
+            trainingStatus.trainingStatusPhrase ??
+            trainingStatus.trainingStatus ??
+            trainingStatus.status ??
+            null,
+          unit: "status"
+        });
+
+        const loadBalance = payload?.loadBalance?.ok ? payload.loadBalance.data : null;
+        if (loadBalance) out.push({
+          id: `load-balance:${date}`,
+          type: "load-balance",
+          date,
+          value:
+            loadBalance.loadRatio ??
+            loadBalance.trainingLoadRatio ??
+            null,
+          unit: "ratio",
+          raw: loadBalance
         });
 
         return out;
@@ -1060,11 +1109,47 @@
         }[value] || "—";
       }
 
+      function trainingReadinessPresentation(readiness) {
+        if (!readiness || readiness.value == null) {
+          return {
+            title: "Sin datos de preparación",
+            detail: "Garmin no ha devuelto Training Readiness para hoy.",
+            color: "var(--text-3)"
+          };
+        }
+
+        const key = String(readiness.level || "")
+          .trim()
+          .toLowerCase()
+          .replace(/[\s_-]+/g, "");
+
+        const levels = {
+          prime: ["Preparación óptima", "var(--green)"],
+          high: ["Preparación alta", "var(--green)"],
+          moderate: ["Preparación moderada", "var(--yellow)"],
+          low: ["Preparación baja", "var(--orange)"],
+          poor: ["Preparación muy baja", "var(--red)"]
+        };
+
+        const known = levels[key] || null;
+        const score = formatGarminDecimal(readiness.value);
+        const rawLevel = readiness.level ? ` · Garmin: ${escapeHtml(readiness.level)}` : "";
+
+        return {
+          title: known ? known[0] : "Preparación disponible",
+          detail: `Training Readiness: ${score}${known ? "" : rawLevel}`,
+          color: known ? known[1] : "var(--blue)"
+        };
+      }
+
       function renderToday() {
         const sleep = metric("sleep");
         const hrv = metric("hrv");
         const vo2 = metric("vo2max");
         const readiness = metric("training-readiness");
+        const restingHR = metric("resting-hr");
+        const stress = metric("stress");
+        const readinessState = trainingReadinessPresentation(readiness);
         const lastActivity = state.activities[0] || null;
         const today = new Date().toISOString().slice(0, 10);
         const nextTraining = state.training.filter(x => x.date >= today).slice(0, 3);
@@ -1074,8 +1159,8 @@
           <section class="section">
             <h2 class="section-title">Estado ATLAS</h2>
             <div class="card">
-              <div class="row-title"><span class="status-dot"></span>${state.syncing ? "Sincronizando…" : "ATLAS local-first"}</div>
-              <div class="row-meta">${state.syncError ? `⚠️ ${escapeHtml(state.syncError)}` : (state.lastSync ? `Última sincronización: ${escapeHtml(state.lastSync)}` : "Configura Garmin Bridge en Perfil.")}</div>
+              <div class="row-title"><span class="status-dot" style="background:${readinessState.color}"></span>${escapeHtml(readinessState.title)}</div>
+              <div class="row-meta">${readinessState.detail}${state.syncing ? " · Actualizando Garmin…" : ""}</div>
             </div>
           </section>
 
@@ -1086,6 +1171,8 @@
                 ["Preparación", readiness?.value ?? "—", readiness?.level || "Sin datos", "readiness"],
                 ["Sueño", sleep?.value ?? "—", sleep ? formatDuration(sleep.durationSec) : "Sin datos", "sleep"],
                 ["VFC", hrv?.value ?? "—", hrv ? `${hrv.status || "—"} · ${hrv.weeklyAvg ?? "—"} ms` : "Sin datos", "hrv"],
+                ["FC reposo", restingHR?.value ?? "—", restingHR?.value != null ? "bpm" : "Sin datos", "resting-hr"],
+                ["Estrés", stress?.value ?? "—", stress?.value != null ? "Garmin" : "Sin datos", "stress"],
                 ["VO₂ máx.", vo2?.value != null ? formatGarminDecimal(vo2.value) : "—", "ml/kg/min", "vo2max"]
               ].map(([label, value, caption, id]) => `
                 <article class="metric" data-metric="${id}">
@@ -1779,6 +1866,7 @@
           "sleep": "Sueño",
           "hrv": "VFC",
           "resting-hr": "FC reposo",
+          "stress": "Estrés",
           "vo2max": "VO₂ máx."
         };
 
@@ -3013,14 +3101,18 @@
                   value: preciseVo2Result.value.data.value ?? null,
                   source:
                     preciseVo2Result.value.data.source ??
-                    "garmin-connect:maxmet",
+                    "garmin-connect:maxmet.generic.vo2MaxPreciseValue",
                   calendarDate:
                     preciseVo2Result.value.data.calendarDate ?? null,
                   obtainedAt:
                     preciseVo2Result.value.data.obtainedAt ??
                     new Date().toISOString(),
+                  association:
+                    preciseVo2Result.value.meta?.association ??
+                    "latest-run-on-activity-date",
                   matched:
                     preciseVo2Result.value.data.matched === true &&
+                    preciseVo2Result.value.meta?.exactOpenedActivityMatch === true &&
                     String(
                       preciseVo2Result.value.data.activityId ?? ""
                     ) === String(id) &&
@@ -3036,7 +3128,7 @@
               : {
                   activityId: String(id),
                   value: null,
-                  source: "garmin-connect:maxmet",
+                  source: "garmin-connect:maxmet.generic.vo2MaxPreciseValue",
                   calendarDate: existing?.summary?.date ?? null,
                   obtainedAt: new Date().toISOString(),
                   matched: false
