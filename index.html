@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.22",
+      APP_VERSION: "0.0.23",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -1859,6 +1859,7 @@
               fitLoaded: previous?.fitLoaded === true,
               running: previous?.running ?? null,
               runningUpdatedAt: previous?.runningUpdatedAt ?? null,
+              runningVo2RefreshedAt: previous?.runningVo2RefreshedAt ?? null,
               runningLoaded: previous?.runningLoaded === true,
               runningSource: previous?.runningSource ?? null
             };
@@ -1939,6 +1940,7 @@
               fitLoaded: item.fitLoaded === true,
               running: item.running ?? null,
               runningUpdatedAt: item.runningUpdatedAt ?? null,
+              runningVo2RefreshedAt: item.runningVo2RefreshedAt ?? null,
               runningLoaded: item.runningLoaded === true,
               runningSource: item.runningSource ?? null
             };
@@ -1980,6 +1982,7 @@
             fitLoaded: false,
             running: null,
             runningUpdatedAt: null,
+            runningVo2RefreshedAt: null,
             runningLoaded: false,
             runningSource: null
           };
@@ -2233,7 +2236,11 @@
           existing.running &&
           existing.runningSource === "activity-row-v1"
         ) {
-          if (existing.running.activityVo2Precise == null) {
+          const preciseCached =
+            existing.running.activityVo2Precise != null &&
+            Number.isFinite(Number(existing.running.activityVo2Precise));
+
+          if (!preciseCached) {
             const precise = await ensurePreciseVo2ForDate(
               existing?.summary?.date
             );
@@ -2243,9 +2250,10 @@
                 ...existing,
                 running: {
                   ...existing.running,
-                  activityVo2Precise: precise
+                  activityVo2Precise: Number(precise)
                 },
-                runningUpdatedAt: new Date().toISOString()
+                runningUpdatedAt: new Date().toISOString(),
+                runningVo2RefreshedAt: new Date().toISOString()
               };
 
               await AtlasStorage.put("activities", refreshed);
@@ -2350,6 +2358,10 @@
           running,
           runningLoaded: true,
           runningUpdatedAt: new Date().toISOString(),
+          runningVo2RefreshedAt:
+            running.activityVo2Precise != null
+              ? new Date().toISOString()
+              : existing?.runningVo2RefreshedAt ?? null,
           runningSource: "activity-row-v1"
         };
 
