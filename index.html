@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.24",
+      APP_VERSION: "0.0.25",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -2234,6 +2234,30 @@
         return fitBlob;
       }
 
+      async function bootstrapBridgeFromUrl() {
+        try {
+          const url = new URL(window.location.href);
+          const bridge = url.searchParams.get("bridge");
+
+          if (!bridge) return;
+
+          const normalized = String(bridge).trim().replace(/\/+$/, "");
+          if (!/^https:\/\//i.test(normalized)) return;
+
+          await AtlasStorage.put("settings", {
+            key: "garminBridgeUrl",
+            value: normalized
+          });
+
+          AtlasUI.state.bridgeUrl = normalized;
+
+          url.searchParams.delete("bridge");
+          window.history.replaceState({}, "", url.toString());
+        } catch (error) {
+          console.error("ATLAS bridge bootstrap:", error);
+        }
+      }
+
       async function init() {
         AtlasUI.render();
 
@@ -2251,6 +2275,7 @@
             value: "today"
           });
 
+          await bootstrapBridgeFromUrl();
           await hydrateLocal();
         } catch (error) {
           AtlasUI.state.dbError = String(error?.message || error);
