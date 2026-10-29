@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.35",
+      APP_VERSION: "0.0.36",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -837,6 +837,13 @@
         return this.get(
           baseUrl,
           `/activities/${encodeURIComponent(id)}/running?date=${encodeURIComponent(date)}`
+        );
+      },
+
+      activityLaps(baseUrl, id) {
+        return this.get(
+          baseUrl,
+          `/activities/${encodeURIComponent(id)}/laps`
         );
       },
 
@@ -1423,6 +1430,126 @@
         return `${meters.toFixed(2)} m`;
       }
 
+      function normalizeLapRows(payload) {
+        const raw =
+          Array.isArray(payload?.lapDTOs) ? payload.lapDTOs :
+          Array.isArray(payload) ? payload :
+          [];
+
+        return raw.map((lap, index) => {
+          const distanceM = Number(
+            lap?.distance ??
+            lap?.summaryDTO?.distance ??
+            0
+          );
+          const durationSec = Number(
+            lap?.duration ??
+            lap?.movingDuration ??
+            lap?.summaryDTO?.duration ??
+            0
+          );
+
+          return {
+            number: index + 1,
+            distanceM,
+            durationSec,
+            averageHR:
+              lap?.averageHR ??
+              lap?.avgHr ??
+              lap?.summaryDTO?.averageHR ??
+              null,
+            averagePower:
+              lap?.averagePower ??
+              lap?.avgPower ??
+              lap?.summaryDTO?.averagePower ??
+              null
+          };
+        }).filter((lap) => lap.distanceM > 0 || lap.durationSec > 0);
+      }
+
+      function lapsPaceChart(laps) {
+        if (!laps.length) {
+          return `<div class="empty">Vueltas no disponibles.</div>`;
+        }
+
+        const paces = laps.map((lap) =>
+          lap.distanceM > 0 && lap.durationSec > 0
+            ? lap.durationSec / (lap.distanceM / 1000)
+            : null
+        );
+
+        const valid = paces.filter((value) => Number.isFinite(value));
+        if (!valid.length) {
+          return `<div class="empty">Ritmo por vuelta no disponible.</div>`;
+        }
+
+        const fastest = Math.min(...valid);
+        const slowest = Math.max(...valid);
+        const span = slowest - fastest || 1;
+
+        return `
+          <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:12px">
+            ${paces.map((pace, index) => {
+              if (!Number.isFinite(pace)) {
+                return `<div style="flex:1"></div>`;
+              }
+
+              const height = 45 + ((slowest - pace) / span) * 85;
+
+              return `
+                <div style="flex:1;min-width:10px;text-align:center">
+                  <div
+                    title="Vuelta ${index + 1}: ${formatPace(laps[index].distanceM, laps[index].durationSec)}"
+                    style="height:${height.toFixed(0)}px;background:var(--blue);border-radius:6px 6px 2px 2px"
+                  ></div>
+                  <div class="row-meta" style="font-size:10px;margin-top:4px">${index + 1}</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        `;
+      }
+
+      function lapsTable(laps, labels) {
+        if (!laps.length) return "";
+
+        const hasSegments =
+          Array.isArray(labels) &&
+          labels.length === laps.length &&
+          labels.some(Boolean);
+
+        return `
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="text-align:left;color:var(--text-secondary)">
+                  <th style="padding:10px 6px">#</th>
+                  ${hasSegments ? `<th style="padding:10px 6px">Seg.</th>` : ""}
+                  <th style="padding:10px 6px">Dist.</th>
+                  <th style="padding:10px 6px">Tiempo</th>
+                  <th style="padding:10px 6px">Ritmo</th>
+                  <th style="padding:10px 6px">FC</th>
+                  <th style="padding:10px 6px">Pot.</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${laps.map((lap, index) => `
+                  <tr style="border-top:1px solid var(--divider)">
+                    <td style="padding:10px 6px">${lap.number}</td>
+                    ${hasSegments ? `<td style="padding:10px 6px">${labels[index] || "—"}</td>` : ""}
+                    <td style="padding:10px 6px">${formatDistance(lap.distanceM)}</td>
+                    <td style="padding:10px 6px">${formatDuration(lap.durationSec)}</td>
+                    <td style="padding:10px 6px">${formatPace(lap.distanceM, lap.durationSec)}</td>
+                    <td style="padding:10px 6px">${lap.averageHR != null ? Math.round(lap.averageHR) : "—"}</td>
+                    <td style="padding:10px 6px">${lap.averagePower != null ? `${Math.round(lap.averagePower)} W` : "—"}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        `;
+      }
+
       function renderActivityDetail(id) {
         const activity = state.activities.find((item) => String(item.id) === String(id));
         const summary = activity?.summary || {};
@@ -1443,6 +1570,11 @@
             summary[key]
           );
         }
+
+        const lapRows = normalizeLapRows(activity?.freshLaps);
+        const fitSegments = Array.isArray(activity?.fitSegments)
+          ? activity.fitSegments
+          : [];
 
         if (!activity) {
           return `
@@ -1519,6 +1651,26 @@
                 <div class="row"><div class="row-title">Potencia normalizada</div><div class="row-meta">${d.normalizedPower != null ? `${Math.round(Number(d.normalizedPower))} W` : "—"}</div></div>
               </div>
             </section>
+          ` : ""}
+
+          ${String(summary.sport || "").toLowerCase().includes("run") ? `
+            <section class="section">
+              <h2 class="section-title">Vueltas</h2>
+              <div class="card">
+                ${activity.activityFreshLoading
+                  ? `<div class="empty">Cargando vueltas y FIT…</div>`
+                  : lapsPaceChart(lapRows)}
+              </div>
+            </section>
+
+            ${lapRows.length ? `
+              <section class="section">
+                <h2 class="section-title">Detalle de vueltas</h2>
+                <div class="card">
+                  ${lapsTable(lapRows, fitSegments)}
+                </div>
+              </section>
+            ` : ""}
           ` : ""}
 
           <section class="section">
@@ -1669,6 +1821,344 @@
     // ============================================================
 
     const AtlasApp = (() => {
+      async function unzipFitBlob(blob) {
+        const buffer = await blob.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        const view = new DataView(buffer);
+
+        // Raw FIT, not ZIP.
+        if (
+          bytes.length >= 12 &&
+          String.fromCharCode(...bytes.slice(8, 12)) === ".FIT"
+        ) {
+          return buffer;
+        }
+
+        // ZIP: locate End Of Central Directory.
+        let eocd = -1;
+        for (
+          let i = Math.max(0, bytes.length - 65557);
+          i <= bytes.length - 22;
+          i++
+        ) {
+          if (
+            view.getUint32(i, true) === 0x06054b50
+          ) {
+            eocd = i;
+          }
+        }
+
+        if (eocd < 0) {
+          throw new Error("FIT_ZIP_NOT_FOUND");
+        }
+
+        const entries = view.getUint16(eocd + 10, true);
+        const centralOffset = view.getUint32(eocd + 16, true);
+        let pos = centralOffset;
+
+        for (let entry = 0; entry < entries; entry++) {
+          if (view.getUint32(pos, true) !== 0x02014b50) break;
+
+          const method = view.getUint16(pos + 10, true);
+          const compressedSize = view.getUint32(pos + 20, true);
+          const fileNameLength = view.getUint16(pos + 28, true);
+          const extraLength = view.getUint16(pos + 30, true);
+          const commentLength = view.getUint16(pos + 32, true);
+          const localOffset = view.getUint32(pos + 42, true);
+
+          const nameBytes = bytes.slice(
+            pos + 46,
+            pos + 46 + fileNameLength
+          );
+          const fileName = new TextDecoder().decode(nameBytes);
+
+          if (/\.fit$/i.test(fileName)) {
+            if (view.getUint32(localOffset, true) !== 0x04034b50) {
+              throw new Error("FIT_ZIP_LOCAL_HEADER");
+            }
+
+            const localNameLength =
+              view.getUint16(localOffset + 26, true);
+            const localExtraLength =
+              view.getUint16(localOffset + 28, true);
+            const dataStart =
+              localOffset + 30 + localNameLength + localExtraLength;
+
+            const compressed = bytes.slice(
+              dataStart,
+              dataStart + compressedSize
+            );
+
+            if (method === 0) {
+              return compressed.buffer.slice(
+                compressed.byteOffset,
+                compressed.byteOffset + compressed.byteLength
+              );
+            }
+
+            if (method === 8 && "DecompressionStream" in window) {
+              const stream = new Blob([compressed])
+                .stream()
+                .pipeThrough(new DecompressionStream("deflate-raw"));
+
+              return await new Response(stream).arrayBuffer();
+            }
+
+            throw new Error("FIT_ZIP_COMPRESSION_UNSUPPORTED");
+          }
+
+          pos +=
+            46 +
+            fileNameLength +
+            extraLength +
+            commentLength;
+        }
+
+        throw new Error("FIT_FILE_NOT_FOUND_IN_ZIP");
+      }
+
+      function readFitScalar(view, offset, size, baseType, littleEndian) {
+        const type = baseType & 0x1f;
+
+        if (type === 7) {
+          const bytes = new Uint8Array(
+            view.buffer,
+            view.byteOffset + offset,
+            size
+          );
+          const zero = bytes.indexOf(0);
+          return new TextDecoder().decode(
+            zero >= 0 ? bytes.slice(0, zero) : bytes
+          );
+        }
+
+        if (size < 1) return null;
+
+        switch (type) {
+          case 0:
+          case 2:
+          case 10:
+          case 13:
+            return view.getUint8(offset);
+          case 1:
+            return view.getInt8(offset);
+          case 3:
+            return size >= 2
+              ? view.getInt16(offset, littleEndian)
+              : null;
+          case 4:
+          case 11:
+            return size >= 2
+              ? view.getUint16(offset, littleEndian)
+              : null;
+          case 5:
+            return size >= 4
+              ? view.getInt32(offset, littleEndian)
+              : null;
+          case 6:
+          case 12:
+            return size >= 4
+              ? view.getUint32(offset, littleEndian)
+              : null;
+          case 8:
+            return size >= 4
+              ? view.getFloat32(offset, littleEndian)
+              : null;
+          case 9:
+            return size >= 8
+              ? view.getFloat64(offset, littleEndian)
+              : null;
+          default:
+            return null;
+        }
+      }
+
+      function parseFitWorkoutSegments(arrayBuffer) {
+        const view = new DataView(arrayBuffer);
+        const bytes = new Uint8Array(arrayBuffer);
+
+        if (bytes.length < 14) {
+          throw new Error("FIT_TOO_SHORT");
+        }
+
+        const headerSize = view.getUint8(0);
+        const dataSize = view.getUint32(4, true);
+        const end = Math.min(
+          bytes.length,
+          headerSize + dataSize
+        );
+
+        const definitions = new Map();
+        const workoutSteps = new Map();
+        const laps = [];
+        let pos = headerSize;
+
+        while (pos < end) {
+          const header = view.getUint8(pos++);
+          const compressed = (header & 0x80) !== 0;
+
+          let localMessage;
+          let isDefinition = false;
+          let hasDeveloper = false;
+
+          if (compressed) {
+            localMessage = (header >> 5) & 0x03;
+          } else {
+            localMessage = header & 0x0f;
+            isDefinition = (header & 0x40) !== 0;
+            hasDeveloper = (header & 0x20) !== 0;
+          }
+
+          if (isDefinition) {
+            if (pos + 5 > end) break;
+
+            pos += 1; // reserved
+            const architecture = view.getUint8(pos++);
+            const littleEndian = architecture === 0;
+            const globalMessage = view.getUint16(
+              pos,
+              littleEndian
+            );
+            pos += 2;
+
+            const fieldCount = view.getUint8(pos++);
+            const fields = [];
+
+            for (let i = 0; i < fieldCount; i++) {
+              if (pos + 3 > end) break;
+              fields.push({
+                num: view.getUint8(pos),
+                size: view.getUint8(pos + 1),
+                baseType: view.getUint8(pos + 2)
+              });
+              pos += 3;
+            }
+
+            const developerFields = [];
+            if (hasDeveloper && pos < end) {
+              const count = view.getUint8(pos++);
+              for (let i = 0; i < count; i++) {
+                if (pos + 3 > end) break;
+                developerFields.push({
+                  num: view.getUint8(pos),
+                  size: view.getUint8(pos + 1),
+                  developerIndex: view.getUint8(pos + 2)
+                });
+                pos += 3;
+              }
+            }
+
+            definitions.set(localMessage, {
+              globalMessage,
+              littleEndian,
+              fields,
+              developerFields
+            });
+            continue;
+          }
+
+          const definition = definitions.get(localMessage);
+          if (!definition) {
+            throw new Error("FIT_MISSING_DEFINITION");
+          }
+
+          const fieldValues = new Map();
+
+          for (const field of definition.fields) {
+            if (pos + field.size > end) {
+              pos = end;
+              break;
+            }
+
+            const value = readFitScalar(
+              view,
+              pos,
+              field.size,
+              field.baseType,
+              definition.littleEndian
+            );
+
+            fieldValues.set(field.num, value);
+            pos += field.size;
+          }
+
+          for (const field of definition.developerFields) {
+            pos += field.size;
+            if (pos > end) {
+              pos = end;
+              break;
+            }
+          }
+
+          // workout_step global message number = 27
+          if (definition.globalMessage === 27) {
+            const messageIndex = fieldValues.get(254);
+            if (messageIndex != null) {
+              workoutSteps.set(Number(messageIndex), {
+                messageIndex: Number(messageIndex),
+                name: fieldValues.get(0) || "",
+                durationType: fieldValues.get(1),
+                durationValue: fieldValues.get(2),
+                targetValue: fieldValues.get(4),
+                intensity: fieldValues.get(7)
+              });
+            }
+          }
+
+          // lap global message number = 19
+          if (definition.globalMessage === 19) {
+            laps.push({
+              messageIndex: fieldValues.get(254),
+              workoutStepIndex: fieldValues.get(71),
+              intensity: fieldValues.get(23)
+            });
+          }
+        }
+
+        const classifyIntensity = (value) => {
+          const intensity = Number(value);
+
+          if (intensity === 2) return "WU";
+          if (intensity === 3) return "CD";
+
+          if (
+            intensity === 0 ||
+            intensity === 1 ||
+            intensity === 4 ||
+            intensity === 5 ||
+            intensity === 6
+          ) {
+            return "MAIN";
+          }
+
+          return null;
+        };
+
+        const labels = laps.map((lap) => {
+          const step =
+            lap.workoutStepIndex != null
+              ? workoutSteps.get(Number(lap.workoutStepIndex))
+              : null;
+
+          return (
+            classifyIntensity(step?.intensity) ||
+            classifyIntensity(lap.intensity) ||
+            null
+          );
+        });
+
+        return {
+          labels,
+          workoutSteps: [...workoutSteps.values()],
+          fitLapCount: laps.length
+        };
+      }
+
+      async function parseFitSegmentsFromBlob(blob) {
+        const fitBuffer = await unzipFitBlob(blob);
+        return parseFitWorkoutSegments(fitBuffer);
+      }
+
       function summarizeRunningMetrics(payload) {
         const descriptors = Array.isArray(payload?.metricDescriptors)
           ? payload.metricDescriptors
@@ -2211,36 +2701,84 @@
       }
 
       async function refreshActivityData(id) {
-        const existing = await AtlasStorage.get("activities", String(id));
-        if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
-
-        const detailResponse = await AtlasServices.activityDetail(
-          AtlasUI.state.bridgeUrl,
+        const existing = await AtlasStorage.get(
+          "activities",
           String(id)
         );
+        if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
 
-        const detail = AtlasDomain.normalizeActivityDetail(
-          detailResponse.data
-        );
+        await AtlasStorage.put("activities", {
+          ...existing,
+          activityFreshLoading: true
+        });
+        await hydrateLocal();
 
-        let running = existing.running ?? null;
+        const isRunning = String(
+          existing?.summary?.sport || ""
+        ).toLowerCase().includes("run");
 
-        if (
-          String(existing?.summary?.sport || "")
-            .toLowerCase()
-            .includes("run")
-        ) {
-          try {
-            const response = await AtlasServices.activityRunning(
-              AtlasUI.state.bridgeUrl,
-              String(id),
-              existing?.summary?.date
-            );
+        try {
+          const detailPromise = AtlasServices.activityDetail(
+            AtlasUI.state.bridgeUrl,
+            String(id)
+          );
 
-            const activityRaw = response?.data?.activity || null;
-            const detailsRaw = response?.data?.details || null;
+          const runningPromise = isRunning
+            ? AtlasServices.activityRunning(
+                AtlasUI.state.bridgeUrl,
+                String(id),
+                existing?.summary?.date
+              )
+            : Promise.resolve(null);
 
-            const freshSummary = activityRaw
+          const lapsPromise = isRunning
+            ? AtlasServices.activityLaps(
+                AtlasUI.state.bridgeUrl,
+                String(id)
+              )
+            : Promise.resolve(null);
+
+          const fitPromise = isRunning
+            ? AtlasServices.activityFit(
+                AtlasUI.state.bridgeUrl,
+                String(id)
+              )
+            : Promise.resolve(null);
+
+          const [
+            detailResult,
+            runningResult,
+            lapsResult,
+            fitResult
+          ] = await Promise.allSettled([
+            detailPromise,
+            runningPromise,
+            lapsPromise,
+            fitPromise
+          ]);
+
+          if (detailResult.status !== "fulfilled") {
+            throw detailResult.reason;
+          }
+
+          const detail = AtlasDomain.normalizeActivityDetail(
+            detailResult.value.data
+          );
+
+          let running = null;
+          let freshSummary = existing.summary;
+
+          if (
+            isRunning &&
+            runningResult.status === "fulfilled" &&
+            runningResult.value
+          ) {
+            const activityRaw =
+              runningResult.value?.data?.activity || null;
+            const detailsRaw =
+              runningResult.value?.data?.details || null;
+
+            freshSummary = activityRaw
               ? AtlasDomain.normalizeActivitySummary(activityRaw)
               : existing.summary;
 
@@ -2305,52 +2843,89 @@
                 existing?.summary?.normalizedPower
               )
             };
-          } catch (error) {
-            console.error("ATLAS running refresh:", error);
           }
+
+          const freshLaps =
+            lapsResult.status === "fulfilled"
+              ? lapsResult.value?.data ?? null
+              : null;
+
+          let fitSegments = [];
+          let fitMeta = null;
+
+          if (
+            isRunning &&
+            fitResult.status === "fulfilled" &&
+            fitResult.value
+          ) {
+            try {
+              fitMeta = await parseFitSegmentsFromBlob(
+                fitResult.value
+              );
+
+              const apiLapCount = normalizeLapRows(
+                freshLaps
+              ).length;
+
+              if (
+                fitMeta.fitLapCount === apiLapCount &&
+                fitMeta.labels.length === apiLapCount
+              ) {
+                fitSegments = fitMeta.labels;
+              }
+            } catch (error) {
+              console.error("ATLAS FIT parse:", error);
+            }
+          }
+
+          const updated = {
+            ...existing,
+            summary: {
+              ...existing.summary,
+              ...freshSummary
+            },
+            detail,
+            detailLoaded: true,
+            detailUpdatedAt: new Date().toISOString(),
+            running,
+            runningLoaded: Boolean(running),
+            runningUpdatedAt: running
+              ? new Date().toISOString()
+              : null,
+            freshLaps,
+            fitSegments,
+            fitMeta,
+            activityFreshLoading: false,
+            activityFreshUpdatedAt: new Date().toISOString()
+          };
+
+          await AtlasStorage.put(
+            "activities",
+            updated
+          );
+          await hydrateLocal();
+          return updated;
+        } catch (error) {
+          await AtlasStorage.put("activities", {
+            ...existing,
+            activityFreshLoading: false
+          });
+          await hydrateLocal();
+          throw error;
         }
-
-        const updated = {
-          ...existing,
-          detail,
-          detailLoaded: true,
-          detailUpdatedAt: new Date().toISOString(),
-          running,
-          runningLoaded: Boolean(running),
-          runningUpdatedAt: running
-            ? new Date().toISOString()
-            : existing.runningUpdatedAt ?? null
-        };
-
-        await AtlasStorage.put("activities", updated);
-        await hydrateLocal();
-        return updated;
       }
 
       async function ensureActivityFit(id) {
-        const existing = await AtlasStorage.get("activities", String(id));
+        const existing = await AtlasStorage.get(
+          "activities",
+          String(id)
+        );
         if (!existing) throw new Error("ACTIVITY_NOT_FOUND");
 
-        if (existing.fitLoaded && existing.fitBlob) {
-          return existing.fitBlob;
-        }
-
-        const fitBlob = await AtlasServices.activityFit(
+        return AtlasServices.activityFit(
           AtlasUI.state.bridgeUrl,
           String(id)
         );
-
-        const updated = {
-          ...existing,
-          fitBlob,
-          fitLoaded: true,
-          fitUpdatedAt: new Date().toISOString()
-        };
-
-        await AtlasStorage.put("activities", updated);
-        await hydrateLocal();
-
-        return fitBlob;
       }
 
       async function bootstrapBridgeFromUrl() {
