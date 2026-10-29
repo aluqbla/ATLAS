@@ -466,7 +466,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.28",
+      APP_VERSION: "0.0.29",
       DB_NAME: "ATLAS",
       DB_VERSION: 1,
       DATA_SCHEMA_VERSION: 1,
@@ -1472,42 +1472,145 @@
       function workoutSegmentLabels(stepdetails, lapCount) {
         if (!stepdetails || !lapCount) return Array(lapCount).fill(null);
 
-        const steps =
-          Array.isArray(stepdetails?.workoutSteps) ? stepdetails.workoutSteps :
-          Array.isArray(stepdetails?.steps) ? stepdetails.steps :
-          Array.isArray(stepdetails?.stepDTOs) ? stepdetails.stepDTOs :
-          Array.isArray(stepdetails) ? stepdetails :
-          [];
+        const stepTypeInfo = (step) => {
+          const type =
+            step?.stepType ??
+            step?.stepTypeDTO ??
+            step?.workoutStepType ??
+            {};
 
-        if (!steps.length) return Array(lapCount).fill(null);
+          const id = Number(
+            type?.stepTypeId ??
+            step?.stepTypeId ??
+            0
+          );
 
-        const labels = [];
+          const key = String(
+            type?.stepTypeKey ??
+            step?.stepTypeKey ??
+            step?.stepType ??
+            ""
+          ).toLowerCase();
+
+          return { id, key };
+        };
+
         const classify = (step) => {
-          const text = [
-            step?.stepType?.stepTypeKey,
-            step?.stepTypeDTO?.stepTypeKey,
-            step?.stepType,
-            step?.description,
-            step?.stepName
-          ].filter(Boolean).join(" ").toLowerCase();
+          const { id, key } = stepTypeInfo(step);
 
-          if (text.includes("warm") || text.includes("calent")) return "WU";
-          if (text.includes("cool") || text.includes("enfri") || text.includes("warmdown")) return "CD";
-          if (text.includes("run") || text.includes("interval") || text.includes("main") || text.includes("work")) return "MAIN";
+          if (id === 1 || key.includes("warmup")) return "WU";
+          if (id === 2 || key.includes("cooldown")) return "CD";
+
+          if (
+            id === 3 ||
+            id === 4 ||
+            id === 5 ||
+            id === 8 ||
+            key.includes("interval") ||
+            key.includes("recovery") ||
+            key.includes("rest") ||
+            key.includes("main")
+          ) {
+            return "MAIN";
+          }
+
           return null;
         };
 
-        for (const step of steps) {
-          const repeat =
-            Number(step?.repeatValue ?? step?.numberOfIterations ?? 1) || 1;
-          const label = classify(step);
-          for (let i = 0; i < repeat; i++) labels.push(label);
+        const flattenSteps = (steps) => {
+          const result = [];
+
+          for (const step of steps || []) {
+            const nested = Array.isArray(step?.workoutSteps)
+              ? step.workoutSteps
+              : [];
+
+            const isRepeat =
+              String(step?.type || "").toLowerCase().includes("repeat") ||
+              Number(step?.stepType?.stepTypeId) === 6 ||
+              String(step?.stepType?.stepTypeKey || "").toLowerCase() === "repeat";
+
+            if (isRepeat && nested.length) {
+              const iterations = Math.max(
+                1,
+                Number(
+                  step?.numberOfIterations ??
+                  step?.repeatValue ??
+                  1
+                ) || 1
+              );
+
+              for (let i = 0; i < iterations; i++) {
+                result.push(...flattenSteps(nested));
+              }
+              continue;
+            }
+
+            if (nested.length) {
+              result.push(...flattenSteps(nested));
+              continue;
+            }
+
+            const label = classify(step);
+            if (label) result.push(label);
+          }
+
+          return result;
+        };
+
+        let rootSteps = [];
+
+        if (Array.isArray(stepdetails?.workoutSegments)) {
+          for (const segment of stepdetails.workoutSegments) {
+            if (Array.isArray(segment?.workoutSteps)) {
+              rootSteps.push(...segment.workoutSteps);
+            }
+          }
         }
 
-        if (!labels.some(Boolean)) return Array(lapCount).fill(null);
+        if (!rootSteps.length && Array.isArray(stepdetails?.workoutSteps)) {
+          rootSteps = stepdetails.workoutSteps;
+        }
 
-        while (labels.length < lapCount) labels.push(null);
-        return labels.slice(0, lapCount);
+        if (!rootSteps.length && Array.isArray(stepdetails?.steps)) {
+          rootSteps = stepdetails.steps;
+        }
+
+        if (!rootSteps.length && Array.isArray(stepdetails?.stepDTOs)) {
+          rootSteps = stepdetails.stepDTOs;
+        }
+
+        if (!rootSteps.length && Array.isArray(stepdetails)) {
+          rootSteps = stepdetails;
+        }
+
+        const flattened = flattenSteps(rootSteps);
+
+        if (!flattened.length) {
+          return Array(lapCount).fill(null);
+        }
+
+        // Exact mapping when Garmin's executable-step count matches lap count.
+        if (flattened.length === lapCount) {
+          return flattened;
+        }
+
+        // Structured-workout fallback:
+        // only infer broad sections when Garmin explicitly exposes WU/CD.
+        const hasWU = flattened.includes("WU");
+        const hasCD = flattened.includes("CD");
+
+        if (hasWU || hasCD) {
+          const labels = Array(lapCount).fill("MAIN");
+
+          if (hasWU && lapCount > 0) labels[0] = "WU";
+          if (hasCD && lapCount > 1) labels[lapCount - 1] = "CD";
+
+          return labels;
+        }
+
+        // No reliable structure -> do not invent segmentation.
+        return Array(lapCount).fill(null);
       }
 
       function lapsPaceChart(laps) {
