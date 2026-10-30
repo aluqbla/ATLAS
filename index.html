@@ -7,6 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>ATLAS v0.0.1</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+          crossorigin=""></script>
 
   <style>
     :root {
@@ -706,6 +711,80 @@
       touch-action: manipulation;
     }
 
+
+    .activity-detail-header { margin-bottom:12px; }
+    .activity-detail-title {
+      display:flex; align-items:center; min-width:0; max-width:100%;
+      white-space:nowrap; overflow:hidden; font-size:30px; font-weight:750;
+      line-height:1.08; letter-spacing:-.025em;
+    }
+    .activity-detail-title .activity-card-emoji { flex:0 0 auto; font-size:30px; margin-right:9px; }
+    .activity-detail-title-text { flex:1 1 auto; min-width:0; white-space:nowrap; overflow:visible; text-overflow:clip; }
+    .activity-context-line {
+      display:grid; grid-template-columns:1.35fr .72fr .72fr 1fr; gap:8px; align-items:center;
+      width:100%; padding:10px 0 12px; border-bottom:1px solid var(--divider);
+      font-size:clamp(9px,2.6vw,13px); color:var(--text-2);
+    }
+    .activity-context-item { min-width:0; white-space:nowrap; overflow:hidden; text-overflow:clip; text-align:center; }
+    .activity-context-item:first-child { text-align:left; }
+    .activity-map {
+      width:100%; height:clamp(220px,48vw,390px); border-radius:var(--radius-lg);
+      overflow:hidden; background:var(--surface-1);
+    }
+    .activity-map .leaflet-control-attribution { background:rgba(0,0,0,.68); color:#A1A1A6; font-size:9px; }
+    .activity-map .leaflet-control-attribution a { color:#64D2FF; }
+    .activity-gear-row {
+      display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:9px; align-items:center; padding:14px 0;
+    }
+    .activity-gear-name {
+      min-width:0; font-size:15px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .activity-gear-distance { font-size:14px; color:var(--text-2); white-space:nowrap; }
+    .activity-metric-grid,.running-dynamics-grid {
+      display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
+    }
+    .activity-metric,.running-dynamic {
+      min-width:0; padding:14px 12px; border-radius:var(--radius-md); background:var(--surface-1);
+    }
+    .activity-metric-label,.running-dynamic-label {
+      font-size:clamp(9px,2.4vw,12px); color:var(--text-2); white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis;
+    }
+    .activity-metric-value,.running-dynamic-value {
+      margin-top:7px; font-size:clamp(16px,4.2vw,26px); font-weight:700;
+      line-height:1.05; letter-spacing:-.02em; white-space:nowrap;
+    }
+    .activity-metric-unit,.running-dynamic-unit {
+      margin-top:5px; font-size:clamp(8px,2.1vw,11px); color:var(--text-3); white-space:nowrap;
+    }
+    .analysis-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px; }
+    .analysis-chip { padding:12px; border-radius:var(--radius-md); background:var(--surface-1); text-align:center; }
+    .analysis-chip-label { font-size:11px; color:var(--text-3); }
+    .analysis-chip-value { margin-top:5px; font-size:17px; font-weight:700; }
+    .laps-chart-wrap { width:100%; overflow:hidden; }
+    .laps-chart { width:100%; height:auto; display:block; }
+    .laps-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .laps-table th,.laps-table td { padding:10px 6px; text-align:right; white-space:nowrap; }
+    .laps-table th:first-child,.laps-table td:first-child { text-align:left; }
+    .laps-table thead { color:var(--text-2); }
+    .laps-table tbody tr { border-top:1px solid var(--divider); }
+    .lap-group-row td {
+      padding-top:15px; padding-bottom:7px; color:var(--blue-active); font-weight:700;
+      text-align:left !important; border-top:1px solid var(--divider);
+    }
+    @media (max-width:520px) {
+      .activity-detail-title { font-size:28px; }
+      .activity-detail-title .activity-card-emoji { font-size:27px; margin-right:7px; }
+      .activity-context-line { gap:4px; font-size:clamp(8px,2.45vw,11px); }
+      .activity-metric-grid,.running-dynamics-grid { gap:6px; }
+      .activity-metric,.running-dynamic { padding:12px 6px; }
+      .activity-metric-value,.running-dynamic-value { font-size:clamp(14px,4.4vw,21px); }
+      .analysis-grid { gap:6px; }
+      .analysis-chip { padding:10px 5px; }
+      .laps-table { font-size:11px; }
+      .laps-table th,.laps-table td { padding:9px 4px; }
+    }
+
   </style>
 </head>
 
@@ -720,7 +799,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.81",
+      APP_VERSION: "0.0.82",
       DB_NAME: "ATLAS",
       DB_VERSION: 6,
       DATA_SCHEMA_VERSION: 1,
@@ -957,7 +1036,6 @@
             null,
           anaerobicTrainingEffect: s.anaerobicTrainingEffect ?? null,
           rpe:
-            s.directWorkoutFeel ??
             s.directWorkoutRpe ??
             raw?.selfEvaluationDTO?.rpe ??
             null,
@@ -1889,24 +1967,163 @@
         );
       }
 
+      function activityDetailTitleFontSize(title) {
+        const length = String(title || "").length;
+        if (length > 62) return 18;
+        if (length > 48) return 20;
+        if (length > 36) return 23;
+        if (length > 26) return 26;
+        return 30;
+      }
+
       function activityDetailHeader(title, sport = "") {
         const displayTitle = localizedActivityTitle(title || "Actividad", sport);
         const emoji = sportEmoji(sport, displayTitle);
-
-        return `
-          <header class="screen-header">
-            <h1 class="screen-title activity-detail-title">
-              <span class="activity-card-emoji">${emoji}</span>
-              <span
-                class="activity-detail-title-text"
-                data-fit-title
-                style="font-size:${activityTitleFontSize(displayTitle)}px"
-              >${escapeHtml(displayTitle)}</span>
-            </h1>
-            <button class="icon-button mobile-profile" data-tab="profile" aria-label="Perfil">👤</button>
-          </header>
-        `;
+        return `<header class="activity-detail-header">
+          <h1 class="activity-detail-title">
+            <span class="activity-card-emoji">${emoji}</span>
+            <span class="activity-detail-title-text" data-fit-title
+                  style="font-size:${activityDetailTitleFontSize(displayTitle)}px"
+            >${escapeHtml(displayTitle)}</span>
+          </h1>
+        </header>`;
       }
+
+      function formatActivityMetaDateTime(value, fallbackDate) {
+        const raw = value ? String(value).replace(" ", "T") : String(fallbackDate || "");
+        const date = new Date(raw);
+        if (Number.isNaN(date.getTime())) return fallbackDate || "—";
+        const d = date.toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"2-digit"})
+          .replace(".","").toUpperCase();
+        const t = date.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",hour12:false});
+        return `${d} ${t}`;
+      }
+
+      function formatTemperature(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return "—";
+        return `${String(Math.round(n*10)/10).replace(".",",")} ºC`;
+      }
+
+      function rpePresentation(value) {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return {emoji:"⚪",text:"—"};
+        const score = Math.max(0,Math.min(10,Math.round(n)));
+        let emoji="🔵";
+        if (score>=3) emoji="🟢";
+        if (score>=5) emoji="🟡";
+        if (score>=7) emoji="🟠";
+        if (score>=9) emoji="🔴";
+        if (score>=10) emoji="🟣";
+        return {emoji,text:String(score)};
+      }
+
+      function feelingPresentation(value) {
+        if (value == null || value === "") return {emoji:"😐",text:"—"};
+        const raw=String(value).trim().toLowerCase();
+        const n=Number(value);
+        let level=null;
+        if (Number.isFinite(n)) level=n<=1?1:n<=2?2:n<=3?3:n<=4?4:5;
+        else if (raw.includes("very_weak") || raw.includes("muy débil") || raw.includes("muy debil")) level=1;
+        else if (raw.includes("weak") || raw==="débil" || raw==="debil") level=2;
+        else if (raw.includes("normal")) level=3;
+        else if (raw.includes("very_strong") || raw.includes("muy fuerte")) level=5;
+        else if (raw.includes("strong") || raw.includes("fuerte")) level=4;
+        const map={
+          1:{emoji:"😫",text:"Muy débil"},2:{emoji:"🙁",text:"Débil"},
+          3:{emoji:"😐",text:"Normal"},4:{emoji:"🙂",text:"Fuerte"},5:{emoji:"😄",text:"Muy fuerte"}
+        };
+        return map[level] || {emoji:"😐",text:String(value)};
+      }
+
+      function gearInfo(value) {
+        const items=Array.isArray(value)?value:value?[value]:[];
+        const item=items.find(g=>g?.displayName||g?.gearName||g?.name||g?.customMakeModel)||null;
+        if (!item) return {name:"—",totalKm:null};
+        const name=item.displayName||item.gearName||item.name||item.customMakeModel||"—";
+        const raw=item.totalDistance??item.accumulatedDistance??item.distance??item.totalMeters??null;
+        const n=Number(raw);
+        return {name,totalKm:Number.isFinite(n)&&n>=0?(n>1000?n/1000:n):null};
+      }
+
+      function formatGearKm(value) {
+        if (!Number.isFinite(Number(value))) return "— km";
+        return `${Number(value).toLocaleString("es-ES",{minimumFractionDigits:0,maximumFractionDigits:1})} km`;
+      }
+
+      function metricBox(label,value,unit="") {
+        return `<div class="activity-metric">
+          <div class="activity-metric-label">${escapeHtml(label)}</div>
+          <div class="activity-metric-value">${value}</div>
+          ${unit?`<div class="activity-metric-unit">${escapeHtml(unit)}</div>`:""}
+        </div>`;
+      }
+
+      function dynamicBox(label,value,unit="") {
+        return `<div class="running-dynamic">
+          <div class="running-dynamic-label">${escapeHtml(label)}</div>
+          <div class="running-dynamic-value">${value}</div>
+          ${unit?`<div class="running-dynamic-unit">${escapeHtml(unit)}</div>`:""}
+        </div>`;
+      }
+
+      function decodeEncodedPolyline(encoded) {
+        if (!encoded || typeof encoded!=="string") return [];
+        const points=[]; let index=0,lat=0,lon=0;
+        try {
+          while(index<encoded.length) {
+            let result=0,shift=0,byte;
+            do { byte=encoded.charCodeAt(index++)-63; result|=(byte&0x1f)<<shift; shift+=5; }
+            while(byte>=0x20 && index<encoded.length);
+            lat+=(result&1)?~(result>>1):(result>>1);
+            result=0; shift=0;
+            do { byte=encoded.charCodeAt(index++)-63; result|=(byte&0x1f)<<shift; shift+=5; }
+            while(byte>=0x20 && index<encoded.length);
+            lon+=(result&1)?~(result>>1):(result>>1);
+            points.push({lat:lat/1e5,lon:lon/1e5,speedMps:null});
+          }
+        } catch(_) { return []; }
+        return points;
+      }
+
+      function paceColorFromSpeed(speed,minSpeed,maxSpeed) {
+        const n=Number(speed);
+        if (!Number.isFinite(n)||n<=0||maxSpeed<=minSpeed) return "#0A84FF";
+        const t=Math.max(0,Math.min(1,(n-minSpeed)/(maxSpeed-minSpeed)));
+        return `hsl(210 100% ${66-t*32}%)`;
+      }
+
+      function initActivityMap() {
+        const container=document.getElementById("activity-map");
+        if (!container || typeof window.L==="undefined") return;
+        const activity=state.activities.find(item=>String(item.id)===String(state.route.id));
+        if (!activity) return;
+        const fitPoints=Array.isArray(activity?.fitMeta?.trackPoints)?activity.fitMeta.trackPoints:[];
+        const encoded=activity?.detail?.encodedPolyline||activity?.summary?.encodedPolyline||null;
+        const points=fitPoints.length>=2?fitPoints:decodeEncodedPolyline(encoded);
+        if (points.length<2) return;
+
+        const map=L.map(container,{zoomControl:true,attributionControl:true,preferCanvas:true});
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
+          maxZoom:19,
+          attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        const speeds=points.map(p=>Number(p.speedMps)).filter(v=>Number.isFinite(v)&&v>0);
+        const minSpeed=speeds.length?Math.min(...speeds):0;
+        const maxSpeed=speeds.length?Math.max(...speeds):0;
+
+        for(let i=1;i<points.length;i++) {
+          const a=points[i-1],b=points[i];
+          const s=Number.isFinite(Number(b.speedMps))?Number(b.speedMps):Number(a.speedMps);
+          L.polyline([[a.lat,a.lon],[b.lat,b.lon]],{
+            color:paceColorFromSpeed(s,minSpeed,maxSpeed),weight:5,opacity:.95,lineCap:"round"
+          }).addTo(map);
+        }
+        map.fitBounds(L.latLngBounds(points.map(p=>[p.lat,p.lon])).pad(.08),{animate:false});
+        requestAnimationFrame(()=>map.invalidateSize(false));
+      }
+
 
       function sportLabel(sport, title = "") {
         const key = resolvedSportKey(sport, title);
@@ -2329,12 +2546,11 @@
         `;
       }
 
-      function formatPace(distanceM, durationSec) {
-        if (!distanceM || !durationSec) return "—";
-        const secPerKm = durationSec / (distanceM / 1000);
-        const min = Math.floor(secPerKm / 60);
-        const sec = Math.round(secPerKm % 60);
-        return `${min}:${String(sec).padStart(2, "0")} min/km`;
+      function formatPace(distanceM,durationSec) {
+        const distance=Number(distanceM),duration=Number(durationSec);
+        if(!Number.isFinite(distance)||distance<=0||!Number.isFinite(duration)||duration<=0) return "—";
+        const total=Math.round(duration/(distance/1000));
+        return `${Math.floor(total/60)}:${String(total%60).padStart(2,"0")} min/km`;
       }
 
       function formatActivityDateTime(value, fallbackDate) {
@@ -2475,217 +2691,216 @@
               lap?.averagePower ??
               lap?.avgPower ??
               lap?.summaryDTO?.averagePower ??
-              null
+              null,
+            elevationGainM: Number(
+              lap?.elevationGain ??
+              lap?.totalAscent ??
+              lap?.summaryDTO?.elevationGain ??
+              lap?.summaryDTO?.totalAscent ??
+              0
+            ),
+            elevationLossM: Number(
+              lap?.elevationLoss ??
+              lap?.totalDescent ??
+              lap?.summaryDTO?.elevationLoss ??
+              lap?.summaryDTO?.totalDescent ??
+              0
+            )
           };
         }).filter((lap) => lap.distanceM > 0 || lap.durationSec > 0);
       }
 
-      function lapsPaceChart(laps) {
-        if (!laps.length) {
-          return `<div class="empty">Vueltas no disponibles.</div>`;
-        }
-
-        const paces = laps.map((lap) =>
-          lap.distanceM > 0 && lap.durationSec > 0
-            ? lap.durationSec / (lap.distanceM / 1000)
-            : null
-        );
-
-        const valid = paces.filter((value) => Number.isFinite(value));
-        if (!valid.length) {
-          return `<div class="empty">Ritmo por vuelta no disponible.</div>`;
-        }
-
-        const fastest = Math.min(...valid);
-        const slowest = Math.max(...valid);
-        const span = slowest - fastest || 1;
-
-        return `
-          <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding-top:12px">
-            ${paces.map((pace, index) => {
-              if (!Number.isFinite(pace)) {
-                return `<div style="flex:1"></div>`;
-              }
-
-              const height = 45 + ((slowest - pace) / span) * 85;
-
-              return `
-                <div style="flex:1;min-width:10px;text-align:center">
-                  <div
-                    title="Vuelta ${index + 1}: ${formatPace(laps[index].distanceM, laps[index].durationSec)}"
-                    style="height:${height.toFixed(0)}px;background:var(--blue);border-radius:6px 6px 2px 2px"
-                  ></div>
-                  <div class="row-meta" style="font-size:10px;margin-top:4px">${index + 1}</div>
-                </div>
-              `;
-            }).join("")}
-          </div>
-        `;
+      function formatPaceSeconds(seconds) {
+        const total=Math.max(0,Math.round(Number(seconds)||0));
+        return `${Math.floor(total/60)}:${String(total%60).padStart(2,"0")}`;
       }
 
-      function lapsTable(laps) {
-        if (!laps.length) return "";
+      function lapsPaceChart(laps) {
+        if (!laps.length) return `<div class="empty">Vueltas no disponibles.</div>`;
+        const rows=laps.map(lap=>({...lap,
+          pace:lap.distanceM>0&&lap.durationSec>0?lap.durationSec/(lap.distanceM/1000):null
+        })).filter(lap=>Number.isFinite(lap.pace));
+        if (!rows.length) return `<div class="empty">Ritmo por vuelta no disponible.</div>`;
 
-        return `
-          <div style="overflow-x:auto">
-            <table style="width:100%;border-collapse:collapse;font-size:13px">
-              <thead>
-                <tr style="text-align:left;color:var(--text-secondary)">
-                  <th style="padding:10px 6px">#</th>
-                  <th style="padding:10px 6px">Dist.</th>
-                  <th style="padding:10px 6px">Tiempo</th>
-                  <th style="padding:10px 6px">Ritmo</th>
-                  <th style="padding:10px 6px">FC</th>
-                  <th style="padding:10px 6px">Pot.</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${laps.map((lap) => `
-                  <tr style="border-top:1px solid var(--divider)">
-                    <td style="padding:10px 6px">${lap.number}</td>
-                    <td style="padding:10px 6px">${formatDistance(lap.distanceM)}</td>
-                    <td style="padding:10px 6px">${formatDuration(lap.durationSec)}</td>
-                    <td style="padding:10px 6px">${formatPace(lap.distanceM, lap.durationSec)}</td>
-                    <td style="padding:10px 6px">${lap.averageHR != null ? Math.round(lap.averageHR) : "—"}</td>
-                    <td style="padding:10px 6px">${lap.averagePower != null ? `${Math.round(lap.averagePower)} W` : "—"}</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
-        `;
+        const fastest=Math.min(...rows.map(x=>x.pace));
+        const slowest=Math.max(...rows.map(x=>x.pace));
+        const span=Math.max(1,slowest-fastest);
+        const totalDistance=rows.reduce((s,x)=>s+Math.max(1,x.distanceM),0);
+        const W=760,H=280,left=52,right=12,top=20,bottom=42;
+        const plotW=W-left-right,plotH=H-top-bottom;
+        const pad=Math.max(8,span*.12),yFast=Math.max(1,fastest-pad),ySlow=slowest+pad;
+        const y=pace=>top+((pace-yFast)/(ySlow-yFast))*plotH;
+        const ticks=Array.from({length:5},(_,i)=>yFast+(ySlow-yFast)*i/4);
+        let cumulative=0;
+
+        const bars=rows.map(lap=>{
+          const x0=left+(cumulative/totalDistance)*plotW;
+          const width=Math.max(4,(lap.distanceM/totalDistance)*plotW-2);
+          cumulative+=Math.max(1,lap.distanceM);
+          const barTop=y(lap.pace),barHeight=top+plotH-barTop;
+          const fastRatio=(slowest-lap.pace)/span;
+          const color=`hsl(210 100% ${68-Math.max(0,Math.min(1,fastRatio))*34}%)`;
+          return `<rect x="${x0.toFixed(1)}" y="${barTop.toFixed(1)}"
+                    width="${width.toFixed(1)}" height="${Math.max(2,barHeight).toFixed(1)}"
+                    rx="4" fill="${color}">
+                    <title>Vuelta ${lap.number} · ${formatPace(lap.distanceM,lap.durationSec)}</title>
+                  </rect>
+                  <text x="${(x0+width/2).toFixed(1)}" y="${H-17}" text-anchor="middle"
+                        fill="#A1A1A6" font-size="10">${lap.number}</text>`;
+        }).join("");
+
+        return `<div class="laps-chart-wrap"><svg class="laps-chart" viewBox="0 0 ${W} ${H}"
+          role="img" aria-label="Ritmo por vuelta">
+          ${ticks.map(tick=>`
+            <line x1="${left}" x2="${W-right}" y1="${y(tick).toFixed(1)}" y2="${y(tick).toFixed(1)}"
+                  stroke="#2C2C2E" stroke-width="1"/>
+            <text x="${left-8}" y="${(y(tick)+3).toFixed(1)}" text-anchor="end"
+                  fill="#A1A1A6" font-size="10">${formatPaceSeconds(tick)}</text>
+          `).join("")}
+          ${bars}
+          <text x="${left-8}" y="${top-7}" text-anchor="end" fill="#636366" font-size="9">min/km</text>
+        </svg></div>`;
+      }
+
+      function lapGroupName(code) {
+        return code==="WU"?"Calentamiento":code==="MAIN"?"Bloque Principal":code==="CD"?"Enfriamiento":null;
+      }
+
+      function lapElevationText(lap) {
+        const net=Math.round((Number(lap.elevationGainM)||0)-(Number(lap.elevationLossM)||0));
+        return net>0?`+${net} m`:net<0?`${net} m`:"0 m";
+      }
+
+      function lapsTable(laps,segments=[]) {
+        if (!laps.length) return "";
+        let lastGroup=null;
+        const body=laps.map((lap,index)=>{
+          const group=lapGroupName(segments[index]);
+          const groupRow=group&&group!==lastGroup
+            ? `<tr class="lap-group-row"><td colspan="6">${escapeHtml(group)}</td></tr>`:"";
+          if (group) lastGroup=group;
+          return `${groupRow}<tr>
+            <td>${lap.number}</td><td>${formatDistance(lap.distanceM)}</td>
+            <td>${formatCardDuration(lap.durationSec)}</td><td>${formatPace(lap.distanceM,lap.durationSec)}</td>
+            <td>${lap.averageHR!=null?`${Math.round(lap.averageHR)} bpm`:"—"}</td>
+            <td>${lapElevationText(lap)}</td>
+          </tr>`;
+        }).join("");
+        return `<div style="overflow-x:auto"><table class="laps-table">
+          <thead><tr><th>Vuelta</th><th>Distancia</th><th>Tiempo</th><th>Ritmo</th><th>FC</th><th>Desnivel</th></tr></thead>
+          <tbody>${body}</tbody></table></div>`;
       }
 
       function renderActivityDetail(id) {
-        const activity = state.activities.find((item) => String(item.id) === String(id));
-        const summary = activity?.summary || {};
-        const detail = activity?.detail || {};
-        const running = activity?.running || {};
+        const activity=state.activities.find(item=>String(item.id)===String(id));
+        const summary=activity?.summary||{},detail=activity?.detail||{},running=activity?.running||{};
+        if (!activity) return `${backButton()}${header("Actividad")}
+          <section class="section"><div class="card empty">Actividad no encontrada.</div></section>`;
 
-        const d = {};
-        const keys = new Set([
-          ...Object.keys(summary),
-          ...Object.keys(detail),
-          ...Object.keys(running)
-        ]);
+        const d={};
+        const keys=new Set([...Object.keys(summary),...Object.keys(detail),...Object.keys(running)]);
+        for(const key of keys) d[key]=firstVisible(running[key],detail[key],summary[key]);
 
-        for (const key of keys) {
-          d[key] = firstVisible(
-            running[key],
-            detail[key],
-            summary[key]
-          );
-        }
+        d.distanceM=firstVisible(summary.distanceM,detail.distanceM,running.distanceM);
+        d.durationSec=firstVisible(summary.durationSec,detail.durationSec,running.durationSec);
+        d.calories=firstVisible(summary.calories,detail.calories,running.calories);
+        d.averageHR=firstVisible(summary.averageHR,detail.averageHR,running.averageHR);
+        d.averagePower=firstVisible(summary.averagePower,detail.averagePower,running.averagePower);
+        d.elevationGainM=firstVisible(summary.elevationGainM,detail.elevationGainM,running.elevationGainM);
 
-        const lapRows = normalizeLapRows(activity?.freshLaps);
-        const fitSegments = [];
-
-        if (!activity) {
-          return `
-            ${backButton()}
-            ${header("Actividad")}
-            <section class="section">
-              <div class="card empty">Actividad no encontrada.</div>
-            </section>
-          `;
-        }
-
-        const loadingNote = activity.detailLoaded
-          ? ""
-          : `<div class="row-meta" style="margin-top:8px">Cargando detalle de Garmin…</div>`;
+        const lapRows=normalizeLapRows(activity?.freshLaps);
+        const fitSegments=Array.isArray(activity?.fitSegments)?activity.fitSegments:[];
+        const rpe=rpePresentation(d.rpe),feeling=feelingPresentation(d.feeling),gear=gearInfo(d.equipment);
+        const hasGps=(Array.isArray(activity?.fitMeta?.trackPoints)&&activity.fitMeta.trackPoints.length>=2)||Boolean(d.encodedPolyline);
+        const vo2=activity?.activityPreciseVo2?.matched&&activity.activityPreciseVo2.value!=null
+          ? formatGarminDecimal(activity.activityPreciseVo2.value):"—";
+        const planActive=state.training.some(item=>String(item?.date||"")>=localDate(0));
 
         return `
           ${backButton()}
-          ${activityDetailHeader(summary.title || "Actividad", summary.sport)}
+          ${activityDetailHeader(summary.title||"Actividad",summary.sport)}
+
+          <div class="activity-context-line">
+            <div class="activity-context-item">📅 ${escapeHtml(formatActivityMetaDateTime(d.startTimeLocal,summary.date))}</div>
+            <div class="activity-context-item">🌡️ ${escapeHtml(formatTemperature(d.averageTemperatureC))}</div>
+            <div class="activity-context-item">${rpe.emoji} RPE ${escapeHtml(rpe.text)}</div>
+            <div class="activity-context-item">${feeling.emoji} ${escapeHtml(feeling.text)}</div>
+          </div>
+
+          ${activity.detailLoaded?"":`<div class="row-meta" style="margin-top:10px">Cargando detalle de Garmin…</div>`}
+          ${hasGps?`<section class="section"><div id="activity-map" class="activity-map"></div></section>`:""}
+
+          <section class="section"><div class="card"><div class="activity-gear-row">
+            <div style="font-size:22px">👟</div>
+            <div class="activity-gear-name">${escapeHtml(gear.name)}</div>
+            <div class="activity-gear-distance">${formatGearKm(gear.totalKm)}</div>
+          </div></div></section>
 
           <section class="section">
+            <h2 class="section-title">Métricas principales</h2>
+            <div class="activity-metric-grid">
+              ${metricBox("Distancia",formatDistance(d.distanceM))}
+              ${metricBox("Tiempo",formatCardDuration(d.durationSec))}
+              ${metricBox("Ritmo",formatPace(d.distanceM,d.durationSec))}
+              ${metricBox("FC media",d.averageHR!=null?`${Math.round(Number(d.averageHR))}`:"—","bpm")}
+              ${metricBox("Calorías",d.calories!=null?`${Math.round(Number(d.calories))}`:"—","kcal")}
+              ${metricBox("Potencia",d.averagePower!=null?`${Math.round(Number(d.averagePower))}`:"—","W")}
+              ${metricBox("Desnivel",d.elevationGainM!=null?`${Math.round(Number(d.elevationGainM))}`:"—","m +")}
+              ${metricBox("VO₂ máx.",vo2)}
+            </div>
+          </section>
+
+          <section class="section">
+            <h2 class="section-title">Análisis y beneficio</h2>
             <div class="card">
-              <div class="row">
-                <div>
-                  <div class="row-title">${escapeHtml(formatActivityDateTime(d.startTimeLocal, summary.date))}</div>
-                  <div class="row-meta">${escapeHtml(sportLabel(summary.sport || "—", summary.title || ""))}</div>
-                </div>
-                <span class="chip blue">${formatDistance(d.distanceM)}</span>
+              <div class="row-title">${escapeHtml(d.trainingEffectLabel||"Beneficio Garmin no disponible")}</div>
+              <div class="analysis-grid">
+                <div class="analysis-chip"><div class="analysis-chip-label">Efecto aeróbico</div>
+                  <div class="analysis-chip-value">${d.trainingEffect??"—"}</div></div>
+                <div class="analysis-chip"><div class="analysis-chip-label">Efecto anaeróbico</div>
+                  <div class="analysis-chip-value">${d.anaerobicTrainingEffect??"—"}</div></div>
+                <div class="analysis-chip"><div class="analysis-chip-label">Carga</div>
+                  <div class="analysis-chip-value">${d.trainingLoad??"—"}</div></div>
               </div>
-              ${loadingNote}
+              <div class="row-meta" style="margin-top:14px">
+                ${planActive
+                  ?"🎯 Análisis ATLAS respecto al objetivo del plan: pendiente de las reglas que definiremos próximamente."
+                  :"🎯 Sin plan de entrenamiento ATLAS vigente."}
+              </div>
             </div>
           </section>
 
-          <section class="section">
-            <h2 class="section-title">Resumen</h2>
-            <div class="card">
-              <div class="row"><div class="row-title">Distancia</div><div class="row-meta">${formatDistance(d.distanceM)}</div></div>
-              <div class="row"><div class="row-title">Tiempo</div><div class="row-meta">${formatDuration(d.durationSec)}</div></div>
-              <div class="row"><div class="row-title">Ritmo</div><div class="row-meta">${formatPace(d.distanceM, d.durationSec)}</div></div>
-              <div class="row"><div class="row-title">Calorías</div><div class="row-meta">${d.calories ?? "—"}</div></div>
-              <div class="row"><div class="row-title">FC media / máx.</div><div class="row-meta">${d.averageHR ?? "—"} / ${d.maxHR ?? "—"} bpm</div></div>
-              <div class="row"><div class="row-title">Potencia media</div><div class="row-meta">${d.averagePower != null ? `${Math.round(d.averagePower)} W` : "—"}</div></div>
-              <div class="row"><div class="row-title">Desnivel +</div><div class="row-meta">${d.elevationGainM != null ? `${Math.round(d.elevationGainM)} m` : "—"}</div></div>
-              <div class="row"><div class="row-title">Temperatura</div><div class="row-meta">${d.averageTemperatureC != null ? `${Number(d.averageTemperatureC).toFixed(1)} °C` : "—"}</div></div>
-            </div>
-          </section>
-
-          <section class="section">
-            <h2 class="section-title">Sensaciones</h2>
-            <div class="card">
-              <div class="row"><div class="row-title">RPE</div><div class="row-meta">${d.rpe ?? "—"}</div></div>
-              <div class="row"><div class="row-title">Sensación</div><div class="row-meta">${escapeHtml(d.feeling ?? "—")}</div></div>
-              <div class="row"><div class="row-title">Equipamiento</div><div class="row-meta">${escapeHtml(equipmentText(d.equipment))}</div></div>
-            </div>
-          </section>
-
-          <section class="section">
-            <h2 class="section-title">Ruta</h2>
-            <div class="card">${routeSvg(d.encodedPolyline)}</div>
-          </section>
-
-          ${isRunningSport(summary.sport, summary.title) ? `
+          ${isRunningSport(summary.sport,summary.title)?`
             <section class="section">
-              <h2 class="section-title">Running</h2>
-              <div class="card">
-                <div class="row"><div class="row-title">VO₂ máx. preciso</div><div class="row-meta">${activity?.activityPreciseVo2?.matched && activity.activityPreciseVo2.value != null ? formatGarminDecimal(activity.activityPreciseVo2.value) : "—"}</div></div>
-                <div class="row"><div class="row-title">Ritmo medio</div><div class="row-meta">${formatPace(d.distanceM, d.durationSec)}</div></div>
-                <div class="row"><div class="row-title">Cadencia media / máx.</div><div class="row-meta">${formatCadence(d.averageCadence)} / ${formatCadence(d.maxCadence)} spm</div></div>
-                <div class="row"><div class="row-title">Longitud de zancada</div><div class="row-meta">${formatStrideLength(d.averageStrideLength)}</div></div>
-                <div class="row"><div class="row-title">Oscilación vertical</div><div class="row-meta">${d.averageVerticalOscillation != null ? `${Number(d.averageVerticalOscillation).toFixed(1)} cm` : "—"}</div></div>
-                <div class="row"><div class="row-title">Ratio vertical</div><div class="row-meta">${d.averageVerticalRatio != null ? `${Number(d.averageVerticalRatio).toFixed(1)} %` : "—"}</div></div>
-                <div class="row"><div class="row-title">Contacto con suelo</div><div class="row-meta">${d.averageGroundContactTime != null ? `${Math.round(Number(d.averageGroundContactTime))} ms` : "—"}</div></div>
-                <div class="row"><div class="row-title">Balance contacto</div><div class="row-meta">${d.averageGroundContactBalance != null ? `${Number(d.averageGroundContactBalance).toFixed(1)} %` : "—"}</div></div>
-                <div class="row"><div class="row-title">Potencia media / máx.</div><div class="row-meta">${d.averagePower != null ? `${Math.round(Number(d.averagePower))} W` : "—"} / ${d.maxPower != null ? `${Math.round(Number(d.maxPower))} W` : "—"}</div></div>
-                <div class="row"><div class="row-title">Potencia normalizada</div><div class="row-meta">${d.normalizedPower != null ? `${Math.round(Number(d.normalizedPower))} W` : "—"}</div></div>
-              </div>
-            </section>
-          ` : ""}
-
-          ${isRunningSport(summary.sport, summary.title) ? `
-            <section class="section">
-              <h2 class="section-title">Vueltas</h2>
-              <div class="card">
-                ${activity.activityFreshLoading
-                  ? `<div class="empty">Cargando vueltas y FIT…</div>`
-                  : lapsPaceChart(lapRows)}
-              </div>
+              <h2 class="section-title">Ritmo por vuelta</h2>
+              <div class="card">${activity.activityFreshLoading
+                ?`<div class="empty">Cargando vueltas y FIT…</div>`:lapsPaceChart(lapRows)}</div>
             </section>
 
-            ${lapRows.length ? `
-              <section class="section">
-                <h2 class="section-title">Detalle de vueltas</h2>
-                <div class="card">
-                  ${lapsTable(lapRows)}
-                </div>
-              </section>
-            ` : ""}
-          ` : ""}
+            ${lapRows.length?`<section class="section">
+              <h2 class="section-title">Detalle de vueltas</h2>
+              <div class="card">${lapsTable(lapRows,fitSegments)}</div>
+            </section>`:""}
 
-          <section class="section">
-            <h2 class="section-title">Análisis Garmin</h2>
-            <div class="card">
-              <div class="row"><div class="row-title">Carga</div><div class="row-meta">${d.trainingLoad ?? "—"}</div></div>
-              <div class="row"><div class="row-title">Efecto aeróbico</div><div class="row-meta">${d.trainingEffect ?? "—"}</div></div>
-              <div class="row"><div class="row-title">Efecto anaeróbico</div><div class="row-meta">${d.anaerobicTrainingEffect ?? "—"}</div></div>
-              <div class="row"><div class="row-title">Beneficio</div><div class="row-meta">${escapeHtml(d.trainingEffectLabel ?? "—")}</div></div>
-            </div>
-          </section>
+            <section class="section">
+              <h2 class="section-title">Dinámicas de carrera</h2>
+              <div class="running-dynamics-grid">
+                ${dynamicBox("Cadencia media",formatCadence(d.averageCadence),"spm")}
+                ${dynamicBox("Cadencia máx.",formatCadence(d.maxCadence),"spm")}
+                ${dynamicBox("Zancada",formatStrideLength(d.averageStrideLength))}
+                ${dynamicBox("Oscilación vertical",
+                  d.averageVerticalOscillation!=null?Number(d.averageVerticalOscillation).toLocaleString("es-ES",{maximumFractionDigits:1}):"—","cm")}
+                ${dynamicBox("Ratio vertical",
+                  d.averageVerticalRatio!=null?Number(d.averageVerticalRatio).toLocaleString("es-ES",{maximumFractionDigits:1}):"—","%")}
+                ${dynamicBox("Contacto suelo",
+                  d.averageGroundContactTime!=null?`${Math.round(Number(d.averageGroundContactTime))}`:"—","ms")}
+                ${dynamicBox("Balance contacto",
+                  d.averageGroundContactBalance!=null?Number(d.averageGroundContactBalance).toLocaleString("es-ES",{maximumFractionDigits:1}):"—","%")}
+                ${dynamicBox("Potencia normalizada",
+                  d.normalizedPower!=null?`${Math.round(Number(d.normalizedPower))}`:"—","W")}
+              </div>
+            </section>
+          `:""}
         `;
       }
 
@@ -4002,7 +4217,10 @@
           ${tabbar()}
         `;
         bindEvents();
-        requestAnimationFrame(() => fitActivityTitles());
+        requestAnimationFrame(() => {
+          fitActivityTitles();
+          initActivityMap();
+        });
       }
 
       return { state, render, navigate, goBack, goTab };
@@ -4183,6 +4401,7 @@
         const definitions = new Map();
         const workoutSteps = new Map();
         const laps = [];
+        const trackPoints = [];
         let pos = headerSize;
 
         while (pos < end) {
@@ -4282,6 +4501,22 @@
             }
           }
 
+          // record global message number = 20
+          if (definition.globalMessage === 20) {
+            const latSemi=Number(fieldValues.get(0));
+            const lonSemi=Number(fieldValues.get(1));
+            if (Number.isFinite(latSemi)&&Number.isFinite(lonSemi)&&
+                latSemi!==0x7fffffff&&lonSemi!==0x7fffffff) {
+              const factor=180/2147483648;
+              const enhanced=Number(fieldValues.get(73));
+              const speed=Number(fieldValues.get(6));
+              let speedMps=null;
+              if (Number.isFinite(enhanced)&&enhanced>=0&&enhanced<0xffffffff) speedMps=enhanced/1000;
+              else if (Number.isFinite(speed)&&speed>=0&&speed<0xffff) speedMps=speed/1000;
+              trackPoints.push({lat:latSemi*factor,lon:lonSemi*factor,speedMps});
+            }
+          }
+
           // workout_step global message number = 27
           if (definition.globalMessage === 27) {
             const messageIndex = fieldValues.get(254);
@@ -4339,10 +4574,17 @@
           );
         });
 
+        const maxTrackPoints=2500;
+        const stride=Math.max(1,Math.ceil(trackPoints.length/maxTrackPoints));
+        const sampledTrackPoints=trackPoints.filter((_,index)=>
+          index===0||index===trackPoints.length-1||index%stride===0
+        );
+
         return {
           labels,
-          workoutSteps: [...workoutSteps.values()],
-          fitLapCount: laps.length
+          workoutSteps:[...workoutSteps.values()],
+          fitLapCount:laps.length,
+          trackPoints:sampledTrackPoints
         };
       }
 
