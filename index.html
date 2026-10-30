@@ -799,7 +799,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.82",
+      APP_VERSION: "0.0.83",
       DB_NAME: "ATLAS",
       DB_VERSION: 6,
       DATA_SCHEMA_VERSION: 1,
@@ -2814,6 +2814,11 @@
         const hasGps=(Array.isArray(activity?.fitMeta?.trackPoints)&&activity.fitMeta.trackPoints.length>=2)||Boolean(d.encodedPolyline);
         const vo2=activity?.activityPreciseVo2?.matched&&activity.activityPreciseVo2.value!=null
           ? formatGarminDecimal(activity.activityPreciseVo2.value):"—";
+        const activityPace = formatCardPace(
+          summary.distanceM,
+          summary.durationSec
+        ) || "—";
+
         const planActive=state.training.some(item=>String(item?.date||"")>=localDate(0));
 
         return `
@@ -2841,7 +2846,7 @@
             <div class="activity-metric-grid">
               ${metricBox("Distancia",formatDistance(d.distanceM))}
               ${metricBox("Tiempo",formatCardDuration(d.durationSec))}
-              ${metricBox("Ritmo",formatPace(d.distanceM,d.durationSec))}
+              ${metricBox("Ritmo",activityPace)}
               ${metricBox("FC media",d.averageHR!=null?`${Math.round(Number(d.averageHR))}`:"—","bpm")}
               ${metricBox("Calorías",d.calories!=null?`${Math.round(Number(d.calories))}`:"—","kcal")}
               ${metricBox("Potencia",d.averagePower!=null?`${Math.round(Number(d.averagePower))}`:"—","W")}
