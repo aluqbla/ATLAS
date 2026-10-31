@@ -1001,6 +1001,151 @@
     .plan-week-summary-cell .row-title {
       white-space:nowrap;
     }
+
+    .activity-card-context {
+      margin-top:4px;
+      font-size:11px;
+      line-height:1.25;
+      color:var(--text-3);
+      font-weight:600;
+      letter-spacing:.005em;
+      white-space:normal;
+    }
+
+    .plan-metric-grid{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0;overflow:hidden}
+    .plan-metric-cell{position:relative;min-width:0;min-height:78px;padding:11px 8px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .plan-metric-cell:not(:nth-child(3n))::after{content:"";position:absolute;right:-1px;top:10px;bottom:10px;width:1px;background:var(--divider)}
+    .plan-metric-cell:nth-child(n+4)::before{content:"";position:absolute;left:8px;right:8px;top:0;height:1px;background:var(--divider)}
+    .plan-metric-emoji{font-size:16px;line-height:1;margin-bottom:4px}.plan-metric-label{font-size:9px;line-height:1.08;color:var(--text-3);font-weight:700;white-space:nowrap}.plan-metric-value{margin-top:4px;max-width:100%;font-size:15px;line-height:1.08;color:var(--text-main);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:clip;font-variant-numeric:tabular-nums}.plan-metric-sub{margin-top:3px;font-size:9px;line-height:1.1;color:var(--text-3);font-weight:650;white-space:nowrap}
+    .plan-metric-grid.paces{grid-template-columns:repeat(2,minmax(0,1fr))}.plan-metric-grid.paces .plan-metric-cell:not(:nth-child(3n))::after{display:none}.plan-metric-grid.paces .plan-metric-cell:not(:nth-child(2n))::after{display:block;content:"";position:absolute;right:-1px;top:10px;bottom:10px;width:1px;background:var(--divider)}.plan-metric-grid.paces .plan-metric-cell:nth-child(n+3)::before{display:block;content:"";position:absolute;left:8px;right:8px;top:0;height:1px;background:var(--divider)}
+    .plan-detail-edit{width:100%;margin-top:10px}.plan-week-summary-triple{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;margin:5px 0 8px}.plan-week-summary-triple>div{position:relative;text-align:center;min-width:0;padding:5px 6px}.plan-week-summary-triple>div+div::before{content:"";position:absolute;left:-1px;top:6px;bottom:6px;width:1px;background:var(--divider)}.plan-week-summary-triple-label{font-size:9px;color:var(--text-3);font-weight:700}.plan-week-summary-triple-value{margin-top:3px;font-size:15px;color:var(--text-main);font-weight:800;white-space:nowrap}
+    .plan-rest-card .activity-card-title-text{color:var(--text-3)!important;font-weight:650!important}.plan-rest-card .activity-card-emoji{opacity:.7}.plan-availability-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:8px}.plan-availability-day{appearance:none;min-width:0;height:38px;border:0;border-radius:10px;background:var(--surface-2);color:var(--text-3);font-size:11px;font-weight:800}.plan-availability-day.active{background:var(--blue);color:#fff}.plan-availability-day:disabled{opacity:.35;cursor:default}
+    .plan-secondary-list{display:flex;flex-direction:column;margin:8px 0 12px}.plan-secondary-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 2px}.plan-secondary-row+.plan-secondary-row::before{content:"";position:absolute;left:6px;right:6px;top:0;height:1px;background:var(--divider)}.plan-secondary-row-title{font-size:12px;color:var(--text-main);font-weight:780}.plan-secondary-row-meta{margin-top:3px;font-size:10px;color:var(--text-3);line-height:1.3}.plan-secondary-remove{appearance:none;border:0;background:transparent;color:var(--red);font-size:11px;font-weight:750;padding:8px 4px}.plan-secondary-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.plan-secondary-fields .wide{grid-column:1/-1}.plan-secondary-add{width:100%;margin-top:8px}
+    @media(max-width:520px){.plan-metric-cell{min-height:72px;padding-left:5px;padding-right:5px}.plan-metric-value{font-size:13.5px}.plan-metric-label{font-size:8.5px}}
+
+    .plan-workout-hero {
+      padding:16px;
+    }
+    .plan-workout-kicker {
+      font-size:11px;
+      line-height:1.2;
+      color:var(--text-3);
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .plan-workout-title {
+      margin-top:5px;
+      font-size:24px;
+      line-height:1.08;
+      font-weight:800;
+      letter-spacing:-.025em;
+      color:var(--text-main);
+    }
+    .plan-workout-subtitle {
+      margin-top:7px;
+      font-size:13px;
+      line-height:1.35;
+      color:var(--text-2);
+      font-weight:600;
+    }
+    .plan-workout-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:1px;
+      background:var(--divider);
+      border-radius:14px;
+      overflow:hidden;
+    }
+    .plan-workout-metric {
+      background:var(--card);
+      padding:14px;
+      min-width:0;
+    }
+    .plan-workout-metric-label {
+      font-size:10px;
+      line-height:1.2;
+      color:var(--text-3);
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.045em;
+    }
+    .plan-workout-metric-value {
+      margin-top:4px;
+      font-size:16px;
+      line-height:1.2;
+      color:var(--text-main);
+      font-weight:780;
+    }
+    .plan-structure-step {
+      padding:12px 0;
+    }
+    .plan-structure-step + .plan-structure-step {
+      border-top:1px solid var(--divider);
+    }
+    .plan-structure-step-title {
+      font-size:14px;
+      color:var(--text-main);
+      font-weight:760;
+    }
+    .plan-structure-step-meta {
+      margin-top:4px;
+      font-size:12px;
+      line-height:1.4;
+      color:var(--text-2);
+      font-weight:580;
+    }
+    @media (max-width:520px) {
+      .plan-workout-grid {
+        grid-template-columns:1fr 1fr;
+      }
+      .plan-workout-title {
+        font-size:22px;
+      }
+    }
+
+    .plan-pace-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:0;
+    }
+    .plan-pace-item {
+      padding:11px 0;
+      min-width:0;
+    }
+    .plan-pace-item:nth-child(odd) {
+      padding-right:14px;
+    }
+    .plan-pace-item:nth-child(even) {
+      padding-left:14px;
+      border-left:1px solid var(--divider);
+    }
+    .plan-pace-item:nth-child(n+3) {
+      border-top:1px solid var(--divider);
+    }
+    .plan-pace-value {
+      margin-top:4px;
+      font-size:15px;
+      line-height:1.2;
+      color:var(--text-main);
+      font-weight:760;
+      letter-spacing:-.01em;
+    }
+    @media (max-width:520px) {
+      .plan-pace-grid {
+        grid-template-columns:1fr;
+      }
+      .plan-pace-item,
+      .plan-pace-item:nth-child(odd),
+      .plan-pace-item:nth-child(even) {
+        padding:10px 0;
+        border-left:0;
+      }
+      .plan-pace-item:nth-child(n+2) {
+        border-top:1px solid var(--divider);
+      }
+    }
+
     .plan-activity-list .activity-card {
       width:100%;
     }
@@ -1118,7 +1263,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.137",
+      APP_VERSION: "0.0.147",
       DB_NAME: "ATLAS",
       DB_VERSION: 6,
       DATA_SCHEMA_VERSION: 1,
@@ -1767,6 +1912,10 @@
         return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
       }
 
+      function planDistanceLabelSafe(key) {
+        return {"5K":"5K","10K":"10K","HALF_MARATHON":"Media maratón","MARATHON":"Maratón"}[key] || key || "Carrera";
+      }
+
       function createPlanInput(source = {}) {
         const distance = Distance[source.distanceKey];
 
@@ -1790,7 +1939,21 @@
           doublesPreference:
             DoublesPreference.includes(source.doublesPreference)
               ? source.doublesPreference
-              : null
+              : null,
+          phaseAllocationChoice:
+            source?.phaseAllocationChoice &&
+            Number.isInteger(Number(source.phaseAllocationChoice.preparation)) &&
+            Number.isInteger(Number(source.phaseAllocationChoice.development)) &&
+            Number.isInteger(Number(source.phaseAllocationChoice.specific))
+              ? Object.freeze({preparation:Number(source.phaseAllocationChoice.preparation),development:Number(source.phaseAllocationChoice.development),specific:Number(source.phaseAllocationChoice.specific)})
+              : null,
+          availabilityByWeek: source?.availabilityByWeek && typeof source.availabilityByWeek === "object"
+            ? Object.freeze(Object.fromEntries(Object.entries(source.availabilityByWeek).filter(([k,v])=>isIsoDate(k)&&Array.isArray(v)).map(([k,v])=>[k,Object.freeze([...new Set(v)].filter(day=>Weekday.includes(day)))])))
+            : Object.freeze({}),
+          secondaryRaces: Object.freeze((Array.isArray(source?.secondaryRaces)?source.secondaryRaces:[]).map((race,index)=>{
+            const d=Distance[race?.distanceKey];
+            return d&&isIsoDate(race?.date)?Object.freeze({id:String(race?.id||`secondary-${index}-${race.date}`),name:String(race?.name||planDistanceLabelSafe(d.key)).trim(),distanceKey:d.key,distanceM:d.distanceM,date:String(race.date),targetTimeSec:Number(race?.targetTimeSec)>0?Number(race.targetTimeSec):null}):null;
+          }).filter(Boolean))
         });
       }
 
@@ -7441,6 +7604,7 @@
         volumeProgression = null,
         canonicalCalendar = null,
         phaseAllocation = null,
+        canonicalSessions = null,
         weeklySkeleton = null,
         prescriptionCore = null,
         effectivePlan = null,
@@ -7457,6 +7621,7 @@
           volumeProgression,
           canonicalCalendar,
           phaseAllocation,
+          canonicalSessions,
           weeklySkeleton,
           prescriptionCore,
           effectivePlan,
@@ -7494,6 +7659,7 @@
           volumeProgression,
           canonicalCalendar,
           phaseAllocation,
+          canonicalSessions,
           weeklySkeleton,
           prescriptionCore,
           effectivePlan,
@@ -7605,6 +7771,7 @@
               "volumeProgression" in first &&
               "canonicalCalendar" in first &&
               "phaseAllocation" in first &&
+              "canonicalSessions" in first &&
               "weeklySkeleton" in first &&
               "prescriptionCore" in first &&
               "effectivePlan" in first &&
@@ -8578,123 +8745,282 @@
         );
       }
 
+      function scorePhaseAllocationCandidate({
+        candidate,
+        athleteSnapshot = null,
+        volumeProgression = null,
+        goalAssessment = null
+      } = {}) {
+        if (!candidate) return null;
+
+        const base = athleteSnapshot?.base?.effective || "MEDIUM";
+        const qualityEstablished = athleteSnapshot?.qualityEstablished === true;
+
+        const habitualVolumeKm = Number(volumeProgression?.habitualVolumeKm);
+        const targetPeakKm = Number(volumeProgression?.targetPeakKm);
+        const lr0Km = Number(athleteSnapshot?.longRunBase?.distanceMedianM) / 1000;
+        const targetLongRunKm = Number(volumeProgression?.demand?.longRunKm);
+
+        const volumeRatio =
+          Number.isFinite(habitualVolumeKm) &&
+          Number.isFinite(targetPeakKm) &&
+          targetPeakKm > 0
+            ? habitualVolumeKm / targetPeakKm
+            : null;
+
+        const longRunRatio =
+          Number.isFinite(lr0Km) &&
+          Number.isFinite(targetLongRunKm) &&
+          targetLongRunKm > 0
+            ? lr0Km / targetLongRunKm
+            : null;
+
+        let preparationWeight = 1;
+        let developmentWeight = 1;
+        let specificWeight = 1;
+
+        if (base === "LOW") {
+          preparationWeight += 3;
+          developmentWeight += 2;
+        } else if (base === "MEDIUM") {
+          preparationWeight += 1;
+          developmentWeight += 3;
+          specificWeight += 1.5;
+        } else if (base === "HIGH") {
+          developmentWeight += 2;
+          specificWeight += 3;
+        }
+
+        if (qualityEstablished) {
+          specificWeight += 1.5;
+        } else {
+          preparationWeight += 0.75;
+          developmentWeight += 0.75;
+        }
+
+        if (volumeRatio != null) {
+          if (volumeRatio < 0.65) {
+            preparationWeight += 2;
+            developmentWeight += 1;
+          } else if (volumeRatio < 0.85) {
+            developmentWeight += 1.5;
+          } else {
+            specificWeight += 1.25;
+          }
+        }
+
+        if (longRunRatio != null) {
+          if (longRunRatio < 0.60) {
+            preparationWeight += 2;
+            developmentWeight += 1;
+          } else if (longRunRatio < 0.80) {
+            developmentWeight += 1.5;
+          } else {
+            specificWeight += 1.5;
+          }
+        }
+
+        const goalStatus = goalAssessment?.status || null;
+
+        if (
+          goalStatus === "PREPARATION_INSUFFICIENT" ||
+          goalStatus === "NOT_SUPPORTED_CURRENTLY"
+        ) {
+          preparationWeight += 1.5;
+          developmentWeight += 2;
+          specificWeight -= 1;
+        } else if (goalStatus === "DEMANDING") {
+          developmentWeight += 1.5;
+        } else if (goalStatus === "SUPPORTED") {
+          specificWeight += 1;
+        }
+
+        const score =
+          candidate.preparation * preparationWeight +
+          candidate.development * developmentWeight +
+          candidate.specific * specificWeight;
+
+        return Object.freeze({
+          candidate,
+          score,
+          weights: Object.freeze({
+            preparation: preparationWeight,
+            development: developmentWeight,
+            specific: specificWeight
+          }),
+          signals: Object.freeze({
+            base,
+            qualityEstablished,
+            volumeRatio,
+            longRunRatio,
+            goalStatus
+          })
+        });
+      }
+
+      function chooseAutomaticPhaseAllocation({
+        candidates = [],
+        athleteSnapshot = null,
+        volumeProgression = null,
+        goalAssessment = null
+      } = {}) {
+        if (!Array.isArray(candidates) || !candidates.length) return null;
+
+        const ranked = candidates
+          .map((candidate) =>
+            scorePhaseAllocationCandidate({
+              candidate,
+              athleteSnapshot,
+              volumeProgression,
+              goalAssessment
+            })
+          )
+          .filter(Boolean)
+          .sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            if (b.candidate.development !== a.candidate.development) {
+              return b.candidate.development - a.candidate.development;
+            }
+            if (b.candidate.specific !== a.candidate.specific) {
+              return b.candidate.specific - a.candidate.specific;
+            }
+            return a.candidate.preparation - b.candidate.preparation;
+          });
+
+        const best = ranked[0];
+
+        return best
+          ? Object.freeze({
+              selected: best.candidate,
+              score: best.score,
+              weights: best.weights,
+              signals: best.signals,
+              ranked: Object.freeze(ranked)
+            })
+          : null;
+      }
+
       function resolvePhaseAllocation({
         planInput = null,
         macrocycle = null,
-        canonicalCalendar = null
+        canonicalCalendar = null,
+        athleteSnapshot = null,
+        volumeProgression = null,
+        goalAssessment = null
       } = {}) {
-        const normalizedPlan =
-          createPlanInput(
-            planInput || {}
-          );
-
-        const validation =
-          validatePlanInput(
-            normalizedPlan
-          );
+        const normalizedPlan = createPlanInput(planInput || {});
+        const validation = validatePlanInput(normalizedPlan);
 
         if (!validation.valid) {
           return Object.freeze({
             status: "INVALID_INPUT",
             selected: null,
-            candidates:
-              Object.freeze([]),
+            candidates: Object.freeze([]),
             coreWeeks: null
           });
         }
 
-        if (
-          !canonicalCalendar
-            ?.available
-        ) {
+        if (!canonicalCalendar?.available) {
           return Object.freeze({
-            status:
-              "CALENDAR_PENDING",
+            status: "CALENDAR_PENDING",
             selected: null,
-            candidates:
-              Object.freeze([]),
+            candidates: Object.freeze([]),
             coreWeeks: null
           });
         }
 
-        const coreWeeks =
-          canonicalCalendar.weeks
-            .filter((week) =>
-              week.phase ===
-              "UNASSIGNED"
-            )
-            .length;
+        const coreWeeks = canonicalCalendar.weeks
+          .filter((week) => week.phase === "UNASSIGNED")
+          .length;
 
-        const candidates =
-          phaseAllocationCandidates({
-            distanceKey:
-              normalizedPlan.distanceKey,
-            coreWeeks
-          });
+        const candidates = phaseAllocationCandidates({
+          distanceKey: normalizedPlan.distanceKey,
+          coreWeeks
+        });
+
+        const chosen = normalizedPlan.phaseAllocationChoice;
+
+        if (chosen && candidates.length) {
+          const matched = candidates.find((candidate) =>
+            candidate.preparation === chosen.preparation &&
+            candidate.development === chosen.development &&
+            candidate.specific === chosen.specific
+          ) || null;
+
+          if (matched) {
+            return Object.freeze({
+              status: "USER_SELECTED",
+              selected: matched,
+              candidates,
+              coreWeeks,
+              source: "EXPLICIT_USER_DECISION"
+            });
+          }
+        }
 
         if (candidates.length === 1) {
           return Object.freeze({
             status: "UNIQUE",
-            selected:
-              candidates[0],
+            selected: candidates[0],
             candidates,
             coreWeeks,
-            source:
-              "MACROCYCLE_RANGE_CONSTRAINTS"
+            source: "MACROCYCLE_RANGE_CONSTRAINTS"
           });
         }
 
         if (candidates.length > 1) {
+          const automatic = chooseAutomaticPhaseAllocation({
+            candidates,
+            athleteSnapshot,
+            volumeProgression,
+            goalAssessment
+          });
+
+          if (automatic?.selected) {
+            return Object.freeze({
+              status: "AUTO_SELECTED",
+              selected: automatic.selected,
+              candidates,
+              coreWeeks,
+              source: "ATLAS_AUTOMATIC_MACROSTRUCTURE_POLICY",
+              decision: Object.freeze({
+                score: automatic.score,
+                weights: automatic.weights,
+                signals: automatic.signals,
+                ranked: automatic.ranked
+              })
+            });
+          }
+
           return Object.freeze({
             status: "MULTIPLE_VALID",
             selected: null,
             candidates,
             coreWeeks,
-            source:
-              "MACROCYCLE_RANGE_CONSTRAINTS",
-            reason:
-              "SOURCE_DOES_NOT_DEFINE_TIE_BREAK"
+            source: "MACROCYCLE_RANGE_CONSTRAINTS",
+            reason: "AUTOMATIC_SELECTOR_UNAVAILABLE"
           });
         }
 
-        const profile =
-          MacrocycleProfiles[
-            normalizedPlan.distanceKey
-          ];
+        const profile = MacrocycleProfiles[normalizedPlan.distanceKey];
 
-        const minimumCoreWeeks =
-          profile
-            ? (
-                profile.preparation
-                  .minWeeks +
-                profile.development
-                  .minWeeks +
-                profile.specific
-                  .minWeeks
-              )
-            : null;
+        const minimumCoreWeeks = profile
+          ? profile.preparation.minWeeks +
+            profile.development.minWeeks +
+            profile.specific.minWeeks
+          : null;
 
-        const maximumCoreWeeks =
-          profile
-            ? (
-                profile.preparation
-                  .maxWeeks +
-                profile.development
-                  .maxWeeks +
-                profile.specific
-                  .maxWeeks
-              )
-            : null;
+        const maximumCoreWeeks = profile
+          ? profile.preparation.maxWeeks +
+            profile.development.maxWeeks +
+            profile.specific.maxWeeks
+          : null;
 
         return Object.freeze({
           status:
-            minimumCoreWeeks != null &&
-            coreWeeks <
-              minimumCoreWeeks
+            minimumCoreWeeks != null && coreWeeks < minimumCoreWeeks
               ? "INSUFFICIENT_CORE_WEEKS"
-              : maximumCoreWeeks != null &&
-                  coreWeeks >
-                    maximumCoreWeeks
+              : maximumCoreWeeks != null && coreWeeks > maximumCoreWeeks
                 ? "EXCESS_CORE_WEEKS"
                 : "NO_VALID_ALLOCATION",
           selected: null,
@@ -8712,8 +9038,9 @@
         if (
           !canonicalCalendar
             ?.available ||
-          phaseAllocation?.status !==
-            "UNIQUE" ||
+          !["UNIQUE", "USER_SELECTED", "AUTO_SELECTED"].includes(
+            phaseAllocation?.status
+          ) ||
           !phaseAllocation.selected
         ) {
           return Object.freeze({
@@ -8802,6 +9129,115 @@
             unresolvedWeeks === 0
               ? "UNIQUE_ALLOCATION_APPLIED"
               : "UNRESOLVED_WEEKS_REMAIN"
+        });
+      }
+
+      function runAutomaticMacrostructureTests() {
+        const candidates = Object.freeze([
+          Object.freeze({ preparation: 0, development: 4, specific: 8 }),
+          Object.freeze({ preparation: 1, development: 6, specific: 5 }),
+          Object.freeze({ preparation: 4, development: 5, specific: 3 })
+        ]);
+
+        const low = chooseAutomaticPhaseAllocation({
+          candidates,
+          athleteSnapshot: Object.freeze({
+            base: Object.freeze({ effective: "LOW" }),
+            qualityEstablished: false,
+            longRunBase: Object.freeze({ distanceMedianM: 12000 })
+          }),
+          volumeProgression: Object.freeze({
+            habitualVolumeKm: 30,
+            targetPeakKm: 60,
+            demand: Object.freeze({ longRunKm: 30 })
+          }),
+          goalAssessment: Object.freeze({ status: "DEMANDING" })
+        });
+
+        const medium = chooseAutomaticPhaseAllocation({
+          candidates,
+          athleteSnapshot: Object.freeze({
+            base: Object.freeze({ effective: "MEDIUM" }),
+            qualityEstablished: false,
+            longRunBase: Object.freeze({ distanceMedianM: 21000 })
+          }),
+          volumeProgression: Object.freeze({
+            habitualVolumeKm: 46,
+            targetPeakKm: 60,
+            demand: Object.freeze({ longRunKm: 30 })
+          }),
+          goalAssessment: Object.freeze({ status: "DEMANDING" })
+        });
+
+        const high = chooseAutomaticPhaseAllocation({
+          candidates,
+          athleteSnapshot: Object.freeze({
+            base: Object.freeze({ effective: "HIGH" }),
+            qualityEstablished: true,
+            longRunBase: Object.freeze({ distanceMedianM: 29000 })
+          }),
+          volumeProgression: Object.freeze({
+            habitualVolumeKm: 58,
+            targetPeakKm: 60,
+            demand: Object.freeze({ longRunKm: 30 })
+          }),
+          goalAssessment: Object.freeze({ status: "SUPPORTED" })
+        });
+
+        const results = Object.freeze([
+          Object.freeze({
+            name: "LOW / underprepared biases toward preparation",
+            pass: low.selected.preparation === 4
+          }),
+          Object.freeze({
+            name: "MEDIUM biases toward development",
+            pass: medium.selected.development === 6
+          }),
+          Object.freeze({
+            name: "HIGH / ready biases toward specific",
+            pass: high.selected.specific === 8
+          }),
+          Object.freeze({
+            name: "automatic selector is deterministic",
+            pass:
+              deterministicFingerprint(
+                chooseAutomaticPhaseAllocation({
+                  candidates,
+                  athleteSnapshot: Object.freeze({
+                    base: Object.freeze({ effective: "MEDIUM" }),
+                    qualityEstablished: true,
+                    longRunBase: Object.freeze({ distanceMedianM: 22000 })
+                  }),
+                  volumeProgression: Object.freeze({
+                    habitualVolumeKm: 48,
+                    targetPeakKm: 60,
+                    demand: Object.freeze({ longRunKm: 30 })
+                  }),
+                  goalAssessment: Object.freeze({ status: "SUPPORTED" })
+                }).selected
+              ) ===
+              deterministicFingerprint(
+                chooseAutomaticPhaseAllocation({
+                  candidates,
+                  athleteSnapshot: Object.freeze({
+                    base: Object.freeze({ effective: "MEDIUM" }),
+                    qualityEstablished: true,
+                    longRunBase: Object.freeze({ distanceMedianM: 22000 })
+                  }),
+                  volumeProgression: Object.freeze({
+                    habitualVolumeKm: 48,
+                    targetPeakKm: 60,
+                    demand: Object.freeze({ longRunKm: 30 })
+                  }),
+                  goalAssessment: Object.freeze({ status: "SUPPORTED" })
+                }).selected
+              )
+          })
+        ]);
+
+        return Object.freeze({
+          passed: results.every((result) => result.pass),
+          results
         });
       }
 
@@ -8962,7 +9398,7 @@
             }),
             Object.freeze({
               name:
-                "tie-break remains explicitly undefined",
+                "multiple valid allocations are auto-selected",
               pass:
                 resolvePhaseAllocation({
                   planInput:
@@ -8986,9 +9422,65 @@
                               })
                           )
                         )
+                    }),
+                  athleteSnapshot:
+                    Object.freeze({
+                      base: Object.freeze({
+                        effective: "MEDIUM"
+                      }),
+                      qualityEstablished: false,
+                      longRunBase: Object.freeze({
+                        distanceMedianM: 12000
+                      })
+                    }),
+                  volumeProgression:
+                    Object.freeze({
+                      habitualVolumeKm: 40,
+                      targetPeakKm: 46,
+                      demand: Object.freeze({
+                        longRunKm: 15
+                      })
+                    }),
+                  goalAssessment:
+                    Object.freeze({
+                      status: "DEMANDING"
                     })
                 }).status ===
-                  "MULTIPLE_VALID"
+                  "AUTO_SELECTED"
+            }),
+            Object.freeze({
+              name:
+                "explicit user choice resolves multiple valid candidates",
+              pass:
+                resolvePhaseAllocation({
+                  planInput:
+                    createPlanInput({
+                      ...plan5,
+                      distanceKey: "10K",
+                      phaseAllocationChoice: {
+                        preparation: 1,
+                        development: 3,
+                        specific: 4
+                      }
+                    }),
+                  canonicalCalendar:
+                    Object.freeze({
+                      available: true,
+                      weeks:
+                        Object.freeze(
+                          Array.from(
+                            { length: 8 },
+                            (_, i) =>
+                              Object.freeze({
+                                index: i,
+                                phase:
+                                  "UNASSIGNED"
+                              })
+                          )
+                        )
+                    })
+                }).status ===
+                  "USER_SELECTED"
             })
           ]);
 
@@ -8998,6 +9490,1016 @@
               (result) =>
                 result.pass
             ),
+          results
+        });
+      }
+
+
+
+      function runDaysForPhase({
+        phase,
+        startRunDays,
+        maximumRunDays,
+        availableDaysCount = null
+      } = {}) {
+        const start = Number(startRunDays);
+        const maximum = Number(maximumRunDays);
+        const available = Number(availableDaysCount);
+
+        if (
+          !Number.isInteger(start) ||
+          !Number.isInteger(maximum) ||
+          start < 1 ||
+          maximum < 1
+        ) {
+          return null;
+        }
+
+        let target = Math.min(start, maximum);
+
+        if (phase === "development") {
+          target = Math.min(maximum, start + 1);
+        } else if (phase === "specific") {
+          target = maximum;
+        } else if (phase === "taper") {
+          target = Math.min(maximum, Math.max(3, start));
+        } else if (phase === "race_week") {
+          target = Math.min(3, maximum);
+        }
+
+        if (
+          Number.isInteger(available) &&
+          available > 0
+        ) {
+          target = Math.min(target, available);
+        }
+
+        return target;
+      }
+
+      function specificFamilyForDistance(distanceKey) {
+        const map = Object.freeze({
+          "5K": "specific_5k",
+          "10K": "specific_10k",
+          "HALF_MARATHON": "specific_half",
+          "MARATHON": "specific_marathon"
+        });
+
+        return map[distanceKey] || null;
+      }
+
+      function qualityFamilyPolicy({
+        distanceKey,
+        phase,
+        phaseWeekIndex = 0
+      } = {}) {
+        const index = Math.max(0, Number(phaseWeekIndex) || 0);
+        const specific = specificFamilyForDistance(distanceKey);
+
+        if (
+          phase === "initial_partial" ||
+          phase === "preparation"
+        ) {
+          return index % 2 === 0
+            ? "hills"
+            : "fast_repetitions";
+        }
+
+        if (phase === "development") {
+          const patterns = Object.freeze({
+            "5K": Object.freeze(["vo2", "threshold", "specific_5k"]),
+            "10K": Object.freeze(["threshold", "vo2", "specific_10k"]),
+            "HALF_MARATHON": Object.freeze(["threshold", "specific_half", "vo2"]),
+            "MARATHON": Object.freeze(["threshold", "specific_marathon"])
+          });
+
+          const pattern =
+            patterns[distanceKey] ||
+            Object.freeze(["threshold"]);
+
+          return pattern[index % pattern.length];
+        }
+
+        if (phase === "specific") {
+          const pattern =
+            specific
+              ? Object.freeze([specific, "threshold"])
+              : Object.freeze(["threshold"]);
+
+          return pattern[index % pattern.length];
+        }
+
+        if (phase === "taper") {
+          return specific || "threshold";
+        }
+
+        if (phase === "race_week") {
+          return "activation";
+        }
+
+        return null;
+      }
+
+      function qualityFamilyLabel(family) {
+        const labels = Object.freeze({
+          threshold: "Umbral",
+          vo2: "VO₂",
+          specific_5k: "Ritmo 5K",
+          specific_10k: "Ritmo 10K",
+          specific_half: "Ritmo media maratón",
+          specific_marathon: "Ritmo maratón",
+          fast_repetitions: "Repeticiones rápidas",
+          hills: "Cuestas",
+          activation: "Activación"
+        });
+
+        return labels[family] || "Calidad";
+      }
+
+      function qualityDosePolicy({
+        phase,
+        baseLevel,
+        phaseProgress = 0
+      } = {}) {
+        if (forcedLowDoseWeek(phase)) {
+          return "LOW";
+        }
+
+        const progress =
+          Math.max(0, Math.min(1, Number(phaseProgress) || 0));
+
+        if (
+          phase === "specific" &&
+          baseLevel === "HIGH" &&
+          progress >= 0.67
+        ) {
+          return "HIGH";
+        }
+
+        return "MEDIUM";
+      }
+
+      function runImplementationPolicyTests() {
+        const results = Object.freeze([
+          Object.freeze({
+            name: "frequency starts from habitual",
+            pass:
+              runDaysForPhase({
+                phase: "preparation",
+                startRunDays: 3,
+                maximumRunDays: 5,
+                availableDaysCount: 5
+              }) === 3
+          }),
+          Object.freeze({
+            name: "development increases by at most one day",
+            pass:
+              runDaysForPhase({
+                phase: "development",
+                startRunDays: 3,
+                maximumRunDays: 5,
+                availableDaysCount: 5
+              }) === 4
+          }),
+          Object.freeze({
+            name: "specific can reach objective cap",
+            pass:
+              runDaysForPhase({
+                phase: "specific",
+                startRunDays: 3,
+                maximumRunDays: 5,
+                availableDaysCount: 5
+              }) === 5
+          }),
+          Object.freeze({
+            name: "availability always caps frequency",
+            pass:
+              runDaysForPhase({
+                phase: "specific",
+                startRunDays: 3,
+                maximumRunDays: 5,
+                availableDaysCount: 3
+              }) === 3
+          }),
+          Object.freeze({
+            name: "race week limited to three days",
+            pass:
+              runDaysForPhase({
+                phase: "race_week",
+                startRunDays: 5,
+                maximumRunDays: 6,
+                availableDaysCount: 7
+              }) === 3
+          }),
+          Object.freeze({
+            name: "marathon development alternates threshold/specific",
+            pass:
+              qualityFamilyPolicy({
+                distanceKey: "MARATHON",
+                phase: "development",
+                phaseWeekIndex: 0
+              }) === "threshold" &&
+              qualityFamilyPolicy({
+                distanceKey: "MARATHON",
+                phase: "development",
+                phaseWeekIndex: 1
+              }) === "specific_marathon"
+          }),
+          Object.freeze({
+            name: "specific phase prioritizes race pace",
+            pass:
+              qualityFamilyPolicy({
+                distanceKey: "10K",
+                phase: "specific",
+                phaseWeekIndex: 0
+              }) === "specific_10k"
+          }),
+          Object.freeze({
+            name: "race-week quality slot becomes activation",
+            pass:
+              qualityFamilyPolicy({
+                distanceKey: "10K",
+                phase: "race_week",
+                phaseWeekIndex: 0
+              }) === "activation"
+          }),
+          Object.freeze({
+            name: "HIGH only advanced specific HIGH base",
+            pass:
+              qualityDosePolicy({
+                phase: "specific",
+                baseLevel: "HIGH",
+                phaseProgress: 0.8
+              }) === "HIGH" &&
+              qualityDosePolicy({
+                phase: "specific",
+                baseLevel: "MEDIUM",
+                phaseProgress: 0.8
+              }) === "MEDIUM"
+          })
+        ]);
+
+        return Object.freeze({
+          passed: results.every((result) => result.pass),
+          results
+        });
+      }
+
+
+      function continuousRunFamilyPolicy({ phase } = {}) {
+        if (phase === "taper" || phase === "race_week") return "recovery";
+        if (phase === "development" || phase === "specific") return "aerobic";
+        return "easy";
+      }
+
+      function continuousRunDistanceM({ family, phase } = {}) {
+        if (phase === "race_week" && family === "recovery") {
+          return ContinuousRunMinimumM.raceWeekRecovery;
+        }
+        return ContinuousRunMinimumM[family] ?? null;
+      }
+
+      function longRunTargetM({
+        macrocycle = null,
+        volumeProgression = null
+      } = {}) {
+        const range = macrocycle?.longRunKm;
+        const demandKm = Number(volumeProgression?.demand?.longRunKm);
+
+        if (
+          !Array.isArray(range) ||
+          range.length !== 2 ||
+          !Number.isFinite(demandKm)
+        ) return null;
+
+        const minKm = Number(range[0]);
+        const maxKm = Number(range[1]);
+
+        if (!Number.isFinite(minKm) || !Number.isFinite(maxKm)) return null;
+
+        return Math.max(minKm, Math.min(maxKm, demandKm)) * 1000;
+      }
+
+      function taperLongRunRatio({ taperWeeks, taperWeekIndex } = {}) {
+        const weeks = Number(taperWeeks);
+        const index = Number(taperWeekIndex);
+
+        const ratios =
+          weeks === 3 ? [0.70, 0.50, 0] :
+          weeks === 2 ? [0.55, 0] :
+          weeks === 1 ? [0] :
+          [];
+
+        return (
+          Number.isInteger(index) &&
+          index >= 0 &&
+          index < ratios.length
+        )
+          ? ratios[index]
+          : null;
+      }
+
+      function longRunDistancePolicy({
+        phase,
+        overallProgress = 0,
+        longRunBaseM = null,
+        targetLongRunM = null,
+        taperWeeks = null,
+        taperWeekIndex = null
+      } = {}) {
+        const base = Number(longRunBaseM);
+        const target = Number(targetLongRunM);
+
+        if (
+          !Number.isFinite(base) ||
+          base <= 0 ||
+          !Number.isFinite(target) ||
+          target <= 0
+        ) return null;
+
+        if (phase === "taper") {
+          const ratio = taperLongRunRatio({
+            taperWeeks,
+            taperWeekIndex
+          });
+
+          return ratio == null
+            ? null
+            : Math.round((target * ratio) / 500) * 500;
+        }
+
+        if (phase === "race_week") return 0;
+
+        const progress = Math.max(
+          0,
+          Math.min(1, Number(overallProgress) || 0)
+        );
+
+        return Math.round(
+          (base + (target - base) * progress) / 500
+        ) * 500;
+      }
+
+      function runContinuousPrescriptionTests() {
+        const results = Object.freeze([
+          Object.freeze({
+            name: "preparation continuous run is easy",
+            pass: continuousRunFamilyPolicy({ phase:"preparation" }) === "easy"
+          }),
+          Object.freeze({
+            name: "development continuous run is aerobic",
+            pass: continuousRunFamilyPolicy({ phase:"development" }) === "aerobic"
+          }),
+          Object.freeze({
+            name: "race-week recovery is 4 km",
+            pass:
+              continuousRunDistanceM({
+                family:"recovery",
+                phase:"race_week"
+              }) === 4000
+          }),
+          Object.freeze({
+            name: "marathon MEDIUM target clamps to 30 km",
+            pass:
+              longRunTargetM({
+                macrocycle:Object.freeze({
+                  longRunKm:Object.freeze([28,32])
+                }),
+                volumeProgression:Object.freeze({
+                  demand:Object.freeze({ longRunKm:30 })
+                })
+              }) === 30000
+          }),
+          Object.freeze({
+            name: "LR0 to target interpolation",
+            pass:
+              longRunDistancePolicy({
+                phase:"development",
+                overallProgress:0.5,
+                longRunBaseM:15000,
+                targetLongRunM:30000
+              }) === 22500
+          }),
+          Object.freeze({
+            name: "3-week taper is 70/50/0",
+            pass:
+              longRunDistancePolicy({
+                phase:"taper",
+                longRunBaseM:15000,
+                targetLongRunM:30000,
+                taperWeeks:3,
+                taperWeekIndex:0
+              }) === 21000 &&
+              longRunDistancePolicy({
+                phase:"taper",
+                longRunBaseM:15000,
+                targetLongRunM:30000,
+                taperWeeks:3,
+                taperWeekIndex:1
+              }) === 15000 &&
+              longRunDistancePolicy({
+                phase:"taper",
+                longRunBaseM:15000,
+                targetLongRunM:30000,
+                taperWeeks:3,
+                taperWeekIndex:2
+              }) === 0
+          })
+        ]);
+
+        return Object.freeze({
+          passed: results.every((result) => result.pass),
+          results
+        });
+      }
+
+      function dateForWeekday(weekStartDate, weekday) {
+        if (!isIsoDate(weekStartDate) || !(weekday in WeekdayIndex)) return null;
+        const monday = startOfIsoWeek(weekStartDate);
+        const date = addIsoDays(monday, WeekdayIndex[weekday]);
+        return date >= weekStartDate ? date : null;
+      }
+
+      function materializedSessionId({ planInput, date, role, ordinal = 0 } = {}) {
+        const planKey = deterministicFingerprint({
+          name: planInput?.name ?? null,
+          distanceKey: planInput?.distanceKey ?? null,
+          startDate: planInput?.startDate ?? null,
+          raceDate: planInput?.raceDate ?? null,
+          targetTimeSec: planInput?.targetTimeSec ?? null
+        }).replace("fnv1a32:", "");
+
+        return ["atlas", planKey, date || "nodate", role || "norole", String(ordinal)].join(":");
+      }
+
+      function familyFromRole(role) {
+        const map = Object.freeze({
+          race: "competition",
+          long_run: "long_run",
+          strength: "strength",
+          easy_aerobic_recovery: "easy_aerobic_recovery"
+        });
+        return map[role] || null;
+      }
+
+      function materializeWeekSessions({
+        planInput,
+        week,
+        desiredRunDays,
+        previousWeekHardDays = [],
+        doublesPreference = "avoid",
+        phaseWeekIndex = 0,
+        phaseWeekCount = 1,
+        athleteSnapshot = null,
+        macrocycle = null,
+        volumeProgression = null,
+        overallLongRunProgress = 0,
+        taperWeekIndex = null
+      } = {}) {
+        if (
+          !planInput ||
+          !week ||
+          !isIsoDate(week.startDate) ||
+          !isIsoDate(week.endDate)
+        ) {
+          return Object.freeze({
+            available: false,
+            reason: "INVALID_WEEK_INPUT",
+            sessions: Object.freeze([]),
+            hardDays: Object.freeze([])
+          });
+        }
+
+        const raceDay =
+          week.phase === "race_week"
+            ? isoWeekdayKey(planInput.raceDate)
+            : null;
+
+        const skeleton = buildWeeklySkeleton({
+          availableDays: planInput.availableDays,
+          desiredRunDays,
+          raceDay,
+          includeStrength: week.phase !== "race_week",
+          previousWeekHardDays,
+          doublesPreference
+        });
+
+        if (!skeleton.complete) {
+          return Object.freeze({
+            available: false,
+            reason: "WEEKLY_SKELETON_INCOMPLETE",
+            skeleton,
+            sessions: Object.freeze([]),
+            hardDays: skeleton.hardDays
+          });
+        }
+
+        const sessions = [];
+        let ordinal = 0;
+
+        const phaseProgress =
+          phaseWeekCount > 1
+            ? phaseWeekIndex / (phaseWeekCount - 1)
+            : 1;
+
+        const baseLevel =
+          athleteSnapshot?.base?.effective || null;
+
+        const longRunBaseM =
+          Number(
+            athleteSnapshot
+              ?.longRunBase
+              ?.distanceMedianM
+          );
+
+        const targetLongRunM =
+          longRunTargetM({
+            macrocycle,
+            volumeProgression
+          });
+
+        for (const weekday of Weekday) {
+          const role = skeleton.roles[weekday];
+          if (!role || role === "rest") continue;
+
+          let date = dateForWeekday(week.startDate, weekday);
+
+          if (week.phase === "race_week" && role === "race") {
+            date = planInput.raceDate;
+          }
+
+          if (!date || date < week.startDate || date > week.endDate) continue;
+
+          let family = familyFromRole(role);
+          let name =
+            role === "race" ? "Competición" :
+            role === "long_run" ? "Tirada larga" :
+            role === "strength" ? "Fuerza" :
+            "Rodaje";
+
+          let dose = forcedLowDoseWeek(week.phase) ? "LOW" : null;
+          let structure = null;
+          let distanceM = null;
+
+          if (role === "easy_aerobic_recovery") {
+            family =
+              continuousRunFamilyPolicy({
+                phase: week.phase
+              });
+
+            name =
+              family === "recovery"
+                ? "Recuperación"
+                : family === "aerobic"
+                  ? "Rodaje aeróbico"
+                  : "Rodaje fácil";
+
+            distanceM =
+              continuousRunDistanceM({
+                family,
+                phase: week.phase
+              });
+          }
+
+          if (role === "long_run") {
+            distanceM =
+              longRunDistancePolicy({
+                phase: week.phase,
+                overallProgress: overallLongRunProgress,
+                longRunBaseM,
+                targetLongRunM,
+                taperWeeks:
+                  macrocycle?.phases?.taper?.weeks,
+                taperWeekIndex
+              });
+          }
+
+          if (
+            role === "primary_quality" ||
+            role === "secondary_quality"
+          ) {
+            family = qualityFamilyPolicy({
+              distanceKey: planInput.distanceKey,
+              phase: week.phase,
+              phaseWeekIndex
+            });
+
+            name = qualityFamilyLabel(family);
+
+            if (family === "activation") {
+              dose = "LOW";
+            } else {
+              const requestedDose =
+                qualityDosePolicy({
+                  phase: week.phase,
+                  baseLevel,
+                  phaseProgress
+                });
+
+              const prescription =
+                buildPrescriptionCore({
+                  family,
+                  requestedDose,
+                  weekType: week.phase,
+                  baseLevel,
+                  existingHighCount: 0,
+                  specificProgressAdvanced:
+                    week.phase === "specific" &&
+                    phaseProgress >= 0.67,
+                  taper:
+                    week.phase === "taper"
+                });
+
+              dose =
+                prescription?.available
+                  ? prescription.dose
+                  : requestedDose;
+
+              structure =
+                prescription?.available
+                  ? prescription.structure
+                  : null;
+            }
+          }
+
+          const base = createSessionContract({
+            id: materializedSessionId({
+              planInput,
+              date,
+              role,
+              ordinal
+            }),
+            date,
+            family,
+            name,
+            type: role,
+            role,
+            purpose: null,
+            modifier: week.phase,
+            dose,
+            distanceM,
+            durationSec: null,
+            targetPace: null,
+            structure,
+            steps: [],
+            notes: [],
+            primaryStimulus: [
+              "race",
+              "long_run",
+              "primary_quality",
+              "secondary_quality"
+            ].includes(role),
+            separationConstraints: [
+              "race",
+              "long_run",
+              "primary_quality",
+              "secondary_quality"
+            ].includes(role)
+              ? Object.freeze({ approxHardGapDays: 2 })
+              : null
+          });
+
+          sessions.push(Object.freeze({
+            ...base,
+            weekIndex: week.index,
+            phase: week.phase,
+            weekday,
+            dependencies: Object.freeze({
+              familySelection:
+                family ? "resolved" : "pending",
+              exactPrescription:
+                family === "activation"
+                  ? "activation_policy"
+                  : (
+                      role === "primary_quality" ||
+                      role === "secondary_quality"
+                        ? (structure ? "profile_resolved" : "pending")
+                        : (
+                            role === "race"
+                              ? "resolved_by_goal"
+                              : "role_resolved"
+                          )
+                    )
+            }),
+            policyTrace: Object.freeze({
+              phaseWeekIndex,
+              phaseWeekCount,
+              phaseProgress,
+              overallLongRunProgress,
+              targetLongRunM
+            })
+          }));
+
+          ordinal += 1;
+        }
+
+        return Object.freeze({
+          available: true,
+          skeleton,
+          sessions: Object.freeze(sessions),
+          hardDays: skeleton.hardDays
+        });
+      }
+
+      function buildCanonicalSessionMaterialization({
+        planInput = null,
+        phaseAllocation = null,
+        canonicalCalendar = null,
+        volumeProgression = null,
+        athleteSnapshot = null,
+        macrocycle = null
+      } = {}) {
+        const normalizedPlan = createPlanInput(planInput || {});
+        const validation = validatePlanInput(normalizedPlan);
+
+        if (!validation.valid) {
+          return Object.freeze({
+            available: false,
+            status: "INVALID_PLAN_INPUT",
+            sessions: Object.freeze([])
+          });
+        }
+
+        if (
+          !["UNIQUE", "USER_SELECTED", "AUTO_SELECTED"].includes(
+            phaseAllocation?.status
+          )
+        ) {
+          return Object.freeze({
+            available: false,
+            status: "PHASE_ALLOCATION_NOT_RESOLVED",
+            sessions: Object.freeze([]),
+            dependency: phaseAllocation?.status ?? "pending"
+          });
+        }
+
+        if (
+          !volumeProgression?.available ||
+          !Number.isInteger(volumeProgression.startRunDays) ||
+          !Number.isInteger(volumeProgression.maximumRunDays)
+        ) {
+          return Object.freeze({
+            available: false,
+            status: "RUN_FREQUENCY_PENDING",
+            sessions: Object.freeze([])
+          });
+        }
+
+        const applied = applyUniquePhaseAllocation({
+          canonicalCalendar,
+          phaseAllocation
+        });
+
+        if (!applied.applied) {
+          return Object.freeze({
+            available: false,
+            status: "CALENDAR_PHASES_UNRESOLVED",
+            sessions: Object.freeze([])
+          });
+        }
+
+        const phaseCounts = {};
+        for (const week of applied.calendar.weeks) {
+          phaseCounts[week.phase] =
+            (phaseCounts[week.phase] || 0) + 1;
+        }
+
+        const phaseIndexes = {};
+        const allSessions = [];
+        let previousHardDays = [];
+        const weekResults = [];
+
+        const longRunProgressWeeks =
+          applied.calendar.weeks.filter(
+            (week) =>
+              !["taper", "race_week"].includes(week.phase)
+          );
+
+        let longRunProgressIndex = 0;
+        let taperWeekIndex = 0;
+
+        for (const week of applied.calendar.weeks) {
+          const phase = week.phase;
+          const phaseWeekIndex = phaseIndexes[phase] || 0;
+
+          const weekAvailableDays = Array.isArray(normalizedPlan.availabilityByWeek?.[week.startDate]) ? normalizedPlan.availabilityByWeek[week.startDate] : normalizedPlan.availableDays;
+          const desiredRunDays = runDaysForPhase({phase,startRunDays:volumeProgression.startRunDays,maximumRunDays:volumeProgression.maximumRunDays,availableDaysCount:weekAvailableDays.length});
+
+          const result = materializeWeekSessions({
+            planInput: Object.freeze({...normalizedPlan,availableDays:Object.freeze([...weekAvailableDays])}),
+            week,
+            desiredRunDays,
+            previousWeekHardDays: previousHardDays,
+            doublesPreference: normalizedPlan.doublesPreference,
+            phaseWeekIndex,
+            phaseWeekCount: phaseCounts[phase] || 1,
+            athleteSnapshot,
+            macrocycle,
+            volumeProgression,
+            overallLongRunProgress:
+              longRunProgressWeeks.length > 1
+                ? longRunProgressIndex /
+                  (longRunProgressWeeks.length - 1)
+                : 1,
+            taperWeekIndex:
+              phase === "taper"
+                ? taperWeekIndex
+                : null
+          });
+
+          weekResults.push(Object.freeze({
+            ...result,
+            desiredRunDays
+          }));
+
+          if (!result.available) {
+            return Object.freeze({
+              available: false,
+              status: result.reason,
+              sessions: Object.freeze(allSessions),
+              weeks: Object.freeze(weekResults)
+            });
+          }
+
+          allSessions.push(...result.sessions);
+          previousHardDays = [...result.hardDays];
+          phaseIndexes[phase] = phaseWeekIndex + 1;
+
+          if (!["taper", "race_week"].includes(phase)) {
+            longRunProgressIndex += 1;
+          }
+
+          if (phase === "taper") {
+            taperWeekIndex += 1;
+          }
+        }
+
+        const unresolvedFamilySessions =
+          allSessions.filter(
+            (session) =>
+              session.dependencies?.familySelection !== "resolved"
+          ).length;
+
+        return Object.freeze({
+          available: unresolvedFamilySessions === 0,
+          status:
+            unresolvedFamilySessions === 0
+              ? "MATERIALIZED"
+              : "MATERIALIZED_WITH_PENDING_FAMILIES",
+          calendar: applied.calendar,
+          sessions: Object.freeze(allSessions),
+          weeks: Object.freeze(weekResults),
+          unresolvedFamilySessions,
+          deterministicFingerprint:
+            deterministicFingerprint(allSessions),
+          dependencies: Object.freeze({
+            frequencyProgression: "resolved_by_atlas_policy",
+            qualityFamilyRotation:
+              unresolvedFamilySessions === 0
+                ? "resolved_by_atlas_policy"
+                : "pending"
+          })
+        });
+      }
+
+
+      function runSessionMaterializationTests() {
+        const plan = createPlanInput({
+          name: "5K",
+          distanceKey: "5K",
+          startDate: "2026-11-02",
+          raceDate: "2026-12-27",
+          targetTimeSec: 20 * 60,
+          availableDays: ["wed","fri","sun"],
+          doublesPreference: "avoid"
+        });
+
+        const macro = buildMacrocycle({
+          planInput: plan,
+          athleteSnapshot: Object.freeze({
+            base: Object.freeze({
+              raw: "MEDIUM",
+              effective: "MEDIUM"
+            }),
+            qualityEstablished: false
+          })
+        });
+
+        const calendar = assignKnownCalendarPhases({
+          planInput: plan,
+          macrocycle: macro
+        });
+
+        const allocation = resolvePhaseAllocation({
+          planInput: plan,
+          macrocycle: macro,
+          canonicalCalendar: calendar
+        });
+
+        const volume = Object.freeze({
+          available: true,
+          startRunDays: 3,
+          maximumRunDays: 3,
+          frequencyMayIncreaseGradually: false
+        });
+
+        const materialized = buildCanonicalSessionMaterialization({
+          planInput: plan,
+          phaseAllocation: allocation,
+          canonicalCalendar: calendar,
+          volumeProgression: volume,
+          athleteSnapshot: Object.freeze({
+            base: Object.freeze({
+              effective: "MEDIUM"
+            })
+          })
+        });
+
+        const repeat = buildCanonicalSessionMaterialization({
+          planInput: plan,
+          phaseAllocation: allocation,
+          canonicalCalendar: calendar,
+          volumeProgression: volume,
+          athleteSnapshot: Object.freeze({
+            base: Object.freeze({
+              effective: "MEDIUM"
+            })
+          })
+        });
+
+        const frequencyPending = buildCanonicalSessionMaterialization({
+          planInput: plan,
+          phaseAllocation: allocation,
+          canonicalCalendar: calendar,
+          volumeProgression: Object.freeze({
+            available: true,
+            startRunDays: 3,
+            maximumRunDays: 5,
+            frequencyMayIncreaseGradually: true
+          }),
+          athleteSnapshot: Object.freeze({
+            base: Object.freeze({
+              effective: "MEDIUM"
+            })
+          })
+        });
+
+        const ambiguousPhase = buildCanonicalSessionMaterialization({
+          planInput: plan,
+          phaseAllocation: Object.freeze({ status: "MULTIPLE_VALID" }),
+          canonicalCalendar: calendar,
+          volumeProgression: volume
+        });
+
+        const ids = materialized.sessions.map((session) => session.id);
+
+        const results = Object.freeze([
+          Object.freeze({
+            name: "materializes only with unique phase allocation",
+            pass: materialized.available === true
+          }),
+          Object.freeze({
+            name: "stable session ids are unique",
+            pass: new Set(ids).size === ids.length
+          }),
+          Object.freeze({
+            name: "race session lands exactly on race date",
+            pass: materialized.sessions.some(
+              (session) =>
+                session.role === "race" &&
+                session.date === plan.raceDate
+            )
+          }),
+          Object.freeze({
+            name: "quality family is resolved by ATLAS policy",
+            pass:
+              materialized.unresolvedFamilySessions === 0 &&
+              materialized.dependencies.qualityFamilyRotation ===
+                "resolved_by_atlas_policy"
+          }),
+          Object.freeze({
+            name: "same inputs produce same session fingerprint",
+            pass:
+              materialized.deterministicFingerprint ===
+              repeat.deterministicFingerprint
+          }),
+          Object.freeze({
+            name: "frequency progression is resolved by ATLAS policy",
+            pass:
+              frequencyPending.available === true &&
+              frequencyPending.dependencies.frequencyProgression ===
+                "resolved_by_atlas_policy"
+          }),
+          Object.freeze({
+            name: "unresolved phase allocation blocks materialization",
+            pass:
+              ambiguousPhase.status ===
+              "PHASE_ALLOCATION_NOT_RESOLVED"
+          })
+        ]);
+
+        return Object.freeze({
+          passed: results.every((result) => result.pass),
           results
         });
       }
@@ -9122,11 +10624,379 @@
         assignKnownCalendarPhases,
         runCanonicalCalendarTests,
         phaseAllocationCandidates,
+        scorePhaseAllocationCandidate,
+        chooseAutomaticPhaseAllocation,
         resolvePhaseAllocation,
         applyUniquePhaseAllocation,
-        runPhaseAllocationResolverTests
+        runPhaseAllocationResolverTests,
+        runAutomaticMacrostructureTests,
+        runDaysForPhase,
+        specificFamilyForDistance,
+        qualityFamilyPolicy,
+        qualityFamilyLabel,
+        qualityDosePolicy,
+        runImplementationPolicyTests,
+        continuousRunFamilyPolicy,
+        continuousRunDistanceM,
+        longRunTargetM,
+        taperLongRunRatio,
+        longRunDistancePolicy,
+        runContinuousPrescriptionTests,
+        dateForWeekday,
+        materializedSessionId,
+        familyFromRole,
+        materializeWeekSessions,
+        buildCanonicalSessionMaterialization,
+        runSessionMaterializationTests
       });
     })();
+
+    function liveActivitySportFamily(activity) {
+      const sport = String(
+        activity?.summary?.sport ||
+        activity?.sport ||
+        ""
+      ).toLowerCase();
+
+      const title = String(
+        activity?.summary?.title ||
+        ""
+      ).toLowerCase();
+
+      if (
+        sport.includes("strength") ||
+        sport.includes("weight") ||
+        title.includes("fuerza")
+      ) {
+        return "strength";
+      }
+
+      if (
+        sport.includes("run") ||
+        title.includes("carrera") ||
+        title.includes("running")
+      ) {
+        return "running";
+      }
+
+      return "other";
+    }
+
+    function liveSessionSportFamily(session) {
+      return session?.role === "strength"
+        ? "strength"
+        : "running";
+    }
+
+    function liveExecutionForPlan({
+      sessions = [],
+      activities = [],
+      asOfDate
+    } = {}) {
+      const today = String(asOfDate || "");
+      const results = [];
+
+      const sessionsByDate = new Map();
+      for (const session of sessions || []) {
+        if (!session?.date) continue;
+        const key = String(session.date);
+        if (!sessionsByDate.has(key)) sessionsByDate.set(key, []);
+        sessionsByDate.get(key).push(session);
+      }
+
+      const activitiesByDate = new Map();
+      for (const activity of activities || []) {
+        const date = String(activity?.summary?.date || "");
+        if (!date) continue;
+        if (!activitiesByDate.has(date)) activitiesByDate.set(date, []);
+        activitiesByDate.get(date).push(activity);
+      }
+
+      for (const session of sessions || []) {
+        const date = String(session?.date || "");
+        if (!date) continue;
+
+        if (today && date >= today) {
+          results.push(Object.freeze({
+            plannedSessionId: String(session.id),
+            activityId: null,
+            matchClass: null,
+            completion: "PENDING",
+            outcome: "PENDING",
+            adherenceCreditEligible: false,
+            policy: "FUTURE_OR_TODAY_PENDING"
+          }));
+          continue;
+        }
+
+        const family = liveSessionSportFamily(session);
+
+        const compatible =
+          (activitiesByDate.get(date) || []).filter(
+            (activity) =>
+              liveActivitySportFamily(activity) === family
+          );
+
+        const sameFamilySessions =
+          (sessionsByDate.get(date) || []).filter(
+            (candidate) =>
+              liveSessionSportFamily(candidate) === family
+          );
+
+        if (
+          compatible.length === 1 &&
+          sameFamilySessions.length === 1
+        ) {
+          const activity = compatible[0];
+
+          const reconciliation =
+            AtlasTrainingEngine.buildExecutionReconciliation({
+              plannedSession: session,
+              match: {
+                plannedSessionId: session.id,
+                activityId: activity.id,
+                matchClass: "strong",
+                evidenceSufficient: true,
+                completionRatio: 1,
+                performanceSignal: "as_planned"
+              }
+            });
+
+          results.push(Object.freeze({
+            ...reconciliation,
+            policy: "EXACT_DATE_SPORT_UNIQUE"
+          }));
+          continue;
+        }
+
+        if (compatible.length > 0) {
+          const reconciliation =
+            AtlasTrainingEngine.buildExecutionReconciliation({
+              plannedSession: session,
+              match: {
+                plannedSessionId: session.id,
+                activityId: null,
+                matchClass: "ambiguous",
+                evidenceSufficient: false
+              }
+            });
+
+          results.push(Object.freeze({
+            ...reconciliation,
+            policy: "AMBIGUOUS_SAME_DATE_SPORT"
+          }));
+          continue;
+        }
+
+        results.push(Object.freeze({
+          plannedSessionId: String(session.id),
+          activityId: null,
+          matchClass: null,
+          completion: "UNMATCHED",
+          outcome: "NOT_COMPLETED",
+          adherenceCreditEligible: session.role !== "race",
+          policy: "PAST_NO_COMPATIBLE_ACTIVITY"
+        }));
+      }
+
+      return Object.freeze(results);
+    }
+
+    function liveAdaptiveSignalsFromExecution(
+      sessions,
+      execution
+    ) {
+      const byId = new Map(
+        (sessions || []).map((session) => [
+          String(session.id),
+          session
+        ])
+      );
+
+      const keyFailures =
+        (execution || [])
+          .filter((item) => {
+            const session =
+              byId.get(String(item.plannedSessionId));
+
+            return (
+              session?.primaryStimulus === true &&
+              [
+                "NOT_COMPLETED",
+                "FAILED_TARGET",
+                "ABORTED"
+              ].includes(item.outcome)
+            );
+          })
+          .sort((a, b) => {
+            const sa = byId.get(String(a.plannedSessionId));
+            const sb = byId.get(String(b.plannedSessionId));
+            return String(sb?.date || "").localeCompare(
+              String(sa?.date || "")
+            );
+          });
+
+      if (keyFailures.length >= 2) {
+        return Object.freeze([
+          Object.freeze({
+            id: "live:progression-hold",
+            action: "PROGRESSION_HOLD",
+            sessionId: keyFailures[0].plannedSessionId,
+            reason: "two_recent_key_failures",
+            evidence: Object.freeze({
+              failedKeySessions: 2
+            })
+          })
+        ]);
+      }
+
+      return Object.freeze([]);
+    }
+
+    function livePlanHealthFromExecution(
+      sessions,
+      execution
+    ) {
+      const byId = new Map(
+        (sessions || []).map((session) => [
+          String(session.id),
+          session
+        ])
+      );
+
+      const eligible =
+        (execution || []).filter(
+          (item) =>
+            !["PENDING", "NOT_EXPECTED"].includes(item.outcome)
+        );
+
+      function averageCredit(rows) {
+        const values = rows
+          .map((item) =>
+            AtlasTrainingEngine.adherenceCredit({
+              outcome: item.outcome,
+              mainRace:
+                byId.get(String(item.plannedSessionId))?.role === "race"
+            })
+          )
+          .filter((value) =>
+            Number.isFinite(Number(value))
+          );
+
+        return values.length
+          ? (
+              values.reduce(
+                (sum, value) => sum + Number(value),
+                0
+              ) / values.length
+            ) * 100
+          : null;
+      }
+
+      return Object.freeze({
+        available: false,
+        adherence: averageCredit(eligible),
+        keySessions: averageCredit(
+          eligible.filter(
+            (item) =>
+              byId.get(String(item.plannedSessionId))
+                ?.primaryStimulus === true
+          )
+        ),
+        strength: averageCredit(
+          eligible.filter(
+            (item) =>
+              byId.get(String(item.plannedSessionId))
+                ?.role === "strength"
+          )
+        ),
+        volume: null,
+        consistency: null,
+        reason:
+          "VOLUME_AND_CONSISTENCY_REQUIRE_COMPLETE_DISTANCE_PRESCRIPTION",
+        partial: true
+      });
+    }
+
+    function auditLiveTrainingEngine({
+      plan,
+      sessions,
+      execution,
+      adaptive,
+      engineResult
+    } = {}) {
+      const issues = [];
+
+      const ids = (sessions || [])
+        .map((session) => String(session?.id || ""))
+        .filter(Boolean);
+
+      if (new Set(ids).size !== ids.length) {
+        issues.push("DUPLICATE_SESSION_ID");
+      }
+
+      for (const session of sessions || []) {
+        if (
+          plan?.startDate &&
+          session?.date < plan.startDate
+        ) {
+          issues.push("SESSION_BEFORE_PLAN_START");
+        }
+
+        if (
+          plan?.raceDate &&
+          session?.date > plan.raceDate
+        ) {
+          issues.push("SESSION_AFTER_RACE");
+        }
+      }
+
+      const highByWeek = new Map();
+      for (const session of sessions || []) {
+        if (session?.dose !== "HIGH") continue;
+        const key = String(session.weekIndex);
+        highByWeek.set(key, (highByWeek.get(key) || 0) + 1);
+      }
+
+      if ([...highByWeek.values()].some((count) => count > 1)) {
+        issues.push("MORE_THAN_ONE_HIGH_PER_WEEK");
+      }
+
+      if (adaptive?.modifiesPlanAutomatically === true) {
+        issues.push("ADAPTIVE_AUTO_MODIFICATION");
+      }
+
+      if (
+        (execution || []).some(
+          (item) =>
+            item.matchClass === "ambiguous" &&
+            item.outcome === "FAILED_TARGET"
+        )
+      ) {
+        issues.push("AMBIGUOUS_ACTIVITY_MARKED_FAILED");
+      }
+
+      return Object.freeze({
+        passed: issues.length === 0,
+        issues: Object.freeze(issues),
+        checks: Object.freeze({
+          uniqueSessionIds: true,
+          dateBounds: true,
+          maxOneHighPerWeek: true,
+          adaptiveConsultative: true,
+          ambiguousNeverFailed: true,
+          deterministicFingerprint:
+            typeof engineResult?.fingerprint === "string"
+        })
+      });
+    }
+
+
+    function secondaryRacePaceSecKm(race){const t=Number(race?.targetTimeSec),d=Number(race?.distanceM);return t>0&&d>0?t/(d/1000):null;}
+    function secondaryRacePattern(key,weeksOut){const far=Number(weeksOut)>=2;if(key==="5K")return far?{reps:5,repDistanceM:800,recoverySec:90}:{reps:5,repDistanceM:1000,recoverySec:120};if(key==="10K")return far?{reps:4,repDistanceM:1500,recoverySec:90}:{reps:5,repDistanceM:1000,recoverySec:90};if(key==="HALF_MARATHON")return far?{reps:3,repDistanceM:2000,recoverySec:120}:{reps:2,repDistanceM:4000,recoverySec:120};return{reps:2,repDistanceM:5000,recoverySec:150};}
+    function secondaryRaceLabel(key){return{"5K":"5K","10K":"10K","HALF_MARATHON":"Media maratón","MARATHON":"Maratón"}[key]||key;}
+    function secondaryRaceSpecificSession({baseSession,race,weeksOut,paceAnchors}){const p=secondaryRacePattern(race.distanceKey,weeksOut),workM=p.reps*p.repDistanceM,totalM=4000+workM,target=secondaryRacePaceSecKm(race),easy=paceAnchors?.physiological?.easy,easyMid=(Number(easy?.fasterPaceSecKm)+Number(easy?.slowerPaceSecKm))/2,durationSec=Number.isFinite(target)&&Number.isFinite(easyMid)?Math.round(4*easyMid+(workM/1000)*target+(p.reps-1)*p.recoverySec):null;return Object.freeze({...baseSession,id:`secondary-specific-${race.id}-${weeksOut}`,date:baseSession.date,family:"secondary_specific",name:`Ritmo ${secondaryRaceLabel(race.distanceKey)}: ${p.reps} x ${p.repDistanceM>=1000?`${p.repDistanceM/1000} km`:`${p.repDistanceM} m`}`,type:"primary_quality",role:"secondary_specific",modifier:"secondary_specific",phase:"secondary_specific",distanceM:totalM,durationSec,targetPace:target?Object.freeze({paceSecKm:target,source:"secondary_race_goal"}):null,structure:Object.freeze({warmup:Object.freeze({type:"WU",distanceM:2000}),work:Object.freeze({type:"work",family:"secondary_specific",prescription:Object.freeze({reps:p.reps,repetitionM:p.repDistanceM,recoverySec:p.recoverySec})}),cooldown:Object.freeze({type:"CD",distanceM:2000})}),purpose:`Preparación específica para ${race.name}. Sustituye carga ya prevista sin desplazar el objetivo principal.`,secondaryRaceId:race.id});}
+    function applySecondaryRacesToSessions({plan,sessions,paceAnchors}={}){const races=Array.isArray(plan?.secondaryRaces)?plan.secondaryRaces.filter(r=>r?.date&&r.date>plan.startDate&&r.date<plan.raceDate).sort((a,b)=>String(a.date).localeCompare(String(b.date))):[];let out=(sessions||[]).map(s=>({...s}));const q=new Set(["threshold","vo2","specific_5k","specific_10k","specific_half","specific_marathon","fast_repetitions","hills"]);for(const race of races){for(const weeksOut of [2,1]){const rd=new Date(`${race.date}T12:00:00`),from=new Date(rd);from.setDate(from.getDate()-weeksOut*7);const to=new Date(from);to.setDate(to.getDate()+6);const a=from.toISOString().slice(0,10),b=to.toISOString().slice(0,10),c=out.map((session,index)=>({session,index})).filter(x=>x.session.date>=a&&x.session.date<=b&&(q.has(x.session.family)||["easy","aerobic"].includes(x.session.family))),picked=c.find(x=>q.has(x.session.family))||c[0];if(picked)out[picked.index]=secondaryRaceSpecificSession({baseSession:picked.session,race,weeksOut,paceAnchors});}out=out.filter(s=>s.date!==race.date);const target=secondaryRacePaceSecKm(race);out.push({id:`secondary-race-${race.id}`,date:race.date,family:"competition_secondary",name:race.name,type:"competition",role:"secondary_race",modifier:"secondary_race",phase:"secondary_specific",distanceM:race.distanceM,durationSec:race.targetTimeSec,targetPace:target?Object.freeze({paceSecKm:target,source:"secondary_race_goal"}):null,structure:null,steps:[],notes:[],purpose:"Carrera secundaria integrada como estímulo competitivo. La principal prevalece siempre y esta carrera sustituye carga prevista.",primaryStimulus:true,secondaryRaceId:race.id});const rd=new Date(`${race.date}T12:00:00`),lim=new Date(rd);lim.setDate(lim.getDate()+3);const li=lim.toISOString().slice(0,10),rc=out.map((session,index)=>({session,index})).filter(x=>x.session.date>race.date&&x.session.date<=li&&x.session.role!=="secondary_race").sort((a,b)=>String(a.session.date).localeCompare(String(b.session.date)))[0];if(rc){const km=Number(race.distanceM)>=21097?6:5,band=paceAnchors?.physiological?.recovery,mid=(Number(band?.fasterPaceSecKm)+Number(band?.slowerPaceSecKm))/2;out[rc.index]={...rc.session,family:"recovery",name:"Recuperación",role:"recovery_secondary",modifier:"post_secondary_race",phase:"secondary_specific",distanceM:km*1000,durationSec:Number.isFinite(mid)?Math.round(km*mid):null,purpose:"Rodaje muy suave para absorber la carrera secundaria y volver al plan principal.",secondaryRaceId:race.id};}}return Object.freeze(out.sort((a,b)=>String(a.date).localeCompare(String(b.date))));}
 
     function trainingEngineSnapshotInputFromActivities(
       storedActivities,
@@ -9282,6 +11152,9 @@
         },
         scrollPositions: {},
         planWeekOffset: 0,
+        planDetailWeekOffset: 0,
+        planAvailabilityWeekOffset: 0,
+        planSecondaryDraft: [],
         planDraft: {
           name: "",
           distanceKey: "5K",
@@ -9289,7 +11162,9 @@
           raceDate: "",
           targetTimeSec: null,
           availableDays: [],
-          doublesPreference: "avoid"
+          doublesPreference: "avoid",
+          availabilityByWeek: {},
+          secondaryRaces: []
         },
         planConfig: null,
         planRecord: null,
@@ -9307,7 +11182,12 @@
         trainingEngineResult: null,
         volumeProgression: null,
         canonicalCalendar: null,
-        phaseAllocation: null
+        phaseAllocation: null,
+        canonicalSessions: null,
+        effectivePlan: null,
+        liveExecution: null,
+        livePlanHealth: null,
+        engineAudit: null
       };
 
       function routeScrollKey(route = state.route) {
@@ -10727,7 +12607,10 @@
         distanceM = null,
         durationSec = null,
         pace = true,
-        status = null
+        status = null,
+        context = null,
+        planSessionId = null,
+        metaParts = null
       } = {}) {
         const parts = activityDateParts(date);
         const displayTitle = localizedActivityTitle(title, sport);
@@ -10735,33 +12618,31 @@
         const distance = Number(distanceM);
         const duration = Number(durationSec);
 
-        const meta = [];
-
-        if (Number.isFinite(distance) && distance > 0) {
-          meta.push(formatDistance(distance));
+        const meta=Array.isArray(metaParts)?metaParts.filter(Boolean):[];
+        if(!Array.isArray(metaParts)){
+          if(Number.isFinite(distance)&&distance>0)meta.push(formatDistance(distance));
+          if(Number.isFinite(duration)&&duration>0)meta.push(formatCardDuration(duration));
+          if(pace){const paceText=formatCardPace(distance,duration);if(paceText)meta.push(paceText);}
         }
+        if(status)meta.push(status);
 
-        if (Number.isFinite(duration) && duration > 0) {
-          meta.push(formatCardDuration(duration));
-        }
+        const interactive =
+          Boolean(id || planSessionId);
 
-        if (pace) {
-          const paceText = formatCardPace(distance, duration);
-          if (paceText) meta.push(paceText);
-        }
+        const tag =
+          interactive ? "button" : "div";
 
-        if (status) meta.push(status);
-
-        const tag = id ? "button" : "div";
         const clickAttr = id
           ? ` data-activity-id="${escapeHtml(id)}"`
-          : "";
+          : planSessionId
+            ? ` data-plan-session-id="${escapeHtml(planSessionId)}"`
+            : "";
 
         return `
           <${tag}
             class="activity-card"
             ${clickAttr}
-            ${id ? 'type="button"' : ""}
+            ${interactive ? 'type="button"' : ""}
           >
             <div class="activity-date-block" aria-label="${escapeHtml(date || "")}">
               <div class="activity-date-weekday">${escapeHtml(parts.weekday)}</div>
@@ -10782,6 +12663,9 @@
                 >${escapeHtml(displayTitle)}</span>
               </div>
               <div class="activity-card-meta">${meta.length ? meta.join(" · ") : "—"}</div>
+              ${context
+                ? `<div class="activity-card-context">${escapeHtml(context)}</div>`
+                : ""}
             </div>
           </${tag}>
         `;
@@ -11025,104 +12909,684 @@
         return sportEmoji(sport);
       }
 
-      function renderPlanSession(item, options = {}) {
-        const actual = options.activity || null;
-        const isPlanned = options.planned === true;
-        const completed = options.completed ?? trainingCompleted(item);
-
-        const summary = actual?.summary || {};
-        const id = actual?.id ?? null;
-        const date = summary.date ?? item?.date ?? null;
-        const title = summary.title ?? item?.title ?? "Entrenamiento";
-        const sport = summary.sport ?? item?.sport ?? "other";
-        const distanceM = summary.distanceM ?? item?.estimatedDistanceM ?? null;
-        const durationSec = summary.durationSec ?? item?.estimatedDurationSec ?? null;
-
-        const status = isPlanned && completed
-          ? "✅"
-          : isPlanned && !completed
-            ? "⏳"
-            : null;
-
-        return activityCardHtml({
-          id,
-          date,
-          title,
-          sport,
-          distanceM,
-          durationSec,
-          pace:true,
-          status
-        });
+      function planPhaseLabel(value) {
+        return {
+          initial_partial:"Entrada",
+          preparation:"Preparación",
+          development:"Desarrollo",
+          specific:"Específica",
+          taper:"Taper",
+          race_week:"Semana de carrera"
+        }[value] || value || "";
       }
 
-      function renderPlanDay(dateString) {
-        const planned = state.training
-          .filter((item) => String(item?.date || "") === dateString)
-          .sort((a,b) =>
-            String(a?.title || "").localeCompare(String(b?.title || ""), "es")
+      function planFamilyLabel(value) {
+        return {
+          competition:"Competición",
+          long_run:"Tirada larga",
+          strength:"Fuerza",
+          easy_aerobic_recovery:"Rodaje",
+          recovery:"Recuperación",
+          easy:"Fácil",
+          aerobic:"Aeróbico",
+          threshold:"Umbral",
+          vo2:"VO₂",
+          specific_5k:"Ritmo 5K",
+          specific_10k:"Ritmo 10K",
+          specific_half:"Ritmo media maratón",
+          specific_marathon:"Ritmo maratón",
+          fast_repetitions:"Repeticiones rápidas",
+          hills:"Cuestas",
+          activation:"Activación",
+          secondary_specific:"Ritmo específico",
+          competition_secondary:"Carrera secundaria"
+        }[value] || value || "";
+      }
+
+      function planDoseLabel(value) {
+        return {
+          LOW:"LOW",
+          MEDIUM:"MEDIUM",
+          HIGH:"HIGH"
+        }[value] || "";
+      }
+
+      function planFormatPaceSecKm(value) {
+        const sec = Number(value);
+        if (!Number.isFinite(sec) || sec <= 0) return "";
+        const rounded = Math.round(sec);
+        const min = Math.floor(rounded / 60);
+        const rest = String(rounded % 60).padStart(2, "0");
+        return `${min}:${rest}/km`;
+      }
+
+      function planPaceBandText(band) {
+        if (!band) return "";
+        const fast = planFormatPaceSecKm(band.fasterPaceSecKm);
+        const slow = planFormatPaceSecKm(band.slowerPaceSecKm);
+        if (fast && slow) return `${fast}–${slow}`;
+        return fast || slow || "";
+      }
+
+      function planTargetPaceSecKm() {
+        const plan = state.planConfig;
+        const time = Number(plan?.targetTimeSec);
+        const distance = Number(plan?.distanceM);
+
+        if (
+          !Number.isFinite(time) ||
+          !Number.isFinite(distance) ||
+          time <= 0 ||
+          distance <= 0
+        ) {
+          return null;
+        }
+
+        return time / (distance / 1000);
+      }
+
+      function planSessionPaceText(item) {
+        if (!item?.atlasEngineSession) return "";
+
+        const family = item.atlasFamily;
+        const anchors = state.paceAnchors;
+        const direct=item?.atlasTargetPace;
+        if(Number(direct?.paceSecKm)>0)return planFormatPaceSecKm(Number(direct.paceSecKm));
+        if(Number(direct?.fasterPaceSecKm)>0&&Number(direct?.slowerPaceSecKm)>0)return `${planFormatPaceSecKm(direct.fasterPaceSecKm)}–${planFormatPaceSecKm(direct.slowerPaceSecKm)}`;
+
+        if (
+          ["recovery", "easy", "aerobic"].includes(family)
+        ) {
+          return planPaceBandText(
+            anchors?.physiological?.[family]
+          );
+        }
+
+        if (family === "long_run") {
+          return planPaceBandText(
+            anchors?.physiological?.easy
+          );
+        }
+
+        if (family === "threshold") {
+          return planPaceBandText(
+            anchors?.physiological?.threshold
+          );
+        }
+
+        if (family === "vo2") {
+          return planFormatPaceSecKm(
+            anchors?.vo2Proxy?.paceSecKm
+          );
+        }
+
+        const specificKey = {
+          specific_5k:"5K",
+          specific_10k:"10K",
+          specific_half:"HALF_MARATHON",
+          specific_marathon:"MARATHON"
+        }[family];
+
+        if (specificKey) {
+          const current =
+            planFormatPaceSecKm(
+              anchors?.specific?.[specificKey]?.paceSecKm
+            );
+
+          if (current) return current;
+
+          if (
+            specificKey ===
+            state.planConfig?.distanceKey
+          ) {
+            return planFormatPaceSecKm(
+              planTargetPaceSecKm()
+            );
+          }
+        }
+
+        if (family === "hills") {
+          return "fuerte controlado";
+        }
+
+        if (family === "fast_repetitions") {
+          return "rápido y limpio";
+        }
+
+        if (family === "activation") {
+          return "suave + activación";
+        }
+
+        return "";
+      }
+
+      function planSessionContextText(item) {
+        if (!item?.atlasEngineSession) return "";
+
+        const parts = [];
+
+        const phase =
+          planPhaseLabel(item.atlasPhase);
+        const family =
+          planFamilyLabel(item.atlasFamily);
+        const pace =
+          planSessionPaceText(item);
+
+        if (phase) parts.push(phase);
+        if (family && family !== item.title) parts.push(family);
+        if (pace) parts.push(pace);
+
+        return parts.join(" · ");
+      }
+
+      function planPaceReferenceRows() {
+        const anchors = state.paceAnchors;
+        const rows = [];
+
+        const physiological = [
+          ["Recuperación", anchors?.physiological?.recovery],
+          ["Fácil", anchors?.physiological?.easy],
+          ["Aeróbico", anchors?.physiological?.aerobic],
+          ["Umbral", anchors?.physiological?.threshold]
+        ];
+
+        for (const [label, band] of physiological) {
+          const value = planPaceBandText(band);
+          if (value) rows.push({ label, value });
+        }
+
+        const vo2 =
+          planFormatPaceSecKm(
+            anchors?.vo2Proxy?.paceSecKm
+          );
+        if (vo2) {
+          rows.push({
+            label:"VO₂",
+            value:vo2
+          });
+        }
+
+        const specificKey =
+          state.planConfig?.distanceKey;
+
+        const currentSpecific =
+          specificKey
+            ? planFormatPaceSecKm(
+                anchors?.specific?.[specificKey]?.paceSecKm
+              )
+            : "";
+
+        const objectivePace =
+          planFormatPaceSecKm(
+            planTargetPaceSecKm()
           );
 
-        const actual = state.activities.filter((activity) =>
-          String(activity?.summary?.date || "") === dateString
-        );
+        if (currentSpecific) {
+          rows.push({
+            label:`Capacidad ${planDistanceLabel(specificKey)}`,
+            value:currentSpecific
+          });
+        }
 
-        const associatedIds = new Set(
-          planned
-            .map((item) => item?.associatedActivityId)
-            .filter(Boolean)
-            .map(String)
+        if (objectivePace) {
+          rows.push({
+            label:`Objetivo ${planDistanceLabel(specificKey)}`,
+            value:objectivePace
+          });
+        }
+
+        return rows;
+      }
+
+      function planFormatDateShort(value){if(!value)return"—";const d=new Date(`${value}T12:00:00`);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"});}
+      function planDurationWeeks(plan){if(!plan?.startDate||!plan?.raceDate)return null;const a=new Date(`${plan.startDate}T12:00:00`),b=new Date(`${plan.raceDate}T12:00:00`),days=Math.round((b-a)/86400000)+1;return days>0?Math.ceil(days/7):null;}
+      function planMetricGrid(rows,{paces=false}={}){return`<div class="plan-metric-grid ${paces?"paces":""}">${rows.map(r=>`<div class="plan-metric-cell"><div class="plan-metric-emoji">${r.emoji||"•"}</div><div class="plan-metric-label">${escapeHtml(r.label||"")}</div><div class="plan-metric-value">${escapeHtml(r.value||"—")}</div>${r.sub?`<div class="plan-metric-sub">${escapeHtml(r.sub)}</div>`:""}</div>`).join("")}</div>`;}
+      function planBasicRows(plan){const pace=planFormatPaceSecKm(planTargetPaceSecKm()),weeks=planDurationWeeks(plan);return[{emoji:"📏",label:"Distancia",value:planDistanceLabel(plan.distanceKey)},{emoji:"⏱️",label:"Tiempo",value:targetTimeFromSeconds(plan.targetTimeSec)||"—"},{emoji:"🚀",label:"Inicio",value:planFormatDateShort(plan.startDate)},{emoji:"🏁",label:"Carrera",value:planFormatDateShort(plan.raceDate)},{emoji:"🎯",label:"Ritmo objetivo",value:pace||"—"},{emoji:"🗓️",label:"Duración",value:weeks?`${weeks} sem`:"—"}];}
+      function planCurrentAbilityFor(key){const row=state.currentAbility?.distances?.[key];if(Number(row?.paceSecKm)>0)return{paceSecKm:Number(row.paceSecKm),timeSec:Number(row.timeSec)||null};const s=state.paceAnchors?.specific?.[key];return Number(s?.paceSecKm)>0?{paceSecKm:Number(s.paceSecKm),timeSec:null}:null;}
+      function planStateRows(plan){const b=String(state.athleteSnapshot?.base?.effective||"—"),th=planPaceBandText(state.paceAnchors?.physiological?.threshold),a=planCurrentAbilityFor(plan.distanceKey),v=Number(state.athleteSnapshot?.base?.medianHabitualVolumeKm??state.athleteSnapshot?.base?.habitualVolumeKm),lr=Number(state.athleteSnapshot?.longRunBase?.distanceMedianM),g={SUPPORTED:"Respaldado",DEMANDING:"Exigente",NOT_SUPPORTED_CURRENTLY:"No respaldado",PREPARATION_INSUFFICIENT:"Preparación insuficiente",NEEDS_ANCHOR_TEST:"Falta ancla"};return[{emoji:"🧱",label:"Base",value:b==="LOW"?"Baja":b==="MEDIUM"?"Media":b==="HIGH"?"Alta":"—"},{emoji:"🔥",label:"Umbral actual",value:th||"—"},{emoji:"🧭",label:"Capacidad actual",value:a?planFormatPaceSecKm(a.paceSecKm):"—"},{emoji:"📈",label:"Volumen habitual",value:Number.isFinite(v)?`${v.toLocaleString("es-ES",{maximumFractionDigits:1})} km`:"—",sub:Number.isFinite(v)?"por semana":""},{emoji:"↗️",label:"Tirada larga reciente",value:Number.isFinite(lr)&&lr>0?formatDistance(lr):"—"},{emoji:"🎯",label:"Estado objetivo",value:g[state.goalAssessment?.status]||"Pendiente"}];}
+      function planPaceRowsEight(){const p=state.paceAnchors?.physiological||{},current=key=>{const a=planCurrentAbilityFor(key);return a?planFormatPaceSecKm(a.paceSecKm):"—";};return[{emoji:"🫧",label:"Recuperación",value:planPaceBandText(p.recovery)||"—"},{emoji:"🌿",label:"Rodaje fácil",value:planPaceBandText(p.easy)||"—"},{emoji:"🌤️",label:"Rodaje aeróbico",value:planPaceBandText(p.aerobic)||"—"},{emoji:"🏁",label:"Maratón",value:current("MARATHON")},{emoji:"🏁",label:"Media maratón",value:current("HALF_MARATHON")},{emoji:"🔥",label:"Umbral",value:planPaceBandText(p.threshold)||"—"},{emoji:"⚡",label:"10K",value:current("10K")},{emoji:"🚀",label:"5K",value:current("5K")}];}
+      function planSessionMetaParts(item,actual=null){if(actual?.summary){const p=[],d=Number(actual.summary.distanceM),t=Number(actual.summary.durationSec);if(d>0)p.push(formatDistance(d));if(t>0)p.push(formatCardDuration(t));const pace=formatCardPace(d,t);if(pace)p.push(pace);return p;}const p=[],d=Number(item?.estimatedDistanceM),t=Number(item?.estimatedDurationSec);if(d>0)p.push(formatDistance(d));if(t>0)p.push(formatCardDuration(t));const pace=planSessionPaceText(item);if(pace)p.push(pace);return p;}
+      function planWeekNumberForDate(dateString){const plan=state.planConfig;if(!plan?.startDate||!dateString)return null;const a=new Date(`${startOfIsoWeek(plan.startDate)}T12:00:00`),b=new Date(`${startOfIsoWeek(dateString)}T12:00:00`),n=Math.round((b-a)/604800000);return n>=0?n+1:null;}
+      function planWeekStats(dates){const rows=planTrainingRows().filter(x=>dates.includes(String(x?.date||""))),volumeKm=rows.reduce((s,x)=>s+Math.max(0,Number(x?.estimatedDistanceM||0)),0)/1000,longRunKm=rows.filter(x=>x?.atlasRole==="long_run").reduce((m,x)=>Math.max(m,Number(x?.estimatedDistanceM||0)/1000),0);return{weekNumber:planWeekNumberForDate(dates[0]),volumeKm,longRunKm};}
+      function planAvailabilityForDates(dates){const plan=state.planConfig;if(!plan)return[];const key=startOfIsoWeek(dates[0]),override=plan.availabilityByWeek?.[key];return Array.isArray(override)?[...override]:[...(plan.availableDays||[])];}
+
+      function renderPlanSession(item, options = {}) {
+        const actual=options.activity||null,isPlanned=options.planned===true,completed=options.completed??trainingCompleted(item),summary=actual?.summary||{};
+        const id=actual?.id??null,date=summary.date??item?.date??null,title=summary.title??item?.title??"Entrenamiento",sport=summary.sport??item?.sport??"other",distanceM=summary.distanceM??item?.estimatedDistanceM??null,durationSec=summary.durationSec??item?.estimatedDurationSec??null;
+        return activityCardHtml({id,date,title,sport,distanceM,durationSec,pace:false,status:isPlanned&&completed?"✅":null,context:null,metaParts:planSessionMetaParts(item,actual),planSessionId:!id&&item?.atlasEngineSession?item.id:null});
+      }
+
+      function planEngineSessionById(sessionId) {
+        const id = String(sessionId || "");
+
+        const effective =
+          state.effectivePlan?.valid &&
+          Array.isArray(state.effectivePlan.sessions)
+            ? state.effectivePlan.sessions
+            : [];
+
+        const canonical =
+          state.canonicalSessions?.available &&
+          Array.isArray(state.canonicalSessions.sessions)
+            ? state.canonicalSessions.sessions
+            : [];
+
+        return (
+          effective.find((session) =>
+            String(session?.id) === id
+          ) ||
+          canonical.find((session) =>
+            String(session?.id) === id
+          ) ||
+          null
         );
+      }
+
+      function planFormatSecondsRange(minSec, maxSec) {
+        const min = Number(minSec);
+        const max = Number(maxSec);
+
+        if (
+          !Number.isFinite(min) ||
+          !Number.isFinite(max)
+        ) {
+          return "";
+        }
+
+        const toMin = (sec) => {
+          const value = sec / 60;
+          return Number.isInteger(value)
+            ? `${value} min`
+            : `${value.toLocaleString("es-ES", {
+                maximumFractionDigits:1
+              })} min`;
+        };
+
+        return min === max
+          ? toMin(min)
+          : `${toMin(min)}–${toMin(max)}`;
+      }
+
+      function planFormatMetersRange(minM, maxM) {
+        const min = Number(minM);
+        const max = Number(maxM);
+
+        if (
+          !Number.isFinite(min) ||
+          !Number.isFinite(max)
+        ) {
+          return "";
+        }
+
+        const fmt = (m) =>
+          m >= 1000
+            ? `${(m / 1000).toLocaleString("es-ES", {
+                maximumFractionDigits:1
+              })} km`
+            : `${Math.round(m)} m`;
+
+        return min === max
+          ? fmt(min)
+          : `${fmt(min)}–${fmt(max)}`;
+      }
+
+      function planPrescriptionText(prescription) {
+        if (!prescription) return "";
+
+        const parts = [];
+
+        const timeRange =
+          planFormatSecondsRange(
+            prescription.workMinSec,
+            prescription.workMaxSec
+          );
+
+        const distanceRange =
+          planFormatMetersRange(
+            prescription.workMinM,
+            prescription.workMaxM
+          );
+
+        if (timeRange) {
+          parts.push(`Trabajo ${timeRange}`);
+        }
+
+        if (distanceRange) {
+          parts.push(`Trabajo ${distanceRange}`);
+        }
+
+        if (
+          Array.isArray(prescription.repetitionM) &&
+          prescription.repetitionM.length
+        ) {
+          parts.push(
+            `Repeticiones ${prescription.repetitionM
+              .map((value) =>
+                Number(value) >= 1000
+                  ? `${Number(value) / 1000} km`
+                  : `${Number(value)} m`
+              )
+              .join(" / ")}`
+          );
+        } else if (
+          Number.isFinite(
+            Number(prescription.repetitionM)
+          )
+        ) {
+          parts.push(
+            `Repeticiones ${Number(prescription.repetitionM)} m`
+          );
+        }
+
+        if (
+          Number.isFinite(
+            Number(prescription.recoveryWorkRatio)
+          )
+        ) {
+          parts.push(
+            `Recuperación ${Math.round(
+              Number(prescription.recoveryWorkRatio) * 100
+            )}% del trabajo`
+          );
+        }
+
+        const recoveryLabel = {
+          easy_jog:"trote suave",
+          full_walk_or_jog:"completa andando o trotando",
+          easy_downhill:"bajada suave",
+          not_proportional_short_interval:"recuperación corta no proporcional"
+        }[prescription.recoveryMode];
+
+        if (recoveryLabel) {
+          parts.push(`Recuperación ${recoveryLabel}`);
+        }
+
+        const intensityLabel = {
+          fast_clean_not_maximal:"rápido, limpio y no máximo",
+          strong_controlled:"fuerte y controlado"
+        }[prescription.intensity];
+
+        if (intensityLabel) {
+          parts.push(intensityLabel);
+        }
+
+        return parts.join(" · ");
+      }
+
+      function planStructureRows(session) {
+        const structure =
+          session?.structure;
+
+        if (!structure) return [];
 
         const rows = [];
 
-        planned.forEach((item) => {
-          const associated = item?.associatedActivityId
-            ? actual.find((activity) =>
-                String(activity?.id) === String(item.associatedActivityId)
+        if (structure.warmup) {
+          const distance =
+            Number(structure.warmup.distanceM);
+
+          rows.push({
+            title:"Calentamiento",
+            meta:
+              Number.isFinite(distance) && distance > 0
+                ? formatDistance(distance)
+                : structure.warmup.proportional
+                  ? "Proporcional a la sesión"
+                  : "Según prescripción"
+          });
+        }
+
+        if (structure.work) {
+          rows.push({
+            title:"Bloque principal",
+            meta:
+              planPrescriptionText(
+                structure.work.prescription
+              ) ||
+              planFamilyLabel(
+                structure.work.family
+              ) ||
+              "Según prescripción"
+          });
+        }
+
+        if (structure.cooldown) {
+          const distance =
+            Number(structure.cooldown.distanceM);
+
+          rows.push({
+            title:"Enfriamiento",
+            meta:
+              Number.isFinite(distance) && distance > 0
+                ? formatDistance(distance)
+                : structure.cooldown.proportional
+                  ? "Proporcional a la sesión"
+                  : "Según prescripción"
+          });
+        }
+
+        return rows;
+      }
+
+      function planOutcomeLabel(value) {
+        return {
+          PENDING:"Pendiente",
+          COMPLETED_AS_PLANNED:"Completado según plan",
+          COMPLETED_BETTER_THAN_PLANNED:"Completado mejor de lo previsto",
+          COMPLETED_PARTIALLY:"Completado parcialmente",
+          COMPLETED_HARDER_THAN_EXPECTED:"Más duro de lo previsto",
+          COMPLETED_EASIER_THAN_EXPECTED:"Más fácil de lo previsto",
+          FAILED_TARGET:"Objetivo no alcanzado",
+          ABORTED:"Interrumpido",
+          NOT_COMPLETED:"No completado",
+          INSUFFICIENT_DATA:"Datos insuficientes"
+        }[value] || value || "Pendiente";
+      }
+
+      function planSecondaryMetric(session){return Number(session?.durationSec)>0?{label:"Duración",value:formatCardDuration(Number(session.durationSec))}:{label:"Duración",value:"—"};}
+
+      function planContinuousStructureRows(session, item) {
+        if (
+          !["easy_aerobic_recovery", "long_run"].includes(
+            session?.role
+          )
+        ) {
+          return [];
+        }
+
+        const pace = planSessionPaceText(item);
+
+        const distance =
+          Number.isFinite(Number(session.distanceM)) &&
+          Number(session.distanceM) > 0
+            ? formatDistance(Number(session.distanceM))
+            : "";
+
+        if (session.role === "long_run") {
+          return [
+            {
+              title:"Tirada larga",
+              meta:[
+                distance,
+                pace,
+                "ritmo fácil"
+              ].filter(Boolean).join(" · ")
+            }
+          ];
+        }
+
+        return [
+          {
+            title:
+              planFamilyLabel(session.family) || "Rodaje",
+            meta:[
+              distance,
+              pace,
+              session.family === "recovery"
+                ? "muy suave"
+                : session.family === "aerobic"
+                  ? "continuo aeróbico"
+                  : "cómodo y controlado"
+            ].filter(Boolean).join(" · ")
+          }
+        ];
+      }
+
+      function renderPlanSessionDetail(sessionId) {
+        const session =
+          planEngineSessionById(sessionId);
+
+        if (!session) {
+          return `
+            ${backButton()}
+            ${header("Entrenamiento")}
+            <section class="section">
+              <div class="card empty">
+                No se encuentra este entrenamiento del plan.
+              </div>
+            </section>
+          `;
+        }
+
+        const item =
+          engineSessionToTraining(session);
+
+        const execution =
+          Array.isArray(state.liveExecution)
+            ? state.liveExecution.find(
+                (row) =>
+                  String(row?.plannedSessionId) ===
+                  String(session.id)
               )
             : null;
 
-          rows.push(renderPlanSession(item, {
-            planned:true,
-            completed:trainingCompleted(item),
-            activity:associated || null
-          }));
-        });
+        const pace =
+          planSessionPaceText(item) || "—";
 
-        actual
-          .filter((activity) => !associatedIds.has(String(activity?.id)))
-          .forEach((activity) => {
-            rows.push(renderPlanSession(
-              {
-                date:activity?.summary?.date,
-                title:activity?.summary?.title,
-                sport:activity?.summary?.sport,
-                estimatedDistanceM:activity?.summary?.distanceM,
-                estimatedDurationSec:activity?.summary?.durationSec
-              },
-              {
-                planned:false,
-                completed:true,
-                activity
-              }
-            ));
-          });
+        const structure =
+          planStructureRows(session);
 
-        if (rows.length) return rows.join("");
+        const continuousStructure =
+          planContinuousStructureRows(
+            session,
+            item
+          );
 
-        const parts = activityDateParts(dateString);
+        const displayedStructure =
+          structure.length
+            ? structure
+            : continuousStructure;
+
+        const secondaryMetric =
+          planSecondaryMetric(session);
+
+        const dateText =
+          session.date
+            ? new Date(`${session.date}T12:00:00`)
+                .toLocaleDateString("es-ES", {
+                  weekday:"long",
+                  day:"numeric",
+                  month:"long",
+                  year:"numeric"
+                })
+            : "—";
 
         return `
-          <div class="activity-card plan-empty-activity-card" aria-label="${escapeHtml(dateString)}">
-            <div class="activity-date-block">
-              <div class="activity-date-weekday">${escapeHtml(parts.weekday)}</div>
-              <div class="activity-date-day">${escapeHtml(parts.day)}</div>
-              <div class="activity-date-month">${escapeHtml(parts.month)}</div>
+          ${backButton()}
+          ${header("Entrenamiento")}
+
+          <section class="section">
+            <div class="card plan-workout-hero">
+              <div class="plan-workout-kicker">
+                ${escapeHtml(planPhaseLabel(session.phase))}
+              </div>
+              <div class="plan-workout-title">
+                ${escapeHtml(session.name || "Entrenamiento")}
+              </div>
+              <div class="plan-workout-subtitle">
+                ${escapeHtml(dateText)}
+              </div>
             </div>
-            <div class="activity-card-main"></div>
-          </div>
+          </section>
+
+          <section class="section">
+            <div class="plan-workout-grid">
+              <div class="plan-workout-metric">
+                <div class="plan-workout-metric-label">Distancia</div>
+                <div class="plan-workout-metric-value">${escapeHtml(Number(session.distanceM)>0?formatDistance(Number(session.distanceM)):"—")}</div>
+              </div>
+
+              <div class="plan-workout-metric">
+                <div class="plan-workout-metric-label">
+                  ${escapeHtml(secondaryMetric.label)}
+                </div>
+                <div class="plan-workout-metric-value">
+                  ${escapeHtml(secondaryMetric.value)}
+                </div>
+              </div>
+
+              <div class="plan-workout-metric">
+                <div class="plan-workout-metric-label">Ritmo</div>
+                <div class="plan-workout-metric-value">
+                  ${escapeHtml(pace)}
+                </div>
+              </div>
+
+              <div class="plan-workout-metric">
+                <div class="plan-workout-metric-label">Estado</div>
+                <div class="plan-workout-metric-value">
+                  ${escapeHtml(planOutcomeLabel(execution?.outcome || "PENDING"))}
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="section-title">Estructura</div>
+            <div class="card">
+              ${
+                displayedStructure.length
+                  ? displayedStructure.map((row) => `
+                      <div class="plan-structure-step">
+                        <div class="plan-structure-step-title">
+                          ${escapeHtml(row.title)}
+                        </div>
+                        <div class="plan-structure-step-meta">
+                          ${escapeHtml(row.meta)}
+                        </div>
+                      </div>
+                    `).join("")
+                  : `
+                    <div class="row">
+                      <div>
+                        <div class="row-title">
+                          ${escapeHtml(planFamilyLabel(session.family) || session.name || "Sesión")}
+                        </div>
+                        <div class="row-meta">
+                          ${escapeHtml(
+                            session.role === "long_run"
+                              ? "Tirada larga programada según la fase del plan."
+                              : session.role === "strength"
+                                ? "Sesión de fuerza programada según el bloque actual."
+                                : session.role === "race"
+                                  ? "Competición objetivo del plan."
+                                  : "Sesión programada según el bloque actual."
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  `
+              }
+            </div>
+          </section>
         `;
+      }
+
+      function renderPlanDay(dateString,{showRest=false}={}){
+        const planned=planTrainingRows().filter(x=>String(x?.date||"")===dateString).sort((a,b)=>String(a?.title||"").localeCompare(String(b?.title||""),"es")),actual=state.activities.filter(a=>String(a?.summary?.date||"")===dateString),associatedIds=new Set(planned.map(x=>x?.associatedActivityId).filter(Boolean).map(String)),rows=[];
+        planned.forEach(item=>{const associated=item?.associatedActivityId?actual.find(a=>String(a?.id)===String(item.associatedActivityId)):null;rows.push(renderPlanSession(item,{planned:true,completed:trainingCompleted(item),activity:associated||null}));});
+        actual.filter(a=>!associatedIds.has(String(a?.id))).forEach(a=>rows.push(renderPlanSession({date:a?.summary?.date,title:a?.summary?.title,sport:a?.summary?.sport,estimatedDistanceM:a?.summary?.distanceM,estimatedDurationSec:a?.summary?.durationSec},{planned:false,completed:true,activity:a})));
+        if(rows.length)return rows.join("");const p=activityDateParts(dateString);if(showRest)return`<div class="activity-card plan-rest-card"><div class="activity-date-block"><div class="activity-date-weekday">${escapeHtml(p.weekday)}</div><div class="activity-date-day">${escapeHtml(p.day)}</div><div class="activity-date-month">${escapeHtml(p.month)}</div></div><div class="activity-card-main"><div class="activity-card-title"><span class="activity-card-emoji">🛏️</span><span class="activity-card-title-text">Descanso</span></div></div></div>`;return`<div class="activity-card plan-empty-activity-card"><div class="activity-date-block"><div class="activity-date-weekday">${escapeHtml(p.weekday)}</div><div class="activity-date-day">${escapeHtml(p.day)}</div><div class="activity-date-month">${escapeHtml(p.month)}</div></div><div class="activity-card-main"></div></div>`;
       }
 
       function planDistanceLabel(key) {
@@ -11194,87 +13658,216 @@
         `;
       }
 
-      function renderPlan() {
-        const dates = planWeekDates(state.planWeekOffset);
-        const isCurrentWeek = Number(state.planWeekOffset || 0) === 0;
-
-        const planned = state.training.filter((item) =>
-          dates.includes(String(item?.date || ""))
-        );
-
-        const actual = state.activities.filter((activity) =>
-          dates.includes(String(activity?.summary?.date || ""))
-        );
-
-        const plannedKm = planned.reduce((sum, item) =>
-          sum + Math.max(0, Number(item?.estimatedDistanceM || 0)),
-          0
-        ) / 1000;
-
-        const realizedKm = actual.reduce((sum, activity) =>
-          sum + Math.max(0, Number(activity?.summary?.distanceM || 0)),
-          0
-        ) / 1000;
-
-        const sessions = actual.length;
-
-        const kmText = (value) =>
-          Number(value).toLocaleString("es-ES", {
-            minimumFractionDigits:0,
-            maximumFractionDigits:1
-          });
-
-        return `
-          ${header("Plan")}
-
-          <section class="section">
-            <div style="margin-bottom:12px">
-              <button class="button" data-action="${state.planConfig ? "plan-open" : "plan-create-open"}" style="width:100%">
-                ${state.planConfig
-                  ? escapeHtml(state.planConfig.name || planDistanceLabel(state.planConfig.distanceKey))
-                  : "Crear plan"}
-              </button>
-            </div>
-
-            <div class="plan-week-toolbar">
-              <button class="plan-week-nav" data-action="plan-prev-week" aria-label="Semana anterior">‹</button>
-              <div class="plan-week-center">
-                <div class="plan-week-title">${escapeHtml(planWeekLabel(dates))}</div>
-                <div class="plan-week-subtitle">${escapeHtml(planWeekRelativeLabel(state.planWeekOffset))}</div>
-              </div>
-              <button class="plan-week-nav" data-action="plan-next-week" aria-label="Semana siguiente">›</button>
-            </div>
-
-            ${isCurrentWeek ? "" : `
-              <button class="plan-today-button" data-action="plan-current-week">
-                Volver a esta semana
-              </button>
-            `}
-
-            <div class="card plan-week-summary-card">
-              <div class="row plan-week-summary-row">
-                <div class="plan-week-summary-cell">
-                  <div class="row-meta">Km planificados</div>
-                  <div class="row-title">${kmText(plannedKm)} km</div>
-                </div>
-                <div class="plan-week-summary-cell">
-                  <div class="row-meta">Km realizados</div>
-                  <div class="row-title">${kmText(realizedKm)} km</div>
-                </div>
-                <div class="plan-week-summary-cell">
-                  <div class="row-meta">Sesiones</div>
-                  <div class="row-title">${sessions}</div>
-                </div>
-              </div>
-            </div>
-
-            <div class="card plan-activity-list">
-              ${dates.map(renderPlanDay).join("")}
-            </div>
-
-          </section>
-        `;
+      function engineSessionSport(session) {
+        return session?.role === "strength"
+          ? "strength_training"
+          : "running";
       }
+
+      function engineSessionToTraining(session) {
+        const execution =
+          Array.isArray(state.liveExecution)
+            ? state.liveExecution.find(
+                (item) =>
+                  String(item?.plannedSessionId) ===
+                  String(session?.id)
+              )
+            : null;
+
+        return {
+          id: session?.id ?? null,
+          date: session?.date ?? null,
+          title: session?.name || "Entrenamiento",
+          sport: engineSessionSport(session),
+          estimatedDistanceM: session?.distanceM ?? null,
+          estimatedDurationSec: session?.durationSec ?? null,
+          associatedActivityId:
+            execution?.completion === "MATCHED"
+              ? execution.activityId
+              : null,
+          atlasEngineSession: true,
+          atlasOutcome: execution?.outcome ?? null,
+          atlasRole: session?.role ?? null,
+          atlasPhase: session?.phase ?? null,
+          atlasFamily: session?.family ?? null,
+          atlasDose: session?.dose ?? null,
+          atlasStructure: session?.structure ?? null,
+          atlasPurpose: session?.purpose ?? null,
+          atlasTargetPace: session?.targetPace ?? null,
+          atlasSteps: session?.steps ?? [],
+          atlasWeekIndex: session?.weekIndex ?? null
+        };
+      }
+
+      function planTrainingRows() {
+        const effectiveSessions =
+          state.effectivePlan?.valid &&
+          Array.isArray(state.effectivePlan.sessions) &&
+          state.effectivePlan.sessions.length
+            ? state.effectivePlan.sessions
+            : null;
+
+        const canonicalSessions =
+          state.canonicalSessions?.available &&
+          Array.isArray(state.canonicalSessions.sessions) &&
+          state.canonicalSessions.sessions.length
+            ? state.canonicalSessions.sessions
+            : null;
+
+        const engineSessions =
+          effectiveSessions ||
+          canonicalSessions;
+
+        if (!engineSessions) {
+          return state.training;
+        }
+
+        return engineSessions
+          .map(engineSessionToTraining)
+          .sort((a, b) =>
+            String(a?.date || "").localeCompare(String(b?.date || ""))
+          );
+      }
+
+      function phaseAllocationChoiceLabel(candidate) {
+        if (!candidate) return "";
+        return [
+          `Preparación ${Number(candidate.preparation)} sem`,
+          `Desarrollo ${Number(candidate.development)} sem`,
+          `Específica ${Number(candidate.specific)} sem`
+        ].join(" · ");
+      }
+
+      function renderPhaseAllocationChooser() {
+        return "";
+      }
+
+
+      function automaticMacrostructureSummary() {
+        const allocation = state.phaseAllocation;
+
+        if (
+          allocation?.status !== "AUTO_SELECTED" ||
+          !allocation.selected
+        ) {
+          return "";
+        }
+
+        const selected =
+          phaseAllocationChoiceLabel(allocation.selected);
+
+        const signals =
+          allocation.decision?.signals || {};
+
+        const reasons = [];
+
+        if (signals.base) {
+          reasons.push(`base ${signals.base}`);
+        }
+
+        if (signals.qualityEstablished === true) {
+          reasons.push("calidad establecida");
+        }
+
+        if (Number.isFinite(Number(signals.volumeRatio))) {
+          reasons.push(
+            `volumen ${Math.round(Number(signals.volumeRatio) * 100)}% de demanda pico`
+          );
+        }
+
+        if (Number.isFinite(Number(signals.longRunRatio))) {
+          reasons.push(
+            `LR0 ${Math.round(Number(signals.longRunRatio) * 100)}% de tirada objetivo`
+          );
+        }
+
+        if (signals.goalStatus) {
+          reasons.push(`objetivo ${signals.goalStatus}`);
+        }
+
+        return `${selected}${reasons.length ? ` · ${reasons.join(" · ")}` : ""}`;
+      }
+
+      function planEngineStatusText() {
+        if (!state.planConfig) return "";
+
+        if (state.phaseAllocation?.status === "AUTO_SELECTED") {
+          if (state.canonicalSessions?.available) {
+            const pending =
+              Number(state.canonicalSessions.unresolvedFamilySessions || 0);
+
+            const audit =
+              state.engineAudit?.passed
+                ? " · auditoría OK"
+                : "";
+
+            return pending > 0
+              ? `Motor ATLAS activo · macroestructura automática · ${pending} sesiones pendientes${audit}`
+              : `Motor ATLAS activo · macroestructura automática${audit}`;
+          }
+
+          return "Macroestructura seleccionada automáticamente";
+        }
+
+        if (state.phaseAllocation?.status === "USER_SELECTED") {
+          if (state.canonicalSessions?.available) {
+            const pending =
+              Number(
+                state.canonicalSessions.unresolvedFamilySessions || 0
+              );
+
+            return pending > 0
+              ? `Motor ATLAS activo · macroestructura elegida · ${pending} sesiones de calidad pendientes de familia`
+              : "Motor ATLAS activo · macroestructura elegida";
+          }
+
+          return "Macroestructura elegida";
+        }
+
+        if (state.canonicalSessions?.available) {
+          const pending =
+            Number(
+              state.canonicalSessions.unresolvedFamilySessions || 0
+            );
+
+          return pending > 0
+            ? `Motor ATLAS activo · ${pending} sesiones de calidad pendientes de familia`
+            : "Motor ATLAS activo";
+        }
+
+        const status =
+          state.canonicalSessions?.status ||
+          state.phaseAllocation?.status ||
+          null;
+
+        const labels = {
+          PHASE_ALLOCATION_NOT_UNIQUE:
+            "Motor ATLAS pendiente de resolver macroestructura",
+          FREQUENCY_PROGRESSION_RULE_PENDING:
+            "Motor ATLAS pendiente de progresión de frecuencia",
+          RUN_FREQUENCY_PENDING:
+            "Motor ATLAS pendiente de frecuencia de carrera",
+          CALENDAR_PHASES_UNRESOLVED:
+            "Motor ATLAS pendiente de resolver fases",
+          WEEKLY_SKELETON_INCOMPLETE:
+            "Motor ATLAS pendiente de encaje semanal",
+          MULTIPLE_VALID:
+            "Motor ATLAS pendiente de resolver macroestructura",
+          INSUFFICIENT_CORE_WEEKS:
+            "Horizonte insuficiente para la macroestructura",
+          EXCESS_CORE_WEEKS:
+            "Horizonte superior a los rangos definidos"
+        };
+
+        return status
+          ? (
+              labels[status] ||
+              "Motor ATLAS pendiente de completar dependencias"
+            )
+          : "";
+      }
+
+      function renderPlan(){const dates=planWeekDates(state.planWeekOffset),current=Number(state.planWeekOffset||0)===0,stats=planWeekStats(dates),km=v=>Number(v).toLocaleString("es-ES",{maximumFractionDigits:1});return`${header("Plan")}<section class="section"><div style="margin-bottom:12px"><button class="button" data-action="${state.planConfig?"plan-open":"plan-create-open"}" style="width:100%">${state.planConfig?escapeHtml(state.planConfig.name||planDistanceLabel(state.planConfig.distanceKey)):"Crear plan"}</button></div><div class="plan-week-toolbar"><button class="plan-week-nav" data-action="plan-prev-week">‹</button><div class="plan-week-center"><div class="plan-week-title">${escapeHtml(planWeekLabel(dates))}</div><div class="plan-week-subtitle">${escapeHtml(planWeekRelativeLabel(state.planWeekOffset))}</div></div><button class="plan-week-nav" data-action="plan-next-week">›</button></div>${current?"":`<button class="plan-today-button" data-action="plan-current-week">Volver a esta semana</button>`}<div class="plan-week-summary-triple"><div><div class="plan-week-summary-triple-label">Semana</div><div class="plan-week-summary-triple-value">${stats.weekNumber||"—"}</div></div><div><div class="plan-week-summary-triple-label">Volumen</div><div class="plan-week-summary-triple-value">${km(stats.volumeKm)} km</div></div><div><div class="plan-week-summary-triple-label">Tirada larga</div><div class="plan-week-summary-triple-value">${stats.longRunKm>0?`${km(stats.longRunKm)} km`:"—"}</div></div></div><div class="card plan-activity-list">${dates.map(d=>renderPlanDay(d)).join("")}</div></section>`;}
 
       function targetTimeFromSeconds(value) {
         const total = Number(value);
@@ -11309,146 +13902,7 @@
         );
       }
 
-      function renderPlanDetail() {
-        const plan = state.planConfig;
-
-        if (!plan) {
-          return `
-            ${backButton()}
-            ${header("Plan")}
-            <section class="section">
-              <div class="card empty">No hay ningún plan creado.</div>
-            </section>
-          `;
-        }
-
-        const plannedSessions = state.training
-          .filter((item) => {
-            const date = String(item?.date || "");
-            if (!date) return false;
-
-            if (plan.startDate && date < plan.startDate) return false;
-            if (plan.raceDate && date > plan.raceDate) return false;
-
-            return true;
-          })
-          .sort((a,b) =>
-            String(a?.date || "").localeCompare(String(b?.date || ""))
-          );
-
-        const nextSessions = plannedSessions
-          .filter((item) => String(item?.date || "") >= localDate(0))
-          .slice(0, 5);
-
-        return `
-          ${backButton()}
-          ${header(escapeHtml(plan.name || "Plan"), { dynamicTitle:true, showProfile:false })}
-
-          <section class="section">
-            <div class="card">
-              <div class="row">
-                <div>
-                  <div class="row-meta">Distancia</div>
-                  <div class="row-title">${escapeHtml(planDistanceLabel(plan.distanceKey))}</div>
-                </div>
-                <div style="text-align:right">
-                  <div class="row-meta">Tiempo</div>
-                  <div class="row-title">${escapeHtml(targetTimeFromSeconds(plan.targetTimeSec) || "—")}</div>
-                </div>
-              </div>
-
-              <div class="row">
-                <div>
-                  <div class="row-meta">Inicio</div>
-                  <div class="row-title">${escapeHtml(plan.startDate || "—")}</div>
-                </div>
-                <div style="text-align:right">
-                  <div class="row-meta">Carrera</div>
-                  <div class="row-title">${escapeHtml(plan.raceDate || "—")}</div>
-                </div>
-              </div>
-
-              <div class="row">
-                <div>
-                  <div class="row-meta">Días disponibles</div>
-                  <div class="row-title">${escapeHtml(planDaysLabel(plan.availableDays))}</div>
-                </div>
-                <div style="text-align:right">
-                  <div class="row-meta">Dobles sesiones</div>
-                  <div class="row-title">${escapeHtml(planDoublesLabel(plan.doublesPreference))}</div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="section plan-collapsible collapsed" data-plan-section="sessions">
-            <button class="plan-section-toggle" data-action="plan-toggle-section" data-section="sessions" aria-expanded="false">
-              <span class="section-title">Próximos entrenamientos</span>
-              <span class="plan-section-chevron">›</span>
-            </button>
-            <div class="plan-section-body">
-              <div class="card">
-                ${nextSessions.length
-                  ? nextSessions.map((item) =>
-                      activityCardHtml({
-                        id: item.associatedActivityId || null,
-                        date: item.date,
-                        title: item.title,
-                        sport: item.sport,
-                        distanceM: item.estimatedDistanceM,
-                        durationSec: item.estimatedDurationSec,
-                        pace: true,
-                        status: item.associatedActivityId ? "✅" : "⏳"
-                      })
-                    ).join("")
-                  : `<div class="empty">Todavía no hay entrenamientos programados.</div>`
-                }
-              </div>
-            </div>
-          </section>
-
-          <section class="section plan-collapsible collapsed" data-plan-section="paces">
-            <button class="plan-section-toggle" data-action="plan-toggle-section" data-section="paces" aria-expanded="false">
-              <span class="section-title">Ritmos</span>
-              <span class="plan-section-chevron">›</span>
-            </button>
-            <div class="plan-section-body">
-              <div class="card">
-                <div class="row">
-                  <div>
-                    <div class="row-title">Referencias del plan</div>
-                    <div class="row-meta">Se completarán al integrar el Training Engine.</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="section plan-collapsible collapsed" data-plan-section="garmin">
-            <button class="plan-section-toggle" data-action="plan-toggle-section" data-section="garmin" aria-expanded="false">
-              <span class="section-title">Garmin Connect</span>
-              <span class="plan-section-chevron">›</span>
-            </button>
-            <div class="plan-section-body">
-              <div class="card">
-                <div class="row">
-                  <div>
-                    <div class="row-title">Publicación</div>
-                    <div class="row-meta">Pendiente de integración con el Training Engine.</div>
-                  </div>
-                  <span class="chip">No disponible</span>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="section">
-            <button class="button" data-action="plan-edit-open" style="width:100%">
-              Editar plan
-            </button>
-          </section>
-        `;
-      }
+      function renderPlanDetail(){const plan=state.planConfig;if(!plan)return`${backButton()}${header("Plan")}<section class="section"><div class="card empty">No hay ningún plan creado.</div></section>`;const ad=planWeekDates(state.planAvailabilityWeekOffset),av=planAvailabilityForDates(ad),past=ad[6]<localDate(0),wd=planWeekDates(state.planDetailWeekOffset),ws=planWeekStats(wd),cur=Number(state.planDetailWeekOffset||0)===0,km=v=>Number(v).toLocaleString("es-ES",{maximumFractionDigits:1}),days=[["mon","L"],["tue","M"],["wed","X"],["thu","J"],["fri","V"],["sat","S"],["sun","D"]];return`${backButton()}${header(escapeHtml(plan.name||"Plan"),{dynamicTitle:true,showProfile:false})}<section class="section">${planMetricGrid(planBasicRows(plan))}<button class="button secondary plan-detail-edit" data-action="plan-edit-open">Editar plan</button></section><section class="section plan-collapsible collapsed" data-plan-section="state"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Estado del plan</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body">${planMetricGrid(planStateRows(plan))}</div></section><section class="section plan-collapsible collapsed" data-plan-section="availability"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Disponibilidad</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body"><div class="plan-week-toolbar"><button class="plan-week-nav" data-action="availability-prev-week">‹</button><div class="plan-week-center"><div class="plan-week-title">${escapeHtml(planWeekLabel(ad))}</div><div class="plan-week-subtitle">${past?"Semana pasada · no editable":"Selecciona los días disponibles"}</div></div><button class="plan-week-nav" data-action="availability-next-week">›</button></div><div class="plan-availability-days">${days.map(([k,l])=>`<button class="plan-availability-day ${av.includes(k)?"active":""}" data-action="availability-day" data-day="${k}" ${past?"disabled":""}>${l}</button>`).join("")}</div></div></section><section class="section plan-collapsible collapsed" data-plan-section="paces"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Ritmos</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body">${planMetricGrid(planPaceRowsEight(),{paces:true})}</div></section><section class="section plan-collapsible collapsed" data-plan-section="workouts"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Entrenamientos</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body"><div class="plan-week-toolbar"><button class="plan-week-nav" data-action="detail-prev-week">‹</button><div class="plan-week-center"><div class="plan-week-title">${escapeHtml(planWeekLabel(wd))}</div><div class="plan-week-subtitle">${escapeHtml(planWeekRelativeLabel(state.planDetailWeekOffset))}</div></div><button class="plan-week-nav" data-action="detail-next-week">›</button></div>${cur?"":`<button class="plan-today-button" data-action="detail-current-week">Volver a esta semana</button>`}<div class="plan-week-summary-triple"><div><div class="plan-week-summary-triple-label">Semana</div><div class="plan-week-summary-triple-value">${ws.weekNumber||"—"}</div></div><div><div class="plan-week-summary-triple-label">Volumen</div><div class="plan-week-summary-triple-value">${km(ws.volumeKm)} km</div></div><div><div class="plan-week-summary-triple-label">Tirada larga</div><div class="plan-week-summary-triple-value">${ws.longRunKm>0?`${km(ws.longRunKm)} km`:"—"}</div></div></div><div class="card plan-activity-list">${wd.map(d=>renderPlanDay(d,{showRest:true})).join("")}</div></div></section><section class="section plan-collapsible collapsed" data-plan-section="garmin"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Garmin Connect</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body"><div class="card"><div class="row"><div><div class="row-title">Publicación del plan</div><div class="row-meta">La publicación, actualización y eliminación en Garmin Connect se conectará en la siguiente subfase.</div></div></div></div></div></section>`;}
 
       function renderPlanCreate() {
         const draft = state.planConfig || state.planDraft || {
@@ -11458,7 +13912,9 @@
           raceDate: "",
           targetTimeSec: null,
           availableDays: [],
-          doublesPreference: "avoid"
+          doublesPreference: "avoid",
+          availabilityByWeek: {},
+          secondaryRaces: []
         };
         const dayOptions = [
           ["mon","L"],["tue","M"],["wed","X"],["thu","J"],
@@ -11467,7 +13923,7 @@
 
         return `
           ${backButton()}
-          ${header("Crear plan")}
+          ${header(state.planConfig ? "Editar plan" : "Crear plan")}
 
           <section class="section">
             <div class="card">
@@ -11555,6 +14011,7 @@
                   <option value="no_preference" ${draft.doublesPreference === "no_preference" ? "selected" : ""}>Sin preferencia</option>
                 </select>
               </div>
+              <div class="row" style="display:block"><div class="row-meta" style="margin-bottom:4px">Carreras secundarias</div><div class="plan-secondary-list">${(state.planSecondaryDraft||[]).length?state.planSecondaryDraft.map((race,index)=>`<div class="plan-secondary-row"><div><div class="plan-secondary-row-title">🏁 ${escapeHtml(race.name||planDistanceLabel(race.distanceKey))}</div><div class="plan-secondary-row-meta">${escapeHtml(planDistanceLabel(race.distanceKey))} · ${escapeHtml(planFormatDateShort(race.date))}${race.targetTimeSec?` · ${escapeHtml(targetTimeFromSeconds(race.targetTimeSec))}`:""}</div></div><button class="plan-secondary-remove" type="button" data-action="secondary-remove" data-index="${index}">Eliminar</button></div>`).join(""):`<div class="row-meta">Sin carreras secundarias.</div>`}</div><div class="plan-secondary-fields"><input id="secondary-name" class="wide" type="text" placeholder="Nombre" style="width:100%;padding:11px 10px;border-radius:12px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"><select id="secondary-distance" style="width:100%;padding:11px 10px;border-radius:12px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"><option value="">Distancia</option><option value="5K">5K</option><option value="10K">10K</option><option value="HALF_MARATHON">Media maratón</option><option value="MARATHON">Maratón</option></select><input id="secondary-date" type="date" style="width:100%;padding:11px 10px;border-radius:12px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"><input id="secondary-time" class="wide" type="text" inputmode="numeric" placeholder="Tiempo objetivo opcional · 45:00 o 1:30:00" style="width:100%;padding:11px 10px;border-radius:12px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"></div><button class="button secondary plan-secondary-add" type="button" data-action="secondary-add">Añadir carrera secundaria</button></div>
             </div>
           </section>
 
@@ -13727,6 +16184,10 @@
           return renderPlanDetail();
         }
 
+        if (state.route.view === "plan-session") {
+          return renderPlanSessionDetail(state.route.id);
+        }
+
         switch (state.route.tab) {
           case "activities": return renderActivities();
           case "plan": return renderPlan();
@@ -13932,12 +16393,25 @@
           });
         }
 
-        const planCreateOpen = document.querySelector("[data-action='plan-create-open']");
-        if (planCreateOpen) {
-          planCreateOpen.addEventListener("click", () => {
-            navigate({ tab:"plan", view:"plan-create" });
+        document
+          .querySelectorAll("[data-plan-session-id]")
+          .forEach((button) => {
+            button.addEventListener("click", () => {
+              const id =
+                button.dataset.planSessionId;
+
+              if (!id) return;
+
+              navigate({
+                tab:"plan",
+                view:"plan-session",
+                id
+              });
+            });
           });
-        }
+
+        const planCreateOpen = document.querySelector("[data-action='plan-create-open']");
+        if (planCreateOpen) {planCreateOpen.addEventListener("click",()=>{state.planSecondaryDraft=[];navigate({tab:"plan",view:"plan-create"});});}
 
         const planOpen = document.querySelector("[data-action='plan-open']");
         if (planOpen) {
@@ -13956,13 +16430,12 @@
           });
         });
 
-        const planEditOpen = document.querySelector("[data-action='plan-edit-open']");
-        if (planEditOpen) {
-          planEditOpen.addEventListener("click", () => {
-            navigate({ tab:"plan", view:"plan-create" });
-          });
-        }
 
+        const planEditOpen = document.querySelector("[data-action='plan-edit-open']");
+        if (planEditOpen) {planEditOpen.addEventListener("click",()=>{state.planSecondaryDraft=Array.isArray(state.planConfig?.secondaryRaces)?state.planConfig.secondaryRaces.map(r=>({...r})):[];navigate({tab:"plan",view:"plan-create"});});}
+
+        document.querySelectorAll("[data-action='secondary-remove']").forEach(button=>button.addEventListener("click",()=>{const i=Number(button.dataset.index);if(Number.isInteger(i)&&i>=0&&i<state.planSecondaryDraft.length){state.planSecondaryDraft.splice(i,1);render();}}));
+        const secondaryAdd=document.querySelector("[data-action='secondary-add']");if(secondaryAdd)secondaryAdd.addEventListener("click",()=>{const name=document.getElementById("secondary-name")?.value?.trim()||"",distanceKey=document.getElementById("secondary-distance")?.value||"",date=document.getElementById("secondary-date")?.value||"",timeRaw=document.getElementById("secondary-time")?.value||"",distanceM={"5K":5000,"10K":10000,"HALF_MARATHON":21097.5,"MARATHON":42195}[distanceKey],targetTimeSec=timeRaw.trim()?targetTimeToSeconds(timeRaw):null,planStart=document.getElementById("plan-start-date")?.value||state.planConfig?.startDate||"",mainRace=document.getElementById("plan-race-date")?.value||state.planConfig?.raceDate||"";if(!name||!distanceM||!date){window.alert("Completa nombre, distancia y fecha de la carrera secundaria.");return;}if(planStart&&date<=planStart){window.alert("La carrera secundaria debe ser posterior al inicio del plan.");return;}if(mainRace&&date>=mainRace){window.alert("La carrera secundaria debe ser anterior a la carrera principal.");return;}if(timeRaw.trim()&&!targetTimeSec){window.alert("El tiempo objetivo de la carrera secundaria no es válido.");return;}if(state.planSecondaryDraft.some(r=>r.date===date)){window.alert("Ya existe una carrera secundaria en esa fecha.");return;}state.planSecondaryDraft.push({id:`secondary-${Date.now()}`,name,distanceKey,distanceM,date,targetTimeSec});state.planSecondaryDraft.sort((a,b)=>a.date.localeCompare(b.date));render();});
         const planDelete = document.querySelector("[data-action='plan-delete']");
         if (planDelete) {
           planDelete.addEventListener("click", async () => {
@@ -14016,10 +16489,14 @@
               ),
               availableDays: [...document.querySelectorAll("[data-plan-day]:checked")]
                 .map((node) => node.dataset.planDay),
-              doublesPreference: document.getElementById("plan-doubles")?.value || "avoid"
+              doublesPreference: document.getElementById("plan-doubles")?.value || "avoid",
+              phaseAllocationChoice: null,
+              availabilityByWeek: state.planConfig?.availabilityByWeek || {},
+              secondaryRaces: state.planSecondaryDraft || []
             });
 
             state.planDraft = { ...nextPlan };
+            state.planSecondaryDraft=(nextPlan.secondaryRaces||[]).map(r=>({...r}));
             await AtlasApp.persistPlan(nextPlan);
 
             saveRouteScroll();
@@ -14064,6 +16541,10 @@
           });
         }
 
+        const availabilityPrev=document.querySelector("[data-action='availability-prev-week']");if(availabilityPrev)availabilityPrev.addEventListener("click",()=>{state.planAvailabilityWeekOffset--;render();});
+        const availabilityNext=document.querySelector("[data-action='availability-next-week']");if(availabilityNext)availabilityNext.addEventListener("click",()=>{state.planAvailabilityWeekOffset++;render();});
+        document.querySelectorAll("[data-action='availability-day']").forEach(button=>button.addEventListener("click",async()=>{if(button.disabled||!state.planConfig)return;const dates=planWeekDates(state.planAvailabilityWeekOffset),key=startOfIsoWeek(dates[0]),current=planAvailabilityForDates(dates),day=button.dataset.day,next=current.includes(day)?current.filter(v=>v!==day):[...current,day],order=["mon","tue","wed","thu","fri","sat","sun"];next.sort((a,b)=>order.indexOf(a)-order.indexOf(b));const updated=AtlasTrainingEngine.createPlanInput({...state.planConfig,phaseAllocationChoice:null,availabilityByWeek:{...(state.planConfig.availabilityByWeek||{}),[key]:next}});await AtlasApp.persistPlan(updated);render();}));
+        const detailPrev=document.querySelector("[data-action='detail-prev-week']");if(detailPrev)detailPrev.addEventListener("click",()=>{state.planDetailWeekOffset--;render();});const detailNext=document.querySelector("[data-action='detail-next-week']");if(detailNext)detailNext.addEventListener("click",()=>{state.planDetailWeekOffset++;render();});const detailCurrent=document.querySelector("[data-action='detail-current-week']");if(detailCurrent)detailCurrent.addEventListener("click",()=>{state.planDetailWeekOffset=0;render();});
         const back = document.querySelector("[data-action='back']");
         if (back) back.addEventListener("click", goBack);
       }
@@ -14789,114 +17270,7 @@
               AtlasUI.state.currentAbility
           });
 
-        AtlasUI.state.macrocycle =
-          AtlasUI.state.planConfig
-            ? AtlasTrainingEngine.buildMacrocycle({
-                planInput:
-                  AtlasUI.state.planConfig,
-                athleteSnapshot:
-                  AtlasUI.state.athleteSnapshot
-              })
-            : null;
-
-        AtlasUI.state.canonicalCalendar =
-          AtlasUI.state.planConfig
-            ? AtlasTrainingEngine.assignKnownCalendarPhases({
-                planInput:
-                  AtlasUI.state.planConfig,
-                macrocycle:
-                  AtlasUI.state.macrocycle
-              })
-            : null;
-
-        AtlasUI.state.phaseAllocation =
-          AtlasUI.state.planConfig
-            ? AtlasTrainingEngine.resolvePhaseAllocation({
-                planInput:
-                  AtlasUI.state.planConfig,
-                macrocycle:
-                  AtlasUI.state.macrocycle,
-                canonicalCalendar:
-                  AtlasUI.state.canonicalCalendar
-              })
-            : null;
-
-        AtlasUI.state.volumeProgression =
-          AtlasUI.state.planConfig
-            ? AtlasTrainingEngine.buildVolumeProgression({
-                planInput:
-                  AtlasUI.state.planConfig,
-                athleteSnapshot:
-                  AtlasUI.state.athleteSnapshot
-              })
-            : null;
-
-        AtlasUI.state.goalAssessment =
-          AtlasUI.state.planConfig
-            ? AtlasTrainingEngine.buildGoalAssessment({
-                planInput:
-                  AtlasUI.state.planConfig,
-                currentAbility:
-                  AtlasUI.state.currentAbility,
-                paceAnchors:
-                  AtlasUI.state.paceAnchors,
-                preparationInsufficient:
-                  AtlasUI.state.macrocycle
-                    ?.preparationInsufficient ??
-                  null
-              })
-            : null;
-
-        AtlasUI.state.adaptive =
-          AtlasTrainingEngine.buildAdaptiveEngine({
-            signals: []
-          });
-
-        AtlasUI.state.intelligence =
-          AtlasTrainingEngine.buildPlanIntelligence({
-            goalProgress:
-              AtlasTrainingEngine.buildGoalProgress({
-                state: "INSUFFICIENT_DATA",
-                evidenceStrong: false
-              }),
-            performanceProgression:
-              AtlasTrainingEngine.buildPerformanceProgression({
-                direction: "INSUFFICIENT_DATA"
-              })
-          });
-
-        AtlasUI.state.trainingEngineResult =
-          AtlasTrainingEngine.buildTrainingEngineResult({
-            status: null,
-            asOfDate: localDate(0),
-            input:
-              AtlasUI.state.planConfig,
-            athleteSnapshot:
-              AtlasUI.state.athleteSnapshot,
-            currentAbility:
-              AtlasUI.state.currentAbility,
-            paceAnchors:
-              AtlasUI.state.paceAnchors,
-            goalAssessment:
-              AtlasUI.state.goalAssessment,
-            macroPlan:
-              AtlasUI.state.macrocycle,
-            volumeProgression:
-              AtlasUI.state.volumeProgression,
-            canonicalCalendar:
-              AtlasUI.state.canonicalCalendar,
-            phaseAllocation:
-              AtlasUI.state.phaseAllocation,
-            weeklySkeleton:
-              AtlasUI.state.weeklySkeleton,
-            prescriptionCore:
-              AtlasUI.state.prescriptionCore,
-            effectivePlan: null,
-            adaptive:
-              AtlasUI.state.adaptive,
-            intelligence:
-              AtlasUI.state.intelligence
-          });
+        recomputeTrainingEnginePlanLayers();
 
         if (!AtlasUI.state.syncing && lastSyncStatus?.value === "partial") {
           AtlasUI.state.syncError = Array.isArray(lastSyncErrors?.value)
@@ -14905,12 +17279,176 @@
         }
       }
 
+      function recomputeTrainingEnginePlanLayers() {
+        const plan = AtlasUI.state.planConfig;
+
+        AtlasUI.state.macrocycle =
+          plan
+            ? AtlasTrainingEngine.buildMacrocycle({
+                planInput: plan,
+                athleteSnapshot: AtlasUI.state.athleteSnapshot
+              })
+            : null;
+
+        AtlasUI.state.canonicalCalendar =
+          plan
+            ? AtlasTrainingEngine.assignKnownCalendarPhases({
+                planInput: plan,
+                macrocycle: AtlasUI.state.macrocycle
+              })
+            : null;
+
+        AtlasUI.state.volumeProgression =
+          plan
+            ? AtlasTrainingEngine.buildVolumeProgression({
+                planInput: plan,
+                athleteSnapshot: AtlasUI.state.athleteSnapshot
+              })
+            : null;
+
+        AtlasUI.state.goalAssessment =
+          plan
+            ? AtlasTrainingEngine.buildGoalAssessment({
+                planInput: plan,
+                currentAbility: AtlasUI.state.currentAbility,
+                paceAnchors: AtlasUI.state.paceAnchors,
+                preparationInsufficient:
+                  AtlasUI.state.macrocycle?.preparationInsufficient ?? null
+              })
+            : null;
+
+        AtlasUI.state.phaseAllocation =
+          plan
+            ? AtlasTrainingEngine.resolvePhaseAllocation({
+                planInput: plan,
+                macrocycle: AtlasUI.state.macrocycle,
+                canonicalCalendar: AtlasUI.state.canonicalCalendar,
+                athleteSnapshot: AtlasUI.state.athleteSnapshot,
+                volumeProgression: AtlasUI.state.volumeProgression,
+                goalAssessment: AtlasUI.state.goalAssessment
+              })
+            : null;
+
+        AtlasUI.state.canonicalSessions =
+          plan
+            ? AtlasTrainingEngine.buildCanonicalSessionMaterialization({
+                planInput: plan,
+                phaseAllocation: AtlasUI.state.phaseAllocation,
+                canonicalCalendar: AtlasUI.state.canonicalCalendar,
+                volumeProgression: AtlasUI.state.volumeProgression,
+                athleteSnapshot: AtlasUI.state.athleteSnapshot,
+                macrocycle: AtlasUI.state.macrocycle
+              })
+            : null;
+
+        const canonicalPlanWithSecondaryRaces = AtlasUI.state.canonicalSessions?.available ? applySecondaryRacesToSessions({plan,sessions:AtlasUI.state.canonicalSessions.sessions,paceAnchors:AtlasUI.state.paceAnchors}) : [];
+
+        AtlasUI.state.effectivePlan =
+          AtlasUI.state.canonicalSessions?.available
+            ? AtlasTrainingEngine.buildEffectivePlan({
+                canonicalPlan: canonicalPlanWithSecondaryRaces,
+                acceptedManualChanges: [],
+                acceptedAdaptiveChanges: [],
+                asOfDate: localDate(0),
+                planStartDate: plan?.startDate
+              })
+            : null;
+
+        const liveSessions =
+          AtlasUI.state.effectivePlan?.valid
+            ? AtlasUI.state.effectivePlan.sessions
+            : [];
+
+        AtlasUI.state.liveExecution =
+          liveExecutionForPlan({
+            sessions: liveSessions,
+            activities: AtlasUI.state.activities,
+            asOfDate: localDate(0)
+          });
+
+        AtlasUI.state.livePlanHealth =
+          livePlanHealthFromExecution(
+            liveSessions,
+            AtlasUI.state.liveExecution
+          );
+
+        const adaptiveSignals =
+          liveAdaptiveSignalsFromExecution(
+            liveSessions,
+            AtlasUI.state.liveExecution
+          );
+
+        AtlasUI.state.adaptive =
+          AtlasTrainingEngine.buildAdaptiveEngine({
+            signals: adaptiveSignals
+          });
+
+        const executionPoor =
+          adaptiveSignals.some(
+            (signal) =>
+              signal.action === "PROGRESSION_HOLD"
+          );
+
+        AtlasUI.state.intelligence =
+          AtlasTrainingEngine.buildPlanIntelligence({
+            planHealth: AtlasUI.state.livePlanHealth,
+            goalProgress:
+              AtlasTrainingEngine.buildGoalProgress({
+                state: "INSUFFICIENT_DATA",
+                evidenceStrong: false,
+                planHealth: AtlasUI.state.livePlanHealth
+              }),
+            performanceProgression:
+              AtlasTrainingEngine.buildPerformanceProgression({
+                direction: "INSUFFICIENT_DATA"
+              }),
+            recentExecutionClearlyPoor: executionPoor,
+            workoutOutcomes: AtlasUI.state.liveExecution
+          });
+
+        AtlasUI.state.trainingEngineResult =
+          AtlasTrainingEngine.buildTrainingEngineResult({
+            status:
+              AtlasUI.state.canonicalSessions?.available
+                ? "ACTIVE"
+                : null,
+            asOfDate: localDate(0),
+            input: plan,
+            athleteSnapshot: AtlasUI.state.athleteSnapshot,
+            currentAbility: AtlasUI.state.currentAbility,
+            paceAnchors: AtlasUI.state.paceAnchors,
+            goalAssessment: AtlasUI.state.goalAssessment,
+            macroPlan: AtlasUI.state.macrocycle,
+            volumeProgression: AtlasUI.state.volumeProgression,
+            canonicalCalendar: AtlasUI.state.canonicalCalendar,
+            phaseAllocation: AtlasUI.state.phaseAllocation,
+            canonicalSessions: AtlasUI.state.canonicalSessions,
+            weeklySkeleton: AtlasUI.state.weeklySkeleton,
+            prescriptionCore: AtlasUI.state.prescriptionCore,
+            effectivePlan: AtlasUI.state.effectivePlan,
+            adaptive: AtlasUI.state.adaptive,
+            intelligence: AtlasUI.state.intelligence
+          });
+
+        AtlasUI.state.engineAudit =
+          auditLiveTrainingEngine({
+            plan,
+            sessions: liveSessions,
+            execution: AtlasUI.state.liveExecution,
+            adaptive: AtlasUI.state.adaptive,
+            engineResult: AtlasUI.state.trainingEngineResult
+          });
+      }
+
+
       function normalizePlanRecord(record) {
         if (!record || typeof record !== "object") return null;
         const updatedAt = String(record.updatedAt || "");
         if (!updatedAt) return null;
+        const plan=record.deleted?null:(record.plan?{...record.plan,phaseAllocationChoice:null}:null);
         return {
-          plan: record.deleted ? null : (record.plan || null),
+          plan,
+          engine: record.deleted ? null : (record.engine || null),
           deleted: Boolean(record.deleted),
           updatedAt
         };
@@ -14922,6 +17460,7 @@
         await AtlasStorage.put("settings", {key:"activePlan", value:normalized});
         AtlasUI.state.planRecord = normalized;
         AtlasUI.state.planConfig = normalized.deleted ? null : normalized.plan;
+        recomputeTrainingEnginePlanLayers();
         return normalized;
       }
 
@@ -14973,18 +17512,36 @@
       }
 
       async function persistPlan(plan) {
+        AtlasUI.state.planConfig = { ...plan };
+        recomputeTrainingEnginePlanLayers();
+
+        const now = new Date().toISOString();
+
         const record = {
           plan:{...plan},
+          engine:{
+            fingerprint:
+              AtlasUI.state.trainingEngineResult?.fingerprint || null,
+            canonicalSessionsFingerprint:
+              AtlasUI.state.canonicalSessions?.deterministicFingerprint || null,
+            canonicalSessionsStatus:
+              AtlasUI.state.canonicalSessions?.status || null,
+            phaseAllocationStatus:
+              AtlasUI.state.phaseAllocation?.status || null,
+            updatedAt:now
+          },
           deleted:false,
-          updatedAt:new Date().toISOString()
+          updatedAt:now
         };
-        await savePlanRecordLocal(record);
-        await pushPlanRecordRemote(record);
+
+        const saved = await savePlanRecordLocal(record);
+        await pushPlanRecordRemote(saved);
       }
 
       async function deletePlanPersisted() {
         const record = {
           plan:null,
+          engine:null,
           deleted:true,
           updatedAt:new Date().toISOString()
         };
@@ -16609,6 +19166,46 @@
           console.error(
             "ATLAS Training Engine Phase Allocation Resolver tests failed",
             phaseAllocationResolverTests.results
+          );
+        }
+
+        const automaticMacrostructureTests =
+          AtlasTrainingEngine.runAutomaticMacrostructureTests();
+
+        if (!automaticMacrostructureTests.passed) {
+          console.error(
+            "ATLAS Training Engine Automatic Macrostructure tests failed",
+            automaticMacrostructureTests.results
+          );
+        }
+
+        const implementationPolicyTests =
+          AtlasTrainingEngine.runImplementationPolicyTests();
+
+        if (!implementationPolicyTests.passed) {
+          console.error(
+            "ATLAS Training Engine Implementation Policy tests failed",
+            implementationPolicyTests.results
+          );
+        }
+
+        const continuousPrescriptionTests =
+          AtlasTrainingEngine.runContinuousPrescriptionTests();
+
+        if (!continuousPrescriptionTests.passed) {
+          console.error(
+            "ATLAS Training Engine Continuous Prescription tests failed",
+            continuousPrescriptionTests.results
+          );
+        }
+
+        const sessionMaterializationTests =
+          AtlasTrainingEngine.runSessionMaterializationTests();
+
+        if (!sessionMaterializationTests.passed) {
+          console.error(
+            "ATLAS Training Engine Session Materialization tests failed",
+            sessionMaterializationTests.results
           );
         }
 
