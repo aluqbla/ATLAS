@@ -1012,16 +1012,19 @@
       white-space:normal;
     }
 
-    .plan-metric-grid{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0;overflow:hidden}
-    .plan-metric-cell{position:relative;min-width:0;min-height:78px;padding:11px 8px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
-    .plan-metric-cell:not(:nth-child(3n))::after{content:"";position:absolute;right:-1px;top:10px;bottom:10px;width:1px;background:var(--divider)}
-    .plan-metric-cell:nth-child(n+4)::before{content:"";position:absolute;left:8px;right:8px;top:0;height:1px;background:var(--divider)}
-    .plan-metric-emoji{font-size:16px;line-height:1;margin-bottom:4px}.plan-metric-label{font-size:9px;line-height:1.08;color:var(--text-3);font-weight:700;white-space:nowrap}.plan-metric-value{margin-top:4px;max-width:100%;font-size:15px;line-height:1.08;color:var(--text-main);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:clip;font-variant-numeric:tabular-nums}.plan-metric-sub{margin-top:3px;font-size:9px;line-height:1.1;color:var(--text-3);font-weight:650;white-space:nowrap}
-    .plan-metric-grid.paces{grid-template-columns:repeat(2,minmax(0,1fr))}.plan-metric-grid.paces .plan-metric-cell:not(:nth-child(3n))::after{display:none}.plan-metric-grid.paces .plan-metric-cell:not(:nth-child(2n))::after{display:block;content:"";position:absolute;right:-1px;top:10px;bottom:10px;width:1px;background:var(--divider)}.plan-metric-grid.paces .plan-metric-cell:nth-child(n+3)::before{display:block;content:"";position:absolute;left:8px;right:8px;top:0;height:1px;background:var(--divider)}
-    .plan-detail-edit{width:100%;margin-top:10px}.plan-week-summary-triple{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;margin:5px 0 8px}.plan-week-summary-triple>div{position:relative;text-align:center;min-width:0;padding:5px 6px}.plan-week-summary-triple>div+div::before{content:"";position:absolute;left:-1px;top:6px;bottom:6px;width:1px;background:var(--divider)}.plan-week-summary-triple-label{font-size:9px;color:var(--text-3);font-weight:700}.plan-week-summary-triple-value{margin-top:3px;font-size:15px;color:var(--text-main);font-weight:800;white-space:nowrap}
-    .plan-rest-card .activity-card-title-text{color:var(--text-3)!important;font-weight:650!important}.plan-rest-card .activity-card-emoji{opacity:.7}.plan-availability-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-top:8px}.plan-availability-day{appearance:none;min-width:0;height:38px;border:0;border-radius:10px;background:var(--surface-2);color:var(--text-3);font-size:11px;font-weight:800}.plan-availability-day.active{background:var(--blue);color:#fff}.plan-availability-day:disabled{opacity:.35;cursor:default}
-    .plan-secondary-list{display:flex;flex-direction:column;margin:8px 0 12px}.plan-secondary-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 2px}.plan-secondary-row+.plan-secondary-row::before{content:"";position:absolute;left:6px;right:6px;top:0;height:1px;background:var(--divider)}.plan-secondary-row-title{font-size:12px;color:var(--text-main);font-weight:780}.plan-secondary-row-meta{margin-top:3px;font-size:10px;color:var(--text-3);line-height:1.3}.plan-secondary-remove{appearance:none;border:0;background:transparent;color:var(--red);font-size:11px;font-weight:750;padding:8px 4px}.plan-secondary-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.plan-secondary-fields .wide{grid-column:1/-1}.plan-secondary-add{width:100%;margin-top:8px}
-    @media(max-width:520px){.plan-metric-cell{min-height:72px;padding-left:5px;padding-right:5px}.plan-metric-value{font-size:13.5px}.plan-metric-label{font-size:8.5px}}
+
+    /* ===== ATLAS v0.0.148 · Plan visual homogeneity ===== */
+    .plan-native-metrics.activity-metric-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .plan-native-metrics .activity-metric{min-height:78px;display:flex;flex-direction:column;justify-content:center;align-items:center}
+    .plan-native-paces.activity-metric-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .plan-native-paces .activity-metric{min-height:76px}
+    .plan-native-metric-emoji{font-size:16px;line-height:1;margin-bottom:4px}
+    .plan-native-purpose{font-size:13px;line-height:1.55;color:var(--text-2)}
+    @media(max-width:390px){
+      .plan-native-metrics .activity-metric,.plan-native-paces .activity-metric{padding-left:5px;padding-right:5px}
+      .plan-native-paces .activity-metric-label{font-size:10px}
+      .plan-native-paces .activity-metric-value{font-size:15px}
+    }
 
     .plan-workout-hero {
       padding:16px;
@@ -1263,7 +1266,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "0.0.147",
+      APP_VERSION: "0.0.148",
       DB_NAME: "ATLAS",
       DB_VERSION: 6,
       DATA_SCHEMA_VERSION: 1,
@@ -1912,10 +1915,6 @@
         return /^\d{4}-\d{2}-\d{2}$/.test(String(value || ""));
       }
 
-      function planDistanceLabelSafe(key) {
-        return {"5K":"5K","10K":"10K","HALF_MARATHON":"Media maratón","MARATHON":"Maratón"}[key] || key || "Carrera";
-      }
-
       function createPlanInput(source = {}) {
         const distance = Distance[source.distanceKey];
 
@@ -1945,15 +1944,12 @@
             Number.isInteger(Number(source.phaseAllocationChoice.preparation)) &&
             Number.isInteger(Number(source.phaseAllocationChoice.development)) &&
             Number.isInteger(Number(source.phaseAllocationChoice.specific))
-              ? Object.freeze({preparation:Number(source.phaseAllocationChoice.preparation),development:Number(source.phaseAllocationChoice.development),specific:Number(source.phaseAllocationChoice.specific)})
-              : null,
-          availabilityByWeek: source?.availabilityByWeek && typeof source.availabilityByWeek === "object"
-            ? Object.freeze(Object.fromEntries(Object.entries(source.availabilityByWeek).filter(([k,v])=>isIsoDate(k)&&Array.isArray(v)).map(([k,v])=>[k,Object.freeze([...new Set(v)].filter(day=>Weekday.includes(day)))])))
-            : Object.freeze({}),
-          secondaryRaces: Object.freeze((Array.isArray(source?.secondaryRaces)?source.secondaryRaces:[]).map((race,index)=>{
-            const d=Distance[race?.distanceKey];
-            return d&&isIsoDate(race?.date)?Object.freeze({id:String(race?.id||`secondary-${index}-${race.date}`),name:String(race?.name||planDistanceLabelSafe(d.key)).trim(),distanceKey:d.key,distanceM:d.distanceM,date:String(race.date),targetTimeSec:Number(race?.targetTimeSec)>0?Number(race.targetTimeSec):null}):null;
-          }).filter(Boolean))
+              ? Object.freeze({
+                  preparation: Number(source.phaseAllocationChoice.preparation),
+                  development: Number(source.phaseAllocationChoice.development),
+                  specific: Number(source.phaseAllocationChoice.specific)
+                })
+              : null
         });
       }
 
@@ -10282,11 +10278,15 @@
           const phase = week.phase;
           const phaseWeekIndex = phaseIndexes[phase] || 0;
 
-          const weekAvailableDays = Array.isArray(normalizedPlan.availabilityByWeek?.[week.startDate]) ? normalizedPlan.availabilityByWeek[week.startDate] : normalizedPlan.availableDays;
-          const desiredRunDays = runDaysForPhase({phase,startRunDays:volumeProgression.startRunDays,maximumRunDays:volumeProgression.maximumRunDays,availableDaysCount:weekAvailableDays.length});
+          const desiredRunDays = runDaysForPhase({
+            phase,
+            startRunDays: volumeProgression.startRunDays,
+            maximumRunDays: volumeProgression.maximumRunDays,
+            availableDaysCount: normalizedPlan.availableDays.length
+          });
 
           const result = materializeWeekSessions({
-            planInput: Object.freeze({...normalizedPlan,availableDays:Object.freeze([...weekAvailableDays])}),
+            planInput: normalizedPlan,
             week,
             desiredRunDays,
             previousWeekHardDays: previousHardDays,
@@ -10992,12 +10992,6 @@
     }
 
 
-    function secondaryRacePaceSecKm(race){const t=Number(race?.targetTimeSec),d=Number(race?.distanceM);return t>0&&d>0?t/(d/1000):null;}
-    function secondaryRacePattern(key,weeksOut){const far=Number(weeksOut)>=2;if(key==="5K")return far?{reps:5,repDistanceM:800,recoverySec:90}:{reps:5,repDistanceM:1000,recoverySec:120};if(key==="10K")return far?{reps:4,repDistanceM:1500,recoverySec:90}:{reps:5,repDistanceM:1000,recoverySec:90};if(key==="HALF_MARATHON")return far?{reps:3,repDistanceM:2000,recoverySec:120}:{reps:2,repDistanceM:4000,recoverySec:120};return{reps:2,repDistanceM:5000,recoverySec:150};}
-    function secondaryRaceLabel(key){return{"5K":"5K","10K":"10K","HALF_MARATHON":"Media maratón","MARATHON":"Maratón"}[key]||key;}
-    function secondaryRaceSpecificSession({baseSession,race,weeksOut,paceAnchors}){const p=secondaryRacePattern(race.distanceKey,weeksOut),workM=p.reps*p.repDistanceM,totalM=4000+workM,target=secondaryRacePaceSecKm(race),easy=paceAnchors?.physiological?.easy,easyMid=(Number(easy?.fasterPaceSecKm)+Number(easy?.slowerPaceSecKm))/2,durationSec=Number.isFinite(target)&&Number.isFinite(easyMid)?Math.round(4*easyMid+(workM/1000)*target+(p.reps-1)*p.recoverySec):null;return Object.freeze({...baseSession,id:`secondary-specific-${race.id}-${weeksOut}`,date:baseSession.date,family:"secondary_specific",name:`Ritmo ${secondaryRaceLabel(race.distanceKey)}: ${p.reps} x ${p.repDistanceM>=1000?`${p.repDistanceM/1000} km`:`${p.repDistanceM} m`}`,type:"primary_quality",role:"secondary_specific",modifier:"secondary_specific",phase:"secondary_specific",distanceM:totalM,durationSec,targetPace:target?Object.freeze({paceSecKm:target,source:"secondary_race_goal"}):null,structure:Object.freeze({warmup:Object.freeze({type:"WU",distanceM:2000}),work:Object.freeze({type:"work",family:"secondary_specific",prescription:Object.freeze({reps:p.reps,repetitionM:p.repDistanceM,recoverySec:p.recoverySec})}),cooldown:Object.freeze({type:"CD",distanceM:2000})}),purpose:`Preparación específica para ${race.name}. Sustituye carga ya prevista sin desplazar el objetivo principal.`,secondaryRaceId:race.id});}
-    function applySecondaryRacesToSessions({plan,sessions,paceAnchors}={}){const races=Array.isArray(plan?.secondaryRaces)?plan.secondaryRaces.filter(r=>r?.date&&r.date>plan.startDate&&r.date<plan.raceDate).sort((a,b)=>String(a.date).localeCompare(String(b.date))):[];let out=(sessions||[]).map(s=>({...s}));const q=new Set(["threshold","vo2","specific_5k","specific_10k","specific_half","specific_marathon","fast_repetitions","hills"]);for(const race of races){for(const weeksOut of [2,1]){const rd=new Date(`${race.date}T12:00:00`),from=new Date(rd);from.setDate(from.getDate()-weeksOut*7);const to=new Date(from);to.setDate(to.getDate()+6);const a=from.toISOString().slice(0,10),b=to.toISOString().slice(0,10),c=out.map((session,index)=>({session,index})).filter(x=>x.session.date>=a&&x.session.date<=b&&(q.has(x.session.family)||["easy","aerobic"].includes(x.session.family))),picked=c.find(x=>q.has(x.session.family))||c[0];if(picked)out[picked.index]=secondaryRaceSpecificSession({baseSession:picked.session,race,weeksOut,paceAnchors});}out=out.filter(s=>s.date!==race.date);const target=secondaryRacePaceSecKm(race);out.push({id:`secondary-race-${race.id}`,date:race.date,family:"competition_secondary",name:race.name,type:"competition",role:"secondary_race",modifier:"secondary_race",phase:"secondary_specific",distanceM:race.distanceM,durationSec:race.targetTimeSec,targetPace:target?Object.freeze({paceSecKm:target,source:"secondary_race_goal"}):null,structure:null,steps:[],notes:[],purpose:"Carrera secundaria integrada como estímulo competitivo. La principal prevalece siempre y esta carrera sustituye carga prevista.",primaryStimulus:true,secondaryRaceId:race.id});const rd=new Date(`${race.date}T12:00:00`),lim=new Date(rd);lim.setDate(lim.getDate()+3);const li=lim.toISOString().slice(0,10),rc=out.map((session,index)=>({session,index})).filter(x=>x.session.date>race.date&&x.session.date<=li&&x.session.role!=="secondary_race").sort((a,b)=>String(a.session.date).localeCompare(String(b.session.date)))[0];if(rc){const km=Number(race.distanceM)>=21097?6:5,band=paceAnchors?.physiological?.recovery,mid=(Number(band?.fasterPaceSecKm)+Number(band?.slowerPaceSecKm))/2;out[rc.index]={...rc.session,family:"recovery",name:"Recuperación",role:"recovery_secondary",modifier:"post_secondary_race",phase:"secondary_specific",distanceM:km*1000,durationSec:Number.isFinite(mid)?Math.round(km*mid):null,purpose:"Rodaje muy suave para absorber la carrera secundaria y volver al plan principal.",secondaryRaceId:race.id};}}return Object.freeze(out.sort((a,b)=>String(a.date).localeCompare(String(b.date))));}
-
     function trainingEngineSnapshotInputFromActivities(
       storedActivities,
       asOfDate
@@ -11152,9 +11146,6 @@
         },
         scrollPositions: {},
         planWeekOffset: 0,
-        planDetailWeekOffset: 0,
-        planAvailabilityWeekOffset: 0,
-        planSecondaryDraft: [],
         planDraft: {
           name: "",
           distanceKey: "5K",
@@ -11162,9 +11153,7 @@
           raceDate: "",
           targetTimeSec: null,
           availableDays: [],
-          doublesPreference: "avoid",
-          availabilityByWeek: {},
-          secondaryRaces: []
+          doublesPreference: "avoid"
         },
         planConfig: null,
         planRecord: null,
@@ -12609,8 +12598,7 @@
         pace = true,
         status = null,
         context = null,
-        planSessionId = null,
-        metaParts = null
+        planSessionId = null
       } = {}) {
         const parts = activityDateParts(date);
         const displayTitle = localizedActivityTitle(title, sport);
@@ -12618,13 +12606,22 @@
         const distance = Number(distanceM);
         const duration = Number(durationSec);
 
-        const meta=Array.isArray(metaParts)?metaParts.filter(Boolean):[];
-        if(!Array.isArray(metaParts)){
-          if(Number.isFinite(distance)&&distance>0)meta.push(formatDistance(distance));
-          if(Number.isFinite(duration)&&duration>0)meta.push(formatCardDuration(duration));
-          if(pace){const paceText=formatCardPace(distance,duration);if(paceText)meta.push(paceText);}
+        const meta = [];
+
+        if (Number.isFinite(distance) && distance > 0) {
+          meta.push(formatDistance(distance));
         }
-        if(status)meta.push(status);
+
+        if (Number.isFinite(duration) && duration > 0) {
+          meta.push(formatCardDuration(duration));
+        }
+
+        if (pace) {
+          const paceText = formatCardPace(distance, duration);
+          if (paceText) meta.push(paceText);
+        }
+
+        if (status) meta.push(status);
 
         const interactive =
           Boolean(id || planSessionId);
@@ -12937,9 +12934,7 @@
           specific_marathon:"Ritmo maratón",
           fast_repetitions:"Repeticiones rápidas",
           hills:"Cuestas",
-          activation:"Activación",
-          secondary_specific:"Ritmo específico",
-          competition_secondary:"Carrera secundaria"
+          activation:"Activación"
         }[value] || value || "";
       }
 
@@ -12990,9 +12985,6 @@
 
         const family = item.atlasFamily;
         const anchors = state.paceAnchors;
-        const direct=item?.atlasTargetPace;
-        if(Number(direct?.paceSecKm)>0)return planFormatPaceSecKm(Number(direct.paceSecKm));
-        if(Number(direct?.fasterPaceSecKm)>0&&Number(direct?.slowerPaceSecKm)>0)return `${planFormatPaceSecKm(direct.fasterPaceSecKm)}–${planFormatPaceSecKm(direct.slowerPaceSecKm)}`;
 
         if (
           ["recovery", "easy", "aerobic"].includes(family)
@@ -13069,6 +13061,8 @@
           planPhaseLabel(item.atlasPhase);
         const family =
           planFamilyLabel(item.atlasFamily);
+        const dose =
+          planDoseLabel(item.atlasDose);
         const pace =
           planSessionPaceText(item);
 
@@ -13138,22 +13132,141 @@
         return rows;
       }
 
-      function planFormatDateShort(value){if(!value)return"—";const d=new Date(`${value}T12:00:00`);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"});}
-      function planDurationWeeks(plan){if(!plan?.startDate||!plan?.raceDate)return null;const a=new Date(`${plan.startDate}T12:00:00`),b=new Date(`${plan.raceDate}T12:00:00`),days=Math.round((b-a)/86400000)+1;return days>0?Math.ceil(days/7):null;}
-      function planMetricGrid(rows,{paces=false}={}){return`<div class="plan-metric-grid ${paces?"paces":""}">${rows.map(r=>`<div class="plan-metric-cell"><div class="plan-metric-emoji">${r.emoji||"•"}</div><div class="plan-metric-label">${escapeHtml(r.label||"")}</div><div class="plan-metric-value">${escapeHtml(r.value||"—")}</div>${r.sub?`<div class="plan-metric-sub">${escapeHtml(r.sub)}</div>`:""}</div>`).join("")}</div>`;}
-      function planBasicRows(plan){const pace=planFormatPaceSecKm(planTargetPaceSecKm()),weeks=planDurationWeeks(plan);return[{emoji:"📏",label:"Distancia",value:planDistanceLabel(plan.distanceKey)},{emoji:"⏱️",label:"Tiempo",value:targetTimeFromSeconds(plan.targetTimeSec)||"—"},{emoji:"🚀",label:"Inicio",value:planFormatDateShort(plan.startDate)},{emoji:"🏁",label:"Carrera",value:planFormatDateShort(plan.raceDate)},{emoji:"🎯",label:"Ritmo objetivo",value:pace||"—"},{emoji:"🗓️",label:"Duración",value:weeks?`${weeks} sem`:"—"}];}
-      function planCurrentAbilityFor(key){const row=state.currentAbility?.distances?.[key];if(Number(row?.paceSecKm)>0)return{paceSecKm:Number(row.paceSecKm),timeSec:Number(row.timeSec)||null};const s=state.paceAnchors?.specific?.[key];return Number(s?.paceSecKm)>0?{paceSecKm:Number(s.paceSecKm),timeSec:null}:null;}
-      function planStateRows(plan){const b=String(state.athleteSnapshot?.base?.effective||"—"),th=planPaceBandText(state.paceAnchors?.physiological?.threshold),a=planCurrentAbilityFor(plan.distanceKey),v=Number(state.athleteSnapshot?.base?.medianHabitualVolumeKm??state.athleteSnapshot?.base?.habitualVolumeKm),lr=Number(state.athleteSnapshot?.longRunBase?.distanceMedianM),g={SUPPORTED:"Respaldado",DEMANDING:"Exigente",NOT_SUPPORTED_CURRENTLY:"No respaldado",PREPARATION_INSUFFICIENT:"Preparación insuficiente",NEEDS_ANCHOR_TEST:"Falta ancla"};return[{emoji:"🧱",label:"Base",value:b==="LOW"?"Baja":b==="MEDIUM"?"Media":b==="HIGH"?"Alta":"—"},{emoji:"🔥",label:"Umbral actual",value:th||"—"},{emoji:"🧭",label:"Capacidad actual",value:a?planFormatPaceSecKm(a.paceSecKm):"—"},{emoji:"📈",label:"Volumen habitual",value:Number.isFinite(v)?`${v.toLocaleString("es-ES",{maximumFractionDigits:1})} km`:"—",sub:Number.isFinite(v)?"por semana":""},{emoji:"↗️",label:"Tirada larga reciente",value:Number.isFinite(lr)&&lr>0?formatDistance(lr):"—"},{emoji:"🎯",label:"Estado objetivo",value:g[state.goalAssessment?.status]||"Pendiente"}];}
-      function planPaceRowsEight(){const p=state.paceAnchors?.physiological||{},current=key=>{const a=planCurrentAbilityFor(key);return a?planFormatPaceSecKm(a.paceSecKm):"—";};return[{emoji:"🫧",label:"Recuperación",value:planPaceBandText(p.recovery)||"—"},{emoji:"🌿",label:"Rodaje fácil",value:planPaceBandText(p.easy)||"—"},{emoji:"🌤️",label:"Rodaje aeróbico",value:planPaceBandText(p.aerobic)||"—"},{emoji:"🏁",label:"Maratón",value:current("MARATHON")},{emoji:"🏁",label:"Media maratón",value:current("HALF_MARATHON")},{emoji:"🔥",label:"Umbral",value:planPaceBandText(p.threshold)||"—"},{emoji:"⚡",label:"10K",value:current("10K")},{emoji:"🚀",label:"5K",value:current("5K")}];}
-      function planSessionMetaParts(item,actual=null){if(actual?.summary){const p=[],d=Number(actual.summary.distanceM),t=Number(actual.summary.durationSec);if(d>0)p.push(formatDistance(d));if(t>0)p.push(formatCardDuration(t));const pace=formatCardPace(d,t);if(pace)p.push(pace);return p;}const p=[],d=Number(item?.estimatedDistanceM),t=Number(item?.estimatedDurationSec);if(d>0)p.push(formatDistance(d));if(t>0)p.push(formatCardDuration(t));const pace=planSessionPaceText(item);if(pace)p.push(pace);return p;}
-      function planWeekNumberForDate(dateString){const plan=state.planConfig;if(!plan?.startDate||!dateString)return null;const a=new Date(`${startOfIsoWeek(plan.startDate)}T12:00:00`),b=new Date(`${startOfIsoWeek(dateString)}T12:00:00`),n=Math.round((b-a)/604800000);return n>=0?n+1:null;}
-      function planWeekStats(dates){const rows=planTrainingRows().filter(x=>dates.includes(String(x?.date||""))),volumeKm=rows.reduce((s,x)=>s+Math.max(0,Number(x?.estimatedDistanceM||0)),0)/1000,longRunKm=rows.filter(x=>x?.atlasRole==="long_run").reduce((m,x)=>Math.max(m,Number(x?.estimatedDistanceM||0)/1000),0);return{weekNumber:planWeekNumberForDate(dates[0]),volumeKm,longRunKm};}
-      function planAvailabilityForDates(dates){const plan=state.planConfig;if(!plan)return[];const key=startOfIsoWeek(dates[0]),override=plan.availabilityByWeek?.[key];return Array.isArray(override)?[...override]:[...(plan.availableDays||[])];}
+      function planNativeMetric({emoji="",label="",value="—",unit=""}={}) {
+        return `<div class="activity-metric">
+          ${emoji?`<div class="plan-native-metric-emoji">${emoji}</div>`:""}
+          <div class="activity-metric-label">${escapeHtml(label)}</div>
+          <div class="activity-metric-reading">
+            <div class="activity-metric-value">${escapeHtml(value||"—")}</div>
+            ${unit?`<div class="activity-metric-unit">${escapeHtml(unit)}</div>`:""}
+          </div>
+        </div>`;
+      }
+
+      function planNativeDate(value) {
+        if(!value)return"—";
+        const date=new Date(`${value}T12:00:00`);
+        return Number.isNaN(date.getTime())?"—":date.toLocaleDateString("es-ES",{day:"numeric",month:"short",year:"numeric"});
+      }
+
+      function planNativeWeeks(plan) {
+        if(!plan?.startDate||!plan?.raceDate)return null;
+        const a=new Date(`${plan.startDate}T12:00:00`),b=new Date(`${plan.raceDate}T12:00:00`);
+        const days=Math.round((b-a)/86400000)+1;
+        return days>0?Math.ceil(days/7):null;
+      }
+
+      function planNativeBasicMetrics(plan) {
+        const targetPace=planFormatPaceSecKm(planTargetPaceSecKm()),weeks=planNativeWeeks(plan);
+        return `<div class="activity-metric-grid plan-native-metrics">
+          ${planNativeMetric({emoji:"📏",label:"Distancia",value:planDistanceLabel(plan.distanceKey)})}
+          ${planNativeMetric({emoji:"⏱️",label:"Tiempo",value:targetTimeFromSeconds(plan.targetTimeSec)||"—"})}
+          ${planNativeMetric({emoji:"🚀",label:"Inicio",value:planNativeDate(plan.startDate)})}
+          ${planNativeMetric({emoji:"🏁",label:"Carrera",value:planNativeDate(plan.raceDate)})}
+          ${planNativeMetric({emoji:"🎯",label:"Ritmo objetivo",value:targetPace||"—",unit:targetPace?"/km":""})}
+          ${planNativeMetric({emoji:"🗓️",label:"Duración",value:weeks?String(weeks):"—",unit:weeks?"sem":""})}
+        </div>`;
+      }
+
+      function planNativeCurrentAbility(plan) {
+        const row=state.currentAbility?.distances?.[plan?.distanceKey];
+        if(Number(row?.paceSecKm)>0)return planFormatPaceSecKm(Number(row.paceSecKm));
+        const anchor=state.paceAnchors?.specific?.[plan?.distanceKey];
+        return Number(anchor?.paceSecKm)>0?planFormatPaceSecKm(Number(anchor.paceSecKm)):"—";
+      }
+
+      function planNativeStateMetrics(plan) {
+        const snapshot=state.athleteSnapshot||{},base=String(snapshot?.base?.effective||"");
+        const baseLabel={LOW:"Baja",MEDIUM:"Media",HIGH:"Alta"}[base]||"—";
+        const volume=Number(snapshot?.base?.medianHabitualVolumeKm ?? snapshot?.base?.habitualVolumeKm);
+        const longRunM=Number(snapshot?.longRunBase?.distanceMedianM);
+        const threshold=planPaceBandText(state.paceAnchors?.physiological?.threshold)||"—";
+        const goalLabel={SUPPORTED:"Respaldado",DEMANDING:"Exigente",NOT_SUPPORTED_CURRENTLY:"No respaldado",PREPARATION_INSUFFICIENT:"Preparación insuficiente",NEEDS_ANCHOR_TEST:"Falta ancla"}[state.goalAssessment?.status]||"Pendiente";
+        const ability=planNativeCurrentAbility(plan);
+        return `<div class="activity-metric-grid plan-native-metrics">
+          ${planNativeMetric({emoji:"🧱",label:"Base",value:baseLabel})}
+          ${planNativeMetric({emoji:"🔥",label:"Umbral",value:threshold,unit:threshold!=="—"?"/km":""})}
+          ${planNativeMetric({emoji:"🧭",label:"Capacidad actual",value:ability,unit:ability!=="—"?"/km":""})}
+          ${planNativeMetric({emoji:"📈",label:"Volumen habitual",value:Number.isFinite(volume)?volume.toLocaleString("es-ES",{maximumFractionDigits:1}):"—",unit:Number.isFinite(volume)?"km/sem":""})}
+          ${planNativeMetric({emoji:"↗️",label:"Tirada larga reciente",value:Number.isFinite(longRunM)&&longRunM>0?(longRunM/1000).toLocaleString("es-ES",{maximumFractionDigits:1}):"—",unit:Number.isFinite(longRunM)&&longRunM>0?"km":""})}
+          ${planNativeMetric({emoji:"🎯",label:"Estado objetivo",value:goalLabel})}
+        </div>`;
+      }
+
+      function planNativeCurrentRacePace(key) {
+        const ability=state.currentAbility?.distances?.[key];
+        if(Number(ability?.paceSecKm)>0)return planFormatPaceSecKm(Number(ability.paceSecKm));
+        const anchor=state.paceAnchors?.specific?.[key];
+        return Number(anchor?.paceSecKm)>0?planFormatPaceSecKm(Number(anchor.paceSecKm)):"—";
+      }
+
+      function planNativePaceMetrics() {
+        const p=state.paceAnchors?.physiological||{};
+        const m=(emoji,label,value)=>planNativeMetric({emoji,label,value:value||"—",unit:value&&value!=="—"?"/km":""});
+        return `<div class="activity-metric-grid plan-native-paces">
+          ${m("🫧","Recuperación",planPaceBandText(p.recovery))}
+          ${m("🌿","Rodaje fácil",planPaceBandText(p.easy))}
+          ${m("🌤️","Rodaje aeróbico",planPaceBandText(p.aerobic))}
+          ${m("🏁","Maratón",planNativeCurrentRacePace("MARATHON"))}
+          ${m("🏁","Media",planNativeCurrentRacePace("HALF_MARATHON"))}
+          ${m("🔥","Umbral",planPaceBandText(p.threshold))}
+          ${m("⚡","10K",planNativeCurrentRacePace("10K"))}
+          ${m("🚀","5K",planNativeCurrentRacePace("5K"))}
+        </div>`;
+      }
+
+      function planNativePurpose(session) {
+        const family=String(session?.family||"");
+        const texts={
+          recovery:"Rodaje deliberadamente muy suave para favorecer la recuperación entre estímulos y mantener la continuidad sin añadir fatiga relevante.",
+          easy:"Rodaje cómodo para acumular volumen útil y sostener la frecuencia semanal sin interferir con las sesiones clave.",
+          aerobic:"Rodaje continuo y estable para desarrollar la resistencia aeróbica con un esfuerzo claramente controlado.",
+          threshold:"Trabajo alrededor del umbral para acumular tiempo de calidad con ritmo, técnica y respiración estables.",
+          vo2:"Intervalos de alta intensidad para desarrollar la potencia aeróbica manteniendo una ejecución homogénea.",
+          fast_repetitions:"Trabajo breve de velocidad y economía para mejorar coordinación, reactividad y calidad de zancada.",
+          hills:"Trabajo de fuerza específica de carrera mediante esfuerzos en pendiente con ejecución fuerte y controlada.",
+          long_run:"Sesión principal de durabilidad aeróbica para mejorar la resistencia muscular y la tolerancia a volúmenes mayores.",
+          activation:"Sesión corta previa a competir para mantener movilidad, coordinación y sensación de velocidad sin generar fatiga."
+        };
+        if(family.startsWith("specific_"))return"Trabajo específico para convertir la capacidad actual en rendimiento útil para la carrera objetivo.";
+        return texts[family]||session?.purpose||"Sesión integrada en la progresión del plan.";
+      }
 
       function renderPlanSession(item, options = {}) {
-        const actual=options.activity||null,isPlanned=options.planned===true,completed=options.completed??trainingCompleted(item),summary=actual?.summary||{};
-        const id=actual?.id??null,date=summary.date??item?.date??null,title=summary.title??item?.title??"Entrenamiento",sport=summary.sport??item?.sport??"other",distanceM=summary.distanceM??item?.estimatedDistanceM??null,durationSec=summary.durationSec??item?.estimatedDurationSec??null;
-        return activityCardHtml({id,date,title,sport,distanceM,durationSec,pace:false,status:isPlanned&&completed?"✅":null,context:null,metaParts:planSessionMetaParts(item,actual),planSessionId:!id&&item?.atlasEngineSession?item.id:null});
+        const actual = options.activity || null;
+        const isPlanned = options.planned === true;
+        const completed = options.completed ?? trainingCompleted(item);
+
+        const summary = actual?.summary || {};
+        const id = actual?.id ?? null;
+        const date = summary.date ?? item?.date ?? null;
+        const title = summary.title ?? item?.title ?? "Entrenamiento";
+        const sport = summary.sport ?? item?.sport ?? "other";
+        const distanceM = summary.distanceM ?? item?.estimatedDistanceM ?? null;
+        const durationSec = summary.durationSec ?? item?.estimatedDurationSec ?? null;
+
+        const status = isPlanned && completed
+          ? "✅"
+          : null;
+
+        const context =
+          planSessionContextText(item);
+
+        return activityCardHtml({
+          id,
+          date,
+          title,
+          sport,
+          distanceM,
+          durationSec,
+          pace:true,
+          status,
+          context,
+          planSessionId:
+            !id && item?.atlasEngineSession
+              ? item.id
+              : null
+        });
       }
 
       function planEngineSessionById(sessionId) {
@@ -13383,7 +13496,29 @@
         }[value] || value || "Pendiente";
       }
 
-      function planSecondaryMetric(session){return Number(session?.durationSec)>0?{label:"Duración",value:formatCardDuration(Number(session.durationSec))}:{label:"Duración",value:"—"};}
+      function planSecondaryMetric(session) {
+        if (planDoseLabel(session?.dose)) {
+          return {
+            label:"Dosis",
+            value:planDoseLabel(session.dose)
+          };
+        }
+
+        if (
+          Number.isFinite(Number(session?.distanceM)) &&
+          Number(session.distanceM) > 0
+        ) {
+          return {
+            label:"Distancia",
+            value:formatDistance(Number(session.distanceM))
+          };
+        }
+
+        return {
+          label:"Dosis",
+          value:"—"
+        };
+      }
 
       function planContinuousStructureRows(session, item) {
         if (
@@ -13510,34 +13645,28 @@
           </section>
 
           <section class="section">
-            <div class="plan-workout-grid">
-              <div class="plan-workout-metric">
-                <div class="plan-workout-metric-label">Distancia</div>
-                <div class="plan-workout-metric-value">${escapeHtml(Number(session.distanceM)>0?formatDistance(Number(session.distanceM)):"—")}</div>
-              </div>
-
-              <div class="plan-workout-metric">
-                <div class="plan-workout-metric-label">
-                  ${escapeHtml(secondaryMetric.label)}
-                </div>
-                <div class="plan-workout-metric-value">
-                  ${escapeHtml(secondaryMetric.value)}
-                </div>
-              </div>
-
-              <div class="plan-workout-metric">
-                <div class="plan-workout-metric-label">Ritmo</div>
-                <div class="plan-workout-metric-value">
-                  ${escapeHtml(pace)}
-                </div>
-              </div>
-
-              <div class="plan-workout-metric">
-                <div class="plan-workout-metric-label">Estado</div>
-                <div class="plan-workout-metric-value">
-                  ${escapeHtml(planOutcomeLabel(execution?.outcome || "PENDING"))}
-                </div>
-              </div>
+            <div class="activity-metric-grid plan-native-metrics">
+              ${planNativeMetric({
+                emoji:"📏",
+                label:"Distancia",
+                value:Number(session.distanceM)>0
+                  ? (Number(session.distanceM)/1000).toLocaleString("es-ES",{maximumFractionDigits:1})
+                  : "—",
+                unit:Number(session.distanceM)>0?"km":""
+              })}
+              ${planNativeMetric({
+                emoji:"⏱️",
+                label:"Duración",
+                value:Number(session.durationSec)>0
+                  ? formatCardDuration(Number(session.durationSec))
+                  : "—"
+              })}
+              ${planNativeMetric({
+                emoji:"🏃🏻‍♂️",
+                label:"Ritmo",
+                value:pace||"—",
+                unit:pace&&pace!=="—"?"/km":""
+              })}
             </div>
           </section>
 
@@ -13579,14 +13708,81 @@
               }
             </div>
           </section>
+
+          <section class="section">
+            <h2 class="section-title">Propósito</h2>
+            <div class="plan-native-purpose">${escapeHtml(planNativePurpose(session))}</div>
+          </section>
         `;
       }
 
-      function renderPlanDay(dateString,{showRest=false}={}){
-        const planned=planTrainingRows().filter(x=>String(x?.date||"")===dateString).sort((a,b)=>String(a?.title||"").localeCompare(String(b?.title||""),"es")),actual=state.activities.filter(a=>String(a?.summary?.date||"")===dateString),associatedIds=new Set(planned.map(x=>x?.associatedActivityId).filter(Boolean).map(String)),rows=[];
-        planned.forEach(item=>{const associated=item?.associatedActivityId?actual.find(a=>String(a?.id)===String(item.associatedActivityId)):null;rows.push(renderPlanSession(item,{planned:true,completed:trainingCompleted(item),activity:associated||null}));});
-        actual.filter(a=>!associatedIds.has(String(a?.id))).forEach(a=>rows.push(renderPlanSession({date:a?.summary?.date,title:a?.summary?.title,sport:a?.summary?.sport,estimatedDistanceM:a?.summary?.distanceM,estimatedDurationSec:a?.summary?.durationSec},{planned:false,completed:true,activity:a})));
-        if(rows.length)return rows.join("");const p=activityDateParts(dateString);if(showRest)return`<div class="activity-card plan-rest-card"><div class="activity-date-block"><div class="activity-date-weekday">${escapeHtml(p.weekday)}</div><div class="activity-date-day">${escapeHtml(p.day)}</div><div class="activity-date-month">${escapeHtml(p.month)}</div></div><div class="activity-card-main"><div class="activity-card-title"><span class="activity-card-emoji">🛏️</span><span class="activity-card-title-text">Descanso</span></div></div></div>`;return`<div class="activity-card plan-empty-activity-card"><div class="activity-date-block"><div class="activity-date-weekday">${escapeHtml(p.weekday)}</div><div class="activity-date-day">${escapeHtml(p.day)}</div><div class="activity-date-month">${escapeHtml(p.month)}</div></div><div class="activity-card-main"></div></div>`;
+      function renderPlanDay(dateString) {
+        const planned = planTrainingRows()
+          .filter((item) => String(item?.date || "") === dateString)
+          .sort((a,b) =>
+            String(a?.title || "").localeCompare(String(b?.title || ""), "es")
+          );
+
+        const actual = state.activities.filter((activity) =>
+          String(activity?.summary?.date || "") === dateString
+        );
+
+        const associatedIds = new Set(
+          planned
+            .map((item) => item?.associatedActivityId)
+            .filter(Boolean)
+            .map(String)
+        );
+
+        const rows = [];
+
+        planned.forEach((item) => {
+          const associated = item?.associatedActivityId
+            ? actual.find((activity) =>
+                String(activity?.id) === String(item.associatedActivityId)
+              )
+            : null;
+
+          rows.push(renderPlanSession(item, {
+            planned:true,
+            completed:trainingCompleted(item),
+            activity:associated || null
+          }));
+        });
+
+        actual
+          .filter((activity) => !associatedIds.has(String(activity?.id)))
+          .forEach((activity) => {
+            rows.push(renderPlanSession(
+              {
+                date:activity?.summary?.date,
+                title:activity?.summary?.title,
+                sport:activity?.summary?.sport,
+                estimatedDistanceM:activity?.summary?.distanceM,
+                estimatedDurationSec:activity?.summary?.durationSec
+              },
+              {
+                planned:false,
+                completed:true,
+                activity
+              }
+            ));
+          });
+
+        if (rows.length) return rows.join("");
+
+        const parts = activityDateParts(dateString);
+
+        return `
+          <div class="activity-card plan-empty-activity-card" aria-label="${escapeHtml(dateString)}">
+            <div class="activity-date-block">
+              <div class="activity-date-weekday">${escapeHtml(parts.weekday)}</div>
+              <div class="activity-date-day">${escapeHtml(parts.day)}</div>
+              <div class="activity-date-month">${escapeHtml(parts.month)}</div>
+            </div>
+            <div class="activity-card-main"></div>
+          </div>
+        `;
       }
 
       function planDistanceLabel(key) {
@@ -13692,10 +13888,7 @@
           atlasFamily: session?.family ?? null,
           atlasDose: session?.dose ?? null,
           atlasStructure: session?.structure ?? null,
-          atlasPurpose: session?.purpose ?? null,
-          atlasTargetPace: session?.targetPace ?? null,
-          atlasSteps: session?.steps ?? [],
-          atlasWeekIndex: session?.weekIndex ?? null
+          atlasPurpose: session?.purpose ?? null
         };
       }
 
@@ -13867,7 +14060,35 @@
           : "";
       }
 
-      function renderPlan(){const dates=planWeekDates(state.planWeekOffset),current=Number(state.planWeekOffset||0)===0,stats=planWeekStats(dates),km=v=>Number(v).toLocaleString("es-ES",{maximumFractionDigits:1});return`${header("Plan")}<section class="section"><div style="margin-bottom:12px"><button class="button" data-action="${state.planConfig?"plan-open":"plan-create-open"}" style="width:100%">${state.planConfig?escapeHtml(state.planConfig.name||planDistanceLabel(state.planConfig.distanceKey)):"Crear plan"}</button></div><div class="plan-week-toolbar"><button class="plan-week-nav" data-action="plan-prev-week">‹</button><div class="plan-week-center"><div class="plan-week-title">${escapeHtml(planWeekLabel(dates))}</div><div class="plan-week-subtitle">${escapeHtml(planWeekRelativeLabel(state.planWeekOffset))}</div></div><button class="plan-week-nav" data-action="plan-next-week">›</button></div>${current?"":`<button class="plan-today-button" data-action="plan-current-week">Volver a esta semana</button>`}<div class="plan-week-summary-triple"><div><div class="plan-week-summary-triple-label">Semana</div><div class="plan-week-summary-triple-value">${stats.weekNumber||"—"}</div></div><div><div class="plan-week-summary-triple-label">Volumen</div><div class="plan-week-summary-triple-value">${km(stats.volumeKm)} km</div></div><div><div class="plan-week-summary-triple-label">Tirada larga</div><div class="plan-week-summary-triple-value">${stats.longRunKm>0?`${km(stats.longRunKm)} km`:"—"}</div></div></div><div class="card plan-activity-list">${dates.map(d=>renderPlanDay(d)).join("")}</div></section>`;}
+      function renderPlan() {
+        const dates=planWeekDates(state.planWeekOffset);
+        const isCurrentWeek=Number(state.planWeekOffset||0)===0;
+        return `
+          ${header("Plan")}
+          <section class="section">
+            <div style="margin-bottom:12px">
+              <button class="button" data-action="${state.planConfig?"plan-open":"plan-create-open"}" style="width:100%">
+                ${state.planConfig?escapeHtml(state.planConfig.name||planDistanceLabel(state.planConfig.distanceKey)):"Crear plan"}
+              </button>
+            </div>
+
+            <div class="plan-week-toolbar">
+              <button class="plan-week-nav" data-action="plan-prev-week" aria-label="Semana anterior">‹</button>
+              <div class="plan-week-center">
+                <div class="plan-week-title">${escapeHtml(planWeekLabel(dates))}</div>
+                <div class="plan-week-subtitle">${escapeHtml(planWeekRelativeLabel(state.planWeekOffset))}</div>
+              </div>
+              <button class="plan-week-nav" data-action="plan-next-week" aria-label="Semana siguiente">›</button>
+            </div>
+
+            ${isCurrentWeek?"":`<button class="plan-today-button" data-action="plan-current-week">Volver a esta semana</button>`}
+
+            <div class="card plan-activity-list">
+              ${dates.map(date=>renderPlanDay(date)).join("")}
+            </div>
+          </section>
+        `;
+      }
 
       function targetTimeFromSeconds(value) {
         const total = Number(value);
@@ -13902,7 +14123,64 @@
         );
       }
 
-      function renderPlanDetail(){const plan=state.planConfig;if(!plan)return`${backButton()}${header("Plan")}<section class="section"><div class="card empty">No hay ningún plan creado.</div></section>`;const ad=planWeekDates(state.planAvailabilityWeekOffset),av=planAvailabilityForDates(ad),past=ad[6]<localDate(0),wd=planWeekDates(state.planDetailWeekOffset),ws=planWeekStats(wd),cur=Number(state.planDetailWeekOffset||0)===0,km=v=>Number(v).toLocaleString("es-ES",{maximumFractionDigits:1}),days=[["mon","L"],["tue","M"],["wed","X"],["thu","J"],["fri","V"],["sat","S"],["sun","D"]];return`${backButton()}${header(escapeHtml(plan.name||"Plan"),{dynamicTitle:true,showProfile:false})}<section class="section">${planMetricGrid(planBasicRows(plan))}<button class="button secondary plan-detail-edit" data-action="plan-edit-open">Editar plan</button></section><section class="section plan-collapsible collapsed" data-plan-section="state"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Estado del plan</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body">${planMetricGrid(planStateRows(plan))}</div></section><section class="section plan-collapsible collapsed" data-plan-section="availability"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Disponibilidad</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body"><div class="plan-week-toolbar"><button class="plan-week-nav" data-action="availability-prev-week">‹</button><div class="plan-week-center"><div class="plan-week-title">${escapeHtml(planWeekLabel(ad))}</div><div class="plan-week-subtitle">${past?"Semana pasada · no editable":"Selecciona los días disponibles"}</div></div><button class="plan-week-nav" data-action="availability-next-week">›</button></div><div class="plan-availability-days">${days.map(([k,l])=>`<button class="plan-availability-day ${av.includes(k)?"active":""}" data-action="availability-day" data-day="${k}" ${past?"disabled":""}>${l}</button>`).join("")}</div></div></section><section class="section plan-collapsible collapsed" data-plan-section="paces"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Ritmos</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body">${planMetricGrid(planPaceRowsEight(),{paces:true})}</div></section><section class="section plan-collapsible collapsed" data-plan-section="workouts"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Entrenamientos</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body"><div class="plan-week-toolbar"><button class="plan-week-nav" data-action="detail-prev-week">‹</button><div class="plan-week-center"><div class="plan-week-title">${escapeHtml(planWeekLabel(wd))}</div><div class="plan-week-subtitle">${escapeHtml(planWeekRelativeLabel(state.planDetailWeekOffset))}</div></div><button class="plan-week-nav" data-action="detail-next-week">›</button></div>${cur?"":`<button class="plan-today-button" data-action="detail-current-week">Volver a esta semana</button>`}<div class="plan-week-summary-triple"><div><div class="plan-week-summary-triple-label">Semana</div><div class="plan-week-summary-triple-value">${ws.weekNumber||"—"}</div></div><div><div class="plan-week-summary-triple-label">Volumen</div><div class="plan-week-summary-triple-value">${km(ws.volumeKm)} km</div></div><div><div class="plan-week-summary-triple-label">Tirada larga</div><div class="plan-week-summary-triple-value">${ws.longRunKm>0?`${km(ws.longRunKm)} km`:"—"}</div></div></div><div class="card plan-activity-list">${wd.map(d=>renderPlanDay(d,{showRest:true})).join("")}</div></div></section><section class="section plan-collapsible collapsed" data-plan-section="garmin"><button class="plan-section-toggle" data-action="plan-toggle-section" aria-expanded="false"><span class="section-title">Garmin Connect</span><span class="plan-section-chevron">›</span></button><div class="plan-section-body"><div class="card"><div class="row"><div><div class="row-title">Publicación del plan</div><div class="row-meta">La publicación, actualización y eliminación en Garmin Connect se conectará en la siguiente subfase.</div></div></div></div></div></section>`;}
+      function renderPlanDetail() {
+        const plan=state.planConfig;
+        if(!plan)return`${backButton()}${header("Plan")}<section class="section"><div class="card empty">No hay ningún plan creado.</div></section>`;
+
+        const nextSessions=planTrainingRows().filter(item=>String(item?.date||"")>=localDate(0)).slice(0,5);
+
+        return `
+          ${backButton()}
+          ${header(escapeHtml(plan.name||"Plan"),{dynamicTitle:true,showProfile:false})}
+
+          <section class="section">
+            <h2 class="section-title">Información del plan</h2>
+            ${planNativeBasicMetrics(plan)}
+          </section>
+
+          <section class="section plan-collapsible collapsed" data-plan-section="state">
+            <button class="plan-section-toggle" data-action="plan-toggle-section" data-section="state" aria-expanded="false">
+              <span class="section-title">Estado del plan</span><span class="plan-section-chevron">›</span>
+            </button>
+            <div class="plan-section-body">${planNativeStateMetrics(plan)}</div>
+          </section>
+
+          <section class="section plan-collapsible collapsed" data-plan-section="paces">
+            <button class="plan-section-toggle" data-action="plan-toggle-section" data-section="paces" aria-expanded="false">
+              <span class="section-title">Ritmos</span><span class="plan-section-chevron">›</span>
+            </button>
+            <div class="plan-section-body">${planNativePaceMetrics()}</div>
+          </section>
+
+          <section class="section plan-collapsible collapsed" data-plan-section="sessions">
+            <button class="plan-section-toggle" data-action="plan-toggle-section" data-section="sessions" aria-expanded="false">
+              <span class="section-title">Entrenamientos</span><span class="plan-section-chevron">›</span>
+            </button>
+            <div class="plan-section-body">
+              <div class="card">
+                ${nextSessions.length?nextSessions.map(item=>renderPlanSession(item,{
+                  planned:true,
+                  completed:Boolean(item.associatedActivityId),
+                  activity:item.associatedActivityId?state.activities.find(activity=>String(activity?.id)===String(item.associatedActivityId))||null:null
+                })).join(""):`<div class="empty">Todavía no hay entrenamientos programados.</div>`}
+              </div>
+            </div>
+          </section>
+
+          <section class="section plan-collapsible collapsed" data-plan-section="garmin">
+            <button class="plan-section-toggle" data-action="plan-toggle-section" data-section="garmin" aria-expanded="false">
+              <span class="section-title">Garmin Connect</span><span class="plan-section-chevron">›</span>
+            </button>
+            <div class="plan-section-body">
+              <div class="card"><div class="row"><div><div class="row-title">Publicación</div><div class="row-meta">Pendiente de integración.</div></div></div></div>
+            </div>
+          </section>
+
+          <section class="section">
+            <button class="button" data-action="plan-edit-open" style="width:100%">Editar plan</button>
+          </section>
+        `;
+      }
 
       function renderPlanCreate() {
         const draft = state.planConfig || state.planDraft || {
@@ -13912,9 +14190,7 @@
           raceDate: "",
           targetTimeSec: null,
           availableDays: [],
-          doublesPreference: "avoid",
-          availabilityByWeek: {},
-          secondaryRaces: []
+          doublesPreference: "avoid"
         };
         const dayOptions = [
           ["mon","L"],["tue","M"],["wed","X"],["thu","J"],
@@ -14011,7 +14287,6 @@
                   <option value="no_preference" ${draft.doublesPreference === "no_preference" ? "selected" : ""}>Sin preferencia</option>
                 </select>
               </div>
-              <div class="row" style="display:block"><div class="row-meta" style="margin-bottom:4px">Carreras secundarias</div><div class="plan-secondary-list">${(state.planSecondaryDraft||[]).length?state.planSecondaryDraft.map((race,index)=>`<div class="plan-secondary-row"><div><div class="plan-secondary-row-title">🏁 ${escapeHtml(race.name||planDistanceLabel(race.distanceKey))}</div><div class="plan-secondary-row-meta">${escapeHtml(planDistanceLabel(race.distanceKey))} · ${escapeHtml(planFormatDateShort(race.date))}${race.targetTimeSec?` · ${escapeHtml(targetTimeFromSeconds(race.targetTimeSec))}`:""}</div></div><button class="plan-secondary-remove" type="button" data-action="secondary-remove" data-index="${index}">Eliminar</button></div>`).join(""):`<div class="row-meta">Sin carreras secundarias.</div>`}</div><div class="plan-secondary-fields"><input id="secondary-name" class="wide" type="text" placeholder="Nombre" style="width:100%;padding:11px 10px;border-radius:12px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"><select id="secondary-distance" style="width:100%;padding:11px 10px;border-radius:12px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"><option value="">Distancia</option><option value="5K">5K</option><option value="10K">10K</option><option value="HALF_MARATHON">Media maratón</option><option value="MARATHON">Maratón</option></select><input id="secondary-date" type="date" style="width:100%;padding:11px 10px;border-radius:12px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"><input id="secondary-time" class="wide" type="text" inputmode="numeric" placeholder="Tiempo objetivo opcional · 45:00 o 1:30:00" style="width:100%;padding:11px 10px;border-radius:12px;border:1px solid var(--divider);background:var(--surface-2);color:var(--text-main);font:inherit"></div><button class="button secondary plan-secondary-add" type="button" data-action="secondary-add">Añadir carrera secundaria</button></div>
             </div>
           </section>
 
@@ -16411,7 +16686,11 @@
           });
 
         const planCreateOpen = document.querySelector("[data-action='plan-create-open']");
-        if (planCreateOpen) {planCreateOpen.addEventListener("click",()=>{state.planSecondaryDraft=[];navigate({tab:"plan",view:"plan-create"});});}
+        if (planCreateOpen) {
+          planCreateOpen.addEventListener("click", () => {
+            navigate({ tab:"plan", view:"plan-create" });
+          });
+        }
 
         const planOpen = document.querySelector("[data-action='plan-open']");
         if (planOpen) {
@@ -16432,10 +16711,12 @@
 
 
         const planEditOpen = document.querySelector("[data-action='plan-edit-open']");
-        if (planEditOpen) {planEditOpen.addEventListener("click",()=>{state.planSecondaryDraft=Array.isArray(state.planConfig?.secondaryRaces)?state.planConfig.secondaryRaces.map(r=>({...r})):[];navigate({tab:"plan",view:"plan-create"});});}
+        if (planEditOpen) {
+          planEditOpen.addEventListener("click", () => {
+            navigate({ tab:"plan", view:"plan-create" });
+          });
+        }
 
-        document.querySelectorAll("[data-action='secondary-remove']").forEach(button=>button.addEventListener("click",()=>{const i=Number(button.dataset.index);if(Number.isInteger(i)&&i>=0&&i<state.planSecondaryDraft.length){state.planSecondaryDraft.splice(i,1);render();}}));
-        const secondaryAdd=document.querySelector("[data-action='secondary-add']");if(secondaryAdd)secondaryAdd.addEventListener("click",()=>{const name=document.getElementById("secondary-name")?.value?.trim()||"",distanceKey=document.getElementById("secondary-distance")?.value||"",date=document.getElementById("secondary-date")?.value||"",timeRaw=document.getElementById("secondary-time")?.value||"",distanceM={"5K":5000,"10K":10000,"HALF_MARATHON":21097.5,"MARATHON":42195}[distanceKey],targetTimeSec=timeRaw.trim()?targetTimeToSeconds(timeRaw):null,planStart=document.getElementById("plan-start-date")?.value||state.planConfig?.startDate||"",mainRace=document.getElementById("plan-race-date")?.value||state.planConfig?.raceDate||"";if(!name||!distanceM||!date){window.alert("Completa nombre, distancia y fecha de la carrera secundaria.");return;}if(planStart&&date<=planStart){window.alert("La carrera secundaria debe ser posterior al inicio del plan.");return;}if(mainRace&&date>=mainRace){window.alert("La carrera secundaria debe ser anterior a la carrera principal.");return;}if(timeRaw.trim()&&!targetTimeSec){window.alert("El tiempo objetivo de la carrera secundaria no es válido.");return;}if(state.planSecondaryDraft.some(r=>r.date===date)){window.alert("Ya existe una carrera secundaria en esa fecha.");return;}state.planSecondaryDraft.push({id:`secondary-${Date.now()}`,name,distanceKey,distanceM,date,targetTimeSec});state.planSecondaryDraft.sort((a,b)=>a.date.localeCompare(b.date));render();});
         const planDelete = document.querySelector("[data-action='plan-delete']");
         if (planDelete) {
           planDelete.addEventListener("click", async () => {
@@ -16490,13 +16771,11 @@
               availableDays: [...document.querySelectorAll("[data-plan-day]:checked")]
                 .map((node) => node.dataset.planDay),
               doublesPreference: document.getElementById("plan-doubles")?.value || "avoid",
-              phaseAllocationChoice: null,
-              availabilityByWeek: state.planConfig?.availabilityByWeek || {},
-              secondaryRaces: state.planSecondaryDraft || []
+              phaseAllocationChoice:
+                state.planConfig?.phaseAllocationChoice || null
             });
 
             state.planDraft = { ...nextPlan };
-            state.planSecondaryDraft=(nextPlan.secondaryRaces||[]).map(r=>({...r}));
             await AtlasApp.persistPlan(nextPlan);
 
             saveRouteScroll();
@@ -16541,10 +16820,6 @@
           });
         }
 
-        const availabilityPrev=document.querySelector("[data-action='availability-prev-week']");if(availabilityPrev)availabilityPrev.addEventListener("click",()=>{state.planAvailabilityWeekOffset--;render();});
-        const availabilityNext=document.querySelector("[data-action='availability-next-week']");if(availabilityNext)availabilityNext.addEventListener("click",()=>{state.planAvailabilityWeekOffset++;render();});
-        document.querySelectorAll("[data-action='availability-day']").forEach(button=>button.addEventListener("click",async()=>{if(button.disabled||!state.planConfig)return;const dates=planWeekDates(state.planAvailabilityWeekOffset),key=startOfIsoWeek(dates[0]),current=planAvailabilityForDates(dates),day=button.dataset.day,next=current.includes(day)?current.filter(v=>v!==day):[...current,day],order=["mon","tue","wed","thu","fri","sat","sun"];next.sort((a,b)=>order.indexOf(a)-order.indexOf(b));const updated=AtlasTrainingEngine.createPlanInput({...state.planConfig,phaseAllocationChoice:null,availabilityByWeek:{...(state.planConfig.availabilityByWeek||{}),[key]:next}});await AtlasApp.persistPlan(updated);render();}));
-        const detailPrev=document.querySelector("[data-action='detail-prev-week']");if(detailPrev)detailPrev.addEventListener("click",()=>{state.planDetailWeekOffset--;render();});const detailNext=document.querySelector("[data-action='detail-next-week']");if(detailNext)detailNext.addEventListener("click",()=>{state.planDetailWeekOffset++;render();});const detailCurrent=document.querySelector("[data-action='detail-current-week']");if(detailCurrent)detailCurrent.addEventListener("click",()=>{state.planDetailWeekOffset=0;render();});
         const back = document.querySelector("[data-action='back']");
         if (back) back.addEventListener("click", goBack);
       }
@@ -17341,12 +17616,10 @@
               })
             : null;
 
-        const canonicalPlanWithSecondaryRaces = AtlasUI.state.canonicalSessions?.available ? applySecondaryRacesToSessions({plan,sessions:AtlasUI.state.canonicalSessions.sessions,paceAnchors:AtlasUI.state.paceAnchors}) : [];
-
         AtlasUI.state.effectivePlan =
           AtlasUI.state.canonicalSessions?.available
             ? AtlasTrainingEngine.buildEffectivePlan({
-                canonicalPlan: canonicalPlanWithSecondaryRaces,
+                canonicalPlan: AtlasUI.state.canonicalSessions.sessions,
                 acceptedManualChanges: [],
                 acceptedAdaptiveChanges: [],
                 asOfDate: localDate(0),
@@ -17445,9 +17718,8 @@
         if (!record || typeof record !== "object") return null;
         const updatedAt = String(record.updatedAt || "");
         if (!updatedAt) return null;
-        const plan=record.deleted?null:(record.plan?{...record.plan,phaseAllocationChoice:null}:null);
         return {
-          plan,
+          plan: record.deleted ? null : (record.plan || null),
           engine: record.deleted ? null : (record.engine || null),
           deleted: Boolean(record.deleted),
           updatedAt
