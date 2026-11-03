@@ -895,14 +895,15 @@
     .plan-action-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
     .plan-action-grid .wide { grid-column:1/-1; }
     .plan-metric-grid .activity-metric { min-height:82px; }
-    .plan-threshold-compact .activity-metric-value { font-size:clamp(13px,3.25vw,18px); }
+    .plan-threshold-compact .activity-metric-value { font-size:clamp(7.5px,2vw,11px); line-height:1.02; }
+    .plan-threshold-compact .activity-metric-unit{font-size:clamp(6px,1.35vw,7.5px)}
     .plan-pace-grid .activity-metric { min-height:86px; }
     .plan-pace-grid .canonical-dual .activity-metric-reading { margin-top:2px; }
     .plan-pace-grid .canonical-dual .activity-metric-value { font-size:clamp(14px,3.45vw,19px); }
     .plan-availability-card { padding:12px; }
     .plan-availability-card .plan-days-grid { margin:0; }
     .plan-availability-card .plan-day-chip[disabled] { background:var(--surface-2); color:var(--text-3); opacity:.52; cursor:default; }
-    .plan-availability-card .plan-day-chip.selected[disabled] { background:var(--surface-2); color:var(--text-3); }
+    .plan-availability-card .plan-day-chip.selected[disabled],.plan-availability-card .plan-day-chip.selected.locked{background:var(--blue);color:#fff;opacity:.58;filter:saturate(.55);box-shadow:inset 0 0 0 999px rgba(90,90,95,.18)}
     .plan-workouts-card { margin-top:0; }
     .plan-publication-progress { height:8px; margin-top:12px; overflow:hidden; border-radius:999px; background:var(--surface-2); }
     .plan-publication-progress > span { display:block; height:100%; border-radius:999px; background:var(--blue); transition:width .2s ease; }
@@ -1463,6 +1464,27 @@
     }
     .activity-month-separator span:first-child { color:var(--text-main);font-size:14px; }
     @media (max-width:430px){.activity-month-separator{font-size:11px}.activity-month-separator span:first-child{font-size:13px}}
+
+    /* v1.0.22 refinements */
+    .garmin-sync-button{padding:5px;overflow:visible}.garmin-connect-logo{width:28px;height:28px;border-radius:7px;object-fit:cover;display:block}.garmin-connect-fallback{display:none;font-size:9px;font-weight:800}
+    .gc-inline-logo{width:22px;height:22px;border-radius:5px;object-fit:cover;vertical-align:middle;margin-left:6px}.plan-gc-title{display:flex;align-items:center;gap:8px;padding:2px 0 10px}.plan-gc-title .gc-inline-logo{margin:0}.plan-gc-publish,.plan-gc-update{display:flex;align-items:center;justify-content:center;gap:7px}.plan-gc-publish{width:100%}.plan-gc-update .gc-inline-logo{margin-left:2px}.plan-publication-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.plan-pending-list{font-size:11px;color:var(--text-secondary);line-height:1.4;margin:0 0 10px;padding:9px 10px;border-radius:10px;background:var(--surface-2)}
+    .today-primary-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.today-primary-grid .activity-metric{padding:clamp(12px,3vw,18px)}.today-primary-grid .activity-metric-label{font-size:13px}.today-primary-grid .activity-metric-value{font-size:29px}.today-primary-grid .activity-metric-unit,.today-primary-grid .activity-metric-subline{font-size:12px}
+    .today-date-title{font-size:20px!important;letter-spacing:0!important}
+    .plan-collapsible.section,.profile-collapsible.section{margin-top:clamp(12px,3.4vw,18px)}.profile-section-body{margin-top:6px}.plan-section-toggle{margin-bottom:5px}
+    .plan-day-chip:has(input:disabled),.plan-day-option input:disabled + .plan-day-chip{background:color-mix(in srgb,var(--blue) 52%,var(--surface-2));color:rgba(255,255,255,.62);opacity:.72;filter:saturate(.7);cursor:not-allowed}
+    .secondary-race-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-top:1px solid var(--divider)}.secondary-race-row:first-child{border-top:0}.secondary-race-row-actions{display:flex;gap:5px;flex:0 0 auto}.secondary-race-row-actions .button{padding:6px 8px;font-size:11px}
+    .secondary-race-editor{margin-top:10px;padding:12px;border-radius:14px;background:var(--surface-2)}.secondary-race-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.secondary-race-grid .wide{grid-column:1/-1}.secondary-race-grid input,.secondary-race-grid select{width:100%;margin-top:5px;padding:10px 9px;border-radius:10px;border:1px solid var(--divider);background:var(--surface-1);color:var(--text-main);font:inherit}.secondary-race-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+    .zones-table-card{padding:0;overflow:hidden}.zones-table{width:100%;border-collapse:collapse;table-layout:fixed}.zones-table th,.zones-table td{padding:10px 8px;border-bottom:1px solid var(--divider);font-size:11px;vertical-align:middle}.zones-table thead th{font-size:10px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.03em}.zones-table th:first-child{text-align:left;width:42%}.zones-table td{text-align:right;font-weight:700;white-space:nowrap}.zones-table td small{display:block;font-size:8.5px;color:var(--text-secondary);font-weight:500;margin-top:1px}.zone-circle{margin-right:5px}.zones-table .zone-note{border:0}
+    .chart-wrap{overflow:auto;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch}.chart-wrap svg{transform-origin:center center;transition:none;will-change:transform}
+
+
+    .plan-pace-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+    .plan-pace-card{min-height:86px;background:var(--surface-1);border-radius:var(--radius-lg);padding:11px 10px;display:flex;flex-direction:column;justify-content:space-between;min-width:0}
+    .plan-pace-label{display:flex;align-items:center;gap:4px;font-size:12px;font-weight:700;white-space:nowrap;min-width:0}.plan-pace-label span:last-child{overflow:hidden;text-overflow:ellipsis}
+    .plan-pace-value{display:flex;align-items:baseline;justify-content:center;gap:3px;min-width:0;font-size:clamp(17px,4.25vw,23px);font-weight:750;letter-spacing:-.03em;white-space:nowrap}.plan-pace-card.range .plan-pace-value{font-size:clamp(13px,3.25vw,18px);flex-wrap:wrap;row-gap:0}.plan-pace-value small{font-size:8px;color:var(--text-secondary);font-weight:600;letter-spacing:0}.plan-pace-separator{color:var(--text-3);font-weight:500}
+    .plan-availability-card .plan-day-chip.locked{cursor:not-allowed}.plan-availability-card .plan-day-chip.selected.locked{background:var(--blue)!important;color:#fff!important;opacity:.6!important;filter:saturate(.55);box-shadow:inset 0 0 0 999px rgba(90,90,95,.18)}
+    @media(max-width:430px){.plan-pace-card{padding:10px 7px}.plan-pace-value{font-size:clamp(16px,4.1vw,20px)}.plan-pace-card.range .plan-pace-value{font-size:clamp(12px,3vw,15px)}}
+
 </style>
 </head>
 
@@ -1477,7 +1499,7 @@
     // ============================================================
 
     const ATLAS_CONFIG = Object.freeze({
-      APP_VERSION: "1.0.18",
+      APP_VERSION: "1.0.21",
       DB_NAME: "ATLAS",
       DB_VERSION: 6,
       DATA_SCHEMA_VERSION: 2,
@@ -5746,50 +5768,17 @@
       ]);
 
       const CanonicalStrengthExercises = Object.freeze([
-        Object.freeze({
-          id: "goblet_squat",
-          name: "Sentadilla goblet"
-        }),
-        Object.freeze({
-          id: "dumbbell_squat",
-          name: "Sentadilla con mancuernas"
-        }),
-        Object.freeze({
-          id: "single_leg_deadlift",
-          name: "Peso muerto a una pierna"
-        }),
-        Object.freeze({
-          id: "reverse_lunge",
-          name: "Zancada atrás"
-        }),
-        Object.freeze({
-          id: "bulgarian_split_squat",
-          name: "Sentadilla búlgara"
-        }),
-        Object.freeze({
-          id: "glute_bridge",
-          name: "Puente de glúteos"
-        }),
-        Object.freeze({
-          id: "standing_calf_raise",
-          name: "Elevación de gemelos de pie"
-        }),
-        Object.freeze({
-          id: "seated_soleus_raise",
-          name: "Sóleo sentado"
-        }),
-        Object.freeze({
-          id: "front_plank",
-          name: "Plancha frontal"
-        }),
-        Object.freeze({
-          id: "side_plank",
-          name: "Plancha lateral"
-        }),
-        Object.freeze({
-          id: "dead_bug",
-          name: "Dead bug"
-        })
+        Object.freeze({id:"goblet_squat",name:"Sentadilla goblet",pattern:"squat",region:"lower_body",primaryMuscles:["quadriceps","glutes"],secondaryMuscles:["hamstrings","core"],equipment:"dumbbell_or_kettlebell",laterality:"bilateral",modality:"reps",runnerRole:"force_and_stability",garminCategory:"SQUAT",garminExerciseName:"GOBLET_SQUAT"}),
+        Object.freeze({id:"dumbbell_squat",name:"Sentadilla con mancuernas",pattern:"squat",region:"lower_body",primaryMuscles:["quadriceps","glutes"],secondaryMuscles:["hamstrings","core"],equipment:"dumbbells",laterality:"bilateral",modality:"reps",runnerRole:"force_and_stability",garminCategory:"SQUAT",garminExerciseName:"DUMBBELL_SQUAT"}),
+        Object.freeze({id:"single_leg_deadlift",name:"Peso muerto a una pierna",pattern:"hinge",region:"lower_body",primaryMuscles:["hamstrings","glutes"],secondaryMuscles:["calves","core"],equipment:"dumbbell_optional",laterality:"unilateral",modality:"reps",runnerRole:"posterior_chain_and_balance",garminCategory:"DEADLIFT",garminExerciseName:"SINGLE_LEG_ROMANIAN_DEADLIFT_WITH_DUMBBELL"}),
+        Object.freeze({id:"reverse_lunge",name:"Zancada atrás",pattern:"lunge",region:"lower_body",primaryMuscles:["quadriceps","glutes"],secondaryMuscles:["hamstrings","core"],equipment:"bodyweight_or_dumbbells",laterality:"unilateral",modality:"reps",runnerRole:"single_leg_strength",garminCategory:"LUNGE",garminExerciseName:"REVERSE_LUNGE"}),
+        Object.freeze({id:"bulgarian_split_squat",name:"Sentadilla búlgara",pattern:"lunge",region:"lower_body",primaryMuscles:["quadriceps","glutes"],secondaryMuscles:["hamstrings","core"],equipment:"dumbbells_optional",laterality:"unilateral",modality:"reps",runnerRole:"single_leg_strength",garminCategory:"LUNGE",garminExerciseName:"DUMBBELL_BULGARIAN_SPLIT_SQUAT"}),
+        Object.freeze({id:"glute_bridge",name:"Puente de glúteos",pattern:"hip_raise",region:"lower_body",primaryMuscles:["glutes"],secondaryMuscles:["hamstrings","core"],equipment:"bodyweight_or_weight",laterality:"bilateral",modality:"reps",runnerRole:"posterior_chain",garminCategory:"HIP_RAISE",garminExerciseName:"HIP_RAISE"}),
+        Object.freeze({id:"standing_calf_raise",name:"Elevación de gemelos de pie",pattern:"calf_raise",region:"lower_leg",primaryMuscles:["gastrocnemius"],secondaryMuscles:["soleus"],equipment:"bodyweight_or_dumbbells",laterality:"bilateral",modality:"reps",runnerRole:"calf_capacity",garminCategory:"CALF_RAISE",garminExerciseName:"STANDING_CALF_RAISE"}),
+        Object.freeze({id:"seated_soleus_raise",name:"Sóleo sentado",pattern:"calf_raise",region:"lower_leg",primaryMuscles:["soleus"],secondaryMuscles:["gastrocnemius"],equipment:"weight_optional",laterality:"bilateral",modality:"reps",runnerRole:"soleus_capacity",garminCategory:"CALF_RAISE",garminExerciseName:"SEATED_CALF_RAISE"}),
+        Object.freeze({id:"front_plank",name:"Plancha frontal",pattern:"plank",region:"core",primaryMuscles:["core"],secondaryMuscles:["glutes","shoulders"],equipment:"bodyweight",laterality:"bilateral",modality:"time",runnerRole:"trunk_stability",garminCategory:"PLANK",garminExerciseName:"PLANK"}),
+        Object.freeze({id:"side_plank",name:"Plancha lateral",pattern:"plank",region:"core",primaryMuscles:["obliques","core"],secondaryMuscles:["glutes","shoulders"],equipment:"bodyweight",laterality:"unilateral",modality:"time",runnerRole:"lateral_stability",garminCategory:"PLANK",garminExerciseName:"SIDE_PLANK"}),
+        Object.freeze({id:"dead_bug",name:"Dead bug",pattern:"core_control",region:"core",primaryMuscles:["core"],secondaryMuscles:["hip_flexors"],equipment:"bodyweight",laterality:"alternating",modality:"reps",runnerRole:"lumbopelvic_control",garminCategory:"HIP_STABILITY",garminExerciseName:"DEAD_BUG"})
       ]);
 
       function createStrengthExerciseContract(
@@ -5824,6 +5813,10 @@
             source.sets ?? null,
           repsOrTime:
             source.repsOrTime ?? null,
+          reps:
+            source.reps ?? null,
+          timeSec:
+            source.timeSec ?? null,
           restSec:
             source.restSec ?? null,
           recommendedLoad:
@@ -5833,7 +5826,11 @@
           rir:
             source.rir ?? null,
           technicalCue:
-            source.technicalCue ?? null
+            source.technicalCue ?? null,
+          garminCategory:
+            source.garminCategory ?? null,
+          garminExerciseName:
+            source.garminExerciseName ?? null
         });
       }
 
@@ -5846,6 +5843,114 @@
               )
           )
         );
+      }
+
+      function strengthExerciseById(id) {
+        return canonicalStrengthLibrary().find((exercise) => exercise.id === id) || null;
+      }
+
+      function strengthHistoryWeeksFromSnapshot(snapshot) {
+        return Array.isArray(snapshot?.weeks)
+          ? snapshot.weeks.filter((week) => Number(week?.strengthSessions) > 0).length
+          : 0;
+      }
+
+      function strengthVariantExerciseIds(distanceKey, variant = "A") {
+        const longDistance = ["HALF_MARATHON", "MARATHON"].includes(String(distanceKey || ""));
+        if (longDistance) {
+          return variant === "B"
+            ? ["dumbbell_squat","reverse_lunge","glute_bridge","standing_calf_raise","front_plank","dead_bug"]
+            : ["goblet_squat","single_leg_deadlift","bulgarian_split_squat","seated_soleus_raise","side_plank","dead_bug"];
+        }
+        return variant === "B"
+          ? ["dumbbell_squat","bulgarian_split_squat","glute_bridge","seated_soleus_raise","side_plank","dead_bug"]
+          : ["goblet_squat","single_leg_deadlift","reverse_lunge","standing_calf_raise","front_plank","dead_bug"];
+      }
+
+      function prescribeStrengthExercise(exercise, { level = "principal", distanceKey = null } = {}) {
+        if (!exercise) return null;
+        const longDistance = ["HALF_MARATHON", "MARATHON"].includes(String(distanceKey || ""));
+        const compound = ["squat","hinge","lunge","hip_raise"].includes(String(exercise.pattern || ""));
+        const calf = exercise.pattern === "calf_raise";
+        const timed = exercise.modality === "time";
+        const sets = level === "principal" ? 3 : level === "maintenance" ? 2 : 1;
+        let reps = null, timeSec = null;
+        if (timed) {
+          timeSec = level === "principal" ? 40 : level === "maintenance" ? 30 : 20;
+        } else if (calf) {
+          reps = level === "microdose" ? 10 : longDistance ? 15 : 12;
+        } else if (exercise.id === "dead_bug") {
+          reps = level === "microdose" ? 6 : 8;
+        } else if (compound) {
+          reps = level === "microdose" ? 5 : longDistance ? 8 : 6;
+        } else {
+          reps = level === "microdose" ? 6 : 8;
+        }
+        const restSec = level === "microdose" ? 45 : (compound ? 90 : 60);
+        const rpe = level === "principal" ? 7 : level === "maintenance" ? 6 : 5;
+        const rir = level === "principal" ? 3 : level === "maintenance" ? 3 : 4;
+        const repsOrTime = timed ? `${timeSec}"` : `${reps}${exercise.laterality === "unilateral" ? " por lado" : ""}`;
+        return createStrengthExerciseContract({
+          ...exercise,
+          sets,
+          repsOrTime,
+          reps,
+          timeSec,
+          restSec,
+          recommendedLoad: level === "principal" ? "Carga estable con técnica limpia" : level === "maintenance" ? "Carga moderada" : "Carga ligera",
+          rpe,
+          rir,
+          technicalCue: exercise.pattern === "calf_raise" ? "Recorrido completo y controlado" : exercise.pattern === "plank" ? "Tronco estable, sin compensar" : exercise.laterality === "unilateral" ? "Control y simetría entre lados" : "Técnica limpia; detener antes del fallo"
+        });
+      }
+
+      function buildStrengthPrescription({ level = "principal", distanceKey = null, variant = "A" } = {}) {
+        const maxExercises = level === "principal" ? 6 : level === "maintenance" ? 5 : 4;
+        const exercises = strengthVariantExerciseIds(distanceKey, variant)
+          .slice(0, maxExercises)
+          .map(strengthExerciseById)
+          .map((exercise) => prescribeStrengthExercise(exercise, { level, distanceKey }))
+          .filter(Boolean);
+        const durationSec = level === "principal" ? 35 * 60 : level === "maintenance" ? 25 * 60 : 15 * 60;
+        return Object.freeze({
+          level, variant, durationSec,
+          exercises: Object.freeze(exercises),
+          avoidMuscularFailure: true,
+          runnerSpecific: true
+        });
+      }
+
+      function applyStrengthPrescription(session, { level = "principal", distanceKey = null, variant = "A" } = {}) {
+        const prescription = buildStrengthPrescription({ level, distanceKey, variant });
+        const levelLabel = level === "principal" ? "Principal" : level === "maintenance" ? "Mantenimiento" : "Microdosis";
+        return Object.freeze({
+          ...session,
+          name: `Fuerza ${variant} · ${levelLabel}`,
+          family: "strength",
+          durationSec: prescription.durationSec,
+          distanceM: null,
+          targetPace: null,
+          strengthLevel: level,
+          strengthVariant: variant,
+          strengthExercises: prescription.exercises,
+          purpose: level === "principal"
+            ? "Desarrollar fuerza útil para correr, estabilidad unilateral, cadena posterior, gemelo/sóleo y core sin llegar al fallo."
+            : level === "maintenance"
+              ? "Mantener la fuerza con la dosis mínima eficaz mientras aumenta la especificidad de carrera."
+              : "Activar el sistema neuromuscular con fatiga mínima durante el taper.",
+          steps: Object.freeze(prescription.exercises.map((exercise) => Object.freeze({
+            section: "strength",
+            exerciseId: exercise.id,
+            label: exercise.name,
+            sets: exercise.sets,
+            reps: exercise.reps ?? null,
+            timeSec: exercise.timeSec ?? null,
+            restSec: exercise.restSec,
+            garminCategory: exercise.garminCategory,
+            garminExerciseName: exercise.garminExerciseName,
+            technicalCue: exercise.technicalCue
+          })))
+        });
       }
 
       function rotateStrengthVariant(
@@ -6074,7 +6179,7 @@
             canonicalStrengthLibrary(),
           dependencies: Object.freeze({
             exercisePrescriptionDetails:
-              "pending_source_detail"
+              "resolved_structured"
           })
         });
       }
@@ -10764,6 +10869,20 @@
           });
         }
 
+        const strengthWeekPlan = buildStrengthPlan({
+          phase: week.phase,
+          distanceKey: planInput.distanceKey,
+          availableDaysCount: Array.isArray(planInput.availableDays) ? planInput.availableDays.length : 0,
+          targetRunDays: desiredRunDays,
+          strengthHistoryWeeks: strengthHistoryWeeksFromSnapshot(athleteSnapshot),
+          broadAvailability: Array.isArray(planInput.availableDays) && planInput.availableDays.length >= 6,
+          initialPartialWeek: week.phase === "initial_partial",
+          raceWeek: week.phase === "race_week",
+          taperWeekIndex: week.phase === "taper" ? Number(taperWeekIndex || 0) + 1 : null,
+          previousVariant: (Number(week.index || 0) % 2 === 0) ? null : "A"
+        });
+        const strengthVariant = (Number(week.index || 0) % 2 === 0) ? "A" : "B";
+
         const sessions = [];
         let ordinal = 0;
 
@@ -10799,6 +10918,8 @@
           }
 
           if (!date || date < week.startDate || date > week.endDate) continue;
+
+          if (role === "strength" && strengthWeekPlan.count < 1) continue;
 
           let family = familyFromRole(role);
           let name =
@@ -10952,12 +11073,18 @@
             });
           }
 
-          const prescribedBase = legacyPrescribeSession(base,{
-            planInput,
-            paceAnchors,
-            phaseWeekIndex,
-            phaseProgress
-          });
+          const prescribedBase = role === "strength"
+            ? applyStrengthPrescription(base,{
+                level: strengthWeekPlan.levels[0] || "principal",
+                distanceKey: planInput.distanceKey,
+                variant: strengthVariant
+              })
+            : legacyPrescribeSession(base,{
+                planInput,
+                paceAnchors,
+                phaseWeekIndex,
+                phaseProgress
+              });
 
           sessions.push(Object.freeze({
             ...prescribedBase,
@@ -10992,6 +11119,37 @@
 
           ordinal += 1;
         }
+
+        if (strengthWeekPlan.count > 1) {
+          const occupied = new Set(sessions.map((session) => session.weekday).filter(Boolean));
+          const freeCandidates = ["tue","thu","mon","fri","wed","sat","sun"].filter((day) =>
+            planInput.availableDays.includes(day) && !occupied.has(day)
+          );
+          const secondDay = freeCandidates[0] || null;
+          if (secondDay && occupied.size < 6) {
+            const date = dateForWeekday(week.startDate, secondDay);
+            if (date && date >= week.startDate && date <= week.endDate) {
+              const base = createSessionContract({
+                id: materializedSessionId({planInput,date,role:"strength",ordinal}),
+                date, family:"strength", name:"Fuerza", type:"strength", role:"strength",
+                purpose:null, modifier:week.phase, dose:null, distanceM:null, durationSec:null,
+                targetPace:null, structure:null, steps:[], notes:[], primaryStimulus:false, separationConstraints:null
+              });
+              const second = applyStrengthPrescription(base,{
+                level: strengthWeekPlan.levels[1] || strengthWeekPlan.levels[0] || "principal",
+                distanceKey: planInput.distanceKey,
+                variant: strengthVariant === "A" ? "B" : "A"
+              });
+              sessions.push(Object.freeze({
+                ...second, weekIndex:week.index, phase:week.phase, weekday:secondDay,
+                dependencies:Object.freeze({familySelection:"resolved",exactPrescription:"strength_structured"}),
+                policyTrace:Object.freeze({phaseWeekIndex,phaseWeekCount,phaseProgress,overallLongRunProgress,targetLongRunM})
+              }));
+            }
+          }
+        }
+
+        sessions.sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.id).localeCompare(String(b.id)));
 
         return Object.freeze({
           available: true,
@@ -12132,6 +12290,7 @@
         planOpenSections: {},
         profileOpenSections: {},
         planSessionAction: null,
+        planSecondaryEditor: null,
         selectedActivityLap: null,
         planDraft: {
           name: "",
@@ -12197,10 +12356,9 @@
         }
 
         const nextRoute = { ...route };
-        const restore = hasRouteScroll(nextRoute);
 
         state.route = nextRoute;
-        render({ scrollMode: restore ? "restore" : "top" });
+        render({ scrollMode: "top" });
       }
 
       function goBack() {
@@ -12216,11 +12374,10 @@
         saveRouteScroll();
 
         const nextRoute = { tab, view: "main", id: null };
-        const restore = hasRouteScroll(nextRoute);
 
         state.history = [];
         state.route = nextRoute;
-        render({ scrollMode: restore ? "restore" : "top" });
+        render({ scrollMode: "top" });
       }
 
       function navItems() {
@@ -12279,7 +12436,7 @@
             ${options.settingsButton
               ? `<div class="header-actions"><button class="icon-button" data-action="profile-settings" aria-label="Ajustes">⚙️</button></div>`
               : showProfile
-                ? `<div class="header-actions"><button class="garmin-sync-button ${state.syncing?"syncing":""} ${state.syncError?"error":""}" data-action="sync" aria-label="Sincronizar Garmin Connect" title="Sincronizar Garmin Connect">GARMIN</button><button class="icon-button mobile-profile" data-tab="profile" aria-label="Perfil">👤</button></div>`
+                ? `<div class="header-actions"><button class="garmin-sync-button ${state.syncing?"syncing":""} ${state.syncError?"error":""}" data-action="sync" aria-label="Sincronizar Garmin Connect" title="Sincronizar Garmin Connect"><img class="garmin-connect-logo" src="data:image/png;base64,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" alt="Garmin Connect" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"></button><button class="icon-button mobile-profile" data-tab="profile" aria-label="Perfil">👤</button></div>`
                 : ""}
           </header>
         `;
@@ -12610,12 +12767,22 @@
       function readinessAnalysis(readiness) {
         if(!readiness||readiness.value==null)return "Garmin no dispone de datos suficientes para valorar tu preparación de hoy.";
         const score=Number(readiness.value);
-        const feedback=translateGarminFeedback(readiness.feedbackShort);
-        if(feedback && feedback!==translateGarminStatus(readiness.feedbackShort)) return feedback;
-        if(score>=75)return "Tu preparación es alta: los principales indicadores permiten afrontar con garantías el entrenamiento previsto.";
-        if(score>=50)return "Tu preparación es moderada: puedes entrenar, aunque alguno de los factores de recuperación no está en su mejor nivel.";
-        if(score>=25)return "Tu preparación es baja: hoy pesan la fatiga o la recuperación incompleta y conviene controlar la exigencia.";
-        return "Tu preparación es muy baja: los indicadores aconsejan priorizar recuperación antes de acumular más carga.";
+        const positives=[], cautions=[];
+        const sleep=Number(readiness?.sleepScore);
+        if(Number.isFinite(sleep)){if(sleep>=80)positives.push("buen sueño");else if(sleep<60)cautions.push("sueño flojo");}
+        const hrv=String(readiness?.hrvFactorFeedback||"").toUpperCase();
+        if(/BALANCED|GOOD|POSITIVE/.test(hrv)&&!/UNBALANCED/.test(hrv))positives.push("VFC equilibrada");
+        if(/LOW|UNBALANCED|POOR/.test(hrv))cautions.push("VFC fuera de rango");
+        const load=String(readiness?.acwrFactorFeedback||"").toUpperCase();
+        if(/OPTIMAL|BALANCED|GOOD/.test(load))positives.push("carga adecuada");
+        if(/HIGH|LOW|POOR/.test(load))cautions.push(/HIGH/.test(load)?"carga reciente alta":"carga reciente baja");
+        const recovery=Number(readiness?.recoveryTimeMin);
+        if(Number.isFinite(recovery)&&recovery>24*60)cautions.push("recuperación aún incompleta");
+        let lead=score>=75?"Buena disposición para entrenar":score>=50?"Preparación suficiente, pero no óptima":score>=25?"Conviene controlar la exigencia":"Prioriza recuperación hoy";
+        const parts=[];
+        if(positives.length)parts.push(`${positives.slice(0,2).join(" y ")} juegan a favor`);
+        if(cautions.length)parts.push(`${cautions.slice(0,2).join(" y ")} aconsejan prudencia`);
+        return parts.length?`${lead}. ${parts.join("; ")}.`:`${lead}. El balance global de recuperación y carga determina la puntuación actual.`;
       }
 
       function hrvBaselineText(hrv) {
@@ -12735,7 +12902,6 @@
         const restingHR=metric("resting-hr");
         const readinessState=trainingReadinessPresentation(readiness);
         const restingAvg=restingHrSevenDayAverage();
-        const bodyBattery=latestBodyBattery();
         const lastActivity=state.activities[0]||null;
         const today=localDate(0);
         const nextTraining=state.training
@@ -12776,9 +12942,8 @@
           <section class="section">
             <div class="today-primary-grid">
               ${todayMetricHtml({emoji:"💤",label:"Sueño",readingHtml:sleepReadingHtml,secondary:sleepQuality,secondaryColor:sleepQualityColor(sleep?.value),metricId:"sleep"})}
-              ${todayMetricHtml({emoji:"🫀",label:"VFC",value:hrv?.value??"—",unit:hrv?.value!=null?"ms":"",secondary:hrvBaselineText(hrv),metricId:"hrv"})}
-              ${todayMetricHtml({emoji:"❤️",label:"FC reposo",value:restingHR?.value??"—",unit:restingHR?.value!=null?"ppm":"",secondary:Number.isFinite(restingAvg)?`Media: ${Math.round(restingAvg)} ppm`:"Sin media",metricId:"resting-hr"})}
-              ${todayMetricHtml({emoji:"🔋",label:"Body Battery",value:bodyBattery?.value!=null?String(Math.round(bodyBattery.value)):"—",valueSuffix:bodyBattery?.value!=null?"/100":"",secondary:bodyBatteryStatus(bodyBattery?.value),metricId:"body-battery"})}
+              ${todayMetricHtml({emoji:"🫀",label:"VFC",value:hrv?.value??"—",unit:hrv?.value!=null?"ms":"",secondary:(()=>{const low=Number(hrv?.baselineLow),high=Number(hrv?.baselineHigh);return Number.isFinite(low)&&Number.isFinite(high)?`Rango: ${Math.round(low)} - ${Math.round(high)} ms`:hrvBaselineText(hrv)})(),metricId:"hrv"})}
+              ${todayMetricHtml({emoji:"❤️",label:"FC reposo",value:restingHR?.value??"—",unit:restingHR?.value!=null?"ppm":"",secondary:Number.isFinite(restingAvg)?`Media 7 días: ${Math.round(restingAvg)} ppm`:"Sin media",metricId:"resting-hr"})}
             </div>
           </section>
 
@@ -14335,7 +14500,7 @@
         const targetPace=planFormatPaceSecKm(planTargetPaceSecKm());
         const weeks=planNativeWeeks(plan);
         return `<div class="activity-metric-grid canonical-grid-3 plan-metric-grid plan-info-metrics">
-          ${canonicalMetricHtml({emoji:"📏",label:"Distancia",value:planDistanceLabel(plan.distanceKey)})}
+          ${canonicalMetricHtml({emoji:"📏",label:"Distancia",value:({"5K":"5","10K":"10","HALF_MARATHON":"21,1","MARATHON":"42,2"}[plan.distanceKey]||planDistanceLabel(plan.distanceKey)),unit:"km"})}
           ${canonicalMetricHtml({emoji:"⏱️",label:"Objetivo",value:targetTimeFromSeconds(plan.targetTimeSec)||"—"})}
           ${canonicalMetricHtml({emoji:"🎯",label:"Ritmo",value:targetPace?targetPace.replace(/\s*(?:min\/km|\/km)$/i,""):"—",unit:targetPace?"min/km":""})}
           ${canonicalMetricHtml({emoji:"🚀",label:"Inicio",value:planNativeDate(plan.startDate)})}
@@ -14420,11 +14585,11 @@
       }
 
       function planPaceMetric({emoji,label,band=null,exact=null}={}) {
+        let main="—", second="", range=false;
         if(band && Number(band.fasterPaceSecKm)>0 && Number(band.slowerPaceSecKm)>0){
-          return canonicalMetricHtml({emoji,label,value:formatPaceSeconds(band.fasterPaceSecKm),secondValue:formatPaceSeconds(band.slowerPaceSecKm),secondUnit:"min/km"});
-        }
-        const value=Number(exact)>0?formatPaceSeconds(Number(exact)):"—";
-        return canonicalMetricHtml({emoji,label,value,unit:value!=="—"?"min/km":""});
+          main=formatPaceSeconds(band.fasterPaceSecKm);second=formatPaceSeconds(band.slowerPaceSecKm);range=true;
+        }else if(Number(exact)>0){main=formatPaceSeconds(Number(exact));}
+        return `<article class="plan-pace-card ${range?"range":"exact"}"><div class="plan-pace-label"><span>${emoji}</span><span>${escapeHtml(label)}</span></div><div class="plan-pace-value">${range?`<span>${escapeHtml(main)}</span><span class="plan-pace-separator">–</span><span>${escapeHtml(second)}</span>`:`<span>${escapeHtml(main)}</span>`}<small>min/km</small></div></article>`;
       }
 
       function planNativePaceMetrics() {
@@ -14449,7 +14614,7 @@
         const aerobic=profileBand(.96,.88);
         const threshold=profileBand(1.02,.96);
         const vo2=profileBand(1.11,1.02);
-        return `<div class="activity-metric-grid canonical-grid-9 plan-pace-grid">
+        return `<div class="plan-pace-grid">
           ${planPaceMetric({emoji:"🫧",label:"Recuperación",band:recovery||p.recovery})}
           ${planPaceMetric({emoji:"🌿",label:"Fácil",band:easy||p.easy})}
           ${planPaceMetric({emoji:"🌤️",label:"Aeróbico",band:aerobic||p.aerobic})}
@@ -14821,11 +14986,12 @@
         const family=String(session.family||"");
         const base=String(session.name||"").trim();
         if(role==="race"||role==="secondary_race")return `🏁 ${base.replace(/^🏁\\s*/,"")||"Carrera"}`;
+        if(role==="strength")return base||"Fuerza";
         if(/tirada larga específica/i.test(base))return "Tirada larga específica";
         if(/progresiv/i.test(base))return "Rodaje fácil + progresivos";
         if(family==="activation")return "Activación precompetición";
         const q=planQualityRepInfo(session);
-        const dose=q?`${q.reps} x ${planDistanceShort(q.repDistanceM)}`:"";
+        const dose=q?(q.reps===1?planDistanceShort(q.repDistanceM):`${q.reps} x ${planDistanceShort(q.repDistanceM)}`):"";
         const prefix={
           threshold:"Umbral",
           vo2:"VO₂",
@@ -14956,6 +15122,13 @@
       }
 
       function planStructureSummaryLines(session,item) {
+        if(String(session?.role||"")==="strength") {
+          const exercises=Array.isArray(session?.strengthExercises)?session.strengthExercises:[];
+          return exercises.map((exercise)=>{
+            const dose=exercise.timeSec>0?`${exercise.sets} x ${exercise.timeSec}"`:`${exercise.sets} x ${exercise.reps}${exercise.laterality==="unilateral"?"/lado":""}`;
+            return `${exercise.name} · ${dose} · R${planShortDuration(exercise.restSec||0)}`;
+          });
+        }
         const pace=planSessionPaceText(item)||"—";
         const structure=session?.structure;
         const quality=planQualityRepInfo(session);
@@ -15024,6 +15197,9 @@
           distanceM:Number(session?.distanceM)||null,
           durationSec:Number(session?.durationSec)||null,
           targetPace:session?.targetPace||null,
+          strengthLevel:session?.strengthLevel||null,
+          strengthVariant:session?.strengthVariant||null,
+          strengthExercises:Array.isArray(session?.strengthExercises)?session.strengthExercises:[],
           steps:Array.isArray(session?.steps)?session.steps:[]
         });
       }
@@ -15031,8 +15207,8 @@
       function planSessionGarminEligible(session) {
         if(!session || !session.id || !/^\d{4}-\d{2}-\d{2}$/.test(String(session.date||""))) return false;
         if(String(session.date)<localDate(0)) return false;
-        if(session.role==="strength" || session.role==="race" || session.role==="secondary_race") return false;
-        return Number(session.distanceM)>0 || Number(session.durationSec)>0 || (Array.isArray(session.steps)&&session.steps.length>0);
+        if(session.role==="race" || session.role==="secondary_race") return false;
+        return Number(session.distanceM)>0 || Number(session.durationSec)>0 || (Array.isArray(session.steps)&&session.steps.length>0) || (Array.isArray(session.strengthExercises)&&session.strengthExercises.length>0);
       }
 
       function paceTargetForGarmin(pace) {
@@ -15068,8 +15244,67 @@
         };
       }
 
+      function garminStrengthExerciseStep(exercise, order) {
+        const timed=Number(exercise?.timeSec)>0;
+        return {
+          type:"ExecutableStepDTO",
+          stepOrder:order,
+          stepType:{stepTypeId:3,stepTypeKey:"interval",displayOrder:3},
+          endCondition:timed
+            ? {conditionTypeId:2,conditionTypeKey:"time",displayOrder:2,displayable:true}
+            : {conditionTypeId:10,conditionTypeKey:"reps",displayOrder:10,displayable:true},
+          endConditionValue:timed?Number(exercise.timeSec):Math.max(1,Number(exercise?.reps)||1),
+          targetType:{workoutTargetTypeId:1,workoutTargetTypeKey:"no.target",displayOrder:1},
+          category:String(exercise?.garminCategory||"UNKNOWN"),
+          ...(exercise?.garminExerciseName?{exerciseName:String(exercise.garminExerciseName)}:{}),
+          description:String(exercise?.technicalCue||"").slice(0,120)
+        };
+      }
+
+      function garminStrengthRestStep(seconds, order) {
+        return {
+          type:"ExecutableStepDTO",
+          stepOrder:order,
+          stepType:{stepTypeId:5,stepTypeKey:"rest",displayOrder:5},
+          endCondition:{conditionTypeId:2,conditionTypeKey:"time",displayOrder:2,displayable:true},
+          endConditionValue:Math.max(15,Number(seconds)||60),
+          targetType:{workoutTargetTypeId:1,workoutTargetTypeKey:"no.target",displayOrder:1}
+        };
+      }
+
+      function strengthSessionToGarminWorkout(session) {
+        const sportType={sportTypeId:5,sportTypeKey:"strength_training",displayOrder:5};
+        const exercises=Array.isArray(session?.strengthExercises)?session.strengthExercises:[];
+        if(!exercises.length)return null;
+        const workoutSteps=[];
+        let order=1;
+        for(const exercise of exercises){
+          const sets=Math.max(1,Math.round(Number(exercise?.sets)||1));
+          const child=[garminStrengthExerciseStep(exercise,1)];
+          if(Number(exercise?.restSec)>0)child.push(garminStrengthRestStep(exercise.restSec,2));
+          if(sets>1){
+            workoutSteps.push({
+              type:"RepeatGroupDTO",stepOrder:order++,
+              stepType:{stepTypeId:6,stepTypeKey:"repeat",displayOrder:6},
+              numberOfIterations:sets,workoutSteps:child,
+              endCondition:{conditionTypeId:7,conditionTypeKey:"iterations",displayOrder:7,displayable:false},
+              endConditionValue:sets,smartRepeat:false,skipLastRestStep:true
+            });
+          }else{
+            workoutSteps.push({...child[0],stepOrder:order++});
+          }
+        }
+        return {
+          workoutName:`ATLAS · ${String(planSessionDisplayTitle(session)||"Fuerza").slice(0,70)}`,
+          sportType,estimatedDurationInSecs:Math.max(0,Math.round(Number(session.durationSec)||0)),
+          description:"ATLAS · Fuerza para correr",
+          workoutSegments:[{segmentOrder:1,sportType,workoutSteps}]
+        };
+      }
+
       function planSessionToGarminWorkout(session) {
         if(!planSessionGarminEligible(session)) return null;
+        if(String(session?.role||"")==="strength") return strengthSessionToGarminWorkout(session);
         const sportType={sportTypeId:1,sportTypeKey:"running",displayOrder:1};
         const sourceSteps=Array.isArray(session.steps)?session.steps:[];
         const steps=[];
@@ -15141,13 +15376,14 @@
         const progress=state.planPublicationProgress;
         const busy=Boolean(progress);
         const pct=busy?Math.max(0,Math.min(100,Math.round(Number(progress.percent)||0))):0;
-        const status=busy?`${escapeHtml(progress.label||"Sincronizando")} · ${pct}%`:p.published===0?"Plan aún no publicado en Garmin Connect":p.needsUpdate?`${p.published}/${p.eligible} publicados · cambios pendientes`:`${p.published}/${p.eligible} entrenamientos publicados`;
-        return `<div class="card"><div class="row"><div><div class="row-title">Garmin Connect</div><div class="row-meta">${status}</div></div>${p.published?`<span class="chip">${p.published}/${p.eligible}</span>`:""}</div>
-          ${busy?`<div class="plan-publication-progress"><span style="width:${pct}%"></span></div>`:`<div class="plan-publication-actions">
-            ${p.published===0?`<button class="button" data-action="plan-garmin-publish" ${!p.eligible?"disabled":""}>Publicar en Garmin Connect</button>`:""}
-            ${p.needsUpdate?`<button class="button" data-action="plan-garmin-update">Actualizar en Garmin Connect</button>`:""}
-            ${p.published>0?`<button class="button secondary" data-action="plan-garmin-remove-all" style="color:var(--red)">Eliminar de Garmin Connect</button>`:""}
-          </div>`}
+        const gcLogo=`<img class="gc-inline-logo" src="data:image/png;base64,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" alt="Garmin Connect" onerror="this.style.display='none'">`;
+        const pending=[];
+        if(p.stale>0) pending.push(`${p.stale} entrenamiento${p.stale===1?"":"s"} modificado${p.stale===1?"":"s"}`);
+        if(p.missing>0&&p.published>0) pending.push(`${p.missing} entrenamiento${p.missing===1?"":"s"} nuevo${p.missing===1?"":"s"}`);
+        return `<div class="card plan-publication-card">
+          ${busy?`<div class="plan-publication-progress"><span style="width:${pct}%"></span></div><div class="row-meta" style="margin-top:7px;text-align:center">${escapeHtml(progress.label||"Publicando")} · ${pct}%</div>`:
+          p.published===0?`<button class="button plan-gc-publish" data-action="plan-garmin-publish" ${!p.eligible?"disabled":""}>Publicar en Garmin Connect ${gcLogo}</button>`:
+          `<div class="plan-gc-published"><div class="plan-gc-title">${gcLogo}<strong>Garmin Connect</strong></div>${p.needsUpdate?`<div class="plan-pending-list">${pending.map(x=>`<div>• ${escapeHtml(x)}</div>`).join("")}</div>`:""}<div class="plan-publication-actions"><button class="button plan-gc-update" data-action="plan-garmin-update" ${!p.needsUpdate?"disabled":""}>Actualizar ${gcLogo}</button><button class="button secondary" data-action="plan-garmin-remove-all" style="color:var(--red)">Retirar</button></div></div>`}
         </div>`;
       }
 
@@ -15183,14 +15419,16 @@
         const lines=planStructureSummaryLines(session,item);
         const title=planSessionDisplayTitle(session);
         const paceMain=pace.replace(/\s*(?:min\/km|\/km)$/i,"");
+        const strength=String(session?.role||"")==="strength";
+        const strengthLevelLabel=session?.strengthLevel==="principal"?"Principal":session?.strengthLevel==="maintenance"?"Mantenimiento":session?.strengthLevel==="microdose"?"Microdosis":"—";
         return `
           ${backButton()}
           ${header(escapeHtml(title),{dynamicTitle:true,showProfile:false})}
           <section class="section">
             <div class="activity-metric-grid canonical-grid-3">
-              ${canonicalMetricHtml({emoji:"📏",label:"Distancia",value:Number(session.distanceM)>0?compactNumber(Number(session.distanceM)/1000,1):"—",unit:Number(session.distanceM)>0?"km":""})}
-              ${canonicalMetricHtml({emoji:"⏱️",label:"Duración",value:Number(session.durationSec)>0?formatCardDuration(Number(session.durationSec)):"—"})}
-              ${canonicalMetricHtml({emoji:"🏃🏻‍♂️",label:"Ritmo",value:paceMain||"—",unit:paceMain&&paceMain!=="—"?"min/km":""})}
+              ${strength
+                ? `${canonicalMetricHtml({emoji:"🏋🏻‍♂️",label:"Dosis",value:strengthLevelLabel})}${canonicalMetricHtml({emoji:"🔢",label:"Ejercicios",value:String((session.strengthExercises||[]).length||"—")})}${canonicalMetricHtml({emoji:"⏱️",label:"Duración",value:Number(session.durationSec)>0?formatCardDuration(Number(session.durationSec)):"—"})}`
+                : `${canonicalMetricHtml({emoji:"📏",label:"Distancia",value:Number(session.distanceM)>0?compactNumber(Number(session.distanceM)/1000,1):"—",unit:Number(session.distanceM)>0?"km":""})}${canonicalMetricHtml({emoji:"⏱️",label:"Duración",value:Number(session.durationSec)>0?formatCardDuration(Number(session.durationSec)):"—"})}${canonicalMetricHtml({emoji:"🏃🏻‍♂️",label:"Ritmo",value:paceMain||"—",unit:paceMain&&paceMain!=="—"?"min/km":""})}`}
             </div>
           </section>
           <section class="section"><h2 class="section-title">Estructura</h2><div class="card">${lines.map(line=>`<div class="plan-structure-line">${escapeHtml(line)}</div>`).join("")}</div></section>
@@ -15645,19 +15883,34 @@
           ${section("availability","📅","Disponibilidad",`
             <div class="plan-week-toolbar"><button class="plan-week-nav" data-action="availability-prev-week">‹</button><div class="plan-week-center"><div class="plan-week-title">${escapeHtml(planWeekLabel(availabilityDates))}</div><div class="plan-week-subtitle">${escapeHtml(planWeekRelativeLabel(state.planAvailabilityWeekOffset))}</div></div><button class="plan-week-nav" data-action="availability-next-week">›</button></div>
             ${Number(state.planAvailabilityWeekOffset||0)!==0?`<button class="plan-today-button" data-action="availability-current-week">Volver a esta semana</button>`:""}
-            <div class="card plan-availability-card"><div class="plan-days-grid">${dayButtons.map(([key,label],index)=>{const date=availabilityDates[index],past=date<today,selected=availability.includes(key);return `<button class="plan-day-chip ${selected&&!past?"selected":""}" data-action="availability-day" data-day="${key}" ${past?"disabled":""}>${label}</button>`;}).join("")}</div></div>`,{raw:true})}
+            <div class="card plan-availability-card"><div class="plan-days-grid">${dayButtons.map(([key,label],index)=>{const date=availabilityDates[index],past=date<today,selected=availability.includes(key);return `<button class="plan-day-chip ${selected?"selected":""} ${past?"locked":""}" data-action="availability-day" data-day="${key}" ${past?"disabled":""}>${label}</button>`;}).join("")}</div></div>`,{raw:true})}
           ${section("paces","🏃🏻‍♂️","Ritmos",planNativePaceMetrics(),{canonicalMetrics:true})}
           ${section("workouts","🗓️","Entrenamientos",`
             <div class="plan-week-toolbar"><button class="plan-week-nav" data-action="detail-prev-week" ${state.planDetailWeekOffset<=workoutBounds.min?"disabled":""}>‹</button><div class="plan-week-center"><div class="plan-week-title">${escapeHtml(planWeekLabel(workoutDates))}</div><div class="plan-week-subtitle">${escapeHtml(planWeekRelativeLabel(state.planDetailWeekOffset))}</div></div><button class="plan-week-nav" data-action="detail-next-week" ${state.planDetailWeekOffset>=workoutBounds.max?"disabled":""}>›</button></div>
             ${(workoutBounds.min<=0&&workoutBounds.max>=0&&!workoutCurrent)?`<button class="plan-today-button" data-action="detail-current-week">Volver a esta semana</button>`:""}
             <div class="activity-metric-grid plan-summary-grid">${planSummaryMetric("#️⃣","Semana",stats.week?String(stats.week):"—","")}${planSummaryMetric("📈","Volumen",compactNumber(stats.volumeKm,1),"km")}${planSummaryMetric("↗️","Tirada larga",stats.longRunKm>0?compactNumber(stats.longRunKm,1):"—",stats.longRunKm>0?"km":"")}</div>
             <div class="card plan-workouts-card plan-activity-list">${workoutDisplayDates.map(date=>renderPlanEffectiveDay(date,{showRest:true})).join("")}</div>`,{raw:true})}
-          ${section("publication","☁️","Publicación",renderPlanPublication(),{raw:true})}
+          ${section("publication","☁️",`Publicación${publicationSummary().needsUpdate?" ⚠️":""}`,renderPlanPublication(),{raw:true})}
           <section class="section"><button class="button" data-action="plan-edit-open" style="width:100%">Editar plan</button></section>`;
       }
 
+      function secondaryRaceFormHtml(race={}, index="new") {
+        const distanceKey=race.distanceKey||"10K";
+        const importance=race.importance||"test";
+        return `<div class="secondary-race-editor" data-secondary-editor="${escapeHtml(index)}">
+          <div class="secondary-race-grid">
+            <div class="wide"><div class="row-meta">Nombre</div><input data-secondary-field="name" type="text" value="${escapeHtml(race.name||"")}" placeholder="Nombre de la carrera"></div>
+            <div><div class="row-meta">Distancia</div><select data-secondary-field="distanceKey"><option value="5K" ${distanceKey==="5K"?"selected":""}>5 km</option><option value="10K" ${distanceKey==="10K"?"selected":""}>10 km</option><option value="HALF_MARATHON" ${distanceKey==="HALF_MARATHON"?"selected":""}>Media maratón</option><option value="MARATHON" ${distanceKey==="MARATHON"?"selected":""}>Maratón</option></select></div>
+            <div><div class="row-meta">Objetivo</div><input data-secondary-field="target" type="text" inputmode="numeric" value="${escapeHtml(targetTimeFromSeconds(race.targetTimeSec))}" placeholder="HH:MM:SS"></div>
+            <div><div class="row-meta">Fecha</div><input data-secondary-field="date" type="date" value="${escapeHtml(race.date||"")}"></div>
+            <div><div class="row-meta">Importancia</div><select data-secondary-field="importance"><option value="training" ${importance==="training"?"selected":""}>Entrenamiento</option><option value="test" ${importance==="test"?"selected":""}>Prueba</option><option value="important" ${importance==="important"?"selected":""}>Importante</option></select></div>
+          </div>
+          <div class="secondary-race-actions"><button class="button" data-action="plan-secondary-save" data-index="${escapeHtml(index)}">Guardar</button><button class="button secondary" data-action="plan-secondary-cancel">Cancelar</button></div>
+        </div>`;
+      }
+
       function renderPlanCreate() {
-        const draft = state.planConfig || state.planDraft || {
+        const draft = (state.planSecondaryEditor!=null ? state.planDraft : (state.planDraft?.startDate ? state.planDraft : state.planConfig)) || {
           name: "",
           distanceKey: "5K",
           startDate: "",
@@ -15755,8 +16008,9 @@
 
               <div class="row" style="display:block">
                 <div class="row-meta" style="margin-bottom:6px">Carreras secundarias</div>
-                <div id="plan-secondary-list">${(draft.intermediateRaces||[]).map((race,index)=>`<div class="row" style="padding-left:0;padding-right:0"><div><div class="row-title">🏁 ${escapeHtml(race.name||planDistanceLabel(race.distanceKey))}</div><div class="row-meta">${escapeHtml(race.date||"")} · ${escapeHtml(planDistanceLabel(race.distanceKey))} · ${escapeHtml(race.importance==="important"?"Objetivo importante":race.importance==="training"?"Entrenamiento":"Prueba / test")}</div></div><button class="button secondary" data-action="plan-secondary-remove" data-index="${index}" style="padding:7px 10px;color:var(--red)">Eliminar</button></div>`).join("")||`<div class="row-meta">Sin carreras secundarias.</div>`}</div>
+                <div id="plan-secondary-list">${(draft.intermediateRaces||[]).map((race,index)=>`<div class="secondary-race-row"><div><div class="row-title">🏁 ${escapeHtml(race.name||planDistanceLabel(race.distanceKey))}</div><div class="row-meta">${escapeHtml(planNativeDate(race.date))} · ${escapeHtml(planDistanceLabel(race.distanceKey))} · ${escapeHtml(race.importance==="important"?"Importante":race.importance==="training"?"Entrenamiento":"Prueba")}</div></div><div class="secondary-race-row-actions"><button class="button secondary" data-action="plan-secondary-edit" data-index="${index}">Editar</button><button class="button secondary" data-action="plan-secondary-remove" data-index="${index}" style="color:var(--red)">Eliminar</button></div></div>`).join("")||`<div class="row-meta">Sin carreras secundarias.</div>`}</div>
                 <button class="button secondary" data-action="plan-secondary-add" style="width:100%;margin-top:8px">Añadir carrera secundaria</button>
+                ${state.planSecondaryEditor!=null?secondaryRaceFormHtml(state.planSecondaryEditor==="new"?{}:(draft.intermediateRaces||[])[Number(state.planSecondaryEditor)]||{},state.planSecondaryEditor):""}
               </div>
 
               <div class="row" style="display:block">
@@ -15831,6 +16085,46 @@
           .map(activity=>Number(activity?.summary?.trainingLoad))
           .filter(Number.isFinite);
         return values.length?values.reduce((sum,value)=>sum+value,0):null;
+      }
+
+      function evolutionLoadSeries() {
+        const byDate=new Map();
+        for(const activity of state.activities||[]){
+          if(!isRunningActivity(activity))continue;
+          const date=String(activity?.summary?.date||"");
+          const load=Number(activity?.summary?.trainingLoad);
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(load)||load<0)continue;
+          byDate.set(date,(byDate.get(date)||0)+load);
+        }
+        return [...byDate.entries()].map(([date,value])=>({date,value})).sort((a,b)=>a.date.localeCompare(b.date));
+      }
+
+      function evolutionAerobicEfficiencySeries() {
+        const rows=[];
+        for(const activity of state.activities||[]){
+          if(!isRunningActivity(activity))continue;
+          const s=activity?.summary||{};
+          const date=String(s.date||"");
+          const distanceM=Number(s.distanceM), durationSec=Number(s.durationSec), hr=Number(s.averageHR);
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(distanceM)||distanceM<3000||!Number.isFinite(durationSec)||durationSec<=0||!Number.isFinite(hr)||hr<90||hr>190)continue;
+          const paceSecKm=durationSec/(distanceM/1000);
+          const threshold=latestLactatePoint();
+          const thresholdPace=Number(threshold?.paceSecKm);
+          const thresholdHr=Number(threshold?.heartRate);
+          if(Number.isFinite(thresholdPace)&&paceSecKm<thresholdPace*1.06)continue;
+          if(Number.isFinite(thresholdHr)&&hr>thresholdHr*.93)continue;
+          const speedMPerMin=distanceM/(durationSec/60);
+          const value=speedMPerMin/hr;
+          if(Number.isFinite(value)&&value>.4&&value<2.5)rows.push({date,value});
+        }
+        return rows.sort((a,b)=>a.date.localeCompare(b.date));
+      }
+
+      function evolutionPredictionHistory() {
+        return (state.metrics||[]).filter(row=>row?.type==="race-predictions"&&/^\d{4}-\d{2}-\d{2}$/.test(String(row?.date||"")))
+          .map(row=>({date:String(row.date),time5K:Number(row.time5K),time10K:Number(row.time10K),timeHalfMarathon:Number(row.timeHalfMarathon),timeMarathon:Number(row.timeMarathon)}))
+          .filter(row=>[row.time5K,row.time10K,row.timeHalfMarathon,row.timeMarathon].some(v=>Number.isFinite(v)&&v>0))
+          .sort((a,b)=>a.date.localeCompare(b.date));
       }
 
       function evolutionCompletedWeekVolumes(weeks=8) {
@@ -16024,68 +16318,43 @@
         return Number.isFinite(value)&&value>0?value:null;
       }
 
-      function evolutionForecastDelta(referenceSec, forecastSec) {
-        const ref=Number(referenceSec),forecast=Number(forecastSec);
-        if(!Number.isFinite(ref)||ref<=0||!Number.isFinite(forecast)||forecast<=0)return null;
-        const diff=Math.round(forecast-ref);
-        if(Math.abs(diff)<1)return "Mismo tiempo";
-        return diff<0
-          ? `${formatDuration(Math.abs(diff))} más rápido`
-          : `${formatDuration(diff)} más lento`;
+      function evolutionPredictionChartHtml(rows) {
+        if(!rows.length)return `<div class="card empty">Garmin no ha proporcionado histórico de predicciones suficiente.</div>`;
+        const defs=[
+          ["time5K","5K","var(--cyan)"],
+          ["time10K","10K","var(--green)"],
+          ["timeHalfMarathon","Media","var(--orange)"],
+          ["timeMarathon","Maratón","var(--purple)"]
+        ];
+        const width=720,height=350,left=58,right=18,top=42,bottom=50,plotW=width-left-right,plotH=height-top-bottom;
+        const values=[];for(const row of rows)for(const [key] of defs){const v=Number(row[key]);if(Number.isFinite(v)&&v>0)values.push(v);}
+        if(!values.length)return `<div class="card empty">Sin predicciones Garmin válidas.</div>`;
+        const min=Math.min(...values),max=Math.max(...values),pad=Math.max(30,(max-min)*.08),lo=min-pad,hi=max+pad;
+        const x=i=>left+(rows.length<=1?plotW/2:(i/(rows.length-1))*plotW);
+        const y=v=>top+((hi-v)/(hi-lo||1))*plotH;
+        const grid=[0,.25,.5,.75,1].map(r=>{const yy=top+r*plotH;return `<line x1="${left}" y1="${yy}" x2="${width-right}" y2="${yy}" stroke="var(--divider)"/>`;}).join("");
+        const lines=defs.map(([key,label,color])=>{const pts=rows.map((row,i)=>{const v=Number(row[key]);return Number.isFinite(v)&&v>0?`${x(i)},${y(v)}`:null;}).filter(Boolean).join(" " );return pts?`<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`:"";}).join("");
+        const idx=[0,Math.floor((rows.length-1)/2),rows.length-1].filter((v,i,a)=>v>=0&&a.indexOf(v)===i);
+        const ticks=idx.map(i=>`<text x="${x(i)}" y="${height-16}" text-anchor="middle" fill="var(--text-3)" font-size="10">${escapeHtml(rows[i].date.slice(5).replace('-', '/'))}</text>`).join("");
+        const current=rows[rows.length-1];
+        const legend=defs.map(([key,label,color])=>`<span><span class="legend-dot" style="background:${color}"></span>${label}${Number.isFinite(Number(current[key]))?` · ${escapeHtml(formatBestTime(current[key]))}`:""}</span>`).join("");
+        return `<div class="card"><div class="chart-wrap"><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Histórico de predicciones Garmin">${grid}${lines}${ticks}</svg></div><div class="chart-legend">${legend}</div></div>`;
       }
 
-      function evolutionForecastCard(def) {
-        const forecast=racePredictionTimeSec(def.key);
-        const best=evolutionBestMarkForForecast(def);
-        const ability=evolutionAbilityTimeSec(def.key);
-        const pace=forecast?formatPaceSeconds(forecast/(def.meters/1000)):"—";
-        const vsBest=best?evolutionForecastDelta(best.timeSec,forecast):null;
-        const vsAbility=ability?evolutionForecastDelta(ability,forecast):null;
-        const bestMeta=best
-          ? `${formatDuration(best.timeSec)}${vsBest?` · ${vsBest}`:""}`
-          : "Sin marca verificada";
-        const abilityMeta=ability
-          ? `${formatDuration(ability)}${vsAbility?` · ${vsAbility}`:""}`
-          : "Sin estimación suficiente";
-        return `<div class="card" style="margin-bottom:12px">
-          <div class="row">
-            <div>
-              <div class="row-title">🎯 ${escapeHtml(def.label)}</div>
-              <div class="row-meta">Pronóstico Garmin Connect</div>
-            </div>
-            <div style="text-align:right">
-              <div class="row-title">${forecast?escapeHtml(formatDuration(forecast)):"—"}</div>
-              <div class="row-meta">${forecast?escapeHtml(pace):"Sin pronóstico"}</div>
-            </div>
-          </div>
-          <div class="row" ${best?`data-best-activity-id="${escapeHtml(best.activityId)}" style="cursor:pointer"`:""}>
-            <div>
-              <div class="row-title">🏅 Mejor marca observada</div>
-              <div class="row-meta">${escapeHtml(bestMeta)}</div>
-            </div>
-            ${best?`<span class="chip">Abrir</span>`:`<span class="chip">—</span>`}
-          </div>
-          <div class="row">
-            <div>
-              <div class="row-title">🧠 Capacidad ATLAS</div>
-              <div class="row-meta">Estimación independiente del Training Engine</div>
-            </div>
-            <span class="chip">${escapeHtml(abilityMeta)}</span>
-          </div>
-        </div>`;
+      function evolutionPredictionComment(rows){
+        if(rows.length<2)return "Aún no hay suficiente histórico Garmin para interpretar una tendencia.";
+        const first=rows[0],last=rows[rows.length-1],defs=[["time5K","5K"],["time10K","10K"],["timeHalfMarathon","Media"],["timeMarathon","Maratón"]];
+        const changes=defs.map(([key,label])=>{const a=Number(first[key]),b=Number(last[key]);return Number.isFinite(a)&&a>0&&Number.isFinite(b)&&b>0?{label,diff:b-a}:null;}).filter(Boolean);
+        if(!changes.length)return "Garmin no ofrece puntos comparables suficientes para valorar la evolución.";
+        const avg=changes.reduce((s,r)=>s+r.diff,0)/changes.length;
+        if(Math.abs(avg)<10)return "Los pronósticos Garmin están prácticamente estables. La capacidad estimada se mantiene sin cambios relevantes.";
+        if(avg<0)return `Los pronósticos Garmin mejoran de forma conjunta. La señal más clara aparece en ${changes.sort((a,b)=>a.diff-b.diff)[0].label}.`;
+        return `Los pronósticos Garmin han empeorado recientemente. Conviene interpretarlo junto con carga, volumen y recuperación antes de modificar el plan.`;
       }
 
       function renderRaceForecasts() {
-        const available=EVOLUTION_FORECAST_DEFS.some(def=>racePredictionTimeSec(def.key));
-        return `<section class="section">
-          <h2 class="section-title">Pronósticos</h2>
-          ${available
-            ? EVOLUTION_FORECAST_DEFS.map(evolutionForecastCard).join("")
-            : `<div class="card empty">Garmin no ha proporcionado pronósticos de carrera actuales.</div>`}
-          <div class="card">
-            <div class="row-meta">El pronóstico, la mejor marca y la capacidad ATLAS son fuentes distintas. ATLAS no modifica unas para hacerlas coincidir con otras.</div>
-          </div>
-        </section>`;
+        const rows=evolutionPredictionHistory();
+        return `<section class="section"><h2 class="section-title">Predicciones</h2>${evolutionPredictionChartHtml(rows)}<div class="card"><div class="row-meta" style="font-size:13px;line-height:1.45">${escapeHtml(evolutionPredictionComment(rows))}</div></div></section>`;
       }
 
       function renderEvolution() {
@@ -16093,42 +16362,27 @@
         const lactate=latestLactatePoint();
         const volume7=runningVolumeKm(7);
         const load7=evolutionRunningLoad(7,0);
-        const loadPrev=evolutionRunningLoad(7,7);
         const vo2Trend=evolutionTrend(evolutionRecentSeries("vo2max",28),{higherIsBetter:true});
-        const thresholdTrend=evolutionTrend(
-          evolutionRecentSeries("lactate",56).map(row=>({date:row.date,value:row.paceSecKm})),
-          {higherIsBetter:false,minSamples:4,minSpanDays:10,relativeThreshold:.01}
-        );
+        const thresholdPaceTrend=evolutionTrend(evolutionRecentSeries("lactate",56).map(row=>({date:row.date,value:row.paceSecKm})),{higherIsBetter:false,minSamples:4,minSpanDays:10,relativeThreshold:.01});
+        const thresholdHrTrend=evolutionTrend(evolutionRecentSeries("lactate",56).map(row=>({date:row.date,value:row.heartRate})),{higherIsBetter:true,minSamples:4,minSpanDays:10,relativeThreshold:.01});
         const volumeTrend=evolutionVolumeTrend();
-        const loadChange=Number.isFinite(load7)&&Number.isFinite(loadPrev)&&loadPrev>0
-          ? `${((load7-loadPrev)/loadPrev*100)>=0?"+":""}${(((load7-loadPrev)/loadPrev)*100).toLocaleString("es-ES",{maximumFractionDigits:0})}% vs. 7 días previos`
-          : "Sin comparación suficiente";
-
+        const loadTrend=evolutionTrend(evolutionLoadSeries().slice(-28),{higherIsBetter:true,minSamples:4,minSpanDays:10,relativeThreshold:.05});
+        const efficiencySeries=evolutionAerobicEfficiencySeries();
+        const efficiencyLatest=efficiencySeries[efficiencySeries.length-1]||null;
+        const efficiencyTrend=evolutionTrend(efficiencySeries.slice(-20),{higherIsBetter:true,minSamples:4,minSpanDays:10,relativeThreshold:.01});
         return `
           ${header("Evolución")}
-
           <section class="section">
             <h2 class="section-title">Rendimiento</h2>
             <div class="activity-metric-grid canonical-grid-3 today-canonical-metrics">
               ${canonicalMetricHtml({emoji:"🫁",label:"VO₂ máx.",value:vo2?.value!=null?formatGarminDecimal(vo2.value):"—",unit:vo2?.value!=null?"ml/kg/min":"",secondary:evolutionTrendChip(vo2Trend),metricId:"vo2max"})}
-              ${canonicalMetricHtml({emoji:"🔥",label:"Umbral",value:lactate?formatPaceSeconds(lactate.paceSecKm):"—",unit:lactate?"min/km":"",secondValue:lactate?.heartRate!=null?String(Math.round(lactate.heartRate)):"—",secondUnit:lactate?.heartRate!=null?"ppm":"",metricId:"lactate"})}
-              ${canonicalMetricHtml({emoji:"📈",label:"Volumen",value:compactNumber(volume7,1),unit:"km",secondary:evolutionTrendChip(volumeTrend),metricId:"volume"})}
-              ${canonicalMetricHtml({emoji:"⚡",label:"Carga",value:Number.isFinite(load7)?String(Math.round(load7)):"—",unit:Number.isFinite(load7)?"carga 7 d":"",secondary:loadChange})}
+              ${canonicalMetricHtml({emoji:"🏃🏻‍♂️",label:"Ritmo umbral",value:lactate?formatPaceSeconds(lactate.paceSecKm):"—",unit:lactate?"min/km":"",secondary:evolutionTrendChip(thresholdPaceTrend),metricId:"lactate"})}
+              ${canonicalMetricHtml({emoji:"❤️",label:"FC umbral",value:lactate?.heartRate!=null?String(Math.round(lactate.heartRate)):"—",unit:lactate?.heartRate!=null?"ppm":"",secondary:evolutionTrendChip(thresholdHrTrend),metricId:"lactate"})}
+              ${canonicalMetricHtml({emoji:"📈",label:"Volumen",value:compactNumber(volume7,1),unit:"km · 7 d",secondary:evolutionTrendChip(volumeTrend),metricId:"volume"})}
+              ${canonicalMetricHtml({emoji:"⚡",label:"Carga",value:Number.isFinite(load7)?String(Math.round(load7)):"—",unit:Number.isFinite(load7)?"7 d":"",secondary:evolutionTrendChip(loadTrend),metricId:"load"})}
+              ${canonicalMetricHtml({emoji:"🫀",label:"Eficiencia aeróbica",value:efficiencyLatest?Number(efficiencyLatest.value).toFixed(2).replace(".",","):"—",unit:efficiencyLatest?"m/min/ppm":"",secondary:evolutionTrendChip(efficiencyTrend),metricId:"aerobic-efficiency"})}
             </div>
           </section>
-
-          <section class="section">
-            <h2 class="section-title">Tendencias</h2>
-            <div class="card">
-              <div class="row"><div><div class="row-title">🫁 VO₂ máx.</div><div class="row-meta">Medianas del histórico reciente · mínimo 4 muestras y 10 días</div></div><span class="chip">${escapeHtml(evolutionTrendChip(vo2Trend))}</span></div>
-              <div class="row"><div><div class="row-title">🔥 Umbral</div><div class="row-meta">Un ritmo menor se interpreta como mejora · sin inventar datos ausentes</div></div><span class="chip">${escapeHtml(evolutionTrendChip(thresholdTrend))}</span></div>
-              <div class="row"><div><div class="row-title">📈 Volumen</div><div class="row-meta">Compara 4 semanas completas recientes con las 4 anteriores</div></div><span class="chip">${escapeHtml(evolutionTrendChip(volumeTrend))}</span></div>
-              <div class="row"><div><div class="row-title">⚡ Carga de carrera</div><div class="row-meta">Suma de activityTrainingLoad disponible en Garmin · no se interpreta como rendimiento</div></div><span class="chip">${Number.isFinite(load7)?escapeHtml(String(Math.round(load7))):"—"}</span></div>
-            </div>
-          </section>
-
-          ${renderBestMarks()}
-
           ${renderRaceForecasts()}
         `;
       }
@@ -16383,10 +16637,11 @@
       }
 
       function renderZonesSection() {
-        const labels=["Z1 Recuperación","Z2 Aeróbica","Z3 Tempo","Z4 Umbral","Z5 VO₂ máx.","Z6 Anaeróbica"];
+        const labels=["Recuperación","Aeróbica","Tempo","Umbral","VO₂ máx.","Anaeróbica"];
+        const circles=["🔵","🟢","🟡","🟠","🔴","🟣"];
         const pace=atlasPaceZoneRows(), hr=atlasHrZoneRows();
-        const rows=labels.map((label,i)=>`<div class="zone-row"><div class="zone-name">${escapeHtml(label)}</div><div class="zone-value"><span>${pace.rows[i]?`${escapeHtml(pace.rows[i])} min/km`:"—"}</span><small>Ritmo</small></div><div class="zone-value"><span>${hr.rows[i]?`${escapeHtml(hr.rows[i])} ppm`:"—"}</span><small>FC</small></div></div>`).join("");
-        const body=`<div class="card"><div class="zone-source">${escapeHtml(pace.source)}</div><div class="zone-source">${escapeHtml(hr.source)}</div>${rows}<div class="zone-note">Las 6 zonas son propias de ATLAS y se calculan desde tu umbral de lactato observado; no replican las 5 zonas configuradas en Garmin.</div></div>`;
+        const rows=labels.map((label,i)=>`<tr><th><span class="zone-circle">${circles[i]}</span><span>Z${i+1} · ${escapeHtml(label)}</span></th><td>${pace.rows[i]?`${escapeHtml(pace.rows[i])}<small>min/km</small>`:"—"}</td><td>${hr.rows[i]?`${escapeHtml(hr.rows[i])}<small>ppm</small>`:"—"}</td></tr>`).join("");
+        const body=`<div class="card zones-table-card"><table class="zones-table"><thead><tr><th>Zona</th><th>Ritmo</th><th>FC</th></tr></thead><tbody>${rows}</tbody></table><div class="zone-note">Zonas ATLAS calculadas desde tu umbral de lactato observado.</div></div>`;
         return profileCollapsible("zones","🎯","Zonas",body);
       }
 
@@ -17576,6 +17831,8 @@
 
       function metricSeries(id) {
         if (id === "volume") return runningVolumeSeries();
+        if (id === "load") return evolutionLoadSeries();
+        if (id === "aerobic-efficiency") return evolutionAerobicEfficiencySeries();
         if (id === "lactate") return lactateThresholdSeries();
         if (id === "body-battery") return state.healthDays.map(bodyBatteryPointFromHealthDay).filter(Boolean).sort((a,b)=>a.date.localeCompare(b.date));
 
@@ -17709,6 +17966,8 @@
         if (id === "hrv") return `${Math.round(number)} ms`;
         if (id === "resting-hr") return `${Math.round(number)} ppm`;
         if (id === "volume") return `${number.toFixed(1).replace(".", ",")} km`;
+        if (id === "load") return `${Math.round(number)} carga`;
+        if (id === "aerobic-efficiency") return number.toFixed(2).replace(".", ",");
         if (id === "sleep") return `${number.toFixed(1).replace(".", ",")} h`;
         if (id === "body-battery") return `${Math.round(number)}/100`;
         return String(Math.round(number));
@@ -17725,9 +17984,9 @@
       function sleepScoreColor(score) {
         const value = Number(score);
         if (!Number.isFinite(value)) return "var(--text-3)";
-        if (value >= 90) return "var(--purple)";
-        if (value >= 80) return "var(--blue-active)";
-        if (value >= 60) return "var(--orange)";
+        if (value >= 90) return "var(--blue)";
+        if (value >= 80) return "var(--green)";
+        if (value >= 60) return "var(--yellow)";
         return "var(--red)";
       }
 
@@ -17876,7 +18135,7 @@
 
         if (isBars) {
           const slot = plotW / Math.max(rows.length, 1);
-          const barW = Math.max(2, Math.min(30, slot * .68));
+          const barW = Math.max(8, Math.min(46, slot * .9));
 
           marks = rows.map((item, index) => {
             const xx = x(index) - barW / 2;
@@ -17903,8 +18162,8 @@
                 : "";
 
             const labelY = Math.max(13, yy - 7);
-            const rotate = rows.length > 14;
-            const labelSize = rows.length > 24 ? 8 : rows.length > 14 ? 9 : 10;
+            const rotate = false;
+            const labelSize = rows.length <= 7 ? 15 : rows.length <= 31 ? 13 : 11;
 
             return `
               <rect x="${xx.toFixed(2)}" y="${yy.toFixed(2)}"
@@ -17999,7 +18258,7 @@
             const primary=formatMetricChartValue(id,item.value)
               .replace(/\s+(ms|ppm)$/i,"")
               .replace(/\/100$/i,"");
-            return `<text x="${x(index).toFixed(2)}" y="${Math.max(14,y(item.value)-10).toFixed(2)}" text-anchor="middle" fill="var(--text-2)" font-size="${state.metricRange==="7d"?11:10}">${escapeHtml(primary)}</text>`;
+            return `<text x="${x(index).toFixed(2)}" y="${Math.max(14,y(item.value)-10).toFixed(2)}" text-anchor="middle" fill="var(--text-2)" font-size="${rows.length<=7?16:rows.length<=31?12:10}" font-weight="700">${escapeHtml(primary)}</text>`;
           }).join("");
 
           marks = `
@@ -18015,6 +18274,7 @@
         return `
           <div class="chart-wrap">
             <svg viewBox="0 0 ${width} ${height}"
+              style="min-width:${isBars?Math.max(720,rows.length*(state.metricRange==="7d"?86:state.metricRange==="1m"?40:22)):720}px"
               role="img" aria-label="Histórico de la métrica">
               ${grid}
               ${marks}
@@ -18399,14 +18659,15 @@
           "sleep":{name:"💤 Sueño",unit:"duración"},
           "hrv":{name:"🫀 VFC",unit:"ms"},
           "resting-hr":{name:"❤️ FC reposo",unit:"ppm"},
-          "body-battery":{name:"🔋 Body Battery",unit:"energía"},
           "vo2max":{name:"VO₂ máx.",unit:"ml/kg/min"},
           "lactate":{name:"Umbral de lactato",unit:"ritmo + FC"},
-          "volume":{name:"Volumen",unit:"km de carrera"}
+          "volume":{name:"Volumen",unit:"km de carrera"},
+          "load":{name:"Carga",unit:"carga Garmin"},
+          "aerobic-efficiency":{name:"Eficiencia aeróbica",unit:"m/min/ppm"}
         };
         const definition=definitions[id]||{name:"Métrica",unit:""};
-        const allRows=metricSeries(id);
         const isBody=id==="body-battery";
+        const allRows=metricSeries(id);
         const lactateRange=id==="lactate"?lactateRowsForRange(allRows,state.metricRange):null;
         const rows=isBody?(allRows.length?[allRows[allRows.length-1]]:[]):id==="lactate"?lactateRange.rows:displayRowsForMetric(id,allRows,state.metricRange);
         const latest=allRows[allRows.length-1]||null;
@@ -18543,6 +18804,12 @@
           fitGroup([...grid.querySelectorAll(".activity-metric-subline")],12,8.2);
         });
 
+        document.querySelectorAll(".today-primary-grid").forEach(grid=>{
+          fitGroup([...grid.querySelectorAll(".activity-metric-label")],13,9);
+          fitGroup([...grid.querySelectorAll(".activity-metric-value")],29,17);
+          fitGroup([...grid.querySelectorAll(".activity-metric-subline")],12,8);
+        });
+
         fitGroup([...document.querySelectorAll(".running-dynamic-label")],13.5,8.5);
         fitGroup([...document.querySelectorAll(".running-dynamic-value")],25,12);
         fitGroup([...document.querySelectorAll(".analysis-chip-label")],11,8.5);
@@ -18559,7 +18826,8 @@
         };
         document.querySelectorAll(".plan-info-metrics").forEach(grid=>fit(grid.querySelectorAll(".activity-metric-value"),25,11.5));
         document.querySelectorAll(".plan-state-metrics").forEach(grid=>fit(grid.querySelectorAll(".canonical-metric:not(.plan-threshold-compact) .activity-metric-value"),25,11.5));
-        document.querySelectorAll(".plan-threshold-compact").forEach(card=>fit(card.querySelectorAll(".activity-metric-value"),18,11));
+        document.querySelectorAll(".plan-threshold-compact").forEach(card=>fit(card.querySelectorAll(".activity-metric-value"),11,7.5));
+        document.querySelectorAll(".plan-pace-grid").forEach(grid=>fit(grid.querySelectorAll(".plan-pace-label span:last-child"),12,8));
       }
 
       function fitVisibleSingleLineText() {
@@ -18574,6 +18842,18 @@
             size-=0.25;
             el.style.fontSize=`${size}px`;
           }
+        });
+      }
+
+      function bindChartPinchZoom() {
+        document.querySelectorAll(".chart-wrap svg,.laps-chart-wrap svg").forEach(svg=>{
+          if(svg.dataset.pinchBound)return;svg.dataset.pinchBound="1";
+          let startDistance=0,startScale=1,scale=1;
+          const distance=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+          svg.addEventListener("touchstart",e=>{if(e.touches.length===2){startDistance=distance(e.touches);startScale=scale;}},{passive:true});
+          svg.addEventListener("touchmove",e=>{if(e.touches.length!==2||!startDistance)return;e.preventDefault();scale=Math.max(1,Math.min(6,startScale*distance(e.touches)/startDistance));svg.style.transform=`scale(${scale})`;},{passive:false});
+          svg.addEventListener("touchend",e=>{if(e.touches.length<2)startDistance=0;},{passive:true});
+          svg.addEventListener("dblclick",()=>{scale=1;svg.style.transform="scale(1)";});
         });
       }
 
@@ -18630,6 +18910,7 @@
           saveBridge.addEventListener("click", async () => {
             const input = document.getElementById("bridge-url");
             await AtlasApp.saveBridgeUrl(input?.value || "");
+            window.alert("Worker guardado correctamente.");
           });
         }
 
@@ -18771,6 +19052,8 @@
         const planEditOpen = document.querySelector("[data-action='plan-edit-open']");
         if (planEditOpen) {
           planEditOpen.addEventListener("click", () => {
+            state.planDraft = state.planConfig ? {...state.planConfig, intermediateRaces:[...(state.planConfig.intermediateRaces||[])]} : state.planDraft;
+            state.planSecondaryEditor = null;
             navigate({ tab:"plan", view:"plan-create" });
           });
         }
@@ -18816,42 +19099,34 @@
           });
         });
 
-        const planSecondaryAdd = document.querySelector("[data-action='plan-secondary-add']");
-        if (planSecondaryAdd) {
-          planSecondaryAdd.addEventListener("click", () => {
-            const current = [...(state.planConfig?.intermediateRaces || state.planDraft?.intermediateRaces || [])];
-            const name = window.prompt("Nombre de la carrera secundaria:", "Carrera secundaria");
-            if (name == null) return;
-            const distanceKey = String(window.prompt("Distancia: 5K, 10K, HALF_MARATHON o MARATHON", "10K") || "").trim().toUpperCase();
-            if (!AtlasTrainingEngine.Distance[distanceKey]) { window.alert("Distancia no válida."); return; }
-            const date = String(window.prompt("Fecha (AAAA-MM-DD):", "") || "").trim();
-            if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) { window.alert("Fecha no válida."); return; }
-            const planStart=document.getElementById("plan-start-date")?.value || state.planConfig?.startDate || "";
-            const planRace=document.getElementById("plan-race-date")?.value || state.planConfig?.raceDate || "";
-            if (planStart && date <= planStart) { window.alert("La carrera secundaria debe ser posterior al inicio del plan."); return; }
-            if (planRace && date >= planRace) { window.alert("La carrera secundaria debe ser anterior a la carrera principal."); return; }
-            if (current.some(r=>r.date===date)) { window.alert("Ya existe una carrera secundaria en esa fecha."); return; }
-            const rawImportance=String(window.prompt("Importancia: training, test o important", "important")||"").trim().toLowerCase();
-            const importance=["training","test","important"].includes(rawImportance)?rawImportance:"important";
-            const timeRaw=String(window.prompt("Tiempo objetivo opcional (HH:MM:SS). Déjalo vacío si no procede:", "")||"").trim();
-            const targetTimeSec=timeRaw?targetTimeToSeconds(timeRaw):null;
-            current.push({name:name.trim()||"Carrera secundaria",distanceKey,date,importance,targetTimeSec});
-            current.sort((a,b)=>a.date.localeCompare(b.date));
-            const formDraft={...(state.planConfig||state.planDraft||{}),name:document.getElementById("plan-name")?.value?.trim()||"Plan",distanceKey:document.getElementById("plan-distance")?.value||"5K",startDate:document.getElementById("plan-start-date")?.value||"",raceDate:document.getElementById("plan-race-date")?.value||"",targetTimeSec:targetTimeToSeconds(document.getElementById("plan-target-time")?.value||""),availableDays:[...document.querySelectorAll("[data-plan-day]:checked")].map(n=>n.dataset.planDay),doublesPreference:document.getElementById("plan-doubles")?.value||"avoid",intermediateRaces:current};
-            state.planDraft=formDraft;
-            render({scrollMode:"preserve"});
-          });
-        }
-        document.querySelectorAll("[data-action='plan-secondary-remove']").forEach((button)=>{
-          button.addEventListener("click",()=>{
-            const current=[...(state.planConfig?.intermediateRaces||state.planDraft?.intermediateRaces||[])];
-            const index=Number(button.dataset.index);
-            if(Number.isInteger(index)&&index>=0&&index<current.length)current.splice(index,1);
-            const formDraft={...(state.planConfig||state.planDraft||{}),name:document.getElementById("plan-name")?.value?.trim()||"Plan",distanceKey:document.getElementById("plan-distance")?.value||"5K",startDate:document.getElementById("plan-start-date")?.value||"",raceDate:document.getElementById("plan-race-date")?.value||"",targetTimeSec:targetTimeToSeconds(document.getElementById("plan-target-time")?.value||""),availableDays:[...document.querySelectorAll("[data-plan-day]:checked")].map(n=>n.dataset.planDay),doublesPreference:document.getElementById("plan-doubles")?.value||"avoid",intermediateRaces:current};
-            state.planDraft=formDraft;
-            render({scrollMode:"preserve"});
-          });
+        const capturePlanDraft=()=>({
+          ...(state.planConfig||state.planDraft||{}),
+          name:document.getElementById("plan-name")?.value?.trim()||"Plan",
+          distanceKey:document.getElementById("plan-distance")?.value||"5K",
+          startDate:document.getElementById("plan-start-date")?.value||"",
+          raceDate:document.getElementById("plan-race-date")?.value||"",
+          targetTimeSec:targetTimeToSeconds(document.getElementById("plan-target-time")?.value||""),
+          availableDays:[...document.querySelectorAll("[data-plan-day]:checked")].map(n=>n.dataset.planDay),
+          doublesPreference:document.getElementById("plan-doubles")?.value||"avoid",
+          intermediateRaces:[...(state.planDraft?.intermediateRaces||state.planConfig?.intermediateRaces||[])]
         });
+        const planSecondaryAdd = document.querySelector("[data-action='plan-secondary-add']");
+        if(planSecondaryAdd)planSecondaryAdd.addEventListener("click",()=>{state.planDraft=capturePlanDraft();state.planSecondaryEditor="new";render({scrollMode:"preserve"});});
+        document.querySelectorAll("[data-action='plan-secondary-edit']").forEach(button=>button.addEventListener("click",()=>{state.planDraft=capturePlanDraft();state.planSecondaryEditor=Number(button.dataset.index);render({scrollMode:"preserve"});}));
+        document.querySelectorAll("[data-action='plan-secondary-remove']").forEach(button=>button.addEventListener("click",()=>{
+          const draft=capturePlanDraft(),index=Number(button.dataset.index);if(Number.isInteger(index)&&index>=0&&index<draft.intermediateRaces.length)draft.intermediateRaces.splice(index,1);state.planDraft=draft;state.planSecondaryEditor=null;render({scrollMode:"preserve"});
+        }));
+        document.querySelectorAll("[data-action='plan-secondary-cancel']").forEach(button=>button.addEventListener("click",()=>{state.planDraft=capturePlanDraft();state.planSecondaryEditor=null;render({scrollMode:"preserve"});}));
+        document.querySelectorAll("[data-action='plan-secondary-save']").forEach(button=>button.addEventListener("click",()=>{
+          const editor=button.closest("[data-secondary-editor]");if(!editor)return;
+          const get=name=>editor.querySelector(`[data-secondary-field='${name}']`)?.value||"";
+          const name=get("name").trim(),distanceKey=get("distanceKey"),date=get("date"),importance=get("importance"),targetTimeSec=targetTimeToSeconds(get("target"));
+          if(!name){window.alert("Escribe el nombre de la carrera.");return;}if(!/^\d{4}-\d{2}-\d{2}$/.test(date)){window.alert("Selecciona una fecha válida.");return;}
+          const draft=capturePlanDraft(),planStart=draft.startDate,planRace=draft.raceDate;if(planStart&&date<=planStart){window.alert("La carrera secundaria debe ser posterior al inicio del plan.");return;}if(planRace&&date>=planRace){window.alert("La carrera secundaria debe ser anterior a la carrera principal.");return;}
+          const index=button.dataset.index;const race={name,distanceKey,date,importance,targetTimeSec:targetTimeSec||null};
+          if(index==="new")draft.intermediateRaces.push(race);else draft.intermediateRaces[Number(index)]=race;
+          draft.intermediateRaces.sort((a,b)=>String(a.date).localeCompare(String(b.date)));state.planDraft=draft;state.planSecondaryEditor=null;render({scrollMode:"preserve"});
+        }));
 
         const planDraftSave = document.querySelector("[data-action='plan-draft-save']");
         if (planDraftSave) {
@@ -18869,7 +19144,7 @@
               doublesPreference: document.getElementById("plan-doubles")?.value || "avoid",
               phaseAllocationChoice:null,
               availabilityByWeek:state.planConfig?.availabilityByWeek || {},
-              intermediateRaces:state.planConfig?.intermediateRaces || state.planDraft?.intermediateRaces || [],
+              intermediateRaces:state.planDraft?.intermediateRaces || state.planConfig?.intermediateRaces || [],
               manualChanges:state.planConfig?.manualChanges || []
             });
 
@@ -18904,6 +19179,7 @@
             }
 
             state.planDraft = { ...nextPlan };
+            state.planSecondaryEditor = null;
             await AtlasApp.persistPlan(nextPlan);
 
             saveRouteScroll();
@@ -19026,7 +19302,7 @@
           }
           await persistManualSessionPatch(session.id,patch);state.planSessionAction=null;render({scrollMode:"preserve"});
         });
-        document.querySelectorAll("[data-action='session-move-pick']").forEach(button=>button.addEventListener("click",async()=>{
+        document.querySelectorAll("[data-action='session-move-pick']").forEach(button=>button.addEventListener("click",async(event)=>{event.preventDefault();event.stopPropagation();
           const session=planEngineSessionById(button.dataset.sessionId);if(!session)return;
           const date=String(button.dataset.date||"");
           const candidate=planMoveCandidate(session,date);
@@ -19074,6 +19350,7 @@
           fitVisibleSingleLineText();
           bindActivityLapSelection();
           initActivityMap();
+          bindChartPinchZoom();
           window.scrollTo(0, targetScroll);
         });
       }
