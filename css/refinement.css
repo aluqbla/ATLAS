@@ -1,0 +1,72 @@
+/* ATLAS v0.0.11 · Refinamiento canónico · una capa nueva de estilos, sin alterar tokens base. */
+.atlas-inline-icon{display:inline-block;vertical-align:-.15em;width:1.12em;height:1.12em;flex:0 0 auto;stroke:currentColor;color:inherit}
+.today-metric-icon .atlas-inline-icon,.activity-primary-icon .atlas-inline-icon{width:18px;height:18px}
+.today-section-title{font-size:24px;line-height:1.15;margin:19px 2px 9px;letter-spacing:-.4px}
+.today-state-caption{font-size:clamp(12px,3.6vw,14px);line-height:1.26;font-weight:730;color:#b4bcc3}
+.today-metric{gap:5px;padding:5px 0;min-width:0}.today-metric-label{font-size:clamp(8.2px,2.35vw,10.5px);letter-spacing:-.15px;font-weight:770}.today-metric-value{font-size:clamp(13px,3.85vw,17px);letter-spacing:-.42px}.today-metric-value small{font-size:.53em;margin-left:1px}.today-metric-meta{font-size:clamp(7.5px,2.3vw,9.6px);max-width:100%;text-overflow:clip}
+.today-metric-meta.sleep-good{color:#00ba7c}
+.today-state-detail-hero{display:grid;grid-template-columns:80px minmax(0,1fr);align-items:center;gap:15px;margin-bottom:13px}.today-state-detail-hero .today-ring{flex:none}.today-state-detail-hero .today-detail-lead{margin:0}.today-state-detail-hero .today-detail-description{margin:5px 0}
+.today-factor-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0;margin-top:15px}.today-factor{padding:12px 8px;border:0}.today-factor:nth-child(even){border-left:0}.today-factor-caption{line-height:1.4}
+.today-periods{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.today-period-button{padding:8px 5px;font-size:11px}.today-chart-container{overflow-x:auto;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:thin;margin:10px 0 2px}.today-chart{width:auto;height:235px;max-height:none;max-width:none}.today-zoom-buttons{display:flex;justify-content:flex-end;gap:6px}.today-zoom-buttons button{min-width:40px}
+.activity-row-title,.today-session-title,.plan-day-title{font-size:clamp(15px,4.15vw,17px);line-height:1.15;letter-spacing:-.22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;min-width:0}
+.activity-row-stats,.today-session-stats,.plan-day-copy>small{font-size:clamp(12px,3.15vw,13.4px);line-height:1.28;font-weight:590;color:#adb5bf;white-space:normal}.activity-row,.plan-day-row,.today-session{min-height:70px}.activity-row-copy,.today-session-copy{gap:6px}
+.activity-month-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:17px 2px 7px}.activity-month-heading .activity-month-title{margin:0}.activity-month-count{font-size:10px;color:#aab4be;white-space:nowrap;font-weight:720}
+.activity-detail-head h2{flex:1;font-size:clamp(16px,6vw,26px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+.activity-topline{gap:7px}.activity-quick-facts{gap:2px}.activity-fact{min-height:29px;gap:3px}.activity-fact-icon{flex-basis:18px;font-size:16px}.activity-fact-value{font-size:clamp(9px,2.55vw,11.5px);font-weight:800;overflow:hidden;white-space:nowrap;text-overflow:clip}.activity-fact:last-child .activity-fact-value{font-size:clamp(8px,2.45vw,11px)}
+.activity-equipment-demo{display:flex;gap:5px;align-items:baseline;flex-wrap:wrap;font-size:13px;color:#fff}.activity-equipment-demo strong{font-weight:820}.activity-equipment-demo span{font-size:11px;color:#aab4be}
+.activity-primary-item{gap:4px;min-height:95px}.activity-primary-label{font-size:clamp(8px,2.27vw,10px);color:#aeb6c0;line-height:1.18}.activity-primary-value{font-size:clamp(12px,3.65vw,16px);font-weight:835;letter-spacing:-.35px}.activity-primary-unit{font-size:.51em;color:#7e8994;font-weight:630;margin-left:1px}.activity-primary-item:nth-child(n+6)::before{height:2px;left:0;right:0;background:var(--atlas-divider)}
+.activity-analysis-demo{font-size:14px;line-height:1.6;text-align:justify;text-justify:inter-word;color:#d5dce2;margin:15px 2px 17px}
+.activity-laps-table{table-layout:fixed;min-width:0;width:100%}.activity-laps-table th{font-size:9px;padding:8px 1px}.activity-laps-table td{font-size:clamp(10px,2.9vw,13px);font-weight:800;letter-spacing:-.2px;padding:10px 1px;white-space:nowrap}.activity-laps-table td small{font-size:.66em;color:#8b96a0;font-weight:630}.activity-laps-table th:nth-child(1){width:7%}.activity-laps-table th:nth-child(2){width:17%}.activity-laps-table th:nth-child(3){width:21%}.activity-laps-table th:nth-child(4){width:19%}.activity-laps-table th:nth-child(5){width:19%}.activity-laps-table th:nth-child(6){width:17%}.activity-laps-table td.lap-ascent{color:#f4212e}.activity-laps-table td.lap-descent{color:#00ba7c}.activity-lap-group{background:#070b0e}.activity-lap-group td{text-align:left;color:#9ecbfa;font-size:12px!important;padding:11px 5px!important}.activity-lap-group .atlas-inline-icon{width:14px;height:14px}
+.plan-item{background:var(--atlas-blue);border:0;border-radius:15px;padding:15px 18px;margin:10px 0 14px;color:#fff;min-height:68px;box-shadow:0 7px 20px rgba(29,155,240,.18)}.plan-item span:last-child{color:#fff}
+.plan-week-header strong{font-size:clamp(19px,5.4vw,24px)}.plan-week-header small{font-size:12px;color:#aeb8c3;font-weight:750}
+.plan-day-row{grid-template-columns:49px 2px minmax(0,1fr)}.plan-day-copy{gap:6px}.plan-week-summary>div>small{font-size:11px}.plan-week-summary strong{font-size:17px}
+.plan-data-grid{position:relative;overflow:visible}.plan-data-grid::after{content:"";position:absolute;top:10px;bottom:10px;left:50%;width:2px;background:var(--atlas-divider);transform:translateX(-1px);pointer-events:none}.plan-data-cell:nth-child(even){border-left:0}.plan-data-cell{padding:8px 10px;min-height:69px}.plan-data-cell strong{font-size:clamp(14px,4.2vw,18px);white-space:normal;overflow-wrap:anywhere}.plan-data-cell strong em{font-style:normal;color:#8b96a1;font-size:.58em;font-weight:650;white-space:nowrap}.plan-data-cell:nth-child(n+3){border-top:2px solid var(--atlas-divider)}
+.plan-end-actions{display:grid;gap:10px;margin:25px 0 12px}.plan-end-actions button{min-height:48px;font-size:15px}.plan-section-trigger{font-size:20px}
+@media(max-width:359px){.today-metric-label{font-size:8px}.today-metric-value{font-size:12px}.today-metric-meta{font-size:7.1px}.activity-laps-table td{font-size:9.7px}.activity-fact-icon{flex-basis:15px}.activity-fact-value{font-size:9px}.plan-data-cell{padding-left:7px;padding-right:6px}}
+
+.activity-detail{z-index:1450!important}.activity-chart-tab .atlas-inline-icon{width:15px;height:15px}
+
+/* ATLAS v0.0.12 · ajustes solicitados · separadores sólidos con extremos libres */
+.today-factor-grid{position:relative}
+.today-factor:nth-child(even){border-left:0!important}
+.today-factor-grid::after{content:"";position:absolute;left:50%;top:10px;bottom:10px;width:2px;background:var(--atlas-divider);pointer-events:none;transform:translateX(-1px)}
+.plan-data-grid{grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}
+.plan-data-grid::after{display:none!important}
+.plan-data-cell:nth-child(even){border-left:0}
+.plan-data-cell:nth-child(n+3){border-top:0}
+.plan-data-cell:nth-child(n+4){border-top:2px solid var(--atlas-divider)}
+.plan-data-cell:not(:nth-child(3n)){border-right:0}
+.plan-data-cell:not(:nth-child(3n))::after{content:"";position:absolute;right:0;top:10px;bottom:10px;width:2px;background:var(--atlas-divider);pointer-events:none}
+.plan-data-cell{padding:8px 4px;min-width:0;min-height:75px}
+.plan-data-cell small{font-size:clamp(8px,2.4vw,10.5px)}
+.plan-data-cell strong{font-size:clamp(11px,3.2vw,15px);overflow-wrap:break-word}
+.plan-item{min-height:48px;padding:10px 13px;font-size:15px;border-radius:13px;margin:8px 0 11px;box-shadow:none}
+.today-session-date{gap:1px;justify-content:center!important}
+.today-session-weekday{font-size:9px;line-height:1.05;color:var(--atlas-text-secondary);font-weight:760}
+.today-session-copy{justify-content:center!important;align-self:center;min-height:70px}
+.today-session-stats{line-height:1.35}
+.today-metric-value{display:flex;justify-content:center;align-items:baseline;white-space:pre}
+.activity-primary-item{justify-content:center!important;padding-top:11px!important;padding-bottom:11px!important}
+.activity-topline--no-gps{display:block!important}
+.activity-topline--no-gps .activity-quick-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 12px}
+.activity-topline--no-gps .activity-fact{min-height:35px;justify-content:flex-start}
+.activity-topline--no-gps .activity-fact:last-child{grid-column:1/-1}
+
+/* Ritmos y resumen de sesión mantienen dos columnas; Información y Estado actual usan tres. */
+#plan-section-paces .plan-data-grid,.plan-session-metrics .plan-data-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+#plan-section-paces .plan-data-cell:nth-child(n+3),.plan-session-metrics .plan-data-cell:nth-child(n+3){border-top:2px solid var(--atlas-divider)}
+#plan-section-paces .plan-data-cell:nth-child(2n)::after,.plan-session-metrics .plan-data-cell:nth-child(2n)::after{display:none}
+#plan-section-paces .plan-data-cell:nth-child(odd)::after,.plan-session-metrics .plan-data-cell:nth-child(odd)::after{display:block}
+
+/* ATLAS v0.0.13 · ajuste fino solicitado */
+/* El contenido completo de las actividades realizadas en Hoy se centra
+   en vertical dentro de su misma fila, sin modificar la ficha canónica. */
+#today-last .activity-row{align-items:center;min-height:78px}
+#today-last .activity-row-date{align-self:stretch;justify-content:center}
+#today-last .activity-row-divider{align-self:stretch}
+#today-last .activity-row-copy{align-self:center;justify-content:center;padding-top:0;padding-bottom:0;gap:5px;min-height:0}
+#today-last .activity-row-title,#today-last .activity-row-stats{margin:0}
+/* El descanso no se confunde con sesiones deportivas ni al pulsarlo. */
+.plan-day-row--rest .plan-day-title,.plan-day-row--rest .plan-day-copy>small{color:var(--atlas-text-muted)!important;font-weight:700}
+.plan-day-row--rest .plan-day-date strong{color:var(--atlas-text-muted)}
+.plan-day-row--rest .plan-day-rule{opacity:.65}

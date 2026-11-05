@@ -1,0 +1,81 @@
+/* ATLAS v0.0.5 · Fase 1.4 · Navegación principal.
+   Sistema nuevo basado en los tokens canónicos; A2 es sólo referencia visual. */
+:root {
+  --atlas-nav-height: 68px;
+  --atlas-nav-bottom: 10px;
+  --atlas-nav-width: 410px;
+  --atlas-nav-radius: 30px;
+}
+
+.atlas-main {
+  width: 100%;
+  max-width: var(--atlas-canvas-max);
+  min-height: 0;
+  margin-inline: auto;
+  padding-inline: max(var(--atlas-gutter), var(--atlas-safe-left)) max(var(--atlas-gutter), var(--atlas-safe-right));
+  padding-bottom: calc(var(--atlas-nav-height) + var(--atlas-nav-bottom) + var(--atlas-safe-bottom) + 24px);
+}
+
+.atlas-view[hidden] { display: none !important; }
+.atlas-view { min-width: 0; }
+.atlas-view-heading { margin: var(--atlas-space-2) 0 0; }
+
+/* Barra flotante Liquid Glass, en la misma familia visual de A2. */
+.atlas-tabbar {
+  position: fixed;
+  z-index: 100;
+  bottom: calc(var(--atlas-nav-bottom) + var(--atlas-safe-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  gap: 0;
+  width: min(calc(100% - 20px - var(--atlas-safe-left) - var(--atlas-safe-right)), var(--atlas-nav-width));
+  height: var(--atlas-nav-height);
+  padding: 7px 9px;
+  border: 1px solid rgba(255,255,255,.24);
+  border-radius: var(--atlas-nav-radius);
+  background: rgba(39,39,46,.42);
+  box-shadow: 0 20px 58px rgba(0,0,0,.66), inset 0 1px 0 rgba(255,255,255,.21), inset 0 -1px 0 rgba(255,255,255,.04);
+  -webkit-backdrop-filter: blur(46px) saturate(210%);
+  backdrop-filter: blur(46px) saturate(210%);
+}
+.atlas-tab {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  padding: 4px 1px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--atlas-text-muted);
+  font: 500 10px/1.1 var(--atlas-font);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.atlas-tab[aria-selected="true"] { color: var(--atlas-text-strong); background: rgba(255,255,255,.075); }
+.atlas-tab:active { transform: scale(.95); }
+.atlas-tab:focus-visible { outline: 2px solid var(--atlas-blue); outline-offset: -2px; }
+.atlas-tab-icon { width: 22px; height: 22px; flex-shrink: 0; }
+.atlas-tab-label { white-space: nowrap; max-width: 100%; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .atlas-tabbar { background: rgba(33,34,39,.96); }
+}
+@media (max-width: 359px) {
+  .atlas-tabbar { width: calc(100% - 12px - var(--atlas-safe-left) - var(--atlas-safe-right)); padding-inline: 5px; }
+  .atlas-tab { font-size: 9px; }
+  .atlas-tab-icon { width: 20px; height: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .atlas-tab { transition: none; } }
+
+/* v0.0.13 · navegación con emojis (sin iconos vectoriales) */
+.atlas-tab-icon{display:grid;place-items:center;font-size:21px;line-height:1;width:26px;height:24px;flex-shrink:0;font-family:Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif}
+@media(max-width:359px){.atlas-tab-icon{font-size:19px;width:23px;height:22px}}

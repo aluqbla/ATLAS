@@ -1,0 +1,68 @@
+/* ATLAS v0.0.4 — tokens de identidad (1.1), adaptación (1.2) y componentes (1.3). */
+:root {
+  color-scheme: dark;
+
+  /* Lienzo y superficies de referencia A2. */
+  --atlas-bg: #000000;
+  --atlas-surface: #000000;
+  --atlas-surface-soft: #050607;
+  --atlas-glass: rgba(24, 25, 28, 0.30);
+
+  /* Texto y jerarquía semántica. */
+  --atlas-text: #f5f7f9;
+  --atlas-text-strong: #ffffff;
+  --atlas-text-secondary: #aab0b4;
+  --atlas-text-muted: #71767b;
+
+  /* Acentos canónicos extraídos de la referencia visual A2. */
+  --atlas-blue: #1d9bf0;
+  --atlas-green: #00ba7c;
+  --atlas-yellow: #ffd400;
+  --atlas-orange: #ff9f0a;
+  --atlas-red: #f4212e;
+  --atlas-purple: #bf5af2;
+
+  /* Separadores y textos auxiliares. */
+  --atlas-divider: rgba(255, 255, 255, 0.22);
+  --atlas-divider-strong: rgba(255, 255, 255, 0.31);
+
+  /* Sistema tipográfico: San Francisco en Apple; fuente de sistema en otros SO. */
+  --atlas-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  --atlas-font-size-body: 14px;
+  --atlas-font-size-small: 12px;
+  --atlas-font-size-caption: 10px;
+  --atlas-font-size-section: 21px;
+  --atlas-font-size-page: 32px;
+  --atlas-font-weight-regular: 400;
+  --atlas-font-weight-medium: 600;
+  --atlas-font-weight-bold: 800;
+  --atlas-line-height: 1.4;
+
+  /* Fase 1.2: escala única de espacios y dimensiones, mobile first. */
+  --atlas-space-1: 4px;
+  --atlas-space-2: 8px;
+  --atlas-space-3: 12px;
+  --atlas-space-4: 16px;
+  --atlas-space-5: 24px;
+  --atlas-space-6: 32px;
+  --atlas-canvas-max: 430px;
+  --atlas-gutter: 10px;
+  --atlas-header-top: 10px;
+  /* Fase 1.3: tokens exclusivos de componentes reutilizables. */
+  --atlas-divider-size: 2px;
+  --atlas-radius-panel: 18px;
+  --atlas-radius-control: 13px;
+  --atlas-radius-glass: 25px;
+  --atlas-touch-min: 44px;
+  --atlas-field-height: 48px;
+  --atlas-control-bg: #1c1c1e;
+  --atlas-blue-soft: rgba(29, 155, 240, .14);
+  --atlas-green-soft: rgba(0, 186, 124, .14);
+  --atlas-red-soft: rgba(244, 33, 46, .14);
+  --atlas-glass-line: rgba(255, 255, 255, .14);
+  --atlas-glass-shadow: 0 12px 30px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .12);
+  --atlas-safe-top: env(safe-area-inset-top, 0px);
+  --atlas-safe-right: env(safe-area-inset-right, 0px);
+  --atlas-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --atlas-safe-left: env(safe-area-inset-left, 0px);
+}

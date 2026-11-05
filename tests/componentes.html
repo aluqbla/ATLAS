@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>ATLAS · Laboratorio visual 1.3 (no forma parte de la aplicación)</title>
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/base.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .test-canvas { max-width:var(--atlas-canvas-max); margin:auto; padding:16px max(var(--atlas-gutter),var(--atlas-safe-left)) 40px; }
+    .test-block { margin:24px 0; }
+    .test-actions { display:flex; flex-wrap:wrap; gap:8px; }
+    .test-glass { padding:12px; }
+  </style>
+</head>
+<body>
+  <main class="test-canvas">
+    <p class="atlas-caption">LABORATORIO VISUAL · SOLO PARA VALIDACIÓN · SIN DATOS DEPORTIVOS</p>
+    <h1 class="atlas-page-title">ATLAS</h1>
+    <p class="atlas-copy">Muestra aislada de componentes. La aplicación real permanece en blanco.</p>
+    <section class="test-block atlas-stack" aria-label="Tipografía">
+      <h2 class="atlas-section-title">Jerarquía tipográfica</h2>
+      <h3 class="atlas-item-title">Título de elemento</h3>
+      <p class="atlas-copy">Texto secundario legible en móvil y escritorio.</p>
+      <p class="atlas-caption">Texto auxiliar y metadatos</p>
+    </section>
+    <hr class="atlas-divider">
+    <section class="test-block atlas-stack" aria-label="Botones">
+      <h2 class="atlas-section-title">Acciones</h2>
+      <div class="test-actions">
+        <button class="atlas-button atlas-button--primary" type="button">Principal</button>
+        <button class="atlas-button" type="button">Secundaria</button>
+        <button class="atlas-button atlas-button--quiet" type="button">Discreta</button>
+        <button class="atlas-button atlas-button--danger" type="button">Eliminar</button>
+        <button class="atlas-button" type="button" disabled>Inactiva</button>
+      </div>
+    </section>
+    <section class="test-block atlas-stack" aria-label="Formularios">
+      <h2 class="atlas-section-title">Controles</h2>
+      <div class="atlas-field-group"><label class="atlas-label" for="test-name">Texto</label><input id="test-name" class="atlas-field" placeholder="Escribe aquí"></div>
+      <div class="atlas-field-group"><label class="atlas-label" for="test-choice">Selección</label><select id="test-choice" class="atlas-field"><option>Opción de ejemplo</option></select></div>
+      <div class="test-actions"><span class="atlas-chip">Neutral</span><span class="atlas-chip atlas-chip--blue">Azul</span><span class="atlas-chip atlas-chip--green">Verde</span><span class="atlas-chip atlas-chip--red">Rojo</span></div>
+    </section>
+    <section class="test-block" aria-label="Retícula">
+      <h2 class="atlas-section-title">Métricas · presentación</h2>
+      <div class="atlas-panel atlas-grid">
+        <div class="atlas-grid-cell atlas-metric"><span class="atlas-metric-label">Etiqueta A</span><strong class="atlas-metric-value">123 <span class="atlas-unit">ud.</span></strong><span class="atlas-metric-note">Descripción</span></div>
+        <div class="atlas-grid-cell atlas-metric"><span class="atlas-metric-label">Etiqueta B</span><strong class="atlas-metric-value">45,6</strong><span class="atlas-metric-note">Descripción</span></div>
+        <div class="atlas-grid-cell atlas-metric"><span class="atlas-metric-label">Etiqueta C</span><strong class="atlas-metric-value">—</strong><span class="atlas-metric-note">Sin dato</span></div>
+        <div class="atlas-grid-cell atlas-metric"><span class="atlas-metric-label">Etiqueta larga</span><strong class="atlas-metric-value">78</strong><span class="atlas-metric-note">Descripción</span></div>
+      </div>
+    </section>
+    <section class="test-block" aria-label="Filas">
+      <h2 class="atlas-section-title">Filas canónicas</h2>
+      <div class="atlas-list">
+        <div class="atlas-list-row"><span class="atlas-list-leading">◉</span><div class="atlas-list-body"><p class="atlas-list-title">Elemento de ejemplo</p><p class="atlas-list-meta">Información secundaria</p></div><span class="atlas-list-trailing">›</span></div>
+        <div class="atlas-list-row"><span class="atlas-list-leading">◉</span><div class="atlas-list-body"><p class="atlas-list-title">Otro elemento con un título más extenso para comprobar la adaptación</p><p class="atlas-list-meta">Texto adaptable</p></div><span class="atlas-list-trailing">›</span></div>
+      </div>
+    </section>
+    <section class="test-block atlas-stack" aria-label="Material translúcido">
+      <h2 class="atlas-section-title">Material flotante</h2>
+      <div class="atlas-glass test-glass"><p class="atlas-copy">Muestra del material translúcido de A2, sin crear navegación.</p></div>
+    </section>
+  </main>
+</body>
+</html>

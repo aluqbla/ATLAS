@@ -1,18 +1,73 @@
-/* ATLAS v0.0.1 — base visual vacía. */
-:root {
-  color-scheme: dark;
-  background: #000;
+/* ATLAS v0.0.4 — Lienzo adaptable validado en Fase 1.2; sin navegación. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-html,
-body {
+html {
   width: 100%;
   min-height: 100%;
-  margin: 0;
-  background: #000;
+  background: var(--atlas-bg);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
   min-height: 100dvh;
-  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--atlas-bg);
+  color: var(--atlas-text);
+  font-family: var(--atlas-font);
+  font-size: var(--atlas-font-size-body);
+  font-weight: var(--atlas-font-weight-regular);
+  line-height: var(--atlas-line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* El encabezado continúa siendo el único elemento visible de la aplicación. */
+.atlas-brand {
+  display: block;
+  width: 100%;
+  max-width: var(--atlas-canvas-max);
+  margin-inline: auto;
+  padding-block-start: calc(var(--atlas-header-top) + var(--atlas-safe-top));
+  padding-inline-start: max(var(--atlas-gutter), var(--atlas-safe-left));
+  padding-inline-end: max(var(--atlas-gutter), var(--atlas-safe-right));
+  padding-block-end: var(--atlas-space-2);
+}
+
+.atlas-brand img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0;
+  object-fit: contain;
+}
+
+/* Pantallas muy estrechas: preservar un pequeño margen sin reducir el logo artificialmente. */
+@media (max-width: 359px) {
+  :root {
+    --atlas-gutter: 8px;
+    --atlas-header-top: 8px;
+  }
+}
+
+/* En iPad y escritorio se conserva el lienzo centrado, sin estirar la identidad. */
+@media (min-width: 768px) {
+  :root {
+    --atlas-gutter: 12px;
+    --atlas-header-top: 16px;
+  }
 }

@@ -1,0 +1,93 @@
+/* ATLAS v0.0.4 · Fase 1.3 · Componentes visuales canónicos.
+   Sin dependencias, lógica de dominio ni estilos copiados de A2.
+   Los componentes son optativos; la pantalla principal sigue vacía. */
+
+/* Jerarquía y texto */
+.atlas-page-title,
+.atlas-section-title,
+.atlas-item-title { margin: 0; color: var(--atlas-text-strong); }
+.atlas-page-title { font-size: var(--atlas-font-size-page); font-weight: 800; line-height: 1.15; letter-spacing: -.7px; }
+.atlas-section-title { font-size: var(--atlas-font-size-section); font-weight: 800; line-height: 1.2; letter-spacing: -.3px; }
+.atlas-item-title { font-size: 15px; font-weight: 750; line-height: 1.25; }
+.atlas-copy { margin: 0; color: var(--atlas-text-secondary); font-size: var(--atlas-font-size-body); line-height: 1.45; }
+.atlas-caption { margin: 0; color: var(--atlas-text-muted); font-size: var(--atlas-font-size-caption); line-height: 1.35; }
+.atlas-number { font-variant-numeric: tabular-nums; font-weight: 800; letter-spacing: -.35px; }
+.atlas-unit { font-size: .65em; font-weight: 600; color: var(--atlas-text-secondary); }
+.atlas-accent { color: var(--atlas-blue); }
+
+/* Superficies y separadores: lienzo negro, estructura interior visible. */
+.atlas-panel { min-width: 0; padding: var(--atlas-space-3); background: var(--atlas-surface); border: 0; border-radius: var(--atlas-radius-panel); }
+.atlas-divider { width: 100%; height: var(--atlas-divider-size); border: 0; margin: var(--atlas-space-3) 0; background: var(--atlas-divider); }
+.atlas-stack { display: flex; flex-direction: column; gap: var(--atlas-space-3); min-width: 0; }
+.atlas-row { display: flex; align-items: center; gap: var(--atlas-space-2); min-width: 0; }
+.atlas-row > * { min-width: 0; }
+.atlas-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); min-width: 0; }
+.atlas-grid > * { min-width: 0; }
+.atlas-grid > :nth-child(even) { border-left: var(--atlas-divider-size) solid var(--atlas-divider); }
+.atlas-grid > :nth-child(n+3) { border-top: var(--atlas-divider-size) solid var(--atlas-divider); }
+.atlas-grid-cell { min-width: 0; padding: var(--atlas-space-3); }
+
+/* Acciones: una sola gramática para los botones equivalentes. */
+.atlas-button {
+  appearance: none; display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--atlas-space-2); max-width: 100%; min-height: var(--atlas-touch-min);
+  padding: 10px 15px; border: 0; border-radius: var(--atlas-radius-control);
+  background: var(--atlas-control-bg); color: var(--atlas-text-strong);
+  font: 750 14px/1.2 var(--atlas-font); text-align: center; text-decoration: none;
+  cursor: pointer; touch-action: manipulation;
+}
+.atlas-button--primary { background: var(--atlas-blue); color: #fff; }
+.atlas-button--quiet { background: transparent; color: var(--atlas-blue); }
+.atlas-button--danger { background: var(--atlas-red-soft); color: var(--atlas-red); }
+.atlas-button:disabled { opacity: .45; cursor: not-allowed; }
+.atlas-button:active:not(:disabled) { filter: brightness(1.15); }
+.atlas-button:focus-visible,
+.atlas-field:focus-visible { outline: 2px solid var(--atlas-blue); outline-offset: 2px; }
+
+/* Etiquetas, campos y controles: nativos y accesibles. */
+.atlas-field-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.atlas-label { font-size: var(--atlas-font-size-small); font-weight: 700; color: var(--atlas-text-secondary); }
+.atlas-field {
+  appearance: none; width: 100%; min-width: 0; min-height: var(--atlas-field-height);
+  padding: 10px 12px; border: 1px solid transparent; border-radius: var(--atlas-radius-control);
+  background: var(--atlas-control-bg); color: var(--atlas-text-strong);
+  font: 600 16px/1.3 var(--atlas-font);
+}
+.atlas-field::placeholder { color: var(--atlas-text-muted); }
+.atlas-field:disabled { opacity: .55; }
+textarea.atlas-field { resize: vertical; min-height: 92px; }
+select.atlas-field { appearance: auto; }
+
+/* Etiquetas de estado: color semántico sin duplicar estructuras. */
+.atlas-chip { display: inline-flex; align-items: center; min-height: 25px; max-width: 100%; padding: 4px 9px;
+  border-radius: 999px; background: var(--atlas-control-bg); color: var(--atlas-text-secondary);
+  font-size: 11px; line-height: 1.2; font-weight: 700; }
+.atlas-chip--blue { background: var(--atlas-blue-soft); color: var(--atlas-blue); }
+.atlas-chip--green { background: var(--atlas-green-soft); color: var(--atlas-green); }
+.atlas-chip--red { background: var(--atlas-red-soft); color: var(--atlas-red); }
+
+/* Lecturas de métricas: estructura única, sin métricas ni valores de ejemplo en la aplicación. */
+.atlas-metric { min-width: 0; display: flex; flex-direction: column; gap: 3px; padding: var(--atlas-space-2) 3px; text-align: center; }
+.atlas-metric-label { color: var(--atlas-text-secondary); font-size: 11px; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; }
+.atlas-metric-value { color: var(--atlas-text-strong); font-size: 20px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.atlas-metric-note { color: var(--atlas-text-muted); font-size: 10px; line-height: 1.25; }
+
+/* Fila canónica reutilizable: se completará con datos en fases posteriores. */
+.atlas-list { display: flex; flex-direction: column; min-width: 0; }
+.atlas-list-row { position: relative; display: flex; align-items: center; gap: var(--atlas-space-3);
+  min-height: 62px; padding: 9px 3px; min-width: 0; color: inherit; background: transparent; }
+.atlas-list-row + .atlas-list-row { border-top: var(--atlas-divider-size) solid var(--atlas-divider); }
+.atlas-list-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.atlas-list-title { margin: 0; color: var(--atlas-text-strong); font-size: 13px; font-weight: 760; line-height: 1.2; overflow-wrap: anywhere; }
+.atlas-list-meta { margin: 0; color: var(--atlas-text-secondary); font-size: 11px; line-height: 1.25; overflow-wrap: anywhere; }
+.atlas-list-leading { flex: 0 0 auto; color: var(--atlas-text-secondary); }
+.atlas-list-trailing { flex: 0 0 auto; color: var(--atlas-blue); font-weight: 750; }
+
+/* Material translúcido sólo para futuras superficies flotantes. No crea navegación. */
+.atlas-glass { border: 1px solid var(--atlas-glass-line); border-radius: var(--atlas-radius-glass);
+  background: var(--atlas-glass); -webkit-backdrop-filter: blur(40px) saturate(190%);
+  backdrop-filter: blur(40px) saturate(190%); box-shadow: var(--atlas-glass-shadow); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .atlas-glass { background: rgba(31, 32, 38, .95); }
+}
+@media (prefers-reduced-motion: reduce) { .atlas-button { scroll-behavior: auto; } }
