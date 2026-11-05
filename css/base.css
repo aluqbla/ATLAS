@@ -1,0 +1,18 @@
+/* ATLAS v0.0.1 — base visual vacía. */
+:root {
+  color-scheme: dark;
+  background: #000;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  background: #000;
+}
+
+body {
+  min-height: 100dvh;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
