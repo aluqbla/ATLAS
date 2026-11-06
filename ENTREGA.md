@@ -1,18 +1,11 @@
-# ATLAS v0.0.25 — Ajustes de presentación y navegación
+# ATLAS v0.0.25 · Ajustes visuales y de navegación
 
-**Base:** v0.0.24 validada. **Fase 4:** no iniciada.
+**Base:** ATLAS v0.0.24 validada (Fase 3.5). No se reutiliza ninguna modificación de la v0.0.25 rechazada.
 
-## Modificaciones
-- Hoy: sueño con espacio (7h 48min), barras de Estado ATLAS según puntuación y retorno desde sesión propuesta a Hoy.
-- Actividades: encabezados de mes igualados a los encabezados de sesiones de Hoy.
-- Plan: separadores verticales con extremos libres; Objetivo numérico con tamaño normal; ficha prescrita accesible también para sesiones marcadas como realizadas; retorno desde subeditores a la ficha original; cambio de tipo y selección de ritmos disponibles mediante desplegable DEMO; calendario de cambio de fecha con filas canónicas; títulos que describen repeticiones en sesiones fraccionadas.
-- Evolución: «Ritmo umbral» y tamaño de «Pronósticos de carrera» igualado.
+**Archivos actualizados:** `js/today.js`, `js/plan.js`, `js/evolution.js`, `css/refinement.css`, `js/app.js`, `service-worker.js`, `tests/auditoria-estatica.mjs`.
 
-## Archivos actualizados
-`js/today.js`, `js/plan.js`, `js/evolution.js`, `css/refinement.css`, `js/app.js`, `service-worker.js`, `tests/auditoria-estatica.mjs` y este manifiesto de entrega.
+**Archivo nuevo:** `docs/AJUSTES-VISUALES-v0.0.25.md`.
 
-## Alcance
-Todos los datos y ediciones siguen siendo DEMO en memoria; ninguna escritura Garmin ni persistencia nueva. El esquema IndexedDB v1, repositorios y cacheo de recursos mantienen su funcionamiento. Se ha actualizado la clave de caché de aplicación, sin tocar el esquema de IndexedDB.
+**Sin cambios:** estructura de la aplicación, IndexedDB, migraciones, repositorios, modelo de datos, interfaz de otras pantallas, Worker y conexiones (no implementadas).
 
-## Validación
-La auditoría estática y sintáctica se ejecuta con `node tests/auditoria-estatica.mjs`. La comprobación manual de navegación, editores, diseño en iPhone y retorno entre pestañas queda pendiente.
+**Pruebas:** auditoría estática 6/6, sintaxis de scripts y comparación con la base. Navegación y presentación en móvil pendientes de validación manual.

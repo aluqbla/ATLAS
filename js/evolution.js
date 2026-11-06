@@ -24,7 +24,7 @@
     {id:'thresholdPace',icon:'🏃🏻‍♂️',name:'Ritmo umbral',full:'Umbral — ritmo',unit:'min/km',value:'4:31',type:'line',
       description:'Ritmo de carrera asociado al umbral de lactato; se presenta como referencia externa y no se estima automáticamente en ATLAS.',
       insight:'Un ritmo de umbral más rápido, manteniendo una sensación de esfuerzo comparable, suele reflejar una mejora útil para distancias largas.'},
-    {id:'thresholdHr',icon:'❤️',name:'Umbral FC',full:'Umbral — frecuencia cardíaca',unit:'ppm',value:'174',type:'line',
+    {id:'thresholdHr',icon:'❤️',name:'FC Umbral',full:'Umbral — frecuencia cardíaca',unit:'ppm',value:'174',type:'line',
       description:'Frecuencia cardíaca correspondiente al umbral de lactato, distinta de la frecuencia cardíaca máxima.',
       insight:'Combínala con el ritmo y las sensaciones: una cifra aislada puede cambiar por el método de medición o las condiciones del día.'},
     {id:'volume',icon:'📏',name:'Volumen',full:'Volumen de carrera',unit:'km',value:'48',type:'bar',

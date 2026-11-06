@@ -22,7 +22,7 @@
     ].map((s,i)=>({id:`demo-session-${i+1}`,date:s[0],kind:s[1],km:s[2],detail:s[3],done:s[0]<iso(new Date())}))
   };
   const clone=x=>JSON.parse(JSON.stringify(x));
-  let plans=[clone(template)],activeId=null,week=weekOf(iso(new Date())),editor=null,sessionId=null,focusReturn=null;let draftSecondary=[];let sessionChild=false,sessionParentId=null,openedFromToday=false;
+  let plans=[clone(template)],activeId=null,week=weekOf(iso(new Date())),editor=null,sessionId=null,focusReturn=null,sessionOrigin=null;let draftSecondary=[];
   const current=()=>plans.find(p=>p.id===activeId);
   const contents={};
   root.innerHTML=`<div class="plan-head"><h1 class="atlas-page-title">Plan</h1><button class="plan-icon-action" id="plan-add" type="button" aria-label="Crear plan simulado">＋</button></div><div class="plan-demo">DEMO · SIMULADO</div><p class="plan-note">Planificación ficticia para validar la interfaz. Los cambios no se guardan al cerrar.</p><div id="plan-list"></div><div id="plan-main-calendar"></div>`;
@@ -31,25 +31,29 @@
   document.body.append(shell,modal);
   const full=(node,open)=>{node.hidden=!open;document.body.classList.toggle('plan-subpage-open',!shell.hidden||!modal.hidden);};
   function closeEditor(){
-    if(sessionChild&&sessionParentId){const id=sessionParentId;sessionChild=false;sessionParentId=null;openSession(id);return;}
+    const previous=editor,returnId=sessionId,origin=sessionOrigin;
     full(modal,false);editor=null;sessionId=null;
-    if(openedFromToday){full(shell,false);activeId=null;openedFromToday=false;focusReturn?.focus?.();}
+    if(previous==='sub'&&returnId&&current()?.sessions.some(s=>s.id===returnId)){openSession(returnId);return;}
+    if(previous==='session'&&origin==='today'){
+      full(shell,false);activeId=null;sessionOrigin=null;draw();focusReturn?.focus?.();
+    }
+    if(previous==='session')sessionOrigin=null;
   }
-  function returnSession(id){sessionChild=false;sessionParentId=null;renderWorkspace();openSession(id);}
-  function closeWorkspace(){if(!modal.hidden)closeEditor();full(shell,false);activeId=null;openedFromToday=false;draw();focusReturn?.focus?.();}
-  function openWorkspace(id,source){activeId=id;focusReturn=source||document.activeElement;renderWorkspace();full(shell,true);$('#plan-workspace-back').focus();}
+  function closeWorkspace(){if(!modal.hidden){editor='session';sessionOrigin=null;closeEditor();}full(shell,false);activeId=null;sessionOrigin=null;draw();focusReturn?.focus?.();}
+  function openWorkspace(id,source){sessionOrigin=null;activeId=id;focusReturn=source||document.activeElement;renderWorkspace();full(shell,true);$('#plan-workspace-back').focus();}
   const action=(txt,fn,cls='atlas-button atlas-button--quiet')=>{const b=document.createElement('button');b.type='button';b.className=cls;b.textContent=txt;b.addEventListener('click',fn);return b;};
   const days=['L','M','X','J','V','S','D'];
   function clock(sec){if(!Number.isFinite(sec)||sec<0)return '—';sec=Math.round(sec);const h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),ss=String(sec%60).padStart(2,'0');return h?`${h}:${String(m).padStart(2,'0')}:${ss}`:`${m}:${ss}`;}
   function estimated(s){const dur=sessionDuration(s);const pace=sessionPace(s);return s.km?`${s.km} km · ${dur} · ${pace}`:`${dur} · ${s.detail}`;}
   function sessionTitle(s){
-    const reps=s.detail.match(/(\d+)\s*[×x]\s*(\d+(?:[.,]\d+)?)\s*(km|m|s)/i);
-    if(reps&&['threshold','intervals'].includes(s.kind))return `${label[s.kind]}: ${reps[1]} × ${reps[2]} ${reps[3]}`;
-    if(s.kind==='race')return 'Competición';
-    return label[s.kind]||s.kind;
+    const base=label[s.kind]||s.kind;
+    if(['threshold','intervals'].includes(s.kind)){
+      const m=String(s.detail||'').match(/(\d+)\s*[×x]\s*(\d+(?:[.,]\d+)?)\s*(km|m|s)/i);
+      if(m)return `${base}: ${m[1]} × ${m[2]} ${m[3]}`;
+    }
+    return base;
   }
   function row(s,interactive=true){const dt=date(s.date);const button=document.createElement(interactive?'button':'div');button.className='plan-day-row'+(s.kind==='rest'?' plan-day-row--rest':'');if(interactive)button.type='button';button.innerHTML=`<span class="plan-day-date"><small>${fmt(s.date,{weekday:'short'}).toUpperCase()}</small><strong>${dt.getDate()}</strong><small>${fmt(s.date,{month:'short'}).toUpperCase()}</small></span><span class="plan-day-rule"></span><span class="plan-day-copy"><span class="plan-day-title">${ico[s.kind]||'🏃🏻‍♂️'} ${esc(sessionTitle(s))} ${s.done?'<span class="plan-done">✓</span>':''}</span><small>${s.kind==='rest'?'':`${esc(estimated(s))}`}</small></span>`;if(interactive&&s.kind!=='rest')button.addEventListener('click',()=>{
-      // Una sesión prescrita siempre conserva su ficha, incluso cuando figura como realizada.
       if(!activeId){const p=plans.find(p=>p.sessions.some(x=>x.id===s.id));if(p)openWorkspace(p.id,button);}
       openSession(s.id);
     });return button;}
@@ -69,11 +73,11 @@
   function drawCalendars(){calendar(plans[0],'#plan-main-calendar');if(activeId&&contents.workouts)calendar(current(),contents.workouts,'workouts');}
   function draw(){const list=$('#plan-list');list.replaceChildren();for(const p of plans){const btn=action('',()=>openWorkspace(p.id,btn),'plan-item');btn.innerHTML=`<span class="plan-item-title">${esc(p.name)}</span><span class="plan-item-chevron" aria-hidden="true">›</span>`;list.append(btn);}if(!plans.length)list.innerHTML='<p class="plan-note">No hay planes simulados. Pulsa ＋ para crear uno.</p>';calendar(plans[0],'#plan-main-calendar');}
   function section(title,emoji,id,renderer,expanded=false){const el=document.createElement('section');el.className='plan-section';const button=action('',()=>{const open=body.hidden;body.hidden=!open;button.setAttribute('aria-expanded',String(open));button.querySelector('.plan-chevron').textContent=open?'⌄':'›';if(open)renderer(body);},'plan-section-trigger');button.innerHTML=`<span>${emoji} ${title}</span><span class="plan-chevron">${expanded?'⌄':'›'}</span>`;button.setAttribute('aria-expanded',String(expanded));const body=document.createElement('div');body.className='plan-section-body';body.hidden=!expanded;body.id='plan-section-'+id;el.append(button,body);contents[id]=body;if(expanded)renderer(body);return el;}
-  const tile=(name,value,emoji)=>{const parts=String(value).match(/^(.*?)(?:\s+(min\/km|ppm|km|semanas|sem|m|W))?$/);const v=parts?.[1]||value,u=parts?.[2]||'';return `<div class="plan-data-cell ${name==='Objetivo'&&!/^\d+:\d{2}/.test(String(value))?'plan-data-cell--status':name==='Distancia'&&String(value)==='Media maratón'?'plan-data-cell--distance-long':''}"><small>${emoji} ${esc(name)}</small><strong>${esc(v)}${u?` <em>${esc(u)}</em>`:''}</strong></div>`;};
+  const tile=(name,value,emoji)=>{const parts=String(value).match(/^(.*?)(?:\s+(min\/km|ppm|km|semanas|sem|m|W))?$/);const v=parts?.[1]||value,u=parts?.[2]||'';return `<div class="plan-data-cell ${name==='Objetivo'&&String(value).includes('Pendiente')?'plan-data-cell--status':name==='Distancia'&&String(value)==='Media maratón'?'plan-data-cell--distance-long':''}"><small>${emoji} ${esc(name)}</small><strong>${esc(v)}${u?` <em>${esc(u)}</em>`:''}</strong></div>`;};
   const grid=arr=>`<div class="plan-data-grid">${arr.map(a=>tile(...a)).join('')}</div>`;
   function fitPlanGrid(container){requestAnimationFrame(()=>{
     const cells=[...container.querySelectorAll('.plan-data-cell')];if(!cells.length)return;
-    const labels=cells.map(c=>c.querySelector('small'));const values=cells.filter(c=>!c.classList.contains('plan-data-cell--status')&&!c.classList.contains('plan-data-cell--distance-long')).map(c=>c.querySelector('strong'));
+    const labels=cells.map(c=>c.querySelector('small'));const values=cells.filter(c=>!c.classList.contains('plan-data-cell--status')).map(c=>c.querySelector('strong'));
     function fit(nodes,max,min){let low=min,high=max;function test(size){nodes.forEach(n=>n.style.fontSize=size+'px');return nodes.every(n=>n.scrollWidth<=n.clientWidth+1&&n.scrollHeight<=Math.ceil(size*1.5));}for(let i=0;i<9;i++){let m=(low+high)/2;if(test(m))low=m;else high=m;}nodes.forEach(n=>n.style.fontSize=low.toFixed(2)+'px');}
     fit(labels,14,11);fit(values,21,12);cells.filter(c=>c.classList.contains('plan-data-cell--status')||c.classList.contains('plan-data-cell--distance-long')).forEach(c=>{const n=c.querySelector('strong');let size=20;while(size>11&&n.scrollWidth>n.clientWidth+1){size-=.5;n.style.fontSize=size+'px';}});
   });}
@@ -91,12 +95,12 @@
     const options=p.publication==='published'?[['Actualizar plan','published'],['Retirar plan','draft']]:[['Publicar plan en Garmin Connect','published']];
     for(const [name,next] of options){group.append(action(name+' · DEMO',()=>{p.publication=next;drawCalendars();publish(body);},'atlas-button '+(next==='draft'?'atlas-button--quiet':'atlas-button--primary')));}}
   function workouts(body){calendar(current(),body,'workouts');}
-  function renderWorkspace(){const p=current();if(!p)return;const expanded=[...document.querySelectorAll('#plan-sections .plan-section-trigger[aria-expanded="true"]')].map(b=>b.parentElement.querySelector('.plan-section-body')?.id?.replace('plan-section-','')); $('#plan-workspace-name').textContent=p.name;const list=$('#plan-sections');list.replaceChildren();Object.keys(contents).forEach(k=>delete contents[k]);list.append(section('Información','🏁','info',info,expanded.includes('info')),section('Estado actual','📋','state',state,expanded.includes('state')),section('Ritmos','⏱️','paces',paces,expanded.includes('paces')),section('Disponibilidad','📆','availability',availability,expanded.includes('availability')),section('Entrenamientos','🏃🏻‍♂️','workouts',workouts,expanded.includes('workouts')),section('Publicación','☁️','publish',publish,expanded.includes('publish')));
+  function renderWorkspace(){const p=current();if(!p)return;$('#plan-workspace-name').textContent=p.name;const list=$('#plan-sections');list.replaceChildren();Object.keys(contents).forEach(k=>delete contents[k]);list.append(section('Información','🏁','info',info),section('Estado actual','📋','state',state),section('Ritmos','⏱️','paces',paces),section('Disponibilidad','📆','availability',availability),section('Entrenamientos','🏃🏻‍♂️','workouts',workouts),section('Publicación','☁️','publish',publish));
     const actions=document.createElement('div');actions.className='plan-end-actions';actions.append(action('Editar plan',()=>openPlanEditor(p.id),'atlas-button atlas-button--primary'),action('Eliminar plan',()=>{if(!confirm('¿Eliminar este plan simulado?'))return;plans=plans.filter(x=>x.id!==p.id);closeWorkspace();},'atlas-button atlas-button--danger'));list.append(actions);
   }
   function openForm(title,html,onSubmit){const heading=$('#plan-editor-title'),top=modal.querySelector('.plan-overlay-top'),inner=modal.querySelector('.plan-overlay-inner');inner.insertBefore(heading,top.nextSibling);top.querySelector('.plan-session-top-title')?.remove();modal.classList.toggle('plan-prescription-open',html.includes('plan-prescription-date'));heading.textContent=title;if(modal.classList.contains('plan-prescription-open')){const topTitle=document.createElement('span');topTitle.className='plan-session-top-title';topTitle.textContent=title;top.append(topTitle);heading.hidden=true;}else heading.hidden=false;const host=$('#plan-editor-content');host.innerHTML=html;const form=host.querySelector('form');form?.addEventListener('submit',e=>{e.preventDefault();onSubmit(new FormData(form),form);});full(modal,true);host.querySelector('input, select, button')?.focus();}
   const f=(label,name,type,value='',more='')=>`<label class="plan-form-field"><span>${label}</span><input class="atlas-field" name="${name}" type="${type}" value="${esc(value)}" ${more}></label>`;
-  function openPlanEditor(id=null){const p=id?plans.find(x=>x.id===id):null;draftSecondary=clone(p?.secondary||[]);const start=p?.start||'2026-11-09',race=p?.race||'2027-02-21';const html=`<form class="plan-form">${f('Nombre','name','text',p?.name||'', 'required maxlength="100"')}<div class="plan-two-cols"><label class="plan-form-field"><span>Distancia</span><select class="atlas-field" name="distance">${['5 km','10 km','Media maratón','Maratón'].map(x=>`<option ${p?.distance===x?'selected':''}>${x}</option>`).join('')}</select></label>${f('Objetivo','goal','text',p?.goal||'3:30:00','required pattern="[0-9]{1,2}:[0-5][0-9]:[0-5][0-9]" title="Horas:minutos:segundos"')}</div><div class="plan-two-cols">${f('Fecha de inicio','start','date',start,'required')}${f('Fecha de la carrera','race','date',race,'required')}</div><div class="plan-form-field"><span>Disponibilidad semanal</span><div class="plan-weekday-picker" id="plan-form-days">${days.map((d,i)=>`<button type="button" data-day="${i+1}" aria-pressed="${p?p.days.includes(i+1):[1,2,3,4,5,6].includes(i+1)}">${d}</button>`).join('')}</div></div><div class="plan-form-field"><span>Carreras secundarias</span><div id="plan-secondary-draft"></div><button type="button" id="plan-secondary-add" class="plan-minor-action">＋ Añadir carrera secundaria</button></div><label class="plan-form-check"><input type="checkbox" name="doubles" ${p?.doubles?'checked':''}> Permitir dobles sesiones</label><label class="plan-form-field"><span>Archivo de carrera (opcional · sólo demostración)</span><input class="atlas-field" type="file" name="racefile" accept=".gpx,.fit,.tcx"><small>El archivo no se lee, almacena ni sube.</small></label><button class="atlas-button atlas-button--primary plan-submit" type="submit">${p?'Guardar cambios DEMO':'Crear plan DEMO'}</button></form>`;
+  function openPlanEditor(id=null){editor='plan';sessionOrigin=null;const p=id?plans.find(x=>x.id===id):null;draftSecondary=clone(p?.secondary||[]);const start=p?.start||'2026-11-09',race=p?.race||'2027-02-21';const html=`<form class="plan-form">${f('Nombre','name','text',p?.name||'', 'required maxlength="100"')}<div class="plan-two-cols"><label class="plan-form-field"><span>Distancia</span><select class="atlas-field" name="distance">${['5 km','10 km','Media maratón','Maratón'].map(x=>`<option ${p?.distance===x?'selected':''}>${x}</option>`).join('')}</select></label>${f('Objetivo','goal','text',p?.goal||'3:30:00','required pattern="[0-9]{1,2}:[0-5][0-9]:[0-5][0-9]" title="Horas:minutos:segundos"')}</div><div class="plan-two-cols">${f('Fecha de inicio','start','date',start,'required')}${f('Fecha de la carrera','race','date',race,'required')}</div><div class="plan-form-field"><span>Disponibilidad semanal</span><div class="plan-weekday-picker" id="plan-form-days">${days.map((d,i)=>`<button type="button" data-day="${i+1}" aria-pressed="${p?p.days.includes(i+1):[1,2,3,4,5,6].includes(i+1)}">${d}</button>`).join('')}</div></div><div class="plan-form-field"><span>Carreras secundarias</span><div id="plan-secondary-draft"></div><button type="button" id="plan-secondary-add" class="plan-minor-action">＋ Añadir carrera secundaria</button></div><label class="plan-form-check"><input type="checkbox" name="doubles" ${p?.doubles?'checked':''}> Permitir dobles sesiones</label><label class="plan-form-field"><span>Archivo de carrera (opcional · sólo demostración)</span><input class="atlas-field" type="file" name="racefile" accept=".gpx,.fit,.tcx"><small>El archivo no se lee, almacena ni sube.</small></label><button class="atlas-button atlas-button--primary plan-submit" type="submit">${p?'Guardar cambios DEMO':'Crear plan DEMO'}</button></form>`;
     openForm(p?'Editar plan simulado':'Crear plan simulado',html,(data,form)=>{const chosen=[...form.querySelectorAll('#plan-form-days [aria-pressed="true"]')].map(x=>Number(x.dataset.day));if(!chosen.length){alert('Selecciona al menos un día disponible.');return;}if(data.get('race')<data.get('start')){alert('La competición no puede ser anterior al inicio.');return;}const patch={name:String(data.get('name')).trim(),distance:data.get('distance'),goal:data.get('goal'),start:data.get('start'),race:data.get('race'),days:chosen,doubles:data.has('doubles')};if(p)Object.assign(p,{...patch,secondary:clone(draftSecondary)});else{const newP={...patch,id:`demo-plan-${Date.now()}`,publication:'draft',secondary:clone(draftSecondary),sessions:[]};plans.push(newP);}closeEditor();draw();if(p)renderWorkspace();});
     const secondaryArea=$('#plan-secondary-draft');function renderDraft(){secondaryArea.replaceChildren();for(const entry of draftSecondary){const div=document.createElement('div');div.className='plan-secondary-row';div.innerHTML=`<span><strong>${esc(entry.name)}</strong><small>${esc(entry.date)} · ${esc(entry.distance)} · ${esc(entry.importance)}</small></span>`;div.append(action('Quitar',()=>{draftSecondary=draftSecondary.filter(x=>x.id!==entry.id);renderDraft();},'plan-minor-action'));secondaryArea.append(div);}}renderDraft();
     $('#plan-secondary-add').addEventListener('click',()=>{const name=prompt('Nombre de la carrera secundaria');if(!name?.trim())return;const day=prompt('Fecha (AAAA-MM-DD)','2027-01-17');if(!day||!/^\d{4}-\d{2}-\d{2}$/.test(day))return;const distance=prompt('Distancia (5 km, 10 km, 21,097 km...)','10 km')||'10 km';const importance=prompt('Importancia (Test, Entrenamiento o Competición)','Test')||'Test';draftSecondary.push({id:`sec-${Date.now()}`,name:name.trim(),date:day,distance,importance});renderDraft();});
@@ -120,43 +124,41 @@
     const structure=isIntervals?(()=>{const match=s.detail.match(/(\d+)\s*[×x]\s*(\d+(?:[.,]\d+)?)\s*(km|m)/i);return `<div class="plan-structure-lines"><p>🔥 <strong>Calentamiento</strong><span>Sin desglose DEMO</span></p><p>⚡ <strong>Bloque principal</strong><span>${esc(match?`${match[1]} × ${match[2]} ${match[3]} · ${sessionPace(s)}`:s.detail)}</span></p><p>❄️ <strong>Enfriamiento</strong><span>Sin desglose DEMO</span></p></div>`;})():`<p class="plan-prescription-copy">${esc(sessionStructure(s))}</p>`;
     const pace=sessionPace(s).replace(/ min\/km$/,'');
     openForm(`${ico[s.kind]||'🏃🏻‍♂️'} ${sessionTitle(s)}`,`<div class="plan-prescription-date">${esc(fmt(s.date,{weekday:'long',day:'numeric',month:'long',year:'numeric'}).replace(/^./,c=>c.toUpperCase()))}</div><div class="plan-prescription-metrics"><div><small>Distancia</small><strong>${s.km?esc(String(s.km)):'—'} <em>${s.km?'km':''}</em></strong></div><div><small>Tiempo</small><strong>${esc(sessionDuration(s))}</strong></div><div><small>Ritmo</small><strong>${esc(pace)}${pace!=='—'?'<em>min/km</em>':''}</strong></div></div><h3 class="plan-form-subtitle">Estructura</h3>${structure}${isIntervals?sessionIntervalGraph(s):''}<h3 class="plan-form-subtitle">Objetivo</h3><p class="plan-prescription-copy">${esc(sessionPurpose(s))}</p><div class="plan-session-actions"><button class="atlas-button atlas-button--primary" type="button" id="plan-edit-session">Editar sesión</button><button class="atlas-button" type="button" id="plan-move-session">Cambiar fecha</button><button class="atlas-button atlas-button--danger" type="button" id="plan-remove-session">Eliminar sesión</button></div>`,null);
+    editor='session';
     $('#plan-edit-session').addEventListener('click',()=>openSessionEditor(id));$('#plan-move-session').addEventListener('click',()=>openMoveEditor(id));$('#plan-remove-session').addEventListener('click',()=>{if(!confirm('¿Eliminar esta sesión de demostración?'))return;p.sessions=p.sessions.filter(x=>x.id!==id);closeEditor();renderWorkspace();});}
-  function openSessionEditor(id){
+  const paceOptions={
+    recovery:['5:45–6:10'],easy:['5:25–5:55'],aerobic:['5:10–5:35'],
+    long:['5:25–5:55','5:10–5:35','4:58'],threshold:['4:31–4:43'],
+    intervals:['4:12–4:25'],race:['4:58']
+  };
+  function openSessionEditor(id,selectedKind=null){
     const p=current(),s=p?.sessions.find(x=>x.id===id);if(!s)return;
-    sessionChild=true;sessionParentId=id;
-    const types=['easy','aerobic','long','recovery','threshold','intervals','strength','race'];
-    const paceOptions=[...new Set([
-      ...Object.values({easy:'5:25–5:55',aerobic:'5:10–5:35',long:'5:20–5:45',recovery:'5:45–6:10',threshold:'4:31–4:43',intervals:'4:12–4:25',race:'4:58'}),
-      ...p.sessions.map(x=>sessionPace(x).replace(/ min\/km$/,'' )).filter(x=>x!=='—')
-    ])];
-    const selector=(key,currentPace)=>`<label class="plan-form-field"><span>Ritmo (min/km)</span><select class="atlas-field" name="pace">${paceOptions.map(v=>`<option value="${esc(v)}" ${v===currentPace?'selected':''}>${esc(v)} min/km</option>`).join('')}</select></label>`;
-    const typesHtml=`<label class="plan-form-field"><span>Tipo de entrenamiento</span><select class="atlas-field" id="session-kind" name="kind">${types.map(k=>`<option value="${k}" ${k===s.kind?'selected':''}>${esc(label[k])}</option>`).join('')}</select></label>`;
-    const currentPace=sessionPace(s).replace(/ min\/km$/,'');
-    const savedPace=currentPace==='—'?'5:25–5:55':currentPace;
-    const rep=s.detail.match(/(\d+)\s*[×x]\s*(\d+(?:[.,]\d+)?)\s*(km|m|s)/i);
-    const initial={reps:Number(rep?.[1])||4,amount:rep?Number(rep[2].replace(',','.')):1,measure:rep?.[3]==='s'?'time':'distance'};
-    const renderFields=()=>{
-      const kind=$('#session-kind').value,host=$('#session-type-fields');
-      const interval=['threshold','intervals'].includes(kind),continuous=['easy','aerobic','long','recovery','race'].includes(kind);
-      if(continuous){host.innerHTML=`${f('Distancia (km)','km','number',s.km||10,'min="0.1" max="100" step="0.1" required')}${selector('pace',savedPace)}`;}
-      else if(interval){host.innerHTML=`${f('Número de series','reps','number',initial.reps,'min="1" max="30" step="1" required')}<label class="plan-form-field"><span>Medición del intervalo</span><select class="atlas-field" name="measure"><option value="distance" ${initial.measure==='distance'?'selected':''}>Distancia (km)</option><option value="time" ${initial.measure==='time'?'selected':''}>Duración (segundos)</option></select></label>${f('Distancia por serie (km) o duración (s)','amount','number',initial.amount,'min="0.1" step="0.1" required')}${selector('pace',savedPace)}<p class="plan-note">DEMO · El kilometraje es una aproximación, con WU y CD ilustrativos.</p>`;}
-      else host.innerHTML=f('Duración (minutos)','minutes','number',parseInt(s.detail)||45,'min="1" max="240" step="1" required');
-    };
-    openForm('Editar sesión · DEMO',`<form class="plan-form">${typesHtml}<div id="session-type-fields"></div><button class="atlas-button atlas-button--primary plan-submit" type="submit">Guardar cambios DEMO</button></form>`,data=>{
-      const kind=String(data.get('kind'));s.kind=kind;
-      if(['threshold','intervals'].includes(kind)){
-        const reps=Number(data.get('reps')),amount=Number(data.get('amount')),pace=String(data.get('pace'));
-        const seconds=pace.split('–')[0].split(':').map(Number).reduce((a,b)=>a*60+b,0);
-        const distance=data.get('measure')==='time'?amount/seconds:amount;
-        s.km=Math.round((reps*distance+Math.max(0,reps-1)*.25+2)*10)/10;
-        s.detail=`${reps} × ${amount} ${data.get('measure')==='time'?'s':'km'} · ${pace} min/km`;
-      }else if(kind==='strength') {s.km=0;s.detail=`${Number(data.get('minutes'))} min`;
-      }else{s.km=Number(data.get('km'));s.detail=`${data.get('pace')} min/km`;}
-      s.done=false;returnSession(id);
-    });
-    $('#session-kind').addEventListener('change',renderFields);renderFields();
+    editor='sub';sessionId=id;
+    const kind=selectedKind||s.kind,continuous=['easy','aerobic','long','recovery','race'].includes(kind),interval=['intervals','threshold'].includes(kind);
+    const types=Object.keys(label).filter(k=>k!=='rest');
+    const typeField=`<label class="plan-form-field"><span>Tipo de entrenamiento</span><select class="atlas-field" name="kind" id="plan-session-kind">${types.map(k=>`<option value="${k}" ${kind===k?'selected':''}>${esc(label[k])}</option>`).join('')}</select></label>`;
+    const choices=paceOptions[kind]||[];
+    const selected=choices.includes(sessionPace(s).replace(/ min\/km$/,''))?sessionPace(s).replace(/ min\/km$/,''):choices[0];
+    const paceField=choices.length?`<label class="plan-form-field"><span>Ritmo (min/km)</span><select class="atlas-field" name="pace">${choices.map(x=>`<option value="${x}" ${selected===x?'selected':''}>${x} min/km</option>`).join('')}</select></label>`:'';
+    let fields='',commit;
+    if(continuous){
+      fields=`${f('Distancia (km)','km','number',s.km||8,'min="0.1" max="100" step="0.1" required')}${paceField}`;
+      commit=data=>{s.kind=kind;s.km=Number(data.get('km'));s.detail=`${data.get('pace')}/km`;};
+    }else if(interval){
+      const r=s.detail.match(/(\d+)\s*[×x]\s*(\d+(?:[.,]\d+)?)\s*(km|m|s)/i);
+      const reps=Number(r?.[1])||4;
+      const unit=r?.[3]==='s'?'time':'distance';
+      const amount=r?(unit==='time'?Number(r[2].replace(',','.')):Number(r[2].replace(',','.'))*(r[3]==='m'?.001:1)):1;
+      fields=`${f('Número de series','reps','number',reps,'min="1" max="30" step="1" required')}<label class="plan-form-field"><span>Medición del intervalo</span><select class="atlas-field" name="measure"><option value="distance" ${unit==='distance'?'selected':''}>Distancia (km)</option><option value="time" ${unit==='time'?'selected':''}>Duración (segundos)</option></select></label>${f('Distancia por serie (km) o duración (s)','amount','number',amount,'min="0.1" step="0.1" required')}${paceField}<p class="plan-note">DEMO · Total orientativo con WU/CD y recuperaciones todavía no prescritos.</p>`;
+      commit=data=>{const reps=Number(data.get('reps')),amount=Number(data.get('amount')),pace=String(data.get('pace')),seconds=pace.split(/[–-]/)[0].split(':').reduce((m,v)=>m*60+Number(v),0),timed=data.get('measure')==='time';const km=timed?amount/seconds:amount;s.kind=kind;s.km=Math.round((reps*km+Math.max(0,reps-1)*.25+2)*10)/10;s.detail=`${reps} × ${timed?amount+' s':amount+' km'} · ${pace}/km`;};
+    }else{
+      fields=f('Duración (minutos)','minutes','number',kind===s.kind?parseInt(s.detail)||40:40,'min="1" max="240" required');
+      commit=data=>{s.kind=kind;s.km=0;s.detail=`${Number(data.get('minutes'))} min`;};
+    }
+    openForm('Editar sesión · DEMO',`<form class="plan-form">${typeField}${fields}<button class="atlas-button atlas-button--primary plan-submit">Guardar cambios DEMO</button></form>`,data=>{commit(data);s.done=false;renderWorkspace();closeEditor();});
+    $('#plan-session-kind').addEventListener('change',e=>openSessionEditor(id,e.target.value));
   }
-  function openMoveEditor(id){const p=current(),s=p.sessions.find(x=>x.id===id);if(!s)return;sessionChild=true;sessionParentId=id;
+  function openMoveEditor(id){editor='sub';sessionId=id;const p=current(),s=p.sessions.find(x=>x.id===id);if(!s)return;
     const ordered=[...p.sessions].sort((a,b)=>a.date.localeCompare(b.date)),index=ordered.findIndex(x=>x.id===id);
     const nearby=ordered.slice(Math.max(0,index-5),Math.min(ordered.length,index+6)).filter(x=>x.id!==id);
     const dates=new Set([s.date,...nearby.map(x=>x.date)]);
@@ -167,17 +169,12 @@
     function assess(day){const other=p.sessions.find(x=>x.date===day&&x.id!==s.id),intense=x=>['intervals','threshold','long','race'].includes(x.kind);const adjacent=p.sessions.filter(x=>x.id!==s.id&&Math.abs((date(x.date)-date(day))/86400000)<=1);
       const issues=[];if(intense(s.kind)&&adjacent.some(x=>intense(x.kind)))issues.push('Se acumularían sesiones intensas en días consecutivos.');if(intense(s.kind)&&adjacent.some(x=>x.kind==='strength'))issues.push('Hay una sesión de fuerza inmediatamente antes o después.');if(!p.days.includes((date(day).getDay()+6)%7+1))issues.push('La fecha no figura como día disponible.');
       if(other&&intense(s.kind)&&intense(other.kind))issues.push('Se intercambiarían dos sesiones exigentes.');return {other,issues,name:other?'Intercambiar':'Mover',warning:issues.length>0};}
-    const items=choices.map(day=>{const a=assess(day),other=a.other;return `<button type="button" class="plan-day-row plan-change-day" data-date="${day}"><span class="plan-day-date"><small>${esc(fmt(day,{weekday:'short'}).toUpperCase())}</small><strong>${date(day).getDate()}</strong><small>${esc(fmt(day,{month:'short'}).toUpperCase())}</small></span><span class="plan-day-rule"></span><span class="plan-day-copy"><span class="plan-day-title">${esc(other?`${ico[other.kind]} ${sessionTitle(other)}`:'🛏️ Descanso')}</span><small>${esc(other?estimated(other):'Día sin sesión')}</small></span><span class="plan-change-state ${a.warning?'warning':'ready'}">${a.warning&&a.issues.length>1?'Revisar':a.name}</span></button>`;}).join('');
+    const items=choices.map(day=>{const a=assess(day),other=a.other;return `<button type="button" class="plan-change-day" data-date="${day}"><span class="plan-change-date"><small>${esc(fmt(day,{weekday:'short'}).toUpperCase())}</small><strong>${date(day).getDate()}</strong><small>${esc(fmt(day,{month:'short'}).toUpperCase())}</small></span><span class="plan-change-rule" aria-hidden="true"></span><span class="plan-change-copy"><strong>${esc(other?`${ico[other.kind]} ${label[other.kind]}`:'🛏️ Descanso')}</strong><small>${esc(other?estimated(other):'Día sin sesión')}</small></span><span class="plan-change-state ${a.warning?'warning':'ready'}">${a.warning&&a.issues.length>1?'Revisar':a.name}</span></button>`;}).join('');
     openForm('Cambiar fecha',`<p class="plan-note">DEMO · Sesión: ${esc(label[s.kind])} · ${esc(fmt(s.date,{day:'numeric',month:'long'}))}. Elige una fecha; las comprobaciones son ilustrativas y no sustituyen al Training Engine.</p><div class="plan-change-calendar">${items}</div>`,null);
     $('#plan-editor-content').querySelectorAll('[data-date]').forEach(b=>b.addEventListener('click',()=>{const day=b.dataset.date,a=assess(day);if(a.warning){const message=`Revisar cambio a ${fmt(day,{day:'numeric',month:'long'})}:\n\n${a.issues.map(x=>'• '+x).join('\n')}\n\n¿Aceptar el cambio DEMO?`;if(!confirm(message))return;}
-      if(a.other){a.other.date=s.date;a.other.done=false;}s.date=day;s.done=false;returnSession(id);}));
+      if(a.other){a.other.date=s.date;a.other.done=false;}s.date=day;s.done=false;renderWorkspace();closeEditor();}));
   }
-  window.ATLASPlan={openSessionByDate(day){
-    const p=plans.find(x=>x.sessions.some(s=>s.date===day&&!s.done));if(!p)return false;
-    const s=p.sessions.find(x=>x.date===day&&!x.done);
-    if(!activeId||activeId!==p.id){openedFromToday=true;openWorkspace(p.id,document.activeElement);}
-    openSession(s.id);return true;
-  }};
+  window.ATLASPlan={openSessionByDate(day){const p=plans.find(x=>x.sessions.some(s=>s.date===day&&!s.done));if(!p)return false;const s=p.sessions.find(x=>x.date===day&&!x.done);if(!activeId||activeId!==p.id)openWorkspace(p.id);sessionOrigin='today';openSession(s.id);return true;}};
   $('#plan-add').addEventListener('click',()=>openPlanEditor());$('#plan-workspace-back').addEventListener('click',closeWorkspace);$('#plan-workspace-bottom').addEventListener('click',closeWorkspace);$('#plan-editor-back').addEventListener('click',closeEditor);$('#plan-editor-bottom').addEventListener('click',closeEditor);
   document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;if(!modal.hidden)closeEditor();else if(!shell.hidden)closeWorkspace();});
   draw();

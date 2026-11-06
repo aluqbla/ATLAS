@@ -47,7 +47,7 @@
     const factors=el('div','today-factor-grid');
     for(const [name,score,desc] of DEMO.state.factors){
       const row=el('div','today-factor'); const top=el('div','today-factor-head');top.append(el('strong','',({'Sueño':'💤','VFC':'🫀','Carga':'⚡','Recuperación':'🌿'})[name]+' '+name),el('strong','',`${score}/100`));
-      const track=el('div','today-factor-track');const fill=el('span','today-factor-fill');fill.style.width=`${score}%`;fill.style.background=score>=85?'var(--atlas-green)':score>=70?'var(--atlas-blue)':score>=50?'var(--atlas-yellow)':'var(--atlas-red)';track.append(fill);
+      const track=el('div','today-factor-track');const fill=el('span','today-factor-fill');fill.style.width=`${score}%`;fill.style.background=score>=85?'var(--atlas-blue)':score>=75?'var(--atlas-green)':score>=60?'var(--atlas-yellow)':score>=40?'var(--atlas-orange)':'var(--atlas-red)';track.append(fill);
       row.append(top,track,el('p','today-factor-caption',desc));factors.append(row);
     }
     wrap.append(factors,el('p','today-detail-disclaimer','DEMO · Valores, interpretación y factores inventados; sin diagnóstico, Garmin ni motor de entrenamiento.'));
@@ -132,7 +132,7 @@
     const button=el('button','today-metric');button.type='button';button.setAttribute('aria-label',`Ver histórico simulado de ${metric.name}`);
     button.append(el('span','today-metric-icon',metric.icon),el('span','today-metric-label',metric.name));
     const value=el('span','today-metric-value',metric.value);
-    if(metric.id==='sleep'){value.textContent='';for(const [n,u] of [['7','h'],['48','min']]){if(n==='48')value.append(document.createTextNode(' '));value.append(el('span','',n),el('small','',u));}}else if(metric.unit)value.append(el('small','',` ${metric.unit}`));
+    if(metric.id==='sleep'){value.replaceChildren();const hours=el('span','today-sleep-part');hours.append(document.createTextNode('7'),el('small','','h'));const minutes=el('span','today-sleep-part');minutes.append(document.createTextNode('48'),el('small','','min'));value.classList.add('today-sleep-value');value.append(hours,document.createTextNode(' '),minutes);}else if(metric.unit)value.append(el('small','',` ${metric.unit}`));
     const meta=el('span','today-metric-meta',metric.meta);if(metric.id==='sleep')meta.classList.add('sleep-good');button.append(value,meta);button.addEventListener('click',()=>metricDetail(metric));strip.append(button);
   }
   function sessionRow(data,kind){
