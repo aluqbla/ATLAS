@@ -1,0 +1,278 @@
+{
+  "contract": "atlas-data-model",
+  "contractVersion": 1,
+  "status": "schema-v1-with-repository-api-and-offline-shell",
+  "storage": {
+    "databaseName": "atlas",
+    "proposedDatabaseVersion": 1,
+    "implementationPhase": "3.4 (offline app shell; data UI still DEMO)"
+  },
+  "commonFields": {
+    "id": "stable string, scoped by athlete and entity",
+    "athleteId": "stable internal athlete identifier",
+    "source": "garmin-official | garmin-private | atlas | import",
+    "sourceId": "nullable provider identifier",
+    "observedAt": "ISO-8601 timestamp or date according to granularity",
+    "retrievedAt": "ISO-8601 timestamp; nullable for local records",
+    "updatedAt": "ISO-8601 timestamp",
+    "availability": "available | unavailable | pending | error",
+    "precision": "resolution or decimal places; nullable when unknown"
+  },
+  "stores": [
+    {
+      "name": "athletes",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "sourceIdentity",
+          [
+            "source",
+            "sourceId"
+          ],
+          true
+        ]
+      ],
+      "purpose": "Athlete identity and public profile fields; no tokens"
+    },
+    {
+      "name": "activities",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthleteDate",
+          [
+            "athleteId",
+            "startedAt"
+          ],
+          false
+        ],
+        [
+          "byAthleteSportDate",
+          [
+            "athleteId",
+            "sport",
+            "startedAt"
+          ],
+          false
+        ],
+        [
+          "bySourceId",
+          [
+            "athleteId",
+            "source",
+            "sourceId"
+          ],
+          true
+        ]
+      ],
+      "purpose": "Canonical normalized activity summaries"
+    },
+    {
+      "name": "activityDetails",
+      "keyPath": "activityId",
+      "indexes": [],
+      "purpose": "Sport-specific details, laps, exercises, GPS and sensor series in one activity detail aggregate"
+    },
+    {
+      "name": "observations",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthleteMetricDate",
+          [
+            "athleteId",
+            "metric",
+            "observedAt"
+          ],
+          false
+        ],
+        [
+          "bySourceRecord",
+          [
+            "athleteId",
+            "source",
+            "sourceId"
+          ],
+          false
+        ]
+      ],
+      "purpose": "Health and performance history; distinct observations for each metric and granularity"
+    },
+    {
+      "name": "rawRecords",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byEntity",
+          [
+            "athleteId",
+            "entityType",
+            "entityId"
+          ],
+          false
+        ]
+      ],
+      "purpose": "Original provider payload with provenance, separate from normalized data"
+    },
+    {
+      "name": "derivedMetrics",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthleteMetricDate",
+          [
+            "athleteId",
+            "metric",
+            "observedAt"
+          ],
+          false
+        ]
+      ],
+      "purpose": "Explicitly versioned ATLAS calculations only"
+    },
+    {
+      "name": "equipment",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthlete",
+          [
+            "athleteId"
+          ],
+          false
+        ],
+        [
+          "bySourceId",
+          [
+            "athleteId",
+            "source",
+            "sourceId"
+          ],
+          true
+        ]
+      ],
+      "purpose": "Shoes and equipment; user overrides recorded separately"
+    },
+    {
+      "name": "personalRecords",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthleteDistance",
+          [
+            "athleteId",
+            "distanceMeters"
+          ],
+          false
+        ]
+      ],
+      "purpose": "Supported personal bests linking canonical activities"
+    },
+    {
+      "name": "trainingZones",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthleteType",
+          [
+            "athleteId",
+            "zoneType"
+          ],
+          false
+        ]
+      ],
+      "purpose": "Source-defined HR and pace zones; effective dates"
+    },
+    {
+      "name": "plans",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthlete",
+          [
+            "athleteId"
+          ],
+          false
+        ]
+      ],
+      "purpose": "Plan metadata, goal, dates, availability, publication status and revision"
+    },
+    {
+      "name": "sessions",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byPlanDate",
+          [
+            "planId",
+            "scheduledDate"
+          ],
+          false
+        ],
+        [
+          "byAthleteDate",
+          [
+            "athleteId",
+            "scheduledDate"
+          ],
+          false
+        ]
+      ],
+      "purpose": "Prescribed sessions with separate completion links and manual-edit metadata"
+    },
+    {
+      "name": "planChanges",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byPlanRevision",
+          [
+            "planId",
+            "revision"
+          ],
+          true
+        ]
+      ],
+      "purpose": "Explicit plan edit history and conflict context"
+    },
+    {
+      "name": "preferences",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthlete",
+          [
+            "athleteId"
+          ],
+          false
+        ]
+      ],
+      "purpose": "User-owned preferences, keyed by scope and name"
+    },
+    {
+      "name": "syncState",
+      "keyPath": "id",
+      "indexes": [
+        [
+          "byAthleteDomain",
+          [
+            "athleteId",
+            "domain"
+          ],
+          false
+        ]
+      ],
+      "purpose": "Incremental cursors, confirmed ranges, pending and failed blocks"
+    }
+  ],
+  "rules": [
+    "DEMO data never enters real stores without an explicit later import policy",
+    "No provider secrets, passwords, access tokens or raw authenticated headers in IndexedDB",
+    "Missing metric is null with availability metadata, not a fabricated zero",
+    "Idempotent upsert uses canonical IDs; preserve original provider provenance",
+    "Read views consume normalized records, not raw provider payloads",
+    "Derived metrics must identify calculation name and algorithm version",
+    "Plan concurrency is revision-based; unresolved conflict must not overwrite silently",
+    "No persistence implementation or runtime imports in phase 3.1"
+  ]
+}

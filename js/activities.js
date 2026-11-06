@@ -15,6 +15,19 @@
     {id:'demo-ride-1019',date:'2026-10-19',time:'17:50',sport:'cycling',name:'Ciclismo suave',distance:21.8,duration:3540,speed:22.2,hr:121,hrMax:148,calories:480,ascent:130,descent:129},
     {id:'demo-run-1018',date:'2026-10-18',time:'08:10',sport:'running',name:'Carrera continua',distance:12.0,duration:3912,pace:'5:26',hr:147,hrMax:164,calories:835,ascent:60,descent:59,cadence:171,power:304,stride:1.09,oscillation:8.6,contact:259,vo2:54.2,shoes:'Adizero Boston (ejemplo)'}
   ];
+  // Marcas ficticias adicionales: accesibles desde Perfil, no alteran el historial principal.
+  const recordExamples=[
+    ['demo-pr-1k','2026-09-12','Carrera 1 km · marca DEMO',1,223,3.7167],
+    ['demo-pr-5k','2026-10-18','Carrera 5 km · marca DEMO',5,1252,4.1733],
+    ['demo-pr-10k','2026-10-04','Carrera 10 km · marca DEMO',10,2615,4.3583],
+    ['demo-pr-half','2026-03-15','Media maratón · marca DEMO',21.0975,5864,4.632],
+    ['demo-pr-marathon','2026-02-22','Maratón · marca DEMO',42.195,12558,4.96],
+    ['demo-pr-longest','2026-05-17','Distancia más larga · DEMO',42.195,13455,5.314]
+  ];
+  for(const [id,date,name,distance,duration,p] of recordExamples){
+    const paceSeconds=Math.round(duration/distance);
+    records.push({id,date,time:'08:15',sport:'running',name,distance,duration,pace:`${Math.floor(paceSeconds/60)}:${String(paceSeconds%60).padStart(2,'0')}`,hr:156,hrMax:180,calories:Math.round(distance*70),ascent:Math.round(distance*3),descent:Math.round(distance*3),cadence:178,power:320,vo2:54.6,recordOnly:true,description:'Registro de ejemplo preparado para mostrar el enlace desde Mejores marcas. No representa una carrera registrada.'});
+  }
   const SPORTS={running:{label:'Carrera',icon:'🏃🏻‍♂️'},cycling:{label:'Ciclismo',icon:'🚴🏻‍♂️'},strength:{label:'Fuerza',icon:'🏋🏻‍♂️'},walking:{label:'Caminar',icon:'🚶🏻‍♂️'}};
   const $=s=>document.querySelector(s);
   const make=(tag,klass,content)=>{const e=document.createElement(tag);if(klass)e.className=klass;if(content!==undefined)e.textContent=content;return e;};
@@ -31,15 +44,15 @@
     const valueEl=make('span','activity-primary-value',String(value));if(unit)valueEl.append(make('small','activity-primary-unit',` ${unit}`));item.append(valueEl);return item;
   }
   function row(r){const b=make('button','activity-row');b.type='button';b.dataset.activityId=r.id;b.setAttribute('aria-label',`Abrir ficha simulada de ${r.name}, ${datestr(r.date)}`);
-    const date=make('span','activity-row-date');date.append(make('span','activity-row-weekday',dateOf(r.date).toLocaleDateString('es-ES',{weekday:'short'}).replace('.','')),make('span','activity-row-day',String(dateOf(r.date).getDate())),make('span','activity-row-month',dateOf(r.date).toLocaleDateString('es-ES',{month:'short'}).replace('.','')));
+    const date=make('span','activity-row-date');date.append(make('span','activity-row-weekday',dateOf(r.date).toLocaleDateString('es-ES',{weekday:'short'}).replace('.','').toUpperCase()),make('span','activity-row-day',String(dateOf(r.date).getDate())),make('span','activity-row-month',dateOf(r.date).toLocaleDateString('es-ES',{month:'short'}).replace('.','').toUpperCase()));
     const copy=make('span','activity-row-copy');copy.append(make('span','activity-row-title',`${SPORTS[r.sport].icon} ${r.name}`));const stats=[r.distance!==undefined?`${number(r.distance,1)} km`:null,formatDuration(r.duration),r.pace?`${r.pace} min/km`:r.speed?`${number(r.speed,1)} km/h`:null].filter(Boolean);copy.append(make('span','activity-row-stats',stats.join('  ·  ')));
     b.append(date,make('span','activity-row-divider'),copy);b.addEventListener('click',()=>open(r.id,b));return b;
   }
-  function renderList(){const sport=$('#activities-sport').value;const year=$('#activities-year').value;const query=$('#activities-search').value.trim().toLocaleLowerCase('es');const result=records.filter(r=>(sport==='all'||r.sport===sport)&&(year==='all'||r.date.startsWith(year))&&`${r.name} ${SPORTS[r.sport].label} ${r.date}`.toLocaleLowerCase('es').includes(query));result.sort((a,b)=>b.date.localeCompare(a.date));
+  function renderList(){const sport=$('#activities-sport').value;const year=$('#activities-year').value;const query=$('#activities-search').value.trim().toLocaleLowerCase('es');const result=records.filter(r=>!r.recordOnly&&(sport==='all'||r.sport===sport)&&(year==='all'||r.date.startsWith(year))&&`${r.name} ${SPORTS[r.sport].label} ${r.date}`.toLocaleLowerCase('es').includes(query));result.sort((a,b)=>b.date.localeCompare(a.date));
     $('#activities-summary').textContent=`${result.length} actividades de demostración · Sin conexión a Garmin`;
     const list=$('#activities-list');list.replaceChildren();if(!result.length){list.append(make('p','activity-empty','No hay actividades simuladas que coincidan con los filtros.'));return;}
     const groups=new Map();for(const r of result){const key=r.date.slice(0,7);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(r);}for(const group of groups.values()){
-      const label=dateOf(group[0].date).toLocaleDateString('es-ES',{month:'long',year:'numeric'}),head=make('div','activity-month-heading');head.append(make('h2','activity-month-title',label.charAt(0).toUpperCase()+label.slice(1)),make('span','activity-month-count',`${group.length} act. · ${number(group.reduce((n,r)=>n+(r.distance||0),0),1)} km`));list.append(head);for(const r of group)list.append(row(r));}
+      const label=dateOf(group[0].date).toLocaleDateString('es-ES',{month:'long',year:'numeric'}),head=make('div','activity-month-heading');head.append(make('h2','activity-month-title',label.charAt(0).toUpperCase()+label.slice(1)),make('span','activity-month-count',`${group.length} actividades · ${number(group.reduce((n,r)=>n+(r.distance||0),0),1)} km`));list.append(head);for(const r of group)list.append(row(r));}
 
   }
   // Ficha canónica: la selección de métricas es específica del deporte y no altera los registros fuente.
@@ -62,7 +75,7 @@
     const date=dateOf(r.date).toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'2-digit'}).replace(/\./g,'').toUpperCase();
     const entries=[['📅',date],['🕒',r.time.replace(/^0(?=\d:)/,'')],['🌡️',r.temperature==null?'18 °C':`${r.temperature} °C`],['🎯',`${r.rpe??4}/10`],[({'Excelente':'😄','Muy buenas':'😄','Buenas':'🙂','Normales':'😐','Regulares':'🙁','Malas':'😞','Muy malas':'😣'})[r.feeling||(['Muy buenas','Buenas','Normales','Regulares','Malas'][records.indexOf(r)%5])]||'🙂',r.feeling||(['Muy buenas','Buenas','Normales','Regulares','Malas'][records.indexOf(r)%5])]];
     for(const [icon,value] of entries){const fact=make('div','activity-fact');fact.append(make('span','activity-fact-icon',icon),make('span','activity-fact-value',value));facts.append(fact);}
-    container.append(facts);
+    container.append(facts);fitActivityFacts(container);
     const map=make('div','activity-map-demo');map.setAttribute('role','img');
     if(['running','cycling','walking'].includes(r.sport)){
       map.setAttribute('aria-label','Ruta ficticia dibujada, no es cartografía GPS');
@@ -94,6 +107,23 @@
     let selected='pace';for(const [id,label]of supported){const btn=make('button','activity-chart-tab',label);btn.type='button';btn.setAttribute('aria-pressed',String(id===selected));btn.addEventListener('click',()=>{selected=id;tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===btn)));host.replaceChildren(chartSvg(r,id));});tabs.append(btn);}
     host.append(chartSvg(r,'pace'));main.append(tabs,host,make('p','activity-demo-note','DEMO · Curvas sintéticas, no datos de sensores.'));
   }
+  function fitActivityTypography(container){
+    // Un único tamaño máximo común para todas las cifras, conservando las unidades.
+    requestAnimationFrame(()=>{
+      const cells=[...container.querySelectorAll('.activity-laps-table tbody tr:not(.activity-lap-group) td')];
+      if(!cells.length)return;
+      let lo=9,hi=17;
+      const fits=size=>{for(const cell of cells){cell.style.fontSize=size+'px';if(cell.scrollWidth>cell.clientWidth+1)return false;}return true;};
+      for(let i=0;i<9;i++){const mid=(lo+hi)/2;if(fits(mid))lo=mid;else hi=mid;}
+      cells.forEach(cell=>cell.style.fontSize=lo.toFixed(2)+'px');
+    });
+  }
+  function fitActivityFacts(container){
+    requestAnimationFrame(()=>{
+      const nodes=[...container.querySelectorAll('.activity-fact-value')].slice(0,4);
+      for(const node of nodes){let lo=9,hi=13;for(let k=0;k<8;k++){const m=(lo+hi)/2;node.style.fontSize=m+'px';if(node.scrollWidth<=node.clientWidth+1)lo=m;else hi=m;}node.style.fontSize=lo.toFixed(2)+'px';}
+    });
+  }
   function lapsSection(r){
     if(!['running','cycling','walking'].includes(r.sport))return;
     const laps=lapsFor(r),chart=make('div','activity-lap-bars'),scroll=make('div','activity-laps-scroll');
@@ -103,7 +133,7 @@
     // Escala global fija en s/km: azul intenso (rápido) → claro (lento), saturada en <= 3:00 y >= 8:00 min/km.
     const fast=180,slow=480;const pace=l=>l.sec/l.km;
     const min=Math.min(...laps.map(pace)),max=Math.max(...laps.map(pace));
-    const ns='http://www.w3.org/2000/svg';const width=Math.max(350,laps.length*34+42),height=186;
+    const ns='http://www.w3.org/2000/svg';const totalDistance=laps.reduce((sum,l)=>sum+Math.max(.01,Number(l.km)||0),0);const usable=Math.max(306,laps.length*28);const width=usable+48,height=186;
     const svg=document.createElementNS(ns,'svg');svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('width',width);svg.setAttribute('height',height);svg.setAttribute('role','img');svg.setAttribute('aria-label','Gráfico de barras interactivo de ritmo por vuelta, datos DEMO');
     const svgEl=(tag,attrs,txt)=>{const e=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,String(v));if(txt!==undefined)e.textContent=txt;return e;};
     // Escala Y invertida para el ritmo: arriba más rápido; altura mayor para ritmo más rápido.
@@ -118,16 +148,16 @@
       const tr=make('tr','activity-lap-selectable');tr.tabIndex=0;tr.setAttribute('role','button');tr.setAttribute('aria-selected','false');
       const values=[String(i+1),lap.km>=1?`${number(lap.km,lap.km%1===0?0:2)} <small>km</small>`:`${Math.round(lap.km*1000)} <small>m</small>`,formatDuration(lap.sec),formatDuration(Math.round(seconds)),`${lap.hr} ppm`,`${lap.up} / −${lap.down} m`];for(let j=0;j<values.length;j++){const td=make('td','');if(j===1)td.innerHTML=values[j];else if(j===4)td.innerHTML=`${lap.hr} <small>ppm</small>`;else if(j===5){const elev=(lap.up||0)-(lap.down||0);td.className=elev>0?'lap-ascent':elev<0?'lap-descent':'';td.innerHTML=`${elev>0?'+':''}${elev} <small>m</small>`;}else td.textContent=values[j];tr.append(td);}
       tr.addEventListener('click',()=>select(i));tr.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select(i);}});tbody.append(tr);rows.push(tr);
-      const x=43+i*(width-48)/laps.length,barWidth=Math.max(9,(width-48)/laps.length-5),top=y(seconds);
+      const cumulative=laps.slice(0,i).reduce((sum,l)=>sum+Math.max(.01,Number(l.km)||0),0);const slot=usable*Math.max(.01,Number(lap.km)||0)/totalDistance;const x=43+usable*cumulative/totalDistance+Math.min(2,slot*.10),barWidth=Math.max(1,slot-Math.min(4,slot*.20)),top=y(seconds);
       const rect=svgEl('rect',{x,y:top,width:barWidth,height:Math.max(3,plotBottom-top),rx:3,fill:color});
-      const button=make('button','activity-lap-bar-hit');button.type='button';button.style.left=`${100*x/width}%`;button.style.width=`${100*barWidth/width}%`;button.style.top=`${100*plotTop/height}%`;button.style.bottom=`${100*(height-plotBottom)/height}%`;button.setAttribute('aria-label',`Seleccionar vuelta ${i+1}, ritmo ${formatDuration(Math.round(seconds))} por km`);button.setAttribute('aria-pressed','false');button.addEventListener('click',()=>select(i));buttons.push(button);
+      const button=make('button','activity-lap-bar-hit');button.type='button';button.style.left=`${100*x/width}%`;button.style.width=`${100*barWidth/width}%`;button.style.top=`${100*top/height}%`;button.style.bottom=`${100*(height-plotBottom)/height}%`;button.setAttribute('aria-label',`Seleccionar vuelta ${i+1}, ritmo ${formatDuration(Math.round(seconds))} por km`);button.setAttribute('aria-pressed','false');button.addEventListener('click',()=>select(i));buttons.push(button);
       svg.append(rect,svgEl('text',{x:x+barWidth/2,y:height-10,fill:'#aab3be','font-size':9,'text-anchor':'middle'},i+1));
     });
     chart.append(svg);const plot=make('div','activity-lap-plot');for(const button of buttons)plot.append(button);
     const wrapper=make('div','activity-lap-chart-scroll');const inner=make('div','activity-lap-chart-inner');inner.style.width=`${width}px`;inner.append(chart,plot);wrapper.append(inner);main.append(wrapper);
     table.append(tbody);scroll.append(table);main.append(scroll);
     if(r.sport==='cycling')main.append(make('p','activity-demo-note','* En esta demostración, el gráfico representa el ritmo equivalente por kilómetro, no la velocidad ciclista.'));
-    main.append(make('p','activity-demo-note','DEMO · Parciales ficticios. Azul fijo según ritmo: ≤ 3:00/km más oscuro; ≥ 8:00/km más claro. Selecciona barra o fila.'));
+    fitActivityTypography(main);main.append(make('p','activity-demo-note','DEMO · Parciales ficticios. Azul fijo según ritmo: ≤ 3:00/km más oscuro; ≥ 8:00/km más claro. Selecciona barra o fila.'));
   }
   
   function open(id,origin){
@@ -148,5 +178,5 @@
   renderList();
   // La misma fila y ficha completa se reutilizan desde Hoy, sin duplicar la presentación.
   const last=$('#today-last');last.replaceChildren(row(records[0]));
-  window.ATLASActivities=Object.freeze({open:id=>open(id),list:()=>records.map(({id,date,sport,name})=>({id,date,sport,name}))});
+  window.ATLASActivities=Object.freeze({open:id=>open(id),list:()=>records.filter(r=>!r.recordOnly).map(({id,date,sport,name})=>({id,date,sport,name}))});
 })();

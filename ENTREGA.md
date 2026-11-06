@@ -1,13 +1,18 @@
-# ATLAS v0.0.13 · ajustes de presentación DEMO
+# ATLAS v0.0.25 — Ajustes de presentación y navegación
 
-Base exclusiva: ATLAS v0.0.12 (validación manual pendiente).
+**Base:** v0.0.24 validada. **Fase 4:** no iniciada.
 
-Archivos modificados:
-- `index.html`: los cinco iconos de navegación son emojis.
-- `css/navigation.css`: tamaño y alineación de los emojis en la barra.
-- `css/refinement.css`: centrado vertical de actividades realizadas en Hoy; descanso gris en Plan.
-- `js/plan.js`: descanso representado por 🛏️ y clase visual propia.
+## Modificaciones
+- Hoy: sueño con espacio (7h 48min), barras de Estado ATLAS según puntuación y retorno desde sesión propuesta a Hoy.
+- Actividades: encabezados de mes igualados a los encabezados de sesiones de Hoy.
+- Plan: separadores verticales con extremos libres; Objetivo numérico con tamaño normal; ficha prescrita accesible también para sesiones marcadas como realizadas; retorno desde subeditores a la ficha original; cambio de tipo y selección de ritmos disponibles mediante desplegable DEMO; calendario de cambio de fecha con filas canónicas; títulos que describen repeticiones en sesiones fraccionadas.
+- Evolución: «Ritmo umbral» y tamaño de «Pronósticos de carrera» igualado.
 
-Comprobaciones: sintaxis JavaScript, presencia de cinco emojis en navegación y ZIP. No se han hecho pruebas manuales en navegador.
+## Archivos actualizados
+`js/today.js`, `js/plan.js`, `js/evolution.js`, `css/refinement.css`, `js/app.js`, `service-worker.js`, `tests/auditoria-estatica.mjs` y este manifiesto de entrega.
 
-Datos y planificación DEMO; sin conexión ni publicaciones Garmin.
+## Alcance
+Todos los datos y ediciones siguen siendo DEMO en memoria; ninguna escritura Garmin ni persistencia nueva. El esquema IndexedDB v1, repositorios y cacheo de recursos mantienen su funcionamiento. Se ha actualizado la clave de caché de aplicación, sin tocar el esquema de IndexedDB.
+
+## Validación
+La auditoría estática y sintáctica se ejecuta con `node tests/auditoria-estatica.mjs`. La comprobación manual de navegación, editores, diseño en iPhone y retorno entre pestañas queda pendiente.

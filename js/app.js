@@ -1,5 +1,5 @@
 // ATLAS v0.0.6 · Fase 1.5: navegación compatible con file:// y GitHub Pages.
-const APP_VERSION = '0.0.11';
+const APP_VERSION = '0.0.25';
 document.documentElement.dataset.atlasVersion = APP_VERSION;
 
 const tabs = [...document.querySelectorAll('.atlas-tab[role="tab"]')];
@@ -29,5 +29,13 @@ for (const tab of tabs) {
       event.preventDefault();
       showTab(target, true);
     }
+  });
+}
+
+// Inicialización local no bloqueante: la interfaz DEMO sigue usando memoria.
+// No se escribe ningún registro ni se leen datos deportivos en la Fase 3.4.
+if (window.ATLASDatabase) {
+  window.ATLASDatabase.open().catch(error => {
+    console.warn('[ATLAS] Persistencia local no disponible:', error?.message || error);
   });
 }

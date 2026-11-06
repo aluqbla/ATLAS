@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ATLAS · Pruebas repositorios 3.3</title>
+<style>body{background:#000;color:#f5f7f9;font:15px system-ui,sans-serif;max-width:650px;margin:30px auto;padding:16px}button{background:#1d9bf0;color:white;border:0;padding:12px 18px;border-radius:12px;font-weight:700}pre{white-space:pre-wrap;line-height:1.6}small{color:#aaa}</style>
+<script defer src="../js/data/database.js"></script><script defer src="../js/data/repositories.js"></script></head>
+<body><h1>ATLAS · Prueba de repositorios</h1><p>Fase 3.3: registros temporales de prueba, sin datos DEMO. Se eliminan al terminar.</p><button id="run" type="button">Ejecutar pruebas</button><pre id="results" aria-live="polite">Sin ejecutar.</pre><small>Ejecutar preferentemente desde GitHub Pages, en el mismo origen de ATLAS. No borra la base ni los datos ajenos a las pruebas.</small>
+<script>
+const button = document.getElementById('run');
+const output = document.getElementById('results');
+const TEST_ID = '__atlas_repository_test_v033__';
+const assert = (condition, message) => { if (!condition) throw Error(message); };
+button.addEventListener('click', async () => {
+ button.disabled = true;
+ const results = [];
+ const api = window.ATLASRepositories;
+ const keys = [TEST_ID + ':1', TEST_ID + ':2'];
+ const cleanup = async () => {
+  if (!api) return;
+  await api.batch([
+   ...keys.map(key => ({action:'delete',store:'activities',key})),
+   {action:'delete',store:'syncState',key:TEST_ID}
+  ]);
+ };
+ try {
+  assert(api && api.names.length === 14, 'API o nombres de almacenes incorrectos');
+  await cleanup();
+  const activities = api.store('activities');
+  assert(await activities.get(keys[0]) === undefined, 'El test debe empezar sin su registro');
+  await activities.add({id:keys[0],athleteId:TEST_ID,source:'atlas',sourceId:keys[0],sport:'running',startedAt:'2026-11-01T08:00:00Z'});
+  assert((await activities.get(keys[0])).sport === 'running', 'Error de alta/lectura');
+  await activities.put({id:keys[0],athleteId:TEST_ID,source:'atlas',sourceId:keys[0],sport:'walking',startedAt:'2026-11-01T08:00:00Z'});
+  assert((await api.get('activities',keys[0])).sport === 'walking', 'Error de actualización');
+  results.push('✅ Alta, lectura y actualización');
+  await api.batch([
+   {action:'put',store:'activities',value:{id:keys[1],athleteId:TEST_ID,source:'atlas',sourceId:keys[1],sport:'running',startedAt:'2026-11-02T08:00:00Z'}},
+   {action:'put',store:'syncState',value:{id:TEST_ID,athleteId:TEST_ID,domain:'test',cursor:'2'}}
+  ]);
+  assert((await api.get('syncState',TEST_ID)).cursor === '2', 'Error de lote entre almacenes');
+  assert(await activities.count({index:'byAthleteDate',range:IDBKeyRange.bound([TEST_ID,''],[TEST_ID,'\uffff'])}) === 2, 'Error del índice');
+  const page = await activities.list({index:'byAthleteDate',prefix:[TEST_ID],limit:1,offset:1});
+  assert(page.length === 1 && page[0].id === keys[1], 'Error de paginación/índice');
+  results.push('✅ Transacción atómica entre almacenes, índices y paginación');
+  let rejected = false;
+  try { await api.batch([
+    {action:'put',store:'syncState',value:{id:TEST_ID,athleteId:TEST_ID,domain:'test',cursor:'SHOULD_ROLL_BACK'}},
+    {action:'add',store:'activities',value:{id:keys[0],athleteId:TEST_ID,source:'atlas',sourceId:keys[0]}}
+  ]); } catch (_) { rejected = true; }
+  assert(rejected, 'La transacción duplicada debería fallar');
+  assert((await api.get('syncState',TEST_ID)).cursor === '2', 'El lote fallido no se revirtió');
+  results.push('✅ Rollback íntegro ante error');
+  await activities.delete(keys[1]);
+  assert(await activities.get(keys[1]) === undefined, 'Error de eliminación');
+  results.push('✅ Eliminación');
+ } catch (error) { results.push('❌ ' + (error?.message || error)); }
+ finally {
+  try { await cleanup(); results.push('✅ Limpieza de registros temporales'); }
+  catch (error) { results.push('⚠️ Limpieza pendiente: ' + (error?.message || error)); }
+  output.textContent = results.join('\n');
+  button.disabled = false;
+ }
+});
+</script></body></html>

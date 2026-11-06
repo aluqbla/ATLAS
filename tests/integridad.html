@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATLAS · Integridad 3.5</title>
+<style>:root{color-scheme:dark}body{max-width:700px;margin:24px auto;padding:16px;background:#000;color:#f5f7f9;font:14px/1.5 system-ui,sans-serif}h1{font-size:24px}button{background:#1d9bf0;border:0;color:white;padding:12px 20px;border-radius:12px;font-weight:750}button:disabled{opacity:.5}pre{white-space:pre-wrap;word-break:break-word;background:#101418;padding:14px;border-radius:12px;min-height:150px}small{color:#aeb4bb}strong{color:#fff}</style>
+<script defer src="../js/data/database.js"></script><script defer src="../js/data/repositories.js"></script></head>
+<body><h1>🧪 ATLAS · Integridad de persistencia</h1><p>Fase 3.5. Comprueba <strong>esquema, índices, persistencia, CRUD, paginación, atomicidad y caché</strong>. Usa únicamente claves temporales únicas y elimina los registros de prueba al terminar. No borra la base ni modifica los datos existentes.</p><button type="button" id="run">Ejecutar comprobaciones</button><pre id="report" aria-live="polite">Sin ejecutar.</pre><small>Ejecutar desde GitHub Pages o localhost (HTTP). Para comprobar una recarga REAL sin conexión, usar también <code>tests/offline.html</code> y desactivar la red manualmente. Esta prueba no crea datos de Garmin ni importa datos DEMO.</small>
+<script>
+(() => {
+'use strict';
+const output=document.getElementById('report'),button=document.getElementById('run');
+const show=lines=>{output.textContent=lines.join('\n');};
+const check=(ok,msg)=>{if(!ok)throw Error(msg);};
+const req=r=>new Promise((resolve,reject)=>{r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error||Error('Fallo IndexedDB'));});
+const txDone=tx=>new Promise((resolve,reject)=>{tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error||Error('Transacción abortada'));tx.onerror=()=>{};});
+const expectedNames=['athletes','activities','activityDetails','observations','rawRecords','derivedMetrics','equipment','personalRecords','trainingZones','plans','sessions','planChanges','preferences','syncState'];
+button.addEventListener('click',async()=>{
+ button.disabled=true; const lines=[],cleanup=[],runId='__atlas_integrity_035_'+(crypto.randomUUID?.()||String(Date.now())+Math.random().toString(36).slice(2));
+ const repo=window.ATLASRepositories,dbApi=window.ATLASDatabase;
+ let failures=0,passed=0;
+ const test=async(name,fn)=>{try{await fn();passed++;lines.push('✅ '+name)}catch(e){failures++;lines.push('❌ '+name+' — '+(e?.message||e))}show(lines)};
+ const temp=(store,id,record)=>{cleanup.push({store,key:id});return {id,...record}};
+ try {
+  await test('API y modelo declarativo',async()=>{
+   check(repo&&dbApi,'No se cargaron los módulos de persistencia');
+   const response=await fetch('../js/data/model.json',{cache:'no-store'});check(response.ok,'No se pudo leer el modelo');
+   const model=await response.json();
+   check(model.contract==='atlas-data-model','Contrato inesperado');
+   check(JSON.stringify(model.stores.map(s=>s.name))===JSON.stringify(expectedNames),'Modelo: faltan almacenes o cambia el orden');
+   check(JSON.stringify(repo.names)===JSON.stringify(expectedNames),'Repositorios no coinciden con el modelo');
+  });
+  await test('Esquema v1 y 14 almacenes',async()=>{
+   const db=await dbApi.open();check(db.name==='atlas'&&db.version===1,'Nombre o versión incorrectos');
+   check(expectedNames.every(name=>db.objectStoreNames.contains(name))&&db.objectStoreNames.length===14,'Almacenes distintos de los 14 esperados');
+  });
+  await test('Claves e índices coinciden con el modelo',async()=>{
+   const model=await (await fetch('../js/data/model.json')).json(), db=await dbApi.open();
+   const tx=db.transaction(expectedNames,'readonly');
+   for(const spec of model.stores){
+    const store=tx.objectStore(spec.name);
+    check(JSON.stringify(store.keyPath)===JSON.stringify(spec.keyPath),'Clave incorrecta: '+spec.name);
+    const actual=Array.from(store.indexNames).sort(),expected=spec.indexes.map(i=>i[0]).sort();
+    check(JSON.stringify(actual)===JSON.stringify(expected),'Índices incorrectos: '+spec.name);
+    for(const [name,keyPath,unique] of spec.indexes){const index=store.index(name);check(JSON.stringify(index.keyPath)===JSON.stringify(keyPath)&&index.unique===unique,'Índice incompatible: '+spec.name+'.'+name);}
+   }
+   await txDone(tx);
+  });
+  const id1=runId+':a',id2=runId+':b',athlete=runId;
+  await test('Alta, lectura, actualización y borrado',async()=>{
+   const activities=repo.store('activities');
+   const first=temp('activities',id1,{athleteId:athlete,source:'atlas',sourceId:id1,sport:'running',startedAt:'2026-11-01T08:00:00Z'});
+   await activities.add(first);check((await activities.get(id1)).sport==='running','Fallo al leer');
+   await activities.put({...first,sport:'walking'});check((await activities.get(id1)).sport==='walking','Fallo al actualizar');
+   await activities.delete(id1);check(await activities.get(id1)===undefined,'Fallo al borrar');
+   await activities.add(first);
+  });
+  await test('Índices compuestos y paginación',async()=>{
+   const second=temp('activities',id2,{athleteId:athlete,source:'atlas',sourceId:id2,sport:'running',startedAt:'2026-11-02T08:00:00Z'});
+   await repo.add('activities',second);
+   const results=await repo.list('activities',{index:'byAthleteDate',prefix:[athlete],limit:1,offset:1});
+   check(results.length===1&&results[0].id===id2,'Índice/página incorrectos');
+   const number=await repo.count('activities',{index:'byAthleteDate',range:IDBKeyRange.bound([athlete,''],[athlete,'\uffff'])});
+   check(number===2,'Recuento por índice incorrecto');
+  });
+  await test('Unicidad del identificador de origen',async()=>{
+   let rejected=false;
+   try{await repo.add('activities',{id:runId+':duplicate',athleteId:athlete,source:'atlas',sourceId:id1,sport:'running',startedAt:'2026-11-03T08:00:00Z'});}catch(e){rejected=true;}
+   check(rejected,'El índice único aceptó un duplicado');
+   check(await repo.get('activities',runId+':duplicate')===undefined,'El duplicado se guardó');
+  });
+  const stateId=runId+':sync';
+  await test('Transacción multi-almacén',async()=>{
+   const row=temp('syncState',stateId,{athleteId:athlete,domain:'integrity-test',cursor:'committed'});
+   check(await repo.batch([{action:'put',store:'syncState',value:row},{action:'put',store:'preferences',value:temp('preferences',runId+':preferences',{athleteId:athlete,value:true})}])===2,'Lote no confirmado');
+   check((await repo.get('syncState',stateId)).cursor==='committed','No se confirmó el lote');
+  });
+  await test('Rollback íntegro ante violación de unicidad',async()=>{
+   let rejected=false;
+   try{await repo.batch([{action:'put',store:'syncState',value:{id:stateId,athleteId:athlete,domain:'integrity-test',cursor:'MAL'}},{action:'add',store:'activities',value:{id:id1,athleteId:athlete,source:'atlas',sourceId:id1}}]);}catch(e){rejected=true;}
+   check(rejected,'El lote inválido no falló');
+   check((await repo.get('syncState',stateId)).cursor==='committed','La primera operación no se revirtió');
+  });
+  await test('Persistencia tras cerrar y reabrir',async()=>{
+   dbApi.close();const db=await dbApi.open();check(db.version===1,'La reapertura alteró el esquema');
+   check((await repo.get('activities',id1))?.sport==='running','La actividad no sobrevivió al cierre');
+   check((await repo.get('syncState',stateId))?.cursor==='committed','Estado de sincronización perdido');
+  });
+  await test('Caché: presencia de recursos y aislamiento',async()=>{
+   if(!('caches' in window)||!('serviceWorker' in navigator))throw Error('Cache Storage/Service Worker no disponibles en este contexto; comprobar en GitHub Pages');
+   const scope=new URL('../',location.href).href;
+   const reg=await navigator.serviceWorker.getRegistration(scope);
+   check(Boolean(reg?.active),'Service Worker aún no activo: recarga tras instalar');
+   const names=(await caches.keys()).filter(n=>n.startsWith('atlas-shell-'));
+   check(names.length>0,'No existe caché ATLAS');
+   const cache=await caches.open(names[names.length-1]);
+   const core=['index.html','js/app.js','js/data/database.js','js/data/repositories.js','js/data/offline.js','css/base.css','assets/atlas-wordmark.jpeg'];
+   for(const name of core)check(Boolean(await cache.match(new URL(name,scope).href)),'Recurso sin caché: '+name);
+   check(!(await cache.keys()).some(r=>/garmin|\/api\//i.test(r.url)),'Se cachearon rutas de datos externos');
+  });
+ } finally {
+  await test('Limpieza de todos los registros temporales',async()=>{
+   if(repo&&cleanup.length)await repo.batch(cleanup.map(({store,key})=>({action:'delete',store,key})));
+   if(repo&&cleanup.length){for(const {store,key} of cleanup)check(await repo.get(store,key)===undefined,'Quedó registro de prueba: '+store);}
+  });
+  lines.push('');lines.push('RESULTADO: '+passed+' correctas · '+failures+' fallidas.');
+  lines.push('Importante: la reapertura offline real se comprueba manualmente desconectando la red.');
+  show(lines);button.disabled=false;
+ }
+});
+})();
+</script></body></html>

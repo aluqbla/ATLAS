@@ -70,3 +70,117 @@
 .plan-day-row--rest .plan-day-title,.plan-day-row--rest .plan-day-copy>small{color:var(--atlas-text-muted)!important;font-weight:700}
 .plan-day-row--rest .plan-day-date strong{color:var(--atlas-text-muted)}
 .plan-day-row--rest .plan-day-rule{opacity:.65}
+
+/* Fase 2.6 · cierre visual en pantallas estrechas.
+   Las dos cabeceras de sesiones mantienen la misma escala y evitan
+   ocupar dos líneas sobre la navegación flotante en iPhone pequeño. */
+@media (max-width:390px){
+  #view-hoy .today-section-title{font-size:clamp(17px,5.1vw,20px);letter-spacing:-.38px;white-space:nowrap}
+}
+
+/* ATLAS v0.0.19 · ajustes visuales solicitados, sin persistencia */
+.plan-item{position:relative;display:flex;align-items:center;justify-content:center;text-align:center;padding:15px 42px}
+.plan-item-title{display:block;flex:1;text-align:center;font-size:clamp(16px,4.8vw,22px);line-height:1.2}
+.plan-item .plan-item-chevron{position:absolute;right:17px;top:50%;transform:translateY(-50%);font-size:27px}
+.plan-data-cell{gap:8px;align-items:stretch;min-height:83px}
+.plan-data-cell>small{display:block;width:100%;text-align:left;font-size:14px;line-height:1.2;white-space:nowrap;letter-spacing:-.18px}
+.plan-data-cell>strong{display:block;text-align:center;font-size:21px;line-height:1.18;white-space:nowrap;overflow:visible;overflow-wrap:normal;font-variant-numeric:tabular-nums}
+.plan-data-cell>strong em{font-size:10px!important;font-weight:650;letter-spacing:0}
+.plan-data-cell--status>strong{font-size:14px!important;white-space:normal;overflow-wrap:anywhere}
+.plan-prescription-date{text-align:center;color:var(--atlas-text-secondary);font-weight:760;font-size:15px;margin:8px 0 14px}
+.plan-dialog:has(.plan-prescription-date) .plan-overlay-top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center}
+.plan-dialog:has(.plan-prescription-date) #plan-editor-title{text-align:center;font-size:clamp(17px,5vw,24px);line-height:1.16;margin:9px 0}
+.plan-prescription-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));text-align:center;margin:14px 0 19px}
+.plan-prescription-metrics>div{padding:6px 3px;min-width:0}
+.plan-prescription-metrics>div+div{border-left:2px solid var(--atlas-divider)}
+.plan-prescription-metrics small{display:block;font-size:11px;color:var(--atlas-text-secondary);margin-bottom:6px}
+.plan-prescription-metrics strong{font-size:clamp(13px,4.1vw,18px);font-weight:830;font-variant-numeric:tabular-nums;white-space:nowrap}
+.plan-prescription-metrics strong em{font-style:normal;font-size:10px;color:var(--atlas-text-muted)}
+.plan-prescription-copy{margin:5px 2px 13px;color:#e2e7eb;font-size:15px;line-height:1.55}
+.plan-dialog:has(.plan-prescription-date) .plan-form-subtitle{margin-top:17px}
+.activity-laps-table td small{font-size:9px!important;letter-spacing:0!important}
+.activity-laps-table td{padding-left:0!important;padding-right:0!important;overflow:hidden;text-overflow:clip}
+.activity-fact-value{max-width:100%;letter-spacing:-.2px}
+.today-chart-container{touch-action:pan-x pan-y}
+
+.plan-dialog.plan-prescription-open .plan-overlay-top{grid-template-columns:42px minmax(0,1fr) 42px;gap:5px}
+.plan-dialog.plan-prescription-open .plan-demo{display:none}
+.plan-session-top-title{grid-column:2;min-width:0;text-align:center;font-size:clamp(16px,4.6vw,22px);font-weight:830;line-height:1.12;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan-dialog.plan-prescription-open #plan-editor-title{display:none}
+
+/* ATLAS v0.0.20 · Ajustes canónicos de presentación. */
+.today-factor:first-child{border-top:0!important}
+.today-detail-disclaimer{border-top:0!important}
+#view-hoy .today-section-title{font-size:clamp(16px,4.5vw,19px)!important}
+.today-state-detail-hero .today-detail-lead{font-size:20px}
+.atlas-chart-inspect{min-height:32px;padding:6px 8px;text-align:center;font-size:11px;color:#e8edf2;line-height:1.4;font-variant-numeric:tabular-nums}
+.today-chart-container,.evolution-chart-scroller{position:relative;overflow-x:auto!important;overflow-y:hidden!important;touch-action:pan-x pan-y}
+.activity-quick-facts{overflow:hidden;min-width:0}
+.activity-fact{min-width:0;overflow:hidden}
+.activity-fact-value{font-size:clamp(9px,2.7vw,12px)!important;white-space:nowrap;overflow:hidden;text-overflow:clip}
+.activity-primary-label{font-size:clamp(9px,2.55vw,11.3px)!important;line-height:1.1}
+.activity-laps-table tbody td{font-size:clamp(9px,3vw,15px)}
+.activity-lap-bar-hit.selected{background:transparent!important;outline:2px solid #fff!important;outline-offset:0!important}
+.plan-data-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+#plan-section-paces .plan-data-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.plan-data-grid .plan-data-cell{border-left:0!important;border-top:0!important;min-height:83px;padding:9px 6px;display:flex;justify-content:center;align-items:stretch;gap:7px}
+.plan-data-grid .plan-data-cell:after{display:none!important}
+.plan-data-grid .plan-data-cell:not(:nth-child(3n+1)){border-left:2px solid var(--atlas-divider)!important}
+.plan-data-grid .plan-data-cell:nth-child(n+4){border-top:2px solid var(--atlas-divider)!important}
+#plan-section-paces .plan-data-cell:nth-child(odd){border-left:0!important}
+#plan-section-paces .plan-data-cell:nth-child(even){border-left:2px solid var(--atlas-divider)!important}
+#plan-section-paces .plan-data-cell:nth-child(n+3){border-top:2px solid var(--atlas-divider)!important}
+.plan-data-cell>small{font-size:clamp(11px,3.3vw,14px)!important;line-height:1.12;white-space:normal;text-align:left!important;font-weight:750}
+.plan-data-cell>strong{font-size:clamp(17px,5vw,21px);line-height:1.14;white-space:nowrap;display:flex;align-items:baseline;gap:3px;justify-content:center;min-width:0;text-align:center!important}
+.plan-data-cell>strong em{font-size:9px!important;flex-shrink:0}
+.plan-data-cell--distance-long>strong{font-size:14px!important}
+.plan-data-cell--status>strong{font-size:13px!important;white-space:normal;line-height:1.2;overflow-wrap:anywhere}
+.plan-prescription-metrics strong em{color:var(--atlas-text-muted);font-style:normal;font-size:10px;margin-left:3px}
+.plan-session-top-title{text-align:left;font-size:clamp(18px,5.5vw,24px);letter-spacing:-.3px}
+.plan-dialog.plan-prescription-open .plan-overlay-top{grid-template-columns:42px minmax(0,1fr) 5px}
+.plan-prescription-date{margin:5px 0 14px;font-size:14px;color:#c0cad2}
+.plan-structure-lines{margin:4px 2px 10px}
+.plan-structure-lines p{display:flex;flex-direction:column;gap:4px;padding:9px 0;margin:0;border-bottom:1px solid var(--atlas-divider)}
+.plan-structure-lines p strong{font-size:14px;color:#fff}
+.plan-structure-lines p span{font-size:13px;color:var(--atlas-text-secondary);padding-left:27px}
+.plan-change-calendar{display:flex;flex-direction:column}
+.plan-change-day{width:100%;min-height:64px;display:grid;grid-template-columns:43px minmax(0,1fr) 79px;align-items:center;gap:8px;background:#000;border:0;border-bottom:2px solid var(--atlas-divider);color:#fff;text-align:left;padding:4px 2px}
+.plan-change-date{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.plan-change-date small{font-size:9px;font-weight:750;color:var(--atlas-text-muted)}
+.plan-change-date strong{font-size:22px}
+.plan-change-copy{min-width:0;display:flex;flex-direction:column;gap:4px}
+.plan-change-copy strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan-change-copy small{color:var(--atlas-text-secondary);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.plan-change-state{font-size:12px;font-weight:800;text-align:right}
+.plan-change-state.ready{color:#1d9bf0}
+.plan-change-state.warning{color:#ff9f0a}
+.atlas-zones{margin-top:9px;width:100%;overflow:hidden}
+.atlas-zones-header,.atlas-zones-row{display:grid;grid-template-columns:56px minmax(0,1fr) minmax(0,1fr);align-items:center;gap:4px}
+.atlas-zones-header{padding:9px 8px;color:#9ca9b4;font-size:12px;font-weight:800;letter-spacing:.1px}
+.atlas-zones-header span:nth-child(n+2){text-align:center}
+.atlas-zones-row{position:relative;min-height:54px;padding:9px 7px;color:#fff}
+.atlas-zones-row+.atlas-zones-row:before{content:'';position:absolute;top:0;left:7px;right:7px;height:2px;background:var(--atlas-divider)}
+.atlas-zone-name{display:flex;align-items:center;gap:6px;font-size:15px}
+.atlas-zone-pace,.atlas-zone-hr{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:3px;font-size:clamp(11px,3.4vw,15px);font-variant-numeric:tabular-nums}
+.atlas-zone-pace{color:#eaf4ff}.atlas-zone-hr{color:#ffe7eb}
+.atlas-zone-pace small,.atlas-zone-hr small{font-size:9px;color:var(--atlas-text-muted);font-weight:650}
+@media(max-width:359px){.atlas-zones-header,.atlas-zones-row{grid-template-columns:47px minmax(0,1fr) minmax(0,1fr)}.atlas-zone-pace,.atlas-zone-hr{font-size:10.5px}}
+
+.today-factor{border-top:0!important}
+.today-factor-grid{border-bottom:0!important}
+.today-chart-container+.today-zoom-buttons{border-top:0!important}
+#plan-section-info .plan-data-cell:nth-child(n+4),#plan-section-state .plan-data-cell:nth-child(n+4){border-top:2px solid var(--atlas-divider)!important}
+
+/* v0.0.25 · Refinamientos visuales canónicos */
+.activity-month-title,.evolution-forecast-head h2{font-size:clamp(16px,4.5vw,19px)!important;line-height:1.2!important;font-weight:800!important}
+.plan-data-grid .plan-data-cell{border:0!important;position:relative}
+.plan-data-grid .plan-data-cell:not(:nth-child(3n+1))::before{content:"";display:block;position:absolute;left:0;top:11px;bottom:11px;width:2px;background:var(--atlas-divider)}
+.plan-data-grid .plan-data-cell:nth-child(n+4)::after{content:"";display:block!important;position:absolute;left:9px;right:9px;top:0;height:2px;background:var(--atlas-divider)}
+#plan-section-paces .plan-data-cell:nth-child(even)::before{display:block}
+#plan-section-paces .plan-data-cell:nth-child(odd)::before{display:none}
+#plan-section-paces .plan-data-cell:nth-child(n+3)::after{display:block!important}
+#plan-section-paces .plan-data-cell:nth-child(-n+2)::after{display:none!important}
+.plan-change-day.plan-day-row{grid-template-columns:45px 2px minmax(0,1fr) 82px;gap:9px;min-height:65px;padding:0;border:0;border-bottom:2px solid var(--atlas-divider)}
+.plan-change-day .plan-day-copy{min-width:0}.plan-change-day .plan-day-title{white-space:normal;overflow:visible}
+.plan-change-day .plan-change-state{padding-right:5px;font-size:12px;white-space:nowrap}
+.today-metric-value{letter-spacing:-.35px}.today-metric-value small{font-size:7.4px}

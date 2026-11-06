@@ -1,0 +1,37 @@
+/* ATLAS v0.0.14 · Fase 2.4 — Evolución, basado en los componentes canónicos de Hoy. */
+.evolution-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:8px 2px 6px}
+.evolution-heading .atlas-page-title{margin:0}
+.evolution-notice,.evolution-footnote{margin:0 2px 14px;font-size:10.5px;line-height:1.45;color:var(--atlas-text-secondary)}
+.evolution-metrics{margin:12px 0 19px!important;}
+.evolution-metric{min-height:92px;}
+.evolution-metric .today-metric-label{font-size:clamp(7.5px,2.2vw,9.6px);letter-spacing:-.2px;}
+.evolution-metric .today-metric-value{font-size:clamp(13px,3.65vw,17px)}
+.evolution-metric .today-metric-meta{font-size:clamp(7.2px,2.2vw,9px)}
+.evolution-forecast-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:4px 2px 6px}
+.evolution-forecast-head h2{font-size:23px;font-weight:800;line-height:1.16;margin:0;color:#fff}
+.evolution-forecast-head>span{color:var(--atlas-text-muted);font-size:10px;font-weight:800}
+.evolution-forecast-main{margin:0 0 12px}
+.evolution-forecast-legend{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0 10px}
+.evolution-legend-button{min-width:0;display:flex;justify-content:center;align-items:center;gap:6px;min-height:38px;padding:5px 7px;border:0;border-radius:12px;background:#14171a;color:#fff;font-size:11px;font-weight:730;cursor:pointer}
+.evolution-legend-button[aria-pressed="false"]{opacity:.43}
+.evolution-legend-dot{display:block;flex:0 0 8px;width:8px;height:8px;border-radius:99px}
+.evolution-chart-scroller{min-height:260px;overflow-x:auto!important;overscroll-behavior-x:contain;touch-action:pan-x;scrollbar-width:thin}
+.evolution-chart{display:block;max-width:none;height:260px;flex:none}
+.evolution-axis{fill:var(--atlas-text-muted);font:9px var(--atlas-font)}
+.evolution-gridline{stroke:rgba(255,255,255,.14);stroke-width:.8}
+.evolution-value{fill:#f1f4f6;font:9px var(--atlas-font);font-weight:700}
+.evolution-chart-guidance{margin:6px 2px 3px;color:var(--atlas-text-muted);font-size:10.5px;line-height:1.35}
+.evolution-forecast-note{margin:7px 2px 0;color:var(--atlas-text-secondary);font-size:11px;line-height:1.4}
+.evolution-detail[hidden]{display:none!important}
+.evolution-detail{position:fixed;inset:0;z-index:160;background:#000;overflow-y:auto;overscroll-behavior:contain}
+.evolution-detail-inner{max-width:var(--atlas-canvas-max);min-height:100%;margin:auto;padding:calc(12px + var(--atlas-safe-top)) 12px calc(30px + var(--atlas-safe-bottom))}
+.evolution-detail-top{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.evolution-detail-top h2{min-width:0;margin:0;color:#fff;font-size:22px;line-height:1.15;font-weight:800}
+.evolution-chart-unit{margin:8px 2px 15px;font-size:10.5px;color:var(--atlas-text-muted)}
+.evolution-explanation{margin:12px 2px 8px;font-size:13px;line-height:1.55;color:var(--atlas-text-secondary)}
+.evolution-insight{margin:0 2px 12px;font-size:13px;line-height:1.55;color:#e2e7eb}
+.evolution-detail-bottom{display:block;width:100%;margin:18px 0 4px}
+body.evolution-dialog-open{overflow:hidden}
+body.evolution-dialog-open .atlas-tabbar{display:none}
+.evolution-legend-button:focus-visible,.evolution-metric:focus-visible{outline:2px solid var(--atlas-blue);outline-offset:2px}
+@media(max-width:359px){.evolution-metric .today-metric-label{font-size:7.3px}.evolution-metric .today-metric-value{font-size:12px}.evolution-metric .today-metric-meta{font-size:7px}.evolution-forecast-head h2{font-size:21px}}

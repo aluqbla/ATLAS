@@ -1,0 +1,62 @@
+/* ATLAS v0.0.16 · Perfil: lienzo oscuro, retículas y componentes A2 reconstruidos. */
+.profile-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 2px 7px}
+.profile-heading .atlas-page-title{margin:0}
+.profile-settings-launch{appearance:none;display:grid;place-items:center;width:44px;height:44px;border:0;background:transparent;color:var(--atlas-blue);font-size:27px;cursor:pointer}
+.profile-demo-line{display:flex;align-items:center;gap:8px;margin:0 2px 12px;color:var(--atlas-text-muted);font-size:10px;line-height:1.35}
+.profile-identity{display:grid;grid-template-columns:92px minmax(0,1fr);gap:15px;align-items:center;padding:12px 2px 8px}
+.profile-avatar{width:92px;height:92px;border-radius:50%;background:#171b20;display:grid;place-items:center;font-size:45px;box-shadow:inset 0 0 0 2px var(--atlas-divider)}
+.profile-identity-content{min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.profile-name{font-size:23px;font-weight:820;line-height:1.1;color:#fff;letter-spacing:-.4px;overflow-wrap:anywhere}
+.profile-location{font-size:11px;color:var(--atlas-text-secondary);line-height:1.3}
+.profile-shoes-link{appearance:none;border:0;background:transparent;color:#fff;font-size:13px;font-weight:800;padding:7px 2px 5px 0;text-align:left;cursor:pointer}
+.profile-shoes-link span{color:var(--atlas-blue);font-size:21px;vertical-align:-1px;margin-left:3px}
+.profile-heading-secondary{margin:17px 2px 8px;color:#fff;font-size:19px;font-weight:820;line-height:1.2}
+.profile-zones-wrap{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.profile-zone-column{min-width:0}
+.profile-zone-title{min-height:44px;display:flex;align-items:center;font-size:12px;font-weight:800;color:#fff;padding:5px 3px 8px;line-height:1.18}
+.profile-zone-line{display:flex;align-items:center;justify-content:space-between;gap:4px;position:relative;padding:9px 3px;min-height:40px}
+.profile-zone-line+.profile-zone-line::before{position:absolute;content:'';height:2px;background:var(--atlas-divider);top:0;left:2px;right:2px}
+.profile-zone-label{display:flex;align-items:center;gap:5px;font-size:11px;color:#fff;font-weight:750;white-space:nowrap}
+.profile-zone-dot{display:block;flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:var(--zone-color)}
+.profile-zone-range{min-width:0;text-align:right;line-height:1.25;font-size:clamp(8px,2.5vw,10px);font-weight:700;color:var(--atlas-text-secondary);white-space:normal}
+.profile-small-print{margin:7px 2px 15px;font-size:10px;line-height:1.45;color:var(--atlas-text-muted)}
+.profile-records{width:100%;min-width:0}
+.profile-record-header,.profile-record-row{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr) minmax(0,1.08fr) minmax(0,1fr);align-items:center;text-align:center}
+.profile-record-header{padding:8px 0;background:rgba(255,255,255,.045);border-radius:12px;color:var(--atlas-text-secondary);font-size:10px;font-weight:800}
+.profile-record-row{position:relative;min-height:52px;padding:8px 0;font-size:12px;color:#fff}
+.profile-record-row+.profile-record-row:before{position:absolute;content:'';left:5px;right:5px;top:0;height:2px;background:var(--atlas-divider)}
+.profile-record-row>*{min-width:0;padding:0 3px;line-height:1.2;overflow-wrap:anywhere}
+.profile-record-row strong{font-size:12.5px;font-weight:820}.profile-record-row span{font-size:10px;font-weight:700}
+.profile-record-row small{display:block;margin-top:2px;color:var(--atlas-text-muted);font-size:8px;font-weight:650}
+.profile-detail[hidden]{display:none!important}.profile-detail{position:fixed;inset:0;background:#000;z-index:170;overflow-y:auto;overscroll-behavior:contain}
+.profile-detail-inner{max-width:var(--atlas-canvas-max);min-height:100%;margin:0 auto;padding:calc(12px + var(--atlas-safe-top)) 12px calc(28px + var(--atlas-safe-bottom))}
+.profile-detail-top{display:flex;align-items:center;gap:8px}.profile-detail-top h2{font-size:23px;font-weight:820;line-height:1.2;margin:0}
+.profile-detail-back{appearance:none;min-width:44px;min-height:44px;background:transparent;border:0;color:var(--atlas-blue);font-size:32px;cursor:pointer}
+.profile-detail-note{font-size:11px;color:var(--atlas-text-secondary);line-height:1.5;margin:12px 2px}
+.profile-shoe{padding:13px 2px;border-bottom:2px solid var(--atlas-divider)}.profile-shoe-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.profile-shoe-head strong{font-size:14px;color:#fff;line-height:1.3}.profile-shoe-status{flex:0 0 auto;font-size:10px;font-weight:800;color:var(--atlas-green)}.profile-shoe-status.retired{color:var(--atlas-text-muted)}
+.profile-shoe-nums{display:flex;justify-content:space-between;gap:8px;margin-top:9px;color:#fff;font-weight:780;font-size:13px}.profile-shoe-nums small{font-weight:600;font-size:10px;color:var(--atlas-text-muted)}
+.profile-shoe-track{height:8px;border-radius:20px;background:#1c2229;overflow:hidden;margin-top:9px}.profile-shoe-track span{height:100%;display:block;border-radius:inherit}
+.profile-settings-row{display:flex;justify-content:space-between;align-items:center;gap:15px;min-height:54px;padding:11px 2px;border-bottom:2px solid var(--atlas-divider)}.profile-settings-row span{color:var(--atlas-text-secondary);font-size:12px}.profile-settings-row strong{color:#fff;font-size:12px;text-align:right;font-weight:780}
+.profile-detail-close{width:100%;margin-top:22px}body.profile-dialog-open{overflow:hidden}body.profile-dialog-open .atlas-tabbar{display:none}
+.profile-settings-launch:focus-visible,.profile-shoes-link:focus-visible,.profile-detail-back:focus-visible{outline:2px solid var(--atlas-blue);outline-offset:2px}
+@media(max-width:359px){.profile-zones-wrap{gap:5px}.profile-zone-title{font-size:10.5px}.profile-zone-range{font-size:8px}.profile-name{font-size:20px}.profile-identity{gap:10px}.profile-record-row strong{font-size:11px}}
+
+/* v0.0.16 — zonas combinadas, zapatillas sin divisores y marcas enlazadas. */
+.profile-shoe{border-bottom:0;padding:13px 2px}
+.profile-zones-table{width:100%;min-width:0}
+.profile-zones-table-head,.profile-zones-table-row{display:grid;grid-template-columns:minmax(53px,.65fr) minmax(0,1.1fr) minmax(0,1.45fr);align-items:center;gap:6px;padding:10px 4px}
+.profile-zones-table-head{font-size:11px;font-weight:800;color:var(--atlas-text-secondary);background:rgba(255,255,255,.045);border-radius:11px}
+.profile-zones-table-row{position:relative;font-size:clamp(9px,2.7vw,12px);min-height:45px;color:#fff;font-weight:710}
+.profile-zones-table-row+.profile-zones-table-row:before{content:'';position:absolute;top:0;left:4px;right:4px;height:2px;background:var(--atlas-divider)}
+.profile-zones-table-row [role=cell]:nth-child(2){color:var(--atlas-text-secondary)}
+.profile-zones-table-row [role=cell]:nth-child(3){color:var(--atlas-text-secondary);text-align:right}
+.profile-record-open{appearance:none;border:0;width:100%;background:transparent;cursor:pointer;font-family:inherit}
+.profile-record-open:active{background:rgba(29,155,240,.10)}
+.profile-record-open:focus-visible{outline:2px solid var(--atlas-blue);outline-offset:-2px}
+.profile-settings-subtitle{font-size:17px;font-weight:820;color:#fff;margin:20px 2px 7px}
+.profile-settings-actions{display:grid;gap:8px}
+.profile-settings-action{width:100%;min-height:45px;font-size:13px}
+.profile-settings-action.danger{color:var(--atlas-red)}
+.profile-settings-action:disabled{opacity:.42;cursor:not-allowed}
+@media(max-width:359px){.profile-zones-table-row{font-size:9px;gap:3px}.profile-zones-table-head{font-size:10px}}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ATLAS · Prueba offline 3.4</title>
+<style>body{background:#000;color:#fff;font:16px system-ui;margin:2rem auto;padding:0 1rem;max-width:650px}button{padding:12px;border:0;border-radius:10px;background:#1d9bf0;color:white;font:inherit}pre{white-space:pre-wrap;line-height:1.55}small{color:#aaa}</style></head>
+<body><h1>ATLAS · Caché sin conexión</h1><p>Comprobación no destructiva de la instalación y recursos locales, independiente de los datos de IndexedDB.</p><button id="run">Comprobar caché</button><pre id="result">Sin ejecutar</pre><small>Para probar realmente la desconexión: abre primero ATLAS en GitHub Pages con red; espera la instalación, cierra sus pestañas, vuelve a abrir ATLAS conectado y después desconecta internet y recarga. Las pantallas DEMO deben aparecer sin red. La primera carga sin conexión no está garantizada.</small>
+<script>
+const required = ['./index.html','./assets/atlas-wordmark.jpeg','./css/base.css','./css/refinement.css','./js/app.js','./js/data/database.js','./js/data/repositories.js','./js/data/offline.js'];
+const out=document.getElementById('result');
+document.getElementById('run').onclick=async()=>{
+ const lines=[];
+ if(!('serviceWorker' in navigator) || !('caches' in window)){out.textContent='❌ Service Worker/Cache Storage no disponibles.';return;}
+ try{
+  const scope=new URL('../',location.href).href;
+  const reg=await navigator.serviceWorker.getRegistration(scope);
+  lines.push('Service Worker: '+(reg?.active?'activo':reg?.waiting?'esperando cierre de pestañas':reg?.installing?'instalando':'no instalado'));
+  const keys=(await caches.keys()).filter(key=>key.startsWith('atlas-shell-'));
+  lines.push('Cachés ATLAS: '+(keys.join(', ')||'ninguna'));
+  const cache=keys.length?await caches.open(keys[keys.length-1]):null;
+  for(const file of required){const url=new URL(file,scope).href; const present=cache?Boolean(await cache.match(url)):false;lines.push((present?'✅ ':'❌ ')+file);}
+  lines.push('IndexedDB: no modificada.');
+ }catch(e){lines.push('❌ '+(e?.message||String(e)));}
+ out.textContent=lines.join('\n');
+};
+</script></body></html>

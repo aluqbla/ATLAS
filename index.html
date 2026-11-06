@@ -16,10 +16,17 @@
   <link rel="stylesheet" href="./css/activities.css">
   <link rel="stylesheet" href="./css/plan.css">
   <link rel="stylesheet" href="./css/refinement.css">
+  <link rel="stylesheet" href="./css/evolution.css">
+  <link rel="stylesheet" href="./css/profile.css">
+  <script defer src="./js/data/database.js"></script>
+  <script defer src="./js/data/repositories.js"></script>
+  <script defer src="./js/data/offline.js"></script>
   <script defer src="./js/app.js"></script>
   <script defer src="./js/today.js"></script>
   <script defer src="./js/activities.js"></script>
   <script defer src="./js/plan.js"></script>
+  <script defer src="./js/evolution.js"></script>
+  <script defer src="./js/profile.js"></script>
 </head>
 <body>
   <header class="atlas-brand" aria-label="ATLAS">
@@ -61,6 +68,10 @@
       <h1 class="atlas-page-title atlas-view-heading">Perfil</h1>
     </section>
   </main>
+
+  <section class="profile-detail" id="profile-detail" role="dialog" aria-modal="true" aria-labelledby="profile-detail-title" hidden>
+    <div class="profile-detail-inner"><div class="profile-detail-top"><button type="button" id="profile-detail-back" class="profile-detail-back" aria-label="Volver al perfil">‹</button><h2 id="profile-detail-title"></h2></div><div id="profile-detail-body"></div><button id="profile-detail-close" type="button" class="atlas-button atlas-button--quiet profile-detail-close">Volver a Perfil</button></div>
+  </section>
 
   <section class="today-detail" id="today-detail" role="dialog" aria-modal="true" aria-labelledby="today-detail-title" hidden>
     <div class="today-detail-inner"><div class="today-detail-header"><button class="today-detail-back" id="today-detail-back" type="button" aria-label="Volver a Hoy">‹</button><h2 id="today-detail-title"></h2></div><div id="today-detail-body"></div><button type="button" id="today-detail-close" class="atlas-button atlas-button--quiet today-detail-close">Volver a Hoy</button></div>

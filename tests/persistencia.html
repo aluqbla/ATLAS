@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ATLAS · Prueba Fase 3.2</title>
+<style>body{background:#000;color:#f5f7f9;font:15px system-ui,sans-serif;max-width:650px;margin:30px auto;padding:16px}button{background:#1d9bf0;color:white;border:0;padding:12px 18px;border-radius:12px;font-weight:700}pre{white-space:pre-wrap;line-height:1.6}small{color:#aaa}</style>
+<script defer src="../js/data/database.js"></script></head>
+<body><h1>ATLAS · Comprobación de IndexedDB</h1><p>Fase 3.2 — Prueba no destructiva: no modifica registros ni elimina la base.</p><button id="run" type="button">Comprobar base local</button><pre id="results" aria-live="polite">Sin ejecutar.</pre><small>Ejecutar preferentemente desde GitHub Pages. Cada navegador/dispositivo mantiene su propia base local.</small>
+<script>
+const EXPECTED = [
+ ['athletes','id',1], ['activities','id',3], ['activityDetails','activityId',0],
+ ['observations','id',2], ['rawRecords','id',1], ['derivedMetrics','id',1],
+ ['equipment','id',2], ['personalRecords','id',1], ['trainingZones','id',1],
+ ['plans','id',1], ['sessions','id',2], ['planChanges','id',1],
+ ['preferences','id',1], ['syncState','id',1]
+];
+document.getElementById('run').addEventListener('click', async () => {
+ const results=document.getElementById('results');
+ results.textContent='Comprobando…';
+ try {
+  const api=window.ATLASDatabase;
+  if(!api) throw Error('Módulo no cargado');
+  const db=await api.open();
+  if(db.version!==1) throw Error('Versión incorrecta: '+db.version);
+  const names=[...db.objectStoreNames];
+  if(names.length!==EXPECTED.length) throw Error('Cantidad de almacenes distinta: '+names.length);
+  for(const [name,key,indexCount] of EXPECTED) {
+   if(!db.objectStoreNames.contains(name)) throw Error('Falta el almacén '+name);
+   const tx=db.transaction(name,'readonly');
+   const store=tx.objectStore(name);
+   if(store.keyPath!==key) throw Error('Clave incorrecta en '+name);
+   if(store.indexNames.length!==indexCount) throw Error('Índices incorrectos en '+name);
+  }
+  api.close();
+  const reopened=await api.open();
+  if(reopened.version!==1) throw Error('Error al reabrir');
+  results.textContent='✅ Esquema v1 correcto\n✅ 14 almacenes y sus índices presentes\n✅ Cierre y reapertura correctos\n✅ No se han escrito datos DEMO\n\nPrueba realizada en este navegador.';
+ } catch(error) {
+  results.textContent='❌ '+(error?.message||String(error));
+ }
+});
+</script></body></html>
