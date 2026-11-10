@@ -1,10 +1,10 @@
-/* ATLAS v0.0.27 · Fase 3.5: diagnóstico de carga de repositorios; NO usa la BD real. */
+/* ATLAS v0.0.28 · Fase 3.5: diagnóstico de carga de repositorios; NO usa la BD real. */
 (() => {
   'use strict';
   const button = document.getElementById('run');
   const output = document.getElementById('result');
   const DB_NAME = 'atlas-integridad-temporal-v1';
-  const CACHE_NAME = 'atlas-reconstruccion-shell-v0.0.26';
+  const CACHE_NAME = 'atlas-reconstruccion-shell-v0.0.28';
   const REQUIRED = [
     'activities','activityDetails','observations','plans','planChanges',
     'profile','equipment','preferences','syncState'
