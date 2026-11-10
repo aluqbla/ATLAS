@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ATLAS · Prueba sin conexión</title>
+<style>
+:root{color-scheme:dark}body{background:#000;color:#fff;font:14px -apple-system,BlinkMacSystemFont,system-ui,sans-serif;max-width:600px;margin:28px auto;padding:0 16px;line-height:1.5}h1{font-size:22px}p{color:#aaa}button{background:#1d9bf0;color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer}pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.65}a{color:#60b9fa}
+</style>
+<script defer src="js/data/offline.js"></script>
+<script defer src="js/data/db.js"></script>
+</head>
+<body>
+<h1>ATLAS · Prueba sin conexión</h1>
+<p>Comprueba la caché estática y que IndexedDB sigue accesible sin crear ni alterar registros.</p>
+<button type="button" id="check">Comprobar disponibilidad</button>
+<pre id="result" aria-live="polite"></pre>
+<p>Primero publica todos los archivos del ZIP y abre esta página con conexión desde GitHub Pages o localhost. Pulsa el botón y verifica los resultados. Después desactiva la red desde las herramientas del navegador y <strong>recarga esta misma página</strong>. Repite la prueba y abre <a href="index.html">ATLAS</a> para comprobar las cinco pestañas. En <code>file://</code> los Service Workers no funcionan.</p>
+<script>
+(() => {
+'use strict';
+const result = document.querySelector('#result');
+const button = document.querySelector('#check');
+const report = text => { result.textContent += text + '\n'; };
+const describe = error => error?.message || String(error);
+const waitActive = async reg => {
+  if (reg.active) return reg.active;
+  const worker = reg.installing || reg.waiting;
+  if (!worker) return null;
+  if (worker.state === 'activated') return worker;
+  return await new Promise(resolve => {
+    let settled = false;
+    const finish = value => {
+      if (settled) return;
+      settled = true;
+      worker.removeEventListener('statechange', changed);
+      clearTimeout(timeout);
+      resolve(value);
+    };
+    const changed = () => {
+      if (worker.state === 'activated') finish(worker);
+      else if (worker.state === 'redundant') finish(null);
+    };
+    const timeout = setTimeout(() => finish(null), 12000);
+    worker.addEventListener('statechange', changed);
+    changed();
+  });
+};
+button.addEventListener('click', async () => {
+  button.disabled = true;
+  result.textContent = '';
+  try {
+    if (!('serviceWorker' in navigator) || !window.isSecureContext) {
+      report('❌ Service Worker no disponible: abre mediante HTTPS (GitHub Pages) o localhost, nunca file://.'); return;
+    }
+    report('ℹ️ Origen: ' + location.origin + location.pathname);
+    report('ℹ️ Solicitando registro de ./sw.js…');
+    let reg;
+    try {
+      reg = await navigator.serviceWorker.register('./sw.js', {scope:'./'});
+    } catch (error) {
+      report('❌ No se pudo registrar sw.js: ' + describe(error));
+      report('ℹ️ Comprueba que sw.js esté publicado junto a index.html y prueba-offline.html.');
+      return;
+    }
+    let active = await waitActive(reg);
+    if (!active) {
+      await reg.update().catch(() => {});
+      active = await waitActive(reg);
+    }
+    if (!active) {
+      report('❌ La instalación no ha llegado a activarse. Estado: ' +
+        (reg.installing?.state || reg.waiting?.state || 'sin trabajador en instalación'));
+      report('ℹ️ Comprueba que estén publicados todos los archivos indicados en sw.js y recarga con conexión.');
+      return;
+    }
+    report('✅ Service Worker activo');
+    const cache = await caches.open('atlas-reconstruccion-shell-v0.0.24');
+    const urls = ['./index.html','./prueba-offline.html','./css/tokens.css','./js/views.js','./js/data/repositories.js','./assets/ATLAS.jpeg'];
+    const missing = [];
+    for (const path of urls) {
+      if (!await cache.match(new Request(new URL(path,location.href)))) missing.push(path);
+    }
+    report(missing.length ? '❌ Archivos ausentes de la caché: '+missing.join(', ') : '✅ Archivos esenciales disponibles en caché');
+    const db = await window.ATLASDatabase.open();
+    report(db.name === 'atlas-reconstruccion' && db.version === 1
+      ? '✅ IndexedDB disponible · versión 1 · sin escrituras'
+      : '❌ IndexedDB inesperada');
+    window.ATLASDatabase.close();
+    report('ℹ️ Estado de red informado por navegador: '+(navigator.onLine?'en línea':'sin conexión'));
+    if (!navigator.serviceWorker.controller) report('ℹ️ Primera instalación: recarga antes de probar sin conexión.');
+  } catch (error) { report('❌ ' + describe(error)); }
+  finally { button.disabled = false; }
+});
+})();
+</script>
+</body>
+</html>

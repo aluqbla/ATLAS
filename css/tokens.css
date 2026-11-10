@@ -1,0 +1,59 @@
+/* ATLAS v0.0.2 — Fase 1.1: identidad visual centralizada. */
+:root {
+  color-scheme: dark;
+
+  /* Lienzo y superficies: la aplicación continúa completamente negra. */
+  --atlas-background: #000000;
+  --atlas-surface: #000000;
+  --atlas-surface-subtle: #050607;
+
+  /* Jerarquía de texto. */
+  --atlas-text: #f5f7f9;
+  --atlas-text-primary: #ffffff;
+  --atlas-text-secondary: #aab0b4;
+  --atlas-text-muted: #71767b;
+
+  /* Paleta de identidad. */
+  --atlas-blue: #1d9bf0;
+  --atlas-green: #00ba7c;
+  --atlas-yellow: #ffd400;
+  --atlas-orange: #ff9f0a;
+  --atlas-red: #f4212e;
+  --atlas-purple: #bf5af2;
+
+  /* Separadores: valores cromáticos, aún sin componentes. */
+  --atlas-line: rgba(255, 255, 255, 0.22);
+  --atlas-line-prominent: rgba(255, 255, 255, 0.31);
+
+  /* Tipografía nativa: San Francisco en plataformas Apple. */
+  --atlas-font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --atlas-font-body: 14px;
+  --atlas-font-small: 12px;
+  --atlas-font-caption: 10px;
+  --atlas-font-section: 21px;
+  --atlas-font-page: 32px;
+  --atlas-weight-normal: 400;
+  --atlas-weight-semibold: 600;
+  --atlas-weight-strong: 800;
+  --atlas-leading: 1.4;
+}
+
+/* ATLAS v0.0.3 — Fase 1.2: dimensiones y separación del lienzo. */
+:root {
+  --atlas-shell-max-width: 430px;
+  --atlas-page-gutter: 10px;
+  --atlas-page-top: 10px;
+  --atlas-page-bottom: 10px;
+  --atlas-content-gap: 10px;
+
+  /* Medidas y superficies compartidas por todos los componentes. */
+  --atlas-component-space: 12px;
+  --atlas-component-radius: 16px;
+  --atlas-control-radius: 12px;
+  --atlas-touch-target: 44px;
+  --atlas-separator-thickness: 2px;
+  --atlas-control-surface: #15181c;
+  --atlas-glass-surface: rgba(24, 25, 28, .38);
+  --atlas-nav-height: 72px;
+  --atlas-nav-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+}
