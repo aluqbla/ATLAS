@@ -1,4 +1,4 @@
-/* ATLAS v0.0.26 · Fase 3.5: pruebas aisladas; NO usa la BD real. */
+/* ATLAS v0.0.27 · Fase 3.5: diagnóstico de carga de repositorios; NO usa la BD real. */
 (() => {
   'use strict';
   const button = document.getElementById('run');
@@ -55,16 +55,41 @@
     assert(testDB.version===1,'Reapertura incorrecta');
     line('✅ IndexedDB: esquema v1, nueve almacenes, índices y reapertura');
   }
-  const script = path => new Promise((resolve,reject) => {
-    const el=document.createElement('script'); el.src=path;
-    el.onload=resolve; el.onerror=()=>reject(Error('No se pudo cargar '+path));
-    document.head.append(el);
-  });
+  // Comprobar que el archivo JS se ha ejecutado, no sólo que el navegador lo ha descargado.
+  // En línea: URL versionada para no reutilizar una respuesta antigua de la caché.
+  // Sin conexión: URL exacta presente en la caché del Service Worker.
+  const loadRepositories = async () => {
+    const path = './js/data/repositories.js';
+    const url = navigator.onLine ? path + '?integrity=0.0.27' : path;
+    let scriptError = '';
+    const onError = event => {
+      if (event.filename && event.filename.includes('repositories.js')) {
+        scriptError = `${event.message || 'Error de ejecución'} (${event.lineno || '?'}:${event.colno || '?'})`;
+      }
+    };
+    window.addEventListener('error', onError);
+    try {
+      await new Promise((resolve,reject) => {
+        const el=document.createElement('script'); el.src=url;
+        el.onload=resolve;
+        el.onerror=()=>reject(Error('No se pudo descargar ' + url));
+        document.head.append(el);
+      });
+    } finally { window.removeEventListener('error', onError); }
+    const r = window.ATLASRepositories;
+    if (!r || !r.ActivityRepository || typeof r.ActivityRepository.list !== 'function') {
+      throw Error('Repositorio de actividades no inicializado. ' +
+        (scriptError ? 'Error JavaScript: ' + scriptError :
+          'El archivo repositories.js se descargó, pero no expuso ATLASRepositories. ' +
+          'Verifica que esté publicada la versión del ZIP y que no se sirva un archivo antiguo.'));
+    }
+    return r;
+  };
   async function checkRepositories() {
     // Los repositorios capturan ATLASDatabase al cargarse; se les da exclusivamente la BD de prueba.
     window.ATLASDatabase=Object.freeze({name:DB_NAME,version:1,open:()=>Promise.resolve(testDB),close:()=>{}});
-    await script('./js/data/repositories.js');
-    const r=window.ATLASRepositories;
+    const r=await loadRepositories();
+    line('✅ Repositorios: módulo cargado e interfaz pública disponible');
     const activity={id:'integrity:activity',schemaVersion:1,source:'user',availability:'available',sport:'running',observedAt:'2026-11-10T08:00:00+01:00'};
     assert((await r.ActivityRepository.list()).data.length===0,'Base de prueba no está vacía');
     assert((await r.ActivityRepository.save(activity)).ok,'Escritura de actividad fallida');

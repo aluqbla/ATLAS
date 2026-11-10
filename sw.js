@@ -1,6 +1,6 @@
-/* ATLAS v0.0.26 · Fase 3.4: caché estática de la aplicación; sin datos deportivos. */
+/* ATLAS v0.0.27 · Fase 3.4: caché estática de la aplicación; sin datos deportivos. */
 'use strict';
-const CACHE_NAME = 'atlas-reconstruccion-shell-v0.0.26';
+const CACHE_NAME = 'atlas-reconstruccion-shell-v0.0.27';
 const CACHE_PREFIX = 'atlas-reconstruccion-shell-';
 const SHELL = [
   './', './index.html', './prueba-offline.html',
