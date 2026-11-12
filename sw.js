@@ -1,16 +1,15 @@
-/* ATLAS v0.0.29 · Fase 3.4: caché estática de la aplicación; sin datos deportivos. */
+/* ATLAS v0.0.36 · Caché estática de la aplicación; no almacena respuestas de Garmin. */
 'use strict';
-const CACHE_NAME = 'atlas-reconstruccion-shell-v0.0.29';
+const CACHE_NAME = 'atlas-reconstruccion-shell-v0.0.36';
 const CACHE_PREFIX = 'atlas-reconstruccion-shell-';
 const SHELL = [
-  './', './index.html', './prueba-offline.html',
-  './prueba-integridad.html', './js/data/test-integridad.js',
+  './', './index.html',
   './assets/ATLAS.jpeg',
   './css/tokens.css', './css/base.css', './css/components.css',
   './css/navigation.css', './css/today.css', './css/activities.css',
   './css/plan.css', './css/evolution.css', './css/profile.css',
   './css/canonical.css', './css/empty.css',
-  './js/navigation.js', './js/views.js',
+  './js/navigation.js', './js/views.js', './js/garmin/official.js',
   './js/data/db.js', './js/data/repositories.js',
   './js/data/init.js', './js/data/offline.js'
 ];
