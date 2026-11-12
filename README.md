@@ -1,18 +1,22 @@
-# ATLAS v0.0.37 — Fase 4.3 (candidata)
+# ATLAS v0.0.38 — Diagnóstico Garmin oficial limitado (Fase 4.5)
 
-**Base:** v0.0.36, derivada de v0.0.34 (última versión estable validada).
+**Candidata no validada.** Base estable v0.0.37 intacta.
 
-## Corrección
+## Único cambio funcional
 
-La opción «☁️ Garmin oficial» pasa de la pantalla principal de Perfil a **Perfil → ⚙️ Ajustes**, con los controles «Conectar» y «Consultar Garmin». Se eliminan de Ajustes los mensajes obsoletos «Worker no configurado» y «Sin conexión a Garmin ni almacenamiento configurado». No se modifican los endpoints del Worker, la autenticación, los repositorios ni el aspecto de las demás pantallas.
+`worker/worker.js`: nueva comprobación **de solo lectura** en la página administrativa del Worker. Tras iniciar sesión, pulsa «Diagnóstico oficial limitado (4.5)». Solo consulta perfil, primera actividad del catálogo y detalle de esa actividad, por rutas oficiales. Devuelve exclusivamente nombres y tipos de campos potencialmente asociados a VO₂, umbral, predisposición, carga y pronósticos. No expone valores, nombres personales, credenciales ni archivos completos; no guarda datos. `worker/tests/auth.test.mjs`: dos nuevas pruebas locales.
 
-El panel se reutiliza entre aperturas de Ajustes, sin recrear la sesión en memoria.
+## Instalación
 
-## Publicación y comprobación
+1. Cloudflare → Workers & Pages → atlas → Edit code.
+2. Reemplazar el código por `worker/worker.js` y pulsar Deploy. **No modificar ningún secreto.**
+3. Abrir `https://atlas.aj-luque.workers.dev`, iniciar sesión y pulsar **Diagnóstico oficial limitado (4.5)**.
+4. Comunicar únicamente el resultado (código, `sources`, `metrics`); el diagnóstico no contiene valores deportivos.
 
-1. Sustituir los archivos de GitHub Pages por los de esta candidata, eliminando los antiguos archivos de prueba. **No es necesario actualizar el Worker Cloudflare**, pues `worker/worker.js` es idéntico al de v0.0.36.
-2. Recargar ATLAS (si aparece una versión en caché, cerrar todas las pestañas de la aplicación y abrirla de nuevo).
-3. Entrar en **Perfil → ⚙️ Ajustes → ☁️ Garmin oficial**. Introducir la contraseña de ATLAS, pulsar **Conectar**, después **Consultar Garmin**.
-4. Verificar que se muestran las respuestas reales o los errores y que no aparece el mensaje obsoleto. Verificar navegación y apertura offline con datos locales.
+**No actualizar GitHub Pages.** Sus archivos permanecen exactamente iguales a v0.0.37.
 
-**No probada con cuenta Garmin real en esta entrega.** Los datos deportivos no se inventan. Fase 4.3 pendiente de validación manual.
+## Interpretación
+
+`candidate_fields_found` solo identifica nombres de campos, no verifica semántica ni precisión. `not_identified_in_sample` significa que no aparece en esos tres recursos acotados, **no** que esté ausente de toda la API oficial. Fallos individuales quedan señalados. Si la muestra no contiene una actividad, no se consulta detalle. No se utiliza API privada, no se consulta histórico, no se descargan FIT y no se anticipa la fase 4.6.
+
+**Seguridad residual heredada:** la contraseña del Worker puede ser corta y no hay limitación de intentos; este cambio no empeora ni corrige esa configuración anterior.
