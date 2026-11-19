@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <title>ATLAS</title>
-  <!-- ATLAS v0.0.17 · Fase 5.3 incremento 1: navegación + Hoy local -->
+  <!-- ATLAS v0.0.23 · Fase 5.3: Hoy, fichas y gráficas locales -->
   <style>
     /* ATLAS 5.2 — Sistema visual único. Valores cromáticos semánticos, no umbrales deportivos. */
     :root {
@@ -58,7 +58,8 @@
       --atlas-radius-pill: 999px;
       --atlas-separator-width: 2px;
       --atlas-control-height: 44px;
-      --atlas-content-max: 960px;
+      --atlas-mobile-max: 430px;
+      --atlas-content-max: 430px;
       --atlas-chart-zoom-max: 8;
     }
 
@@ -73,6 +74,9 @@
     }
 
     body {
+      width: 100%;
+      max-width: var(--atlas-mobile-max);
+      margin-inline: auto;
       min-height: 100vh;
       min-height: 100dvh;
       display: flex;
@@ -94,7 +98,9 @@
       height: auto;
     }
 
-    main { flex: 1; }
+    /* Formato iPhone único en móvil, tableta y escritorio. La altura sigue el contenido. */
+    main { flex: 1; width: 100%; padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px)); }
+    body.atlas-interior main { padding-bottom: 12px; }
 
 
     /* Primitivas canónicas 5.2: se reutilizarán en las pantallas de 5.3. */
@@ -156,7 +162,10 @@
     /* Una ficha externa compartida, independientemente de la pestaña de origen. */
     .atlas-activity-card { display: grid; grid-template-columns: 3.5rem minmax(0, 1fr); align-items: center; gap: var(--atlas-space-3); }
     .atlas-activity-card__date { text-align: center; font-size: var(--atlas-type-caption); font-weight: 600; }
-    .atlas-activity-card__title { min-width: 0; font-size: var(--atlas-type-row); font-weight: 600; overflow-wrap: anywhere; }
+    .atlas-activity-card__title { min-width: 0; font-size: var(--atlas-activity-title-fit, var(--atlas-type-row)); font-weight: 600; line-height: 1.3; white-space: nowrap; }
+    /* Títulos excepcionalmente largos: tras maximizar el tamaño que cabe, mostrar el texto completo en más líneas. */
+    .atlas-activity-card__title--wrap { white-space: normal; overflow-wrap: anywhere; font-size: 12px; }
+    .atlas-activity-card > div:last-child { min-width: 0; }
     .atlas-activity-card__metrics { display: flex; gap: var(--atlas-space-2); min-width: 0; font-size: var(--atlas-type-secondary); color: var(--atlas-text-secondary); }
     .atlas-activity-card__metrics > * + * { border-inline-start: var(--atlas-separator-width) solid var(--atlas-separator-color); padding-inline-start: var(--atlas-space-2); }
 
@@ -192,15 +201,13 @@
       outline: 2px solid var(--atlas-accent);
       outline-offset: 2px;
     }
-    @media (min-width: 768px) {
-      .atlas-screen { width: min(calc(100% - 2 * var(--atlas-space-8)), var(--atlas-content-max)); }
-    }
+    /* No existe adaptación horizontal a iPad o escritorio en la fase 5.3. */
     @media (prefers-reduced-motion: reduce) {
       .atlas-glass, .atlas-tabs { scroll-behavior: auto; }
     }
 
     /* 4.4 · Control provisional mínimo de conexión e importación. */
-    .panel { width: min(92vw, 430px); margin: 32px auto 60px; padding: 20px;
+    .panel { width: 100%; margin: 22px auto 36px; padding: 20px;
       border: 1px solid var(--atlas-border); border-radius: var(--atlas-radius-card); background: var(--atlas-surface); }
     .panel h2 { font-size: var(--atlas-type-section); margin: 0 0 8px; font-weight: 600; }
     .panel p { margin: 0 0 18px; font-size: 13px; line-height: 1.5; color: var(--atlas-text-secondary); }
@@ -234,24 +241,29 @@
     [hidden] { display: none !important; }
     body.atlas-interior > header { display: none; }
     .atlas-route { padding-top: 20px; padding-bottom: 34px; }
-    .atlas-route__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 22px; }
+    .atlas-route__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: var(--atlas-control-height); margin-bottom: 22px; }
+    .atlas-route__heading + .atlas-route__group { margin-top: 0; }
     .atlas-route__group { margin: 22px 0 0; }
     .atlas-route__group .atlas-section-title { margin-bottom: 12px; }
     .atlas-route__subtitle { margin: 8px 0 16px; color: var(--atlas-text-secondary); font-size: var(--atlas-type-body-small); line-height: 1.45; }
     .atlas-panel-muted { line-height: 1.5; font-size: var(--atlas-type-secondary); color: var(--atlas-text-secondary); }
     .atlas-panel-muted p { margin: 0; }
     .atlas-primary-date { margin: 0; color: var(--atlas-text-secondary); font-size: var(--atlas-type-caption); }
-    .atlas-ready { display: grid; grid-template-columns: 86px minmax(0, 1fr); gap: 16px; align-items: center; padding: 16px; }
-    .atlas-ready__ring { width: 86px; aspect-ratio: 1; border: 7px solid var(--atlas-border); border-radius: 50%; display:grid;place-items:center; font-size: var(--atlas-type-value); font-weight: 700; }
+    .atlas-ready { --atlas-ring-size: 86px; display: grid; grid-template-columns: var(--atlas-ring-size) minmax(0, 1fr); gap: 16px; align-items: center; padding: 16px; }
+    /* El diámetro vertical y horizontal se fijan a la misma variable. Nunca una elipse. */
+    .atlas-ready__ring { box-sizing: border-box; inline-size: var(--atlas-ring-size); block-size: var(--atlas-ring-size); min-inline-size: var(--atlas-ring-size); min-block-size: var(--atlas-ring-size); aspect-ratio: 1 / 1; border: 7px solid var(--atlas-border); border-radius: 50%; display: grid; place-items: center; align-self: center; justify-self: center; font-size: var(--atlas-type-value); font-weight: 700; }
     .atlas-ready__headline { margin: 6px 0 2px; font-size: var(--atlas-type-row); font-weight: 600; }
     .atlas-ready__text { margin: 5px 0 0; color: var(--atlas-text-secondary); font-size: var(--atlas-type-secondary); line-height: 1.4; }
     .atlas-metrics--live { margin: 16px 0 0; padding: 6px 0 0; }
-    .atlas-metrics--live .atlas-metric { border-radius: 0; min-height: 98px; padding: 5px clamp(1px,.5vw,6px); background:transparent; border-block: 0; border-inline-end: 0; cursor: pointer; font-family: inherit; color: inherit; }
+    .atlas-metrics--live .atlas-metric { border: 0; border-radius: 0; min-height: 98px; padding: 5px 2px; background: transparent; cursor: pointer; font-family: inherit; color: inherit; }
+    .atlas-metrics--live .atlas-metric + .atlas-metric { border-inline-start: var(--atlas-separator-width) solid var(--atlas-separator-color); }
     .atlas-metrics--live .atlas-metric:focus-visible { outline: 2px solid var(--atlas-accent); outline-offset: -2px; }
     .atlas-metrics--live .atlas-metric__emoji { font-size: 18px; line-height: 1.45; }
-    .atlas-metrics--live .atlas-metric__label { font-size: clamp(10px,2.9vw,12px); margin-top: 5px; }
-    .atlas-metrics--live .atlas-metric__value { font-variant-numeric: tabular-nums; margin-top: 5px; }
-    .atlas-metrics--live .atlas-metric__detail { margin-top: 5px; font-size: clamp(9px,2.6vw,12px); line-height: 1.25; overflow-wrap: anywhere; }
+    /* Tamaño ATLAS: tres tamaños comunes, cada uno maximizado según el texto real. */
+    .atlas-metrics--live .atlas-metric__label { font-size: var(--atlas-metric-label-fit, 12px); margin-top: 5px; white-space: nowrap; }
+    .atlas-metrics--live .atlas-metric__value { font-size: var(--atlas-metric-value-fit, 18px); font-variant-numeric: tabular-nums; margin-top: 5px; white-space: nowrap; }
+    .atlas-metrics--live .atlas-metric__detail { margin-top: 5px; font-size: var(--atlas-metric-detail-fit, 10px); line-height: 1.25; white-space: nowrap; }
+
     .atlas-metric__value[data-empty="true"] { color: var(--atlas-text-tertiary); }
     .atlas-activity-card--live { width: 100%; text-align: left; color: var(--atlas-text); font: inherit; }
     .atlas-activity-card__date strong { display: block; font-size: var(--atlas-type-value); line-height: 1.1; }
@@ -259,9 +271,35 @@
     .atlas-activity-card__metrics { flex-wrap: wrap; margin-top: 6px; gap: 4px 8px; }
     .atlas-card--readout { margin: 10px 0 0; }
     .atlas-action-link { color: var(--atlas-accent); text-decoration: none; border: none; background: transparent; font: inherit; cursor: pointer; font-weight: 600; padding: 9px 0; }
-    .atlas-tabs { position: sticky; bottom: 0; z-index: 5; }
-    .atlas-tabs__item { min-height: 48px; border: 0; border-radius: 10px; background: transparent; font-family: inherit; cursor: pointer; padding: 4px 1px; }
-    .atlas-tabs__item[aria-current="page"] { background: rgba(10,132,255,.10); }
+    /* Píldora flotante Liquid Glass: separada de los bordes y centrada en el iPhone lógico. */
+    .atlas-tabs {
+      position: fixed;
+      left: 50%;
+      bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+      transform: translateX(-50%);
+      z-index: 15;
+      width: min(calc(100vw - 16px), calc(var(--atlas-mobile-max) - 16px));
+      padding: 8px 4px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 28px;
+      background: linear-gradient(160deg, rgba(82,82,92,.52), rgba(25,25,31,.76));
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
+      backdrop-filter: blur(24px) saturate(160%);
+      box-shadow: 0 10px 35px rgba(0,0,0,.50), inset 0 1px 0 rgba(255,255,255,.10);
+    }
+    .atlas-tabs__item {
+      min-height: 52px;
+      border: 0;
+      border-radius: 18px;
+      background: transparent;
+      font-family: inherit;
+      font-size: var(--atlas-tab-fit, 12px);
+      font-weight: 600;
+      cursor: pointer;
+      padding: 5px 1px;
+    }
+    .atlas-tabs__label { min-width: 0; max-width: 100%; white-space: nowrap; line-height: 1.2; overflow: visible; text-overflow: clip; }
+    .atlas-tabs__item[aria-current="page"] { background: rgba(10,132,255,.17); }
     .atlas-footer-back { text-align: center; margin: 28px 0 12px; }
     .atlas-back--top { min-height: 44px; padding: 0 2px; }
     .atlas-date-list { width: 100%; border-collapse: collapse; font-size: var(--atlas-type-secondary); margin-top: 12px; }
@@ -269,11 +307,143 @@
     .atlas-date-list td:last-child { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
     .atlas-tag { color: var(--atlas-text-tertiary); font-size: var(--atlas-type-caption); }
     .atlas-icon-button--neutral { background: var(--atlas-surface-raised); color: var(--atlas-accent); font-size: 26px; }
+    /* Acciones de cabecera sin fondo: sincronizar y ajustes. */
+    #atlas-sinc-hoy { background: transparent; color: var(--atlas-accent); }
+    #atlas-pagina-perfil .atlas-icon-button[data-open="ajustes"] { background: transparent; color: var(--atlas-text); }
     .atlas-icon-button[aria-busy="true"] { animation: atlas-loading 1s linear infinite; }
     @keyframes atlas-loading { to { transform: rotate(360deg); } }
     #atlas-herramientas .panel:first-of-type { margin-top: 10px; }
-    @media (max-width: 345px) { .atlas-ready { grid-template-columns: 72px minmax(0,1fr); gap: 12px; } .atlas-ready__ring { width:72px; } }
+    @media (max-width: 345px) { .atlas-ready { --atlas-ring-size: 72px; grid-template-columns: var(--atlas-ring-size) minmax(0,1fr); gap: 12px; } }
     @media (prefers-reduced-motion: reduce) { .atlas-icon-button[aria-busy="true"] { animation: none; } }
+    /* 5.3 · Fichas canónicas de métricas: sin bibliotecas ni datos deportivos inferidos. */
+    .atlas-ready--open { cursor: pointer; }
+    .atlas-ready--open:focus-visible { outline: 2px solid var(--atlas-accent); outline-offset: 2px; }
+    .atlas-period-controls { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 3px; margin: 22px 0 14px; }
+    .atlas-period-controls button { min-width: 0; min-height: 43px; padding: 7px 1px; font: inherit; font-size: 13px; font-weight: 600; background: rgba(10,132,255,.14); border: 1px solid rgba(10,132,255,.45); color: var(--atlas-accent); cursor: pointer; }
+    .atlas-period-controls button:first-child { border-radius: 12px 4px 4px 12px; }
+    .atlas-period-controls button:last-child { border-radius: 4px 12px 12px 4px; }
+    .atlas-period-controls button[aria-pressed="true"] { background: var(--atlas-accent); color: white; }
+    .atlas-period-nav { display: grid; grid-template-columns: 44px minmax(0,1fr) 44px; align-items: center; margin: 6px 0 18px; text-align: center; }
+    .atlas-period-nav button { width: 44px; height: 44px; border: 0; color: var(--atlas-accent); background: transparent; cursor: pointer; font-size: 30px; }
+    .atlas-period-nav button:disabled { opacity: .25; cursor: default; }
+    .atlas-period-nav__center { min-width: 0; }
+    .atlas-period-nav__center strong { display: block; font-size: 15px; }
+    .atlas-period-nav__center small { display: block; margin-top: 3px; font-size: 12px; color: var(--atlas-text-secondary); }
+    .atlas-graph-tools { display: flex; gap: 10px; justify-content: space-between; align-items: center; min-height: 32px; margin-bottom: 8px; font-size: 12px; color: var(--atlas-text-secondary); }
+    .atlas-graph-tools > span { flex: 1; }
+    .atlas-zoom-controls { display: flex; flex: none; align-items: center; gap: 4px; color: var(--atlas-text); }
+    .atlas-zoom-controls button { background: var(--atlas-surface-raised); color: var(--atlas-accent); border: 1px solid var(--atlas-border); border-radius: 8px; font-size: 17px; font-weight: 600; width: 32px; height: 30px; cursor: pointer; }
+    .atlas-zoom-controls button:disabled { opacity: .35; }
+    .atlas-zoom-controls span { min-width: 30px; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums; }
+    .atlas-chart { display: grid; grid-template-columns: 38px minmax(0,1fr); width: 100%; height: 246px; background: var(--atlas-surface); border: 1px solid var(--atlas-border); border-radius: 14px; overflow: hidden; }
+    .atlas-chart__axis { position: relative; height: 246px; border-right: 1px solid rgba(255,255,255,.09); color: var(--atlas-text-secondary); font-size: 10px; font-variant-numeric: tabular-nums; }
+    .atlas-chart__axis span { position: absolute; right: 4px; transform: translateY(-50%); white-space: nowrap; }
+    .atlas-chart__viewport { min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+    .atlas-chart__viewport svg { display: block; height: 246px; max-width: none; touch-action: pan-x pan-y; }
+    .atlas-chart__viewport svg text { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Arial, sans-serif; fill: #a6a6ad; font-size: 10px; text-anchor: middle; }
+    .atlas-chart__viewport svg [data-index] { cursor: pointer; }
+    .atlas-chart-reading { margin: 12px 0 6px; min-height: 1.6em; color: var(--atlas-accent); font-size: 13px; line-height: 1.4; font-weight: 600; }
+    .atlas-chart-reading[data-empty="true"] { color: var(--atlas-text-secondary); font-weight: 400; }
+    #atlas-chart-cobertura { line-height: 1.45; margin-top: 6px; }
+    .atlas-activity-card--live:is(button) { text-align: left; cursor: pointer; background: transparent; border: 0; padding: 0; }
+    .atlas-activity-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; margin-top: 16px; }
+    .atlas-activity-summary > div { padding: 13px; background: var(--atlas-surface); border: 1px solid var(--atlas-border); border-radius: 12px; min-width: 0; }
+    .atlas-activity-summary span { display: block; color: var(--atlas-text-secondary); font-size: 12px; }
+    .atlas-activity-summary strong { display: block; margin-top: 7px; font-size: 18px; overflow-wrap: anywhere; }
+      /* ATLAS 5.3 · Actividades. Una misma ficha externa e interna en todas las pestañas. */
+    .atlas-activity-filters { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: 8px; margin-top: 4px; }
+    .atlas-activity-filters select, .atlas-activity-search {
+      width: 100%; min-width: 0; min-height: 44px; padding: 8px 9px;
+      border: 1px solid var(--atlas-border); border-radius: var(--atlas-radius-control);
+      background: var(--atlas-surface-raised); color: var(--atlas-text);
+      font: inherit; font-size: var(--atlas-type-body-small);
+    }
+    .atlas-activity-search { display: block; margin-top: 10px; padding-inline: 12px; }
+    .atlas-activity-search::placeholder { color: var(--atlas-text-tertiary); }
+    .atlas-activity-count { margin: 12px 0 0; color: var(--atlas-text-secondary); font-size: 12px; }
+    .atlas-activity-month { margin: 23px 0 0; }
+    .atlas-activity-month__heading { display: flex; align-items: baseline; justify-content: space-between; gap: 9px; margin: 0 0 7px; }
+    .atlas-activity-month__heading h3 { min-width: 0; margin: 0; font-size: var(--atlas-type-section); font-weight: 600; line-height: 1.15; }
+    .atlas-activity-month__heading small { flex-shrink: 0; text-align: right; font-size: 11px; color: var(--atlas-text-secondary); line-height: 1.3; }
+    .atlas-activity-month__items { display: grid; gap: 8px; }
+    .atlas-activity-month__items .atlas-activity-card { width: 100%; text-align: left; padding: 11px 9px; background: var(--atlas-surface); border: 1px solid var(--atlas-border); border-radius: var(--atlas-radius-control); }
+    .atlas-activity-month__items .atlas-activity-card:active { background: var(--atlas-surface-raised); }
+    .atlas-activity-card__title { width: 100%; min-width: 0; }
+    .atlas-activity-card__metrics { min-width: 0; overflow-wrap: anywhere; }
+    .atlas-activity-card__metrics span { min-width: 0; white-space: nowrap; }
+    .atlas-activity-load-more { display:block; margin: 18px auto; min-height: 44px; border: 0; border-radius: var(--atlas-radius-control); background: var(--atlas-surface-raised); color: var(--atlas-accent); padding: 0 15px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .atlas-activity-list-note { margin-top: 16px; font-size: 12px; color: var(--atlas-text-tertiary); line-height: 1.4; }
+    .atlas-activity-empty { margin: 20px 0; color: var(--atlas-text-secondary); font-size: 14px; line-height: 1.5; }
+
+    /* Ficha canónica de actividad completada, única para Hoy y Actividades. */
+    .atlas-activity-detail-title { min-width: 0; font-size: var(--atlas-detail-title-fit, 28px); overflow-wrap: anywhere; }
+    .atlas-activity-meta { display: flex; flex-wrap: wrap; gap: 7px 15px; margin-top: 17px; color: var(--atlas-text-secondary); font-size: 13px; }
+    .atlas-activity-meta span { white-space: nowrap; }
+    .atlas-activity-shoe { display: flex; justify-content: space-between; gap: 8px; margin: 15px 0 0; color: var(--atlas-text-secondary); font-size: 13px; }
+    .atlas-activity-detail-heading { margin: 25px 0 13px; }
+    .atlas-activity-detail-metrics { display: grid; grid-template-columns: repeat(var(--atlas-detail-cols, 5),minmax(0,1fr)); gap: 0; width: 100%; }
+    .atlas-activity-detail-metric { display: flex; align-items: center; flex-direction: column; text-align: center; min-width: 0; min-height: 100px; padding: 7px 2px; border-right: var(--atlas-separator-width) solid var(--atlas-separator-color); }
+    .atlas-activity-detail-metric:nth-child(5n) { border-right: 0; }
+    .atlas-activity-detail-metric:nth-child(n+6) { border-top: 1px solid var(--atlas-separator-color); }
+    .atlas-activity-detail-metric__icon { font-size: 18px; line-height: 1.4; }
+    .atlas-activity-detail-metric__name { width: 100%; display: block; margin-top: 3px; font-size: var(--atlas-activity-label-fit, 10px); line-height: 1.15; font-weight: 600; white-space: nowrap; }
+    .atlas-activity-detail-metric__number { display: block; width: 100%; margin-top: 7px; font-size: var(--atlas-activity-value-fit, 16px); line-height: 1.1; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .atlas-activity-detail-metric__unit { font-size: .64em; font-weight: 400; color: var(--atlas-text-secondary); }
+    .atlas-activity-detail-metric__number[data-empty='true'] { color: var(--atlas-text-tertiary); }
+    .atlas-activity-detail-footnote { color: var(--atlas-text-tertiary); font-size: 12px; line-height: 1.45; margin: 13px 0; }
+    .atlas-activity-analysis { color: var(--atlas-text-secondary); font-size: 14px; line-height: 1.5; }
+    .atlas-activity-laps-note { font-size: 12px; color: var(--atlas-text-tertiary); margin-top: 10px; }
+    @media(max-width:345px) {
+      .atlas-activity-month__heading h3 { font-size: 17px; }
+      .atlas-activity-month__heading small { font-size: 10px; }
+      .atlas-activity-month__items .atlas-activity-card { padding: 9px 5px; }
+      .atlas-activity-detail-metric { padding-inline: 1px; }
+    }
+
+    .atlas-activity-detail-metric:last-child { border-right: 0; }
+
+    /* ATLAS 5.3 · Vueltas: gráfica y tabla conectadas, sin datos simulados. */
+    .atlas-activity-topline{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,7fr);gap:10px;align-items:stretch;margin-top:17px}
+    .atlas-activity-topline--sin-mapa{grid-template-columns:1fr}
+    .atlas-activity-map-pending[hidden]{display:none}
+    .atlas-activity-topline .atlas-activity-meta{display:flex;flex-direction:column;gap:8px;margin-top:0;justify-content:center;font-size:var(--atlas-type-caption)}
+    .atlas-activity-topline .atlas-activity-meta span{white-space:normal;overflow-wrap:anywhere}
+    .atlas-activity-map-pending{border:1px solid var(--atlas-border);border-radius:var(--atlas-radius-control);background:var(--atlas-surface);min-height:136px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:12px 9px;gap:5px}
+    .atlas-activity-map-pending span{font-size:24px}.atlas-activity-map-pending strong{font-size:12px;font-weight:600;color:var(--atlas-text-secondary)}
+    .atlas-activity-map-pending small{font-size:11px;color:var(--atlas-text-tertiary);line-height:1.35}
+    .atlas-laps-button{display:block;margin:12px 0;min-height:44px;padding:8px 14px;border-radius:var(--atlas-radius-control);font:inherit;font-size:14px;font-weight:600;background:var(--atlas-accent);color:white;border:0;cursor:pointer}
+    .atlas-laps-button:disabled{opacity:.5;cursor:default}
+    .atlas-laps-chart{display:grid;grid-template-columns:40px minmax(0,1fr);height:202px;border:1px solid var(--atlas-border);background:var(--atlas-surface);border-radius:var(--atlas-radius-control);overflow:hidden;margin-top:14px}
+    .atlas-laps-axis{position:relative;height:202px;border-right:1px solid var(--atlas-border);font-size:10px;color:var(--atlas-text-secondary);font-variant-numeric:tabular-nums}
+    .atlas-laps-axis span{position:absolute;right:4px;transform:translateY(-50%)}
+    .atlas-laps-scroll{min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+    #atlas-vueltas-svg{display:block;height:202px;max-width:none}
+    #atlas-vueltas-svg rect{cursor:pointer;outline:none}
+    #atlas-vueltas-svg rect.atlas-lap-selected{stroke:white;stroke-width:3}
+    #atlas-vueltas-svg rect:focus-visible{stroke:white;stroke-width:2}
+    .atlas-laps-selection{min-height:1.5em;color:var(--atlas-accent);margin:10px 0;font-size:12px}
+    .atlas-laps-table-wrap{width:100%;overflow-x:auto;margin-top:8px;overscroll-behavior-x:contain}
+    .atlas-laps-table{width:100%;border-collapse:collapse;table-layout:fixed;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:center;font-size:clamp(9px,2.55vw,12px)}
+    .atlas-laps-table th,.atlas-laps-table td{padding:10px 2px;border-bottom:1px solid var(--atlas-border);font-weight:400}
+    .atlas-laps-table thead th{font-size:.9em;color:var(--atlas-text-secondary);font-weight:600}
+    .atlas-laps-table tbody tr{cursor:pointer}
+    .atlas-laps-table tbody tr.atlas-lap-selected{background:rgba(10,132,255,.19)}
+    .atlas-laps-table tbody tr:focus-visible{outline:2px solid var(--atlas-accent)}
+    .atlas-laps-table tbody th{font-weight:600;color:var(--atlas-text)}
+    .atlas-lap-unit{font-size:.72em;color:var(--atlas-text-secondary);font-weight:400;margin-left:1px}
+    .atlas-lap-up{color:var(--atlas-red)}.atlas-lap-down{color:var(--atlas-green)}
+    .atlas-lap-missing{color:var(--atlas-text-tertiary)}
+
+
+    /* 5.3 GPS puntual: ninguna conexión a un proveedor cartográfico de terceros. */
+    #atlas-actividad-mapa-pendiente:has(.atlas-gps-trazado:not([hidden])){padding:7px 5px;gap:4px}
+    #atlas-gps-icono{font-size:20px}
+    .atlas-gps-button{font:inherit;font-size:11px;line-height:1.3;font-weight:600;background:var(--atlas-accent);color:#fff;border:0;border-radius:10px;padding:8px 7px;min-height:39px;width:100%;cursor:pointer}
+    .atlas-gps-button:disabled{opacity:.5}
+    .atlas-gps-trazado{width:100%;min-width:0;display:grid;gap:3px;justify-items:center}
+    .atlas-gps-trazado[hidden],.atlas-gps-button[hidden]{display:none!important}
+    .atlas-gps-trazado svg{width:100%;height:auto;display:block;background:#090d14;border-radius:9px}
+    .atlas-gps-trazado small{font-size:9px;color:var(--atlas-text-tertiary);line-height:1.25}
   </style>
 </head>
 <body>
@@ -283,8 +453,8 @@
   <main id="atlas-app" aria-label="Aplicación ATLAS">
     <section class="atlas-screen atlas-route" id="atlas-pagina-hoy" data-root="hoy" aria-labelledby="atlas-titulo-hoy">
       <div class="atlas-route__heading"><h2 class="atlas-page-title" id="atlas-titulo-hoy">Hoy</h2><button class="atlas-icon-button atlas-icon-button--neutral" id="atlas-sinc-hoy" type="button" aria-label="Sincronizar los últimos siete días con Garmin" title="Sincronizar los últimos siete días con Garmin">↻</button></div>
-      <section class="atlas-route__group" aria-labelledby="atlas-titulo-estado"><h3 class="atlas-section-title" id="atlas-titulo-estado">Estado ATLAS</h3>
-        <div class="atlas-card atlas-ready"><div class="atlas-ready__ring" aria-label="Predisposición Garmin no disponible">—</div><div><p class="atlas-primary-date" id="atlas-fecha-hoy"></p><p class="atlas-ready__headline">No disponible</p><p class="atlas-ready__text">La predisposición de Garmin todavía no está conectada a esta pantalla. No se calcula un índice alternativo.</p></div></div>
+      <section class="atlas-route__group" aria-label="Predisposición para entrenar de Garmin">
+        <div class="atlas-card atlas-ready atlas-ready--open" id="atlas-open-predisposicion" role="button" tabindex="0" aria-label="Ver detalle del estado ATLAS"><div class="atlas-ready__ring" aria-label="Predisposición Garmin no disponible">—</div><div><p class="atlas-primary-date" id="atlas-fecha-hoy"></p><p class="atlas-ready__headline">No disponible</p><p class="atlas-ready__text">La predisposición de Garmin todavía no está conectada a esta pantalla. No se calcula un índice alternativo.</p></div></div>
       </section>
       <section class="atlas-route__group" aria-label="Métricas principales de hoy"><div id="atlas-metricas-hoy" class="atlas-metrics atlas-metrics--live">
         <button type="button" class="atlas-metric" data-metric="sueno"><span class="atlas-metric__emoji" aria-hidden="true">💤</span><span class="atlas-metric__label">Sueño</span><span class="atlas-metric__value" data-empty="true">—</span><span class="atlas-metric__detail">Sin datos</span></button>
@@ -297,11 +467,106 @@
       <section class="atlas-route__group" aria-labelledby="atlas-titulo-proximos"><h3 class="atlas-section-title" id="atlas-titulo-proximos">Próximos entrenamientos</h3><div class="atlas-card atlas-panel-muted">Sin plan de entrenamiento ATLAS. La generación de planes corresponde a la fase 6.</div></section>
       <p class="atlas-panel-muted" id="atlas-sinc-mensaje" role="status" aria-live="polite"></p>
     </section>
-    <section class="atlas-screen atlas-route" id="atlas-pagina-actividades" data-root="actividades" aria-labelledby="atlas-titulo-actividades" hidden><div class="atlas-route__heading"><h2 class="atlas-page-title" id="atlas-titulo-actividades">Actividades</h2></div><p class="atlas-route__subtitle">Historial deportivo de Garmin.</p><div class="atlas-card atlas-panel-muted">Listado, filtros y ficha canónica de actividades: siguiente incremento de 5.3. Los datos locales no se han modificado.</div></section>
+    <section class="atlas-screen atlas-route" data-root="actividades" hidden id="atlas-pagina-actividades" aria-labelledby="atlas-titulo-actividades">
+      <div class="atlas-route__heading"><h2 class="atlas-page-title" id="atlas-titulo-actividades">Actividades</h2></div>
+      <div class="atlas-activity-filters">
+        <select id="atlas-filtro-deporte" aria-label="Filtrar por deporte"><option value="todos">🏅 Todos los deportes</option></select>
+        <select id="atlas-filtro-ano" aria-label="Filtrar por año"><option value="todos">Todo</option></select>
+      </div>
+      <input id="atlas-buscar-actividad" class="atlas-activity-search" type="search" placeholder="Buscar por título de actividad" aria-label="Buscar por título de actividad" autocomplete="off">
+      <p id="atlas-cuenta-actividades" class="atlas-activity-count" role="status" aria-live="polite">Histórico local pendiente de consultar.</p>
+      <div id="atlas-lista-actividades" aria-live="off"></div>
+      <button id="atlas-mas-actividades" class="atlas-activity-load-more" type="button" hidden>Mostrar más actividades</button>
+      <p class="atlas-activity-list-note">Actividades guardadas en este dispositivo. El listado no solicita de nuevo el histórico a Garmin.</p>
+    </section>
     <section class="atlas-screen atlas-route" id="atlas-pagina-plan" data-root="plan" aria-labelledby="atlas-titulo-plan" hidden><div class="atlas-route__heading"><h2 class="atlas-page-title" id="atlas-titulo-plan">Plan</h2></div><div class="atlas-card atlas-panel-muted">El calendario y el formulario visual se incorporarán en 5.3. El Training Engine se desarrollará en la fase 6; la publicación en Garmin, en la fase 8.</div></section>
     <section class="atlas-screen atlas-route" id="atlas-pagina-evolucion" data-root="evolucion" aria-labelledby="atlas-titulo-evolucion" hidden><div class="atlas-route__heading"><h2 class="atlas-page-title" id="atlas-titulo-evolucion">Evolución</h2></div><div class="atlas-card atlas-panel-muted">Gráficas y evolución histórica: siguiente incremento de 5.3. No se muestran series sin procedencia y fechas verificadas.</div></section>
-    <section class="atlas-screen atlas-route" id="atlas-pagina-perfil" data-root="perfil" aria-labelledby="atlas-titulo-perfil" hidden><div class="atlas-route__heading"><h2 class="atlas-page-title" id="atlas-titulo-perfil">Perfil</h2><button class="atlas-icon-button atlas-icon-button--neutral" type="button" data-open="ajustes" aria-label="Abrir Ajustes" title="Ajustes">⚙</button></div><div class="atlas-card atlas-panel-muted">Identidad y equipamiento Garmin: pendientes de una lectura contrastada. Los apartados de Perfil se construirán en 5.3.</div><button class="atlas-action-link" type="button" data-open="ajustes">Abrir Ajustes y herramientas actuales</button></section>
-    <section class="atlas-screen atlas-route" id="atlas-pagina-detalle" data-interior="detalle" hidden><button class="atlas-back atlas-back--top" type="button" data-back>‹ Atrás</button><h2 class="atlas-page-title" id="atlas-detalle-titulo"></h2><p id="atlas-detalle-descripcion" class="atlas-route__subtitle"></p><div class="atlas-card atlas-card--readout" id="atlas-detalle-valor"></div><div class="atlas-route__group"><h3 class="atlas-section-title">Últimos siete días</h3><p class="atlas-tag">Lectura local por fecha, sin interpolaciones ni valores de prueba. Las gráficas y filtros del diseño se añadirán en un siguiente incremento.</p><table class="atlas-date-list" aria-label="Valores reales por día"><tbody id="atlas-detalle-dias"></tbody></table></div><div class="atlas-footer-back"><button class="atlas-back" type="button" data-back>Atrás</button></div></section>
+    <section class="atlas-screen atlas-route" id="atlas-pagina-perfil" data-root="perfil" aria-labelledby="atlas-titulo-perfil" hidden><div class="atlas-route__heading"><h2 class="atlas-page-title" id="atlas-titulo-perfil">Perfil</h2><button class="atlas-icon-button atlas-icon-button--neutral" type="button" data-open="ajustes" aria-label="Abrir Ajustes" title="Ajustes">⚙️</button></div><div class="atlas-card atlas-panel-muted">Identidad y equipamiento Garmin: pendientes de una lectura contrastada. Los apartados de Perfil se construirán en 5.3.</div><button class="atlas-action-link" type="button" data-open="ajustes">Abrir Ajustes y herramientas actuales</button></section>
+    <section class="atlas-screen atlas-route" id="atlas-pagina-detalle" data-interior="detalle" hidden>
+      <button class="atlas-back atlas-back--top" type="button" data-back>‹ Atrás</button>
+      <h2 class="atlas-page-title" id="atlas-detalle-titulo"></h2>
+      <div class="atlas-period-controls" role="group" aria-label="Rango de fechas">
+        <button type="button" data-periodo="7d" aria-pressed="true">7 días</button>
+        <button type="button" data-periodo="1m" aria-pressed="false">1 mes</button>
+        <button type="button" data-periodo="1y" aria-pressed="false">1 año</button>
+        <button type="button" data-periodo="todo" aria-pressed="false">Todo</button>
+      </div>
+      <div class="atlas-period-nav">
+        <button type="button" id="atlas-period-anterior" aria-label="Periodo anterior">‹</button>
+        <div class="atlas-period-nav__center"><strong id="atlas-period-etiqueta">—</strong><small id="atlas-period-ayuda">Datos locales</small></div>
+        <button type="button" id="atlas-period-siguiente" aria-label="Periodo siguiente">›</button>
+      </div>
+      <div class="atlas-graph-tools">
+        <span id="atlas-graph-subtitle">Gráfica de registros locales</span>
+        <div class="atlas-zoom-controls" aria-label="Ampliación de gráfica">
+          <button type="button" id="atlas-graph-minus" aria-label="Reducir ampliación">−</button>
+          <span id="atlas-graph-zoom" aria-live="off">1×</span>
+          <button type="button" id="atlas-graph-plus" aria-label="Ampliar gráfica">+</button>
+        </div>
+      </div>
+      <div class="atlas-chart" id="atlas-chart" aria-label="Gráfica de la métrica seleccionada">
+        <div class="atlas-chart__axis" id="atlas-chart-eje" aria-hidden="true"></div>
+        <div class="atlas-chart__viewport" id="atlas-chart-visor" tabindex="0" aria-label="Desplazar gráfica horizontalmente">
+          <svg id="atlas-chart-dibujo" role="img" aria-label="Valores de la métrica por fecha" xmlns="http://www.w3.org/2000/svg"></svg>
+        </div>
+      </div>
+      <p id="atlas-chart-lectura" class="atlas-chart-reading" role="status" aria-live="polite">Pulsa un punto o una barra para consultar su valor.</p>
+      <p id="atlas-chart-cobertura" class="atlas-tag"></p>
+      <p id="atlas-detalle-descripcion" class="atlas-route__subtitle"></p>
+      <div class="atlas-footer-back"><button class="atlas-back" type="button" data-back>Atrás</button></div>
+    </section>
+    <section class="atlas-screen atlas-route" id="atlas-pagina-predisposicion" data-interior="predisposicion" hidden>
+      <button class="atlas-back atlas-back--top" type="button" data-back>‹ Atrás</button>
+      <h2 class="atlas-page-title">Estado ATLAS</h2>
+      <div class="atlas-card atlas-ready atlas-ready--detail">
+        <div class="atlas-ready__ring" aria-label="Predisposición Garmin no disponible">—</div>
+        <div><p class="atlas-primary-date" id="atlas-fecha-predisposicion"></p><p class="atlas-ready__headline">No disponible</p><p class="atlas-ready__text">No se dispone de una lectura verificada de Training Readiness para esta pantalla.</p></div>
+      </div>
+      <p class="atlas-route__subtitle">Las barras de los factores y su interpretación se mostrarán aquí cuando Garmin proporcione los valores verificables. No se sustituirá la predisposición Garmin por un cálculo propio.</p>
+      <div class="atlas-footer-back"><button class="atlas-back" type="button" data-back>Atrás</button></div>
+    </section>
+    <section class="atlas-screen atlas-route" data-interior="actividad" hidden id="atlas-pagina-actividad">
+      <button type="button" class="atlas-back atlas-back--top" data-back>‹ Atrás</button>
+      <h2 class="atlas-page-title atlas-activity-detail-title" id="atlas-actividad-titulo"></h2>
+      <div class="atlas-activity-topline" id="atlas-actividad-topline">
+        <div class="atlas-activity-meta" id="atlas-actividad-meta" aria-label="Datos de la actividad"></div>
+        <div class="atlas-activity-map-pending" id="atlas-actividad-mapa-pendiente" aria-label="Estado del mapa de la actividad">
+          <span aria-hidden="true" id="atlas-gps-icono">🗺️</span><strong id="atlas-gps-titulo">Recorrido GPS pendiente</strong>
+          <small id="atlas-gps-estado" role="status" aria-live="polite">Los registros locales no incluyen puntos GPS. No se dibuja una ruta ficticia.</small>
+          <button type="button" id="atlas-gps-consultar" class="atlas-gps-button" hidden>Consultar GPS en Garmin</button>
+          <div id="atlas-gps-trazado" class="atlas-gps-trazado" hidden>
+            <svg id="atlas-gps-svg" viewBox="0 0 280 155" preserveAspectRatio="xMidYMid meet" aria-label="Trazado GPS real proporcionado por Garmin, sin mapa base"></svg>
+            <small>Recorrido Garmin. Mapa cartográfico pendiente de proveedor aprobado.</small>
+          </div>
+        </div>
+      </div>
+      <div class="atlas-activity-shoe" id="atlas-actividad-zapatillas" hidden></div>
+      <h3 class="atlas-section-title atlas-activity-detail-heading" id="atlas-actividad-seccion-metricas">Métricas de carrera</h3>
+      <div class="atlas-activity-detail-metrics" id="atlas-actividad-resumen"></div>
+      <p class="atlas-activity-detail-footnote" id="atlas-actividad-limitaciones"></p>
+      <h3 class="atlas-section-title atlas-activity-detail-heading">Análisis ATLAS</h3>
+      <p class="atlas-activity-analysis" id="atlas-actividad-analisis"></p>
+      <section id="atlas-vueltas-bloque" aria-labelledby="atlas-vueltas-titulo" hidden>
+        <h3 class="atlas-section-title atlas-activity-detail-heading" id="atlas-vueltas-titulo">Vueltas e intervalos</h3>
+        <p class="atlas-activity-detail-footnote" id="atlas-vueltas-estado" role="status" aria-live="polite"></p>
+        <button type="button" id="atlas-vueltas-consultar" class="atlas-laps-button" hidden>Consultar vueltas en Garmin</button>
+        <div id="atlas-vueltas-grafico" hidden>
+          <div class="atlas-laps-chart" aria-label="Ritmo por vuelta, más alto significa más rápido">
+            <div class="atlas-laps-axis" id="atlas-vueltas-eje" aria-hidden="true"></div>
+            <div class="atlas-laps-scroll"><svg xmlns="http://www.w3.org/2000/svg" id="atlas-vueltas-svg" aria-label="Gráfica de ritmo por vuelta"></svg></div>
+          </div>
+          <p class="atlas-laps-selection" id="atlas-vueltas-seleccion" role="status"></p>
+        </div>
+        <div id="atlas-vueltas-tabla" class="atlas-laps-table-wrap" hidden>
+          <table class="atlas-laps-table" aria-label="Detalle por vuelta">
+            <thead><tr><th scope="col">N.º</th><th scope="col">Dist.</th><th scope="col">Tiempo</th><th scope="col">Ritmo</th><th scope="col">FC</th><th scope="col">Desn.</th></tr></thead>
+            <tbody id="atlas-vueltas-tabla-cuerpo"></tbody>
+          </table>
+        </div>
+        <p class="atlas-activity-detail-footnote">Se muestran únicamente vueltas registradas por Garmin. El desnivel firmado exige ascenso y descenso en la misma vuelta.</p>
+      </section>
+      <div class="atlas-footer-back"><button type="button" class="atlas-back" data-back>Atrás</button></div>
+    </section>
     <section class="atlas-screen atlas-route" id="atlas-pagina-ajustes" data-interior="ajustes" hidden><button class="atlas-back atlas-back--top" type="button" data-back>‹ Atrás</button><h2 class="atlas-page-title">Ajustes</h2><p class="atlas-route__subtitle">Configuración de acceso, importación y comprobación local. Las herramientas validadas permanecen sin cambios.</p>
       <section id="atlas-herramientas" aria-label="Herramientas de conexión e histórico">
 
@@ -359,11 +624,11 @@
     </section>
   </main>
   <nav class="atlas-tabs" id="atlas-tabs" aria-label="Navegación principal">
-    <button class="atlas-tabs__item" type="button" data-tab="hoy" aria-current="page"><span class="atlas-tabs__emoji" aria-hidden="true">🌅</span><span>Hoy</span></button>
-    <button class="atlas-tabs__item" type="button" data-tab="actividades"><span class="atlas-tabs__emoji" aria-hidden="true">🏃</span><span>Actividades</span></button>
-    <button class="atlas-tabs__item" type="button" data-tab="plan"><span class="atlas-tabs__emoji" aria-hidden="true">📅</span><span>Plan</span></button>
-    <button class="atlas-tabs__item" type="button" data-tab="evolucion"><span class="atlas-tabs__emoji" aria-hidden="true">📈</span><span>Evolución</span></button>
-    <button class="atlas-tabs__item" type="button" data-tab="perfil"><span class="atlas-tabs__emoji" aria-hidden="true">👤</span><span>Perfil</span></button>
+    <button class="atlas-tabs__item" type="button" data-tab="hoy" aria-current="page"><span class="atlas-tabs__emoji" aria-hidden="true">🌅</span><span class="atlas-tabs__label">Hoy</span></button>
+    <button class="atlas-tabs__item" type="button" data-tab="actividades"><span class="atlas-tabs__emoji" aria-hidden="true">🏃🏻‍♂️</span><span class="atlas-tabs__label">Actividades</span></button>
+    <button class="atlas-tabs__item" type="button" data-tab="plan"><span class="atlas-tabs__emoji" aria-hidden="true">📅</span><span class="atlas-tabs__label">Plan</span></button>
+    <button class="atlas-tabs__item" type="button" data-tab="evolucion"><span class="atlas-tabs__emoji" aria-hidden="true">📈</span><span class="atlas-tabs__label">Evolución</span></button>
+    <button class="atlas-tabs__item" type="button" data-tab="perfil"><span class="atlas-tabs__emoji" aria-hidden="true">👤</span><span class="atlas-tabs__label">Perfil</span></button>
   </nav>
   <script>
     // ATLAS — IndexedDB (subfases 2.2 y 2.3).
@@ -1740,18 +2005,81 @@
       const duracion = seg => { if(numero(seg)===null) return null; const s=Math.round(seg);return Math.floor(s/3600)+'h '+String(Math.floor((s%3600)/60)).padStart(2,'0')+'m'; };
       const medida = (tipo, datos) => {
         const s=datos?.salud||{}, n=datos?.sueno||{}, v=datos?.vfc||{};
-        if (tipo==='sueno' && numero(n.totalSeg)!==null) return {v:duracion(n.totalSeg),u:'',d:numero(n.puntuacion)!==null?'Puntuación '+n.puntuacion:'Sin puntuación'};
+        if (tipo==='sueno' && numero(n.totalSeg)!==null) {
+          const seg=Math.round(n.totalSeg);
+          return {
+            v:duracion(n.totalSeg),u:'',
+            partes:[{v:String(Math.floor(seg/3600)),u:'h'},{v:String(Math.floor((seg%3600)/60)).padStart(2,'0'),u:'m'}],
+            d:numero(n.puntuacion)!==null?'Puntuación '+n.puntuacion:'Sin puntuación'
+          };
+        }
         if (tipo==='vfc' && numero(v.ultimaNoche)!==null) return {v:String(Math.round(v.ultimaNoche)),u:'ms',d:numero(v.referenciaInferior)!==null&&numero(v.referenciaSuperior)!==null?'Rango '+v.referenciaInferior+'–'+v.referenciaSuperior:'Sin rango'};
         if (tipo==='reposo' && numero(s.fcReposo)!==null) return {v:String(Math.round(s.fcReposo)),u:'ppm',d:'Registrada'};
         if (tipo==='spo2' && numero(s.spo2Media)!==null) return {v:new Intl.NumberFormat('es-ES',{maximumFractionDigits:1}).format(s.spo2Media),u:'%',d:'Sin clasificar'};
         return null;
       };
-      const ponerValor = (el, value) => { el.replaceChildren();if (!value) {el.textContent='—';el.dataset.empty='true';return;} el.dataset.empty='false';el.append(document.createTextNode(value.v)); if(value.u){const small=document.createElement('span');small.className='atlas-metric__unit';small.textContent=' '+value.u;el.append(small);} };
+      const ponerValor = (el, value) => {
+        el.replaceChildren();
+        if (!value) {el.textContent='—';el.dataset.empty='true';return;}
+        el.dataset.empty='false';
+        if (Array.isArray(value.partes)) {
+          // Cifras de horas/minutos al mismo tamaño; h/m con el estilo canónico de unidades.
+          value.partes.forEach((parte,i)=>{
+            if(i) el.append(document.createTextNode(' '));
+            el.append(document.createTextNode(parte.v));
+            const unidad=document.createElement('span');unidad.className='atlas-metric__unit';unidad.textContent=parte.u;el.append(unidad);
+          });
+        } else {
+          el.append(document.createTextNode(value.v));
+          if(value.u){const unidad=document.createElement('span');unidad.className='atlas-metric__unit';unidad.textContent=' '+value.u;el.append(unidad);}
+        }
+      };
+      function anchuraTexto(el) {
+        // Range mide el contenido entero, incluso si el navegador pretendiera truncarlo.
+        const rango=document.createRange();rango.selectNodeContents(el);
+        return rango.getBoundingClientRect().width;
+      }
+      function anchuraDisponible(el) {
+        if (el.classList.contains('atlas-tabs__label')) {
+          const boton=el.closest('.atlas-tabs__item');
+          const estilo=getComputedStyle(boton);
+          return boton.clientWidth-parseFloat(estilo.paddingLeft)-parseFloat(estilo.paddingRight);
+        }
+        return el.clientWidth;
+      }
+      function ajustarTamanioComun(contenedor, elementos, variable, max, min) {
+        if (!elementos.length) return true;
+        const cabe=px=>{
+          contenedor.style.setProperty(variable,px.toFixed(2)+'px');
+          return elementos.every(el=>anchuraTexto(el)<=anchuraDisponible(el)-0.25);
+        };
+        if (cabe(max)) return true;
+        // Tamaño ATLAS: el máximo COMÚN que deja ver íntegros TODOS los elementos.
+        if (!cabe(min)) return false;
+        let bajo=min,alto=max;
+        for(let i=0;i<13;i++){
+          const medio=(bajo+alto)/2;
+          if(cabe(medio))bajo=medio;else alto=medio;
+        }
+        cabe(Math.max(min,bajo-0.03));
+        return true;
+      }
       function ajustarFila() {
-        const cont = metricas;
-        for (let px=22; px>=10; px--) {
-          cont.style.setProperty('--atlas-metric-fit',px+'px');
-          if([...cont.querySelectorAll('.atlas-metric__value')].every(el=>el.scrollWidth<=el.clientWidth+1)) break;
+        ajustarTamanioComun(metricas,[...metricas.querySelectorAll('.atlas-metric__label')],'--atlas-metric-label-fit',16,7);
+        ajustarTamanioComun(metricas,[...metricas.querySelectorAll('.atlas-metric__value')],'--atlas-metric-value-fit',24,7);
+        ajustarTamanioComun(metricas,[...metricas.querySelectorAll('.atlas-metric__detail')],'--atlas-metric-detail-fit',14,6);
+      }
+      function ajustarBarra() {
+        ajustarTamanioComun(tabs,[...tabs.querySelectorAll('.atlas-tabs__label')],'--atlas-tab-fit',15,6);
+      }
+      function ajustarTituloActividad() {
+        const titulo=ultimoEl.querySelector('.atlas-activity-card__title');
+        if(!titulo)return;
+        titulo.classList.remove('atlas-activity-card__title--wrap');
+        // Una sola línea si es legible; sin elipsis ni pérdida de información.
+        if(!ajustarTamanioComun(titulo,[titulo],'--atlas-activity-title-fit',17,10)) {
+          titulo.style.removeProperty('--atlas-activity-title-fit');
+          titulo.classList.add('atlas-activity-card__title--wrap');
         }
       }
       async function leerDia(dia) { return (await ATLASDB.leer('historico:resumen:dia:'+dia))?.datos || null; }
@@ -1777,27 +2105,9 @@
       function pintarActividad(a) {
         ultimoEl.replaceChildren();
         if(!a){ultimoEl.textContent='Sin actividades guardadas en este dispositivo.';return;}
-        const f=a.startTimeLocal.slice(0,10);
-        const tipo=a.activityType?.typeKey||'';
-        const tipos={'running':'🏃 Carrera','trail_running':'🏔️ Carrera de montaña','treadmill_running':'🏃 Carrera en cinta','track_running':'🏃 Carrera en pista','cycling':'🚴 Ciclismo','walking':'🚶 Caminar','strength_training':'🏋️ Fuerza','swimming':'🏊 Natación','hiking':'🥾 Senderismo'};
-        const base=document.createElement('div');base.className='atlas-activity-card atlas-activity-card--live';
-        const fecha=document.createElement('div');fecha.className='atlas-activity-card__date';
-        const d=new Date(f+'T12:00:00');const dow=new Intl.DateTimeFormat('es-ES',{weekday:'short'}).format(d).replace('.','').toUpperCase();
-        const mes=new Intl.DateTimeFormat('es-ES',{month:'short'}).format(d).replace('.','').toUpperCase();
-        const uno=document.createElement('small');uno.textContent=dow;const dos=document.createElement('strong');dos.textContent=String(d.getDate());const tres=document.createElement('small');tres.textContent=mes;
-        fecha.append(uno,dos,tres);base.append(fecha);
-        const info=document.createElement('div');
-        const titulo=document.createElement('div');titulo.className='atlas-activity-card__title';titulo.textContent=(tipos[tipo]||'🏅 Actividad')+' · '+(a.activityName||'Sin título');
-        info.append(titulo);
-        const line=document.createElement('div');line.className='atlas-activity-card__metrics';
-        const hayDist=numero(a.distance)!==null, hayTiempo=numero(a.duration)!==null;
-        const run=/running|trail_run|track_run/.test(tipo);
-        const vals=[];
-        if(hayDist) vals.push(new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(a.distance/1000)+' km');
-        if(hayTiempo) {const s=Math.round(a.duration);vals.push((s>=3600?Math.floor(s/3600)+':':'')+String(Math.floor((s%3600)/60)).padStart(s>=3600?2:1,'0')+':'+String(s%60).padStart(2,'0'));}
-        if(run && numero(a.averageSpeed)>0){const p=Math.round(1000/a.averageSpeed);vals.push(Math.floor(p/60)+':'+String(p%60).padStart(2,'0')+' min/km');}
-        for(const v of vals){const span=document.createElement('span');span.textContent=v;line.append(span);}
-        info.append(line);base.append(info);ultimoEl.append(base);
+        // La tarjeta se construye con el mismo componente que el listado de Actividades.
+        ultimoEl.append(ATLASACTIVIDADES.crearTarjeta(a,true));
+        ajustarTituloActividad();
       }
       async function refrescarHoy() {
         const dia=hoy();
@@ -1809,6 +2119,7 @@
           try{pintarActividad(await leerUltimaActividad());}catch{ultimoEl.textContent='No se han podido leer las actividades locales.';}
         } catch {fuenteEl.textContent='IndexedDB no está disponible en este origen. Revisa Ajustes.';ultimoEl.textContent='No se puede acceder al histórico local.';}
         ajustarFila();
+        ajustarTituloActividad();
       }
       function aplicarRuta() {
         for(const [name,el] of raiz) el.hidden=pantallaInterior!==null||name!==actual;
@@ -1823,6 +2134,7 @@
         actual=destino;pantallaInterior=null;aplicarRuta();
         requestAnimationFrame(()=>window.scrollTo(0,scrolls.get(destino)||0));
         if(destino==='hoy')refrescarHoy();
+        if(destino==='actividades')ATLASACTIVIDADES.abrirListado();
       }
       function entrar(nombre) {
         anterior={pagina:pantallaInterior,tab:actual,scroll:window.scrollY};
@@ -1830,34 +2142,31 @@
       }
       function atras() {
         if(!pantallaInterior)return;
+        if(pantallaInterior==='ajustes')ATLASGRAFICAS.invalidar();
         const prev=anterior||{pagina:null,tab:actual,scroll:0};
         pantallaInterior=prev.pagina;actual=prev.tab;anterior=null;aplicarRuta();
         requestAnimationFrame(()=>window.scrollTo(0,prev.scroll));
       }
-      async function detalle(tipo) {
+      function detalle(tipo) {
         if(!nombres[tipo])return;
-        document.getElementById('atlas-detalle-titulo').textContent=emojis[tipo]+' '+nombres[tipo];
-        document.getElementById('atlas-detalle-descripcion').textContent='Serie de resúmenes diarios guardados en este dispositivo. No se consulta Garmin al abrir esta ficha.';
-        const cont=document.getElementById('atlas-detalle-valor');const filas=document.getElementById('atlas-detalle-dias');
-        cont.textContent=tipo==='carga'?'No disponible. La carga Garmin está catalogada, pero no se ha integrado su lectura histórica.':'Buscando registros locales…';
-        filas.replaceChildren();entrar('detalle');
-        try {
-          const dia=hoy();
-          const datos=await Promise.all(Array.from({length:7},(_,i)=>leerDia(cambiarDia(dia,-i))));
-          const hoyv=medida(tipo,datos[0]);
-          cont.textContent=hoyv?('Hoy: '+hoyv.v+(hoyv.u?' '+hoyv.u:'')+' · '+hoyv.d):tipo==='carga'?'No disponible; no se ha verificado la lectura para esta pantalla.':'Sin datos guardados de hoy.';
-          for(let i=0;i<7;i++){
-            const fecha=cambiarDia(dia,-i), v=medida(tipo,datos[i]);const tr=document.createElement('tr');const td1=document.createElement('td');const td2=document.createElement('td');
-            td1.textContent=fechaBonita(fecha,{day:'numeric',month:'short',year:'numeric'});
-            td2.textContent=v?v.v+(v.u?' '+v.u:''):'—';tr.append(td1,td2);filas.append(tr);
-          }
-        } catch {cont.textContent='No es posible consultar el histórico local de esta métrica.';}
+        entrar('detalle');
+        ATLASGRAFICAS.abrir(tipo);
       }
+      function abrirActividad(a,tipo) {
+        if(!a)return;
+        ATLASACTIVIDADES.seleccionarDetalle(a);
+        entrar('actividad');
+      }
+      const abrirPredisposicion=document.getElementById('atlas-open-predisposicion');
+      const mostrarPredisposicion=()=>{document.getElementById('atlas-fecha-predisposicion').textContent=fechaEl.textContent;entrar('predisposicion');};
+      abrirPredisposicion.addEventListener('click',mostrarPredisposicion);
+      abrirPredisposicion.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();mostrarPredisposicion();}});
       tabs.addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)irTab(b.dataset.tab);});
       document.querySelectorAll('[data-open="ajustes"]').forEach(b=>b.addEventListener('click',()=>entrar('ajustes')));
       document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',atras));
       metricas.addEventListener('click',e=>{const b=e.target.closest('[data-metric]');if(b)detalle(b.dataset.metric);});
-      window.addEventListener('resize',ajustarFila);
+      window.addEventListener('resize',()=>{ajustarFila();ajustarBarra();ajustarTituloActividad();});
+      if (document.fonts?.ready) document.fonts.ready.then(()=>{ajustarFila();ajustarBarra();ajustarTituloActividad();});
       const sincronizarBtn=document.getElementById('atlas-sinc-hoy');
       const syncOrigen=document.getElementById('atlas-sinc-rapida');
       const syncInfo=document.getElementById('atlas-sinc-estado');
@@ -1884,12 +2193,879 @@
             observador.observe(syncOrigen,{attributes:true,attributeFilter:['disabled']});
           });
           syncMensaje.textContent=syncInfo.textContent;
+          ATLASGRAFICAS.invalidar();
+          ATLASACTIVIDADES.invalidar();
           await refrescarHoy();
         }catch{syncMensaje.textContent='La sincronización no se ha podido iniciar. Comprueba Ajustes.';}
         finally{operacion=false;sincronizarBtn.disabled=false;sincronizarBtn.removeAttribute('aria-busy');}
       });
-      aplicarRuta();refrescarHoy();
-      return Object.freeze({refrescarHoy});
+      aplicarRuta();ajustarBarra();refrescarHoy();
+      return Object.freeze({refrescarHoy,abrirActividad});
+    })();
+  </script>
+  <script>
+    // ATLAS 5.3 · Componente de gráficas local, compartible con Evolución.
+    // Solo lectura: ningún fetch, ningún put, ninguna medición atribuida por inferencia.
+    const ATLASGRAFICAS = (() => {
+      const NS='http://www.w3.org/2000/svg';
+      const tipos=Object.freeze({
+        sueno:{titulo:'Sueño',unidad:'h',modo:'barras',descripcion:'Duración total del sueño registrada por Garmin. La altura refleja las horas dormidas; la calidad solo podrá colorearse cuando exista una categoría Garmin verificable.'},
+        vfc:{titulo:'VFC',unidad:'ms',modo:'lineas',descripcion:'Variabilidad nocturna de la frecuencia cardiaca. La franja de referencia se dibuja únicamente cuando Garmin ha guardado sus límites para esas fechas.'},
+        reposo:{titulo:'FC en reposo',unidad:'ppm',modo:'lineas',descripcion:'Frecuencia cardiaca en reposo registrada diariamente. Los cambios se muestran sin atribuirles causas ni emitir conclusiones clínicas.'},
+        carga:{titulo:'Carga de entrenamiento',unidad:'',modo:'lineas',descripcion:'La serie histórica de carga aguda no está integrada en el resumen local aprobado. No se deduce a partir de kilómetros, pulsaciones u otras métricas.'},
+        spo2:{titulo:'Oxígeno en sangre',unidad:'%',modo:'barras',descripcion:'Media diaria de saturación de oxígeno en sangre registrada por Garmin. Sin cortes de clasificación aprobados, las barras permanecen neutras.'}
+      });
+      const controles=document.getElementById('atlas-pagina-detalle');
+      const visor=document.getElementById('atlas-chart-visor'), dibujo=document.getElementById('atlas-chart-dibujo');
+      const eje=document.getElementById('atlas-chart-eje'), lectura=document.getElementById('atlas-chart-lectura');
+      const cobertura=document.getElementById('atlas-chart-cobertura'), etiqueta=document.getElementById('atlas-period-etiqueta');
+      const ayuda=document.getElementById('atlas-period-ayuda'), titulo=document.getElementById('atlas-graph-subtitle');
+      const minus=document.getElementById('atlas-graph-minus'), plus=document.getElementById('atlas-graph-plus');
+      const zoomEl=document.getElementById('atlas-graph-zoom');
+      const prev=document.getElementById('atlas-period-anterior'), next=document.getElementById('atlas-period-siguiente');
+      const tipoEstado=new Map();
+      let activo=null, datosHistoricos=null, series=[], muestras=[], actualZoom=1, anchoBase=0, graficoAncho=0, token=0;
+      const valido=(x)=>typeof x==='number' && Number.isFinite(x) && x>=0;
+      const diaActual=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
+      const fechaUTC=s=>new Date(s+'T12:00:00Z');
+      const iso=d=>d.toISOString().slice(0,10);
+      const diaMas=(s,n)=>{const d=fechaUTC(s);d.setUTCDate(d.getUTCDate()+n);return iso(d);};
+      const mesMas=(s,n)=>{const [y,m]=s.split('-').map(Number);return iso(new Date(Date.UTC(y,m-1+n,1,12)));};
+      const anoMas=(s,n)=>{const [y]=s.split('-').map(Number);return `${y+n}-01-01`;};
+      const fmt=(d,options)=>new Intl.DateTimeFormat('es-ES',{timeZone:'UTC',...options}).format(fechaUTC(d));
+      const media=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;
+      const redondear=n=>Number(n).toLocaleString('es-ES',{maximumFractionDigits:1});
+      const valor=(tipo,r)=>{
+        if(!r)return null;
+        const n=r.sueno||{},h=r.salud||{},v=r.vfc||{};
+        if(tipo==='sueno')return valido(n.totalSeg)?n.totalSeg/3600:null;
+        if(tipo==='vfc')return valido(v.ultimaNoche)?v.ultimaNoche:null;
+        if(tipo==='reposo')return valido(h.fcReposo)?h.fcReposo:null;
+        if(tipo==='spo2')return valido(h.spo2Media)&&h.spo2Media<=100?h.spo2Media:null;
+        return null;
+      };
+      const referencia=r=>{
+        const d=r?.vfc;
+        return valido(d?.referenciaInferior)&&valido(d?.referenciaSuperior)&&d.referenciaInferior<=d.referenciaSuperior?[d.referenciaInferior,d.referenciaSuperior]:null;
+      };
+      async function leerHistorico() {
+        if(datosHistoricos)return datosHistoricos;
+        await ATLASDB.abrir();
+        const mapa=await new Promise((resolve,reject)=>{
+          const r=new Map(),store=ATLASDB.almacen('readonly'),tx=store.transaction;
+          const request=store.openCursor(IDBKeyRange.bound('historico:resumen:dia:','historico:resumen:dia:\uffff'));
+          request.onsuccess=()=>{
+            const c=request.result;if(!c)return;
+            const fecha=String(c.key).slice('historico:resumen:dia:'.length);
+            if(/^\d{4}-\d\d-\d\d$/.test(fecha))r.set(fecha,c.value?.datos||null);
+            c.continue();
+          };
+          request.onerror=()=>reject(request.error||Error('leer_historico'));
+          tx.oncomplete=()=>resolve(r);
+          tx.onabort=()=>reject(tx.error||Error('leer_historico'));
+        });
+        datosHistoricos=mapa;return mapa;
+      }
+      function estado(tipo){
+        if(!tipoEstado.has(tipo))tipoEstado.set(tipo,{periodo:'7d',ref:diaActual(),zoom:1,indice:null});
+        return tipoEstado.get(tipo);
+      }
+      function minFecha(map){return [...map.keys()].sort()[0]||diaActual();}
+      function rango(periodo,ref,map){
+        const hoy=diaActual();let fechas=[],granularidad='dia',inicio='',fin='';
+        if(periodo==='7d'){
+          fin=ref>hoy?hoy:ref;inicio=diaMas(fin,-6);
+          for(let s=inicio;s<=fin;s=diaMas(s,1))fechas.push(s);
+        } else if(periodo==='1m'){
+          inicio=ref.slice(0,7)+'-01';fin=iso(new Date(Date.UTC(+inicio.slice(0,4),+inicio.slice(5,7),0,12)));
+          for(let s=inicio;s<=fin;s=diaMas(s,1))fechas.push(s);
+        } else if(periodo==='1y'){
+          granularidad='mes';inicio=ref.slice(0,4)+'-01-01';fin=ref.slice(0,4)+'-12-31';
+          for(let i=0;i<12;i++)fechas.push(mesMas(inicio,i).slice(0,7));
+        } else {
+          granularidad='ano';inicio=minFecha(map).slice(0,4)+'-01-01';fin=hoy;
+          for(let y=+inicio.slice(0,4);y<=+hoy.slice(0,4);y++)fechas.push(String(y));
+        }
+        return {inicio,fin,fechas,granularidad};
+      }
+      function preparar(tipo,range,map){
+        return range.fechas.map(clave=>{
+          let valores=[],inferiores=[],superiores=[],cantidadDias=0,guardados=[];
+          if(range.granularidad==='dia'){
+            const r=map.get(clave),v=valor(tipo,r),band=tipo==='vfc'?referencia(r):null;
+            if(v!==null){valores.push(v);cantidadDias++;}
+            if(band){inferiores.push(band[0]);superiores.push(band[1]);}
+            if(r)guardados.push(r);
+          } else {
+            const p=range.granularidad==='mes'?clave+'-':clave+'-';
+            for(const [f,r] of map)if(f.startsWith(p)){
+              const v=valor(tipo,r);if(v!==null){valores.push(v);cantidadDias++;}
+              if(tipo==='vfc'){const band=referencia(r);if(band){inferiores.push(band[0]);superiores.push(band[1]);}}
+              guardados.push(r);
+            }
+          }
+          return {clave,valor:media(valores),min:media(inferiores),max:media(superiores),dias:cantidadDias,registros:guardados.length};
+        });
+      }
+      function textoFecha(clave,grano){
+        if(grano==='dia')return fmt(clave,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+        if(grano==='mes')return fmt(clave+'-01',{month:'long',year:'numeric'});
+        return clave;
+      }
+      function etiquetaX(clave,grano,periodo){
+        if(grano==='dia')return periodo==='7d'?fmt(clave,{day:'numeric',month:'short'}):clave.slice(8,10);
+        if(grano==='mes')return fmt(clave+'-01',{month:'short'}).replace('.','');
+        return clave;
+      }
+      function periodoTitulo(per,range){
+        if(per==='7d')return `${fmt(range.inicio,{day:'numeric',month:'short'})} – ${fmt(range.fin,{day:'numeric',month:'short',year:'numeric'})}`;
+        if(per==='1m')return fmt(range.inicio,{month:'long',year:'numeric'});
+        if(per==='1y')return range.inicio.slice(0,4);
+        return `${range.inicio.slice(0,4)} – ${range.fin.slice(0,4)}`;
+      }
+      function presentarValor(tipo,v){
+        if(v===null)return 'Sin datos';
+        if(tipo==='sueno'){
+          const m=Math.round(v*60);return `${Math.floor(m/60)}h ${String(m%60).padStart(2,'0')}m`;
+        }
+        return `${redondear(v)} ${tipos[tipo].unidad}`.trim();
+      }
+      function nodo(tag,attrs,parent){
+        const e=document.createElementNS(NS,tag);
+        for(const [k,v] of Object.entries(attrs||{}))e.setAttribute(k,String(v));
+        if(parent)parent.appendChild(e);return e;
+      }
+      function limites(tipo,puntos){
+        const num=[];
+        for(const d of puntos){if(d.valor!==null)num.push(d.valor);if(tipo==='vfc'){if(d.min!==null)num.push(d.min);if(d.max!==null)num.push(d.max);}}
+        if(!num.length)return {low:0,high:100};
+        let low=Math.min(...num), high=Math.max(...num);
+        if(tipo==='sueno')low=0;
+        else if(tipo==='spo2'){low=0;high=100;}
+        else {const delta=Math.max(5,(high-low)*.15);low=Math.max(0,low-delta);high+=delta;}
+        if(high<=low)high=low+1;
+        return {low,high};
+      }
+      function mostrarLectura(i){
+        const p=series[i],estadoActual=estado(activo);
+        if(!p)return;
+        estadoActual.indice=i;
+        const per=estadoActual.periodo,range=muestras.range;
+        const avg=range.granularidad!=='dia';
+        const prefijo=avg?'Media de los días con dato':'Valor registrado';
+        lectura.textContent=`${textoFecha(p.clave,range.granularidad)} · ${p.valor!==null?prefijo+': '+presentarValor(activo,p.valor):'Sin datos'}`+(avg&&p.valor!==null?` (${p.dias} días)`:'');
+        lectura.dataset.empty=p.valor===null?'true':'false';
+        dibujo.querySelectorAll('[data-select-line]').forEach(n=>n.remove());
+        const x=(i+.5)*(graficoAncho/series.length),top=12,bottom=204;
+        nodo('line',{x1:x,x2:x,y1:top,y2:bottom,stroke:'#0a84ff','stroke-width':1.5,'stroke-dasharray':'4 3','pointer-events':'none','data-select-line':'1'},dibujo);
+      }
+      function dibujar(){
+        const tipo=activo;if(!tipo)return;
+        const info=tipos[tipo],estadoActual=estado(tipo),n=series.length;
+        const rangoActual=muestras.range;
+        const disponible=Math.max(200,visor.clientWidth||300);
+        const porPunto=rangoActual.granularidad==='dia'?(n<=7?40:31):rangoActual.granularidad==='mes'?39:48;
+        anchoBase=Math.max(disponible,n*porPunto);
+        actualZoom=estadoActual.zoom;
+        graficoAncho=Math.round(anchoBase*actualZoom);
+        const altura=246,top=14,bottom=202,alto=bottom-top;
+        const {low,high}=limites(tipo,series);
+        const y=v=>bottom-(v-low)/(high-low)*alto;
+        dibujo.replaceChildren();eje.replaceChildren();
+        dibujo.setAttribute('viewBox',`0 0 ${graficoAncho} ${altura}`);
+        dibujo.setAttribute('width',String(graficoAncho));dibujo.setAttribute('height',String(altura));
+        dibujo.style.width=graficoAncho+'px';
+        const ticks=4;
+        const fmtEje=v=>tipo==='sueno'?redondear(v)+'h':tipo==='spo2'?String(Math.round(v))+'%':String(Math.round(v));
+        for(let j=0;j<=ticks;j++){
+          const v=low+(high-low)*j/ticks,py=y(v);
+          nodo('line',{x1:0,x2:graficoAncho,y1:py,y2:py,stroke:'#38383f','stroke-width':.7},dibujo);
+          const label=document.createElement('span');label.textContent=fmtEje(v);label.style.top=py+'px';eje.append(label);
+        }
+        if(!series.some(d=>d.valor!==null)){
+          const sin=tipo==='carga'?'Carga histórica no disponible':'Sin valores para este período';
+          nodo('text',{x:graficoAncho/2,y:110,fill:'#aaa','font-size':13},dibujo).textContent=sin;
+        } else {
+          if(info.modo==='barras'){
+            const banda=graficoAncho/n,ancho=Math.max(3,Math.min(banda*.7,40*actualZoom));
+            series.forEach((d,i)=>{
+              if(d.valor===null)return;
+              const x=(i+.5)*banda-ancho/2,yy=y(d.valor);
+              // Neutro: no existe categoría de calidad/oximetría verificada para colorear el día.
+              nodo('rect',{x,y:yy,width:ancho,height:Math.max(1,bottom-yy),rx:Math.min(5,ancho/4),fill:'#8b8b96',opacity:.9},dibujo);
+            });
+          } else {
+            if(tipo==='vfc'){
+              // Los límites Garmin se dibujan solamente entre días/periodos contiguos con ambos límites.
+              for(let i=1;i<n;i++){
+                const a=series[i-1],b=series[i];
+                if([a.min,a.max,b.min,b.max].some(v=>v===null))continue;
+                const x0=(i-.5)*graficoAncho/n,x1=(i+.5)*graficoAncho/n;
+                nodo('polygon',{points:`${x0},${y(a.min)} ${x1},${y(b.min)} ${x1},${y(b.max)} ${x0},${y(a.max)}`,fill:'#0a84ff',opacity:.14},dibujo);
+              }
+            }
+            for(let i=1;i<n;i++){
+              const a=series[i-1],b=series[i];if(a.valor===null||b.valor===null)continue;
+              const x0=(i-.5)*graficoAncho/n,x1=(i+.5)*graficoAncho/n;
+              nodo('polygon',{points:`${x0},${y(a.valor)} ${x1},${y(b.valor)} ${x1},${bottom} ${x0},${bottom}`,fill:'#ff453a',opacity:.09},dibujo);
+              nodo('line',{x1:x0,x2:x1,y1:y(a.valor),y2:y(b.valor),stroke:'#ff453a','stroke-width':2.2,'stroke-linecap':'round'},dibujo);
+            }
+            series.forEach((d,i)=>{
+              if(d.valor===null)return;
+              nodo('circle',{cx:(i+.5)*graficoAncho/n,cy:y(d.valor),r:3.2,fill:'#ff453a',stroke:'#ffb0aa','stroke-width':.5},dibujo);
+            });
+          }
+        }
+        series.forEach((d,i)=>{
+          const x=(i+.5)*graficoAncho/n;
+          const label=nodo('text',{x,y:228},dibujo);label.textContent=etiquetaX(d.clave,rangoActual.granularidad,estadoActual.periodo);
+          const zona=nodo('rect',{x:x-(graficoAncho/n)/2,y:9,width:graficoAncho/n,height:220,fill:'transparent','data-index':i,role:'button','aria-label':textoFecha(d.clave,rangoActual.granularidad)+', '+presentarValor(tipo,d.valor),tabindex:'0'},dibujo);
+          const tt=nodo('title',{},zona);tt.textContent=zona.getAttribute('aria-label');
+        });
+        if(estadoActual.indice!==null&&estadoActual.indice<series.length)mostrarLectura(estadoActual.indice);
+        zoomEl.textContent=(Math.round(actualZoom*10)/10)+'×';
+        minus.disabled=actualZoom<=1.001;plus.disabled=actualZoom>=7.999;
+      }
+      function setZoom(z,ratio=.5){
+        if(!activo)return;
+        const anterior=actualZoom,nuevo=Math.max(1,Math.min(8,z));
+        const totalAntes=visor.scrollWidth,centro=visor.scrollLeft+visor.clientWidth*ratio;
+        estado(activo).zoom=nuevo;dibujar();
+        visor.scrollLeft=Math.max(0,centro*(graficoAncho/Math.max(1,totalAntes))-visor.clientWidth*ratio);
+      }
+      async function pintar() {
+        if(!activo)return;
+        const este=++token,st=estado(activo),hoy=diaActual();
+        for(const b of controles.querySelectorAll('[data-periodo]'))b.setAttribute('aria-pressed',String(b.dataset.periodo===st.periodo));
+        if(st.periodo==='7d'&&st.ref>hoy)st.ref=hoy;
+        const actual=st.periodo==='7d'?st.ref:st.periodo==='1m'?st.ref.slice(0,7)+'-01':st.ref.slice(0,4)+'-01-01';
+        st.ref=actual;
+        lectura.textContent='Cargando datos guardados…';lectura.dataset.empty='true';
+        let mapa,errorLectura=false;
+        try{mapa=await leerHistorico();}catch{
+          if(este!==token)return;
+          errorLectura=true;mapa=new Map();
+        }
+        if(este!==token)return;
+        const r=rango(st.periodo,st.ref,mapa);
+        muestras={range:r,mapa};
+        series=preparar(activo,r,mapa);
+        etiqueta.textContent=periodoTitulo(st.periodo,r);
+        ayuda.textContent=st.periodo==='7d'?'Ventana de siete días':st.periodo==='1m'?'Días del mes':st.periodo==='1y'?'Promedios por mes':'Promedios por año';
+        titulo.textContent=tipos[activo].modo==='barras'?'Gráfica de barras':'Gráfica de líneas';
+        const fechaLimite=st.periodo==='7d'?diaMas(st.ref,7):st.periodo==='1m'?mesMas(st.ref,1):st.periodo==='1y'?anoMas(st.ref,1):hoy;
+        next.disabled=st.periodo==='todo'||fechaLimite>hoy;
+        prev.disabled=st.periodo==='todo';
+        const cont=series.filter(s=>s.valor!==null).length;
+        cobertura.textContent=errorLectura?'No se ha podido acceder a IndexedDB en este origen; no se han modificado datos.':activo==='carga'?'No hay serie histórica de carga fechada en el almacenamiento local aprobado.':`${cont} de ${series.length} ${r.granularidad==='dia'?'días':'períodos'} con valor. ${r.granularidad==='dia'?'No se rellenan fechas vacías.':'Cada punto es la media de los días disponibles, no una suma. Los huecos no se interpolan.'}`;
+        if(st.indice===null)lectura.textContent=errorLectura?'No se puede leer el histórico local. Revisa el origen del archivo.':activo==='carga'?'Carga histórica no disponible; no se inventan valores.':'Pulsa un punto o una barra para consultar su valor.';
+        dibujar();visor.scrollLeft=0;
+      }
+      function navegar(sentido){
+        if(!activo)return;const st=estado(activo);
+        if(st.periodo==='7d')st.ref=diaMas(st.ref,7*sentido);
+        else if(st.periodo==='1m')st.ref=mesMas(st.ref,sentido);
+        else if(st.periodo==='1y')st.ref=anoMas(st.ref,sentido);
+        st.indice=null;st.zoom=1;pintar();
+      }
+      function seleccionarDesdePosicion(e){
+        if(!activo||!series.length)return;
+        const rect=dibujo.getBoundingClientRect();
+        const x=e.clientX-rect.left;
+        const idx=Math.min(series.length-1,Math.max(0,Math.floor(x/Math.max(1,graficoAncho)*series.length)));
+        mostrarLectura(idx);
+      }
+      controles.querySelectorAll('[data-periodo]').forEach(b=>b.addEventListener('click',()=>{
+        if(!activo)return;
+        const st=estado(activo);st.periodo=b.dataset.periodo;st.ref=diaActual();st.zoom=1;st.indice=null;pintar();
+      }));
+      prev.addEventListener('click',()=>navegar(-1));next.addEventListener('click',()=>navegar(1));
+      minus.addEventListener('click',()=>setZoom(actualZoom/1.4));plus.addEventListener('click',()=>setZoom(actualZoom*1.4));
+      dibujo.addEventListener('click',seleccionarDesdePosicion);
+      dibujo.addEventListener('pointermove',e=>{if(e.buttons===1&&e.pointerType==='mouse')seleccionarDesdePosicion(e);});
+      dibujo.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target?.dataset?.index){e.preventDefault();mostrarLectura(+e.target.dataset.index);}});
+      let pinza=null;
+      visor.addEventListener('touchstart',e=>{
+        if(e.touches.length===2){
+          const a=e.touches[0],b=e.touches[1];
+          pinza={dist:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),zoom:actualZoom,
+            ratio:Math.max(0,Math.min(1,((a.clientX+b.clientX)/2-visor.getBoundingClientRect().left)/visor.clientWidth))};
+        }
+      },{passive:true});
+      visor.addEventListener('touchmove',e=>{
+        if(e.touches.length===2&&pinza){
+          e.preventDefault();
+          const a=e.touches[0],b=e.touches[1];
+          const dist=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+          if(pinza.dist>0)setZoom(pinza.zoom*dist/pinza.dist,pinza.ratio);
+        }
+      },{passive:false});
+      visor.addEventListener('touchend',e=>{if(e.touches.length<2)pinza=null;},{passive:true});
+      visor.addEventListener('wheel',e=>{
+        if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(actualZoom*(e.deltaY<0?1.08:.92),(e.clientX-visor.getBoundingClientRect().left)/visor.clientWidth);}
+      },{passive:false});
+      window.addEventListener('resize',()=>{if(activo&&!controles.hidden)dibujar();});
+      return Object.freeze({
+        abrir(tipo){if(!tipos[tipo])return;activo=tipo;const st=estado(tipo);st.indice=null;
+          document.getElementById('atlas-detalle-titulo').textContent=({sueno:'💤 ',vfc:'🫀 ',reposo:'❤️ ',carga:'⚡ ',spo2:'🩸 '})[tipo]+tipos[tipo].titulo;
+          document.getElementById('atlas-detalle-descripcion').textContent=tipos[tipo].descripcion;
+          pintar();
+        },
+        invalidar(){datosHistoricos=null;},
+        ocultar(){activo=null;token++;}
+      });
+    })();
+  </script>
+  <script>
+    // ATLAS 5.3 — Actividades: lectura local y presentación; sin fetch ni escritura.
+    const ATLASACTIVIDADES = (() => {
+      const RAIZ='historico:dato:oficial:actividades:';
+      const listado=document.getElementById('atlas-lista-actividades');
+      const sport=document.getElementById('atlas-filtro-deporte');
+      const year=document.getElementById('atlas-filtro-ano');
+      const search=document.getElementById('atlas-buscar-actividad');
+      const count=document.getElementById('atlas-cuenta-actividades');
+      const more=document.getElementById('atlas-mas-actividades');
+      const titulo=document.getElementById('atlas-actividad-titulo');
+      const metadata=document.getElementById('atlas-actividad-meta');
+      const cifras=document.getElementById('atlas-actividad-resumen');
+      const pie=document.getElementById('atlas-actividad-limitaciones');
+      const calzado=document.getElementById('atlas-actividad-zapatillas');
+      const separador=document.getElementById('atlas-actividad-seccion-metricas');
+      const analisis=document.getElementById('atlas-actividad-analisis');
+      const deportes=Object.freeze({
+        running:['Carrera','🏃🏻‍♂️'],trail_running:['Carrera de montaña','🏃🏻‍♂️'],track_running:['Carrera en pista','🏃🏻‍♂️'],
+        treadmill_running:['Carrera en cinta','🏃🏻‍♂️'],virtual_run:['Carrera virtual','🏃🏻‍♂️'],indoor_running:['Carrera interior','🏃🏻‍♂️'],
+        walking:['Caminar','🚶'],speed_walking:['Marcha deportiva','🚶'],hiking:['Senderismo','🥾'],
+        cycling:['Ciclismo','🚴'],road_biking:['Ciclismo en carretera','🚴'],mountain_biking:['Ciclismo de montaña','🚵'],
+        indoor_cycling:['Ciclismo interior','🚴'],virtual_ride:['Ciclismo virtual','🚴'],
+        strength_training:['Fuerza','🏋️'],fitness_equipment:['Fitness','🏋️'],cardio:['Cardio','❤️'],hiit:['HIIT','⚡'],
+        swimming:['Natación','🏊'],lap_swimming:['Natación en piscina','🏊'],open_water_swimming:['Aguas abiertas','🏊'],
+        pool_swimming:['Natación en piscina','🏊'],elliptical:['Elíptica','🏋️'],
+        soccer:['Fútbol','⚽'],football:['Fútbol','⚽'],padel:['Pádel','🎾'],tennis:['Tenis','🎾'],
+        yoga:['Yoga','🧘'],pilates:['Pilates','🧘'],rower:['Remo interior','🚣'],rowing:['Remo','🚣'],
+        stair_climbing:['Escaleras','🪜'],other:['Otro deporte','🏅']
+      });
+      const number = v => typeof v==='number'&&Number.isFinite(v)&&v>=0 ? v : null;
+      const texto = (v,max=140) => typeof v==='string'&&v.trim()?v.trim().slice(0,max):'';
+      const tipo = a => texto(a?.activityType?.typeKey,80)||'other';
+      const carrera = k => /(?:^|_)running$|^trail_run|^track_run|^treadmill_run|^virtual_run/.test(k);
+      const etiqueta = k => deportes[k] || ['Otro ('+k.replace(/_/g,' ')+')','🏅'];
+      const fecha = a => {
+        const s=texto(a?.startTimeLocal,32), d=s.slice(0,10);
+        if (!/^\d{4}-\d\d-\d\d$/.test(d)) return '';
+        const y=+d.slice(0,4),m=+d.slice(5,7),n=+d.slice(8,10);
+        const dt=new Date(y,m-1,n,12);
+        return dt.getFullYear()===y&&dt.getMonth()===m-1&&dt.getDate()===n?d:'';
+      };
+      const fmt = (n,d=1)=>new Intl.NumberFormat('es-ES',{maximumFractionDigits:d}).format(n);
+      const dur = v => {
+        const s=number(v)===null?null:Math.round(v); if(s===null)return null;
+        const h=Math.floor(s/3600),m=Math.floor(s%3600/60),q=s%60;
+        return h ? h+':'+String(m).padStart(2,'0')+':'+String(q).padStart(2,'0') : String(m)+':'+String(q).padStart(2,'0');
+      };
+      const ritmo = v => {
+        if(number(v)===null||v<=0)return null;
+        const p=Math.round(1000/v);
+        return Math.floor(p/60)+':'+String(p%60).padStart(2,'0');
+      };
+      const normalizar = v => String(v??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es-ES');
+      const sello = d => new Date(d+'T12:00:00');
+      const e = (tag,cls,txt) => {const el=document.createElement(tag);if(cls)el.className=cls;if(txt!==undefined)el.textContent=String(txt);return el;};
+      let todas=[],visibles=[],limite=80,cargado=false,cargando=null;
+
+      function ajustarTexto(el,max=17,min=10,variable='--atlas-activity-title-fit') {
+        if(!el||!el.isConnected)return;
+        el.classList.remove('atlas-activity-card__title--wrap');
+        const mide=px=>{el.style.setProperty(variable,px+'px');const range=document.createRange();range.selectNodeContents(el);return range.getBoundingClientRect().width<=el.clientWidth-.5;};
+        if(mide(max))return;
+        if(mide(min)){let lo=min,hi=max;for(let j=0;j<12;j++){const medio=(lo+hi)/2;if(mide(medio))lo=medio;else hi=medio;}mide(Math.max(min,lo-.05));return;}
+        el.style.removeProperty(variable);el.classList.add('atlas-activity-card__title--wrap');
+      }
+      function ajustarCards() {for(const el of document.querySelectorAll('#atlas-lista-actividades .atlas-activity-card__title'))ajustarTexto(el);}
+      function crearTarjeta(a,abrir) {
+        const f=fecha(a),k=tipo(a),info=etiqueta(k);
+        const btn=e('button','atlas-activity-card atlas-activity-card--live');btn.type='button';
+        btn.setAttribute('aria-label','Abrir actividad: '+(texto(a.activityName,2000)||'Sin título'));
+        const fechaEl=e('div','atlas-activity-card__date');
+        if(f){const d=sello(f);fechaEl.append(e('small','',new Intl.DateTimeFormat('es-ES',{weekday:'short'}).format(d).replace('.','').toUpperCase()),e('strong','',String(d.getDate())),e('small','',new Intl.DateTimeFormat('es-ES',{month:'short'}).format(d).replace('.','').toUpperCase()));}
+        else fechaEl.append(e('small','','SIN'),e('strong','','—'),e('small','','FECHA'));
+        const contenido=e('div'),nombre=e('div','atlas-activity-card__title',info[1]+' '+(texto(a.activityName,2000)||'Sin título'));
+        const resumen=e('div','atlas-activity-card__metrics');
+        const campos=[];
+        if(number(a.distance)!==null&&(carrera(k)||a.distance>0))campos.push(fmt(a.distance/1000,2)+' km');
+        if(dur(a.duration)!==null)campos.push(dur(a.duration));
+        if(carrera(k)&&ritmo(a.averageSpeed))campos.push(ritmo(a.averageSpeed)+' min/km');
+        for(const campo of campos)resumen.append(e('span','',campo));
+        contenido.append(nombre,resumen);btn.append(fechaEl,contenido);
+        if(abrir)btn.addEventListener('click',()=>ATLASUI.abrirActividad(a,k));
+        return btn;
+      }
+      function leerTodo() {
+        return new Promise(async(resolve,reject)=>{
+          try{await ATLASDB.abrir();}catch(err){reject(err);return;}
+          const resultado=[];
+          let tx;
+          try {
+            const local=ATLASDB.almacen('readonly');tx=local.transaction;
+            const req=tx.objectStore('registros').openCursor(IDBKeyRange.bound(RAIZ,RAIZ+'\uffff'));
+            req.onsuccess=()=>{const c=req.result;if(!c)return;const a=c.value?.datos?.bruto;if(a&&typeof a==='object')resultado.push(a);c.continue();};
+            req.onerror=()=>reject(req.error||Error('actividad_cursor'));
+            tx.oncomplete=()=>resolve(resultado);
+            tx.onabort=()=>reject(tx.error||Error('actividad_transaccion'));
+          }catch(err){reject(err);}
+        });
+      }
+      function filtros() {
+        sport.replaceChildren();sport.append(new Option('🏅 Todos los deportes','todos'));
+        year.replaceChildren();year.append(new Option('Todo','todos'));
+        const tipos=[...new Set(todas.map(tipo))].sort((a,b)=>etiqueta(a)[0].localeCompare(etiqueta(b)[0],'es'));
+        for(const k of tipos)sport.append(new Option(etiqueta(k)[1]+' '+etiqueta(k)[0],k));
+        const anos=[...new Set(todas.map(a=>fecha(a).slice(0,4)).filter(Boolean))].sort().reverse();
+        for(const a of anos)year.append(new Option(a,a));
+        if(todas.some(a=>!fecha(a)))year.append(new Option('Sin fecha','sin_fecha'));
+      }
+      function proyectar() {
+        const q=normalizar(search.value.trim());
+        visibles=todas.filter(a=>
+          (sport.value==='todos'||tipo(a)===sport.value)&&
+          (year.value==='todos'||(year.value==='sin_fecha'&&!fecha(a))||fecha(a).slice(0,4)===year.value)&&
+          (!q||normalizar(a.activityName).includes(q))
+        );
+        limite=80;pintar();
+      }
+      function pintar() {
+        listado.replaceChildren();
+        const group=new Map();
+        // Los encabezados y sus contadores describen todas las actividades FILTRADAS del mes,
+        // aunque las tarjetas se incorporen progresivamente por razones de rendimiento.
+        for(const a of visibles){const k=fecha(a).slice(0,7)||'sin_fecha';if(!group.has(k))group.set(k,[]);group.get(k).push(a);}
+        const n=Math.min(limite,visibles.length);
+        count.textContent=visibles.length+' actividades encontradas · '+n+' mostradas';
+        if(!visibles.length){listado.append(e('p','atlas-activity-empty',todas.length?'No hay actividades con esos filtros.':'No hay actividades guardadas en este dispositivo.'));more.hidden=true;return;}
+        let sumadas=0;
+        for(const [k,items] of group){if(sumadas>=n)break;
+          const seccion=e('section','atlas-activity-month');
+          const cab=e('div','atlas-activity-month__heading');
+          let mes='Sin fecha';
+          if(k!=='sin_fecha')mes=new Intl.DateTimeFormat('es-ES',{month:'long',year:'numeric'}).format(sello(k+'-15')).replace(/^./,t=>t.toUpperCase());
+          const km=items.reduce((s,a)=>s+(carrera(tipo(a))&&number(a.distance)!==null?a.distance/1000:0),0);
+          cab.append(e('h3','',mes),e('small','',items.length+' act. · '+fmt(km,1)+' km carrera'));
+          const panel=e('div','atlas-activity-month__items');
+          for(const a of items.slice(0,Math.max(0,n-sumadas)))panel.append(crearTarjeta(a,true));
+          sumadas+=items.length;seccion.append(cab,panel);listado.append(seccion);
+        }
+        more.hidden=n>=visibles.length;
+        if(!more.hidden)more.textContent='Mostrar '+Math.min(80,visibles.length-n)+' actividades más';
+        requestAnimationFrame(ajustarCards);
+      }
+      async function abrirListado() {
+        if(cargando)return cargando;
+        if(cargado)return Promise.resolve(); // Mantener filtros, tarjetas cargadas y scroll entre pestañas.
+        count.textContent='Leyendo el histórico local…';
+        cargando=(async()=>{
+          try {
+            const oldSport=sport.value||'todos',oldYear=year.value||'todos';
+            todas=await leerTodo();
+            todas.sort((a,b)=>fecha(b).localeCompare(fecha(a))||texto(b.startTimeLocal,35).localeCompare(texto(a.startTimeLocal,35))||String(b.activityId??'').localeCompare(String(a.activityId??'')));
+            filtros();
+            if([...sport.options].some(o=>o.value===oldSport))sport.value=oldSport;
+            if([...year.options].some(o=>o.value===oldYear))year.value=oldYear;
+            cargado=true;proyectar();
+          }catch {
+            listado.replaceChildren(e('p','atlas-activity-empty','No se puede consultar el histórico local en este origen. Revisa Ajustes.'));
+            count.textContent='Error de lectura local';more.hidden=true;
+          }finally{cargando=null;}
+        })();return cargando;
+      }
+      function seleccionarDetalle(a) {
+        const k=tipo(a),run=carrera(k),f=fecha(a),tipoInfo=etiqueta(k);
+        titulo.textContent=tipoInfo[1]+' '+(texto(a.activityName,2000)||'Sin título');
+        titulo.style.removeProperty('--atlas-detail-title-fit');
+        metadata.replaceChildren();
+        if(f)metadata.append(e('span','', '📅 '+new Intl.DateTimeFormat('es-ES',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(sello(f))));
+        const hora=texto(a.startTimeLocal,40).slice(11,16);
+        if(/^\d\d:\d\d$/.test(hora))metadata.append(e('span','', '🕒 '+hora));
+        const temp=number(a.averageTemperature)??number(a.avgTemperature);
+        if(temp!==null)metadata.append(e('span','', '🌡️ '+fmt(temp,1)+' °C'));
+        if(number(a.perceivedExertion)!==null)metadata.append(e('span','', '🎯 RPE '+fmt(a.perceivedExertion,1)));
+        if(texto(a.feeling,40))metadata.append(e('span','', '💭 '+texto(a.feeling,40)));
+        calzado.hidden=true;calzado.replaceChildren();
+        const shoe=Array.isArray(a.gear)?a.gear.find(g=>texto(g?.name,80)):null;
+        if(shoe){calzado.hidden=false;calzado.append(e('span','', '👟 '+texto(shoe.name,80)));if(number(shoe.totalDistance)!==null)calzado.append(e('span','',fmt(shoe.totalDistance/1000,1)+' km'));}
+        separador.textContent=run?'Métricas de carrera':'Datos registrados';
+        const elementos=[];
+        function m(icon,name,val,unit){elementos.push({icon,name,val:val??null,unit:unit||''});}
+        const distancia=number(a.distance)===null?null:fmt(a.distance/1000,2);
+        const ti=dur(a.duration);
+        const pace=ritmo(a.averageSpeed);
+        const hr=number(a.averageHR),max=number(a.maxHR),cal=number(a.calories);
+        const pot=number(a.avgPower)??number(a.averagePower),cad=number(a.averageRunningCadenceInStepsPerMinute);
+        const desn=number(a.elevationGain),vo2=number(a.vO2MaxValue);
+        if(run){
+          m('📏','Distancia',distancia,'km');m('⏱️','Tiempo',ti,'');m('🏃🏻‍♂️','Ritmo',pace,'min/km');
+          m('❤️','FC media',hr===null?null:String(Math.round(hr)),'ppm');m('💓','FC máx.',max===null?null:String(Math.round(max)),'ppm');
+          m('🔥','Calorías',cal===null?null:String(Math.round(cal)),'kcal');
+          m('⚡','Potencia',pot===null?null:String(Math.round(pot)),'W');
+          m('👟','Cadencia',cad===null?null:String(Math.round(cad)),'ppm');
+          m('⛰️','Desnivel',desn===null?null:fmt(desn,1),'m');
+          m('🫁','VO₂ máx.',vo2===null?null:fmt(vo2,2),'');
+        }else{
+          if(number(a.distance)>0)m('📏','Distancia',distancia,'km');
+          m('⏱️','Tiempo',ti,'');
+          m('❤️','FC media',hr===null?null:String(Math.round(hr)),'ppm');
+          m('💓','FC máx.',max===null?null:String(Math.round(max)),'ppm');
+          m('🔥','Calorías',cal===null?null:String(Math.round(cal)),'kcal');
+        }
+        cifras.replaceChildren();
+        cifras.style.setProperty('--atlas-detail-cols',String(Math.min(5,Math.max(1,elementos.length))));
+        for(const d of elementos){
+          const cel=e('div','atlas-activity-detail-metric'),icon=e('span','atlas-activity-detail-metric__icon',d.icon),name=e('span','atlas-activity-detail-metric__name',d.name),v=e('span','atlas-activity-detail-metric__number');
+          if(d.val===null){v.textContent='—';v.dataset.empty='true';}
+          else{v.append(document.createTextNode(d.val));if(d.unit)v.append(e('span','atlas-activity-detail-metric__unit',' '+d.unit));}
+          cel.append(icon,name,v);cifras.append(cel);
+        }
+        pie.textContent=run?'Los guiones indican campos no incluidos en el resumen de esta actividad; no se completan con datos actuales de Garmin.':'Se muestran únicamente las métricas aplicables que constan en el registro local.';
+        analisis.textContent='La interpretación deportiva de la sesión y su relación con un plan se incorporarán con el Training Engine (fase 6).';
+        const mapaPendiente=document.getElementById('atlas-actividad-mapa-pendiente');
+        const cabeceraMapa=document.getElementById('atlas-actividad-topline');
+        const esperaGps=/(?:running|walking|hiking|cycling|biking|ride)/.test(k)&&!/(?:treadmill|indoor|virtual)/.test(k);
+        mapaPendiente.hidden=!esperaGps;
+        cabeceraMapa.classList.toggle('atlas-activity-topline--sin-mapa',!esperaGps);
+        // La ficha mantiene el mapa pendiente hasta disponer de puntos GPS verificables.
+        // Solo lee las vueltas del cache; la consulta remota exige pulsación expresa.
+        ATLASVUELTAS.abrirActividad(a,run);
+        ATLASGPS.abrirActividad(a,esperaGps);
+        requestAnimationFrame(ajustarDetalle);
+      }
+      function ajustarDetalle() {
+        if(titulo.isConnected){
+          const mide=px=>{titulo.style.setProperty('--atlas-detail-title-fit',px+'px');const r=document.createRange();r.selectNodeContents(titulo);return r.getBoundingClientRect().width<=titulo.clientWidth-.5;};
+          if(!mide(28)){if(mide(14)){let lo=14,hi=28;for(let i=0;i<12;i++){const mi=(lo+hi)/2;if(mide(mi))lo=mi;else hi=mi;}mide(Math.max(14,lo-.05));}else titulo.style.setProperty('--atlas-detail-title-fit','17px');}
+        }
+        for(const [cls,varname,max,min] of [['atlas-activity-detail-metric__name','--atlas-activity-label-fit',12,7],['atlas-activity-detail-metric__number','--atlas-activity-value-fit',17,7]]){
+          const els=[...cifras.querySelectorAll('.'+cls)];if(!els.length)continue;
+          const mide=px=>{cifras.style.setProperty(varname,px+'px');return els.every(el=>{const r=document.createRange();r.selectNodeContents(el);return r.getBoundingClientRect().width<=el.clientWidth-.4;});};
+          if(!mide(max)&&mide(min)){let lo=min,hi=max;for(let i=0;i<12;i++){const mi=(lo+hi)/2;if(mide(mi))lo=mi;else hi=mi;}mide(Math.max(min,lo-.04));}
+        }
+      }
+      const seleccionar=()=>{proyectar();};
+      sport.addEventListener('change',seleccionar);year.addEventListener('change',seleccionar);
+      search.addEventListener('input',seleccionar);
+      more.addEventListener('click',()=>{limite+=80;pintar();});
+      window.addEventListener('resize',()=>{ajustarCards();ajustarDetalle();});
+      if(document.fonts?.ready)document.fonts.ready.then(()=>{ajustarCards();ajustarDetalle();});
+      return Object.freeze({abrirListado,seleccionarDetalle,crearTarjeta,ajustarCards,invalidar:()=>{cargado=false;}});
+    })();
+
+  </script>
+  <script>
+    // ATLAS 5.3 · Vueltas detalladas de una actividad: consulta individual y explícita.
+    // Reutiliza los contratos aprobados ATLASACCESO/ATLASIMPORT/IndexedDB.
+    // No consulta automáticamente, no reconstruye el histórico ni infiere métricas ausentes.
+    const ATLASVUELTAS = (() => {
+      const caja=document.getElementById('atlas-vueltas-bloque');
+      const aviso=document.getElementById('atlas-vueltas-estado');
+      const solicitar=document.getElementById('atlas-vueltas-consultar');
+      const dibujo=document.getElementById('atlas-vueltas-svg');
+      const eje=document.getElementById('atlas-vueltas-eje');
+      const cuerpo=document.getElementById('atlas-vueltas-tabla-cuerpo');
+      const grafico=document.getElementById('atlas-vueltas-grafico');
+      const tabla=document.getElementById('atlas-vueltas-tabla');
+      const seleccion=document.getElementById('atlas-vueltas-seleccion');
+      const NS='http://www.w3.org/2000/svg';
+      const fmt=n=>Number(n).toLocaleString('es-ES',{maximumFractionDigits:2});
+      const num=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0?n:null;
+      const texto=n=>typeof n==='string'?n:'';
+      const dur=n=>{if(num(n)===null)return '—';const s=Math.round(n),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return h?`${h}:${String(m).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`:`${m}:${String(s%60).padStart(2,'0')}`;};
+      const pace=p=>num(p)===null||p<=0?'—':`${Math.floor(Math.round(p)/60)}:${String(Math.round(p)%60).padStart(2,'0')}`;
+      const el=(tag,cls,content)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(content!==undefined)n.textContent=content;return n;};
+      const svg=(tag,attrs)=>{const n=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))n.setAttribute(k,String(v));return n;};
+      let actual=null,revision=0,vueltas=[],seleccionado=null,pendiente=false;
+      const idValido=a=>{const n=a?.activityId;const v=typeof n==='number'?n:typeof n==='string'&&/^[1-9]\d*$/.test(n)?Number(n):null;return Number.isSafeInteger(v)&&v>0?v:null;};
+      const clave=id=>'historico:dato:privada:vueltas:id:'+id;
+      function limpiar() {
+        vueltas=[];seleccionado=null;pendiente=false;
+        solicitar.hidden=true;solicitar.disabled=false;solicitar.textContent='Consultar vueltas en Garmin';
+        aviso.textContent='';cuerpo.replaceChildren();dibujo.replaceChildren();eje.replaceChildren();
+        grafico.hidden=true;tabla.hidden=true;seleccion.textContent='';
+      }
+      function interpretar(raw) {
+        // La respuesta real verificada en fase 3 identifica las vueltas como lapDTOs.
+        const items=Array.isArray(raw?.lapDTOs)?raw.lapDTOs:Array.isArray(raw)?raw:null;
+        if(!items)return null;
+        return items.slice(0,600).map((lap,i)=>{
+          const d=num(lap?.distance),t=num(lap?.duration),v=num(lap?.averageSpeed),fc=num(lap?.averageHR);
+          const sub=num(lap?.elevationGain),baj=num(lap?.elevationLoss);
+          // No se calcula un desnivel firmado sin ambas componentes Garmin.
+          const desn=sub!==null&&baj!==null?sub-baj:null;
+          return {n:i+1,km:d===null?null:d/1000,tiempo:t,ritmo:v&&v>0?1000/v:null,fc,desn};
+        });
+      }
+      function unidades(valor,unidad,decimales=1) {
+        if(valor===null)return el('span','atlas-lap-missing','—');
+        const frag=document.createDocumentFragment();
+        frag.append(document.createTextNode(valor.toLocaleString('es-ES',{maximumFractionDigits:decimales})));
+        if(unidad)frag.append(el('small','atlas-lap-unit',unidad));
+        return frag;
+      }
+      function marcar(indice) {
+        seleccionado=seleccionado===indice?null:indice;
+        for(const n of caja.querySelectorAll('[data-lap-index]')) {
+          const activo=seleccionado!==null&&Number(n.dataset.lapIndex)===seleccionado;
+          n.classList.toggle('atlas-lap-selected',activo);
+          if(n.hasAttribute('aria-pressed'))n.setAttribute('aria-pressed',String(activo));
+          if(n.getAttribute('role')==='button')n.setAttribute('aria-selected',String(activo));
+        }
+        if(seleccionado===null){seleccion.textContent='Selecciona una barra o una vuelta para ver sus datos.';return;}
+        const l=vueltas[seleccionado];
+        seleccion.textContent=`Vuelta ${l.n}: ${l.km===null?'distancia sin datos':fmt(l.km)+' km'} · ${dur(l.tiempo)} · ${pace(l.ritmo)}${l.ritmo===null?'':' min/km'}`;
+      }
+      function dibujar() {
+        cuerpo.replaceChildren();dibujo.replaceChildren();eje.replaceChildren();
+        if(!vueltas.length){grafico.hidden=true;tabla.hidden=true;return;}
+        tabla.hidden=false;
+        for(const [i,l] of vueltas.entries()){
+          const tr=el('tr');tr.dataset.lapIndex=i;tr.tabIndex=0;tr.setAttribute('role','button');tr.setAttribute('aria-label','Seleccionar vuelta '+l.n);
+          tr.setAttribute('aria-selected','false');
+          const c0=el('th','',String(l.n));c0.scope='row';tr.append(c0);
+          for(const frag of [unidades(l.km,'km',2),dur(l.tiempo),l.ritmo===null?'—':pace(l.ritmo),
+            unidades(l.fc,'ppm',0),unidades(l.desn,'m',1)]){
+            const td=el('td');if(typeof frag==='string')td.textContent=frag;else td.append(frag);
+            tr.append(td);
+          }
+          const alt=tr.lastElementChild;
+          if(l.desn>0)alt.classList.add('atlas-lap-up');
+          else if(l.desn<0)alt.classList.add('atlas-lap-down');
+          cuerpo.append(tr);
+        }
+        const conRitmo=vueltas.filter(l=>l.ritmo!==null&&Number.isFinite(l.ritmo));
+        if(!conRitmo.length){grafico.hidden=true;seleccion.textContent='Sin ritmos por vuelta verificables. La tabla conserva los demás datos.';return;}
+        grafico.hidden=false;
+        const min=Math.min(...conRitmo.map(l=>l.ritmo)),max=Math.max(...conRitmo.map(l=>l.ritmo));
+        let rapido=Math.max(0,Math.floor(min/30)*30),lento=Math.ceil(max/30)*30;
+        if(rapido===lento){rapido=Math.max(0,rapido-30);lento+=30;}
+        const alto=202,base=178,tope=15;
+        const anchos=vueltas.map(l=>Math.max(24,Math.min(180,(l.km??.5)*67)));
+        const total=anchos.reduce((a,b)=>a+b+5,12)+10;
+        dibujo.setAttribute('width',Math.max(285,total));dibujo.setAttribute('height',alto);
+        dibujo.setAttribute('viewBox',`0 0 ${Math.max(285,total)} ${alto}`);
+        const anchoReal=Math.max(285,total);
+        for(let j=0;j<=4;j++){
+          const pos=tope+(base-tope)*j/4;
+          const pp=rapido+(lento-rapido)*j/4;
+          const txt=el('span','',pace(pp));txt.style.top=pos+'px';eje.append(txt);
+          dibujo.append(svg('line',{x1:0,y1:pos,x2:anchoReal,y2:pos,stroke:'rgba(255,255,255,.09)','stroke-width':1}));
+        }
+        let x=10;
+        for(let i=0;i<vueltas.length;i++){
+          const l=vueltas[i],w=anchos[i];
+          if(l.ritmo!==null){
+            const y=tope+(base-tope)*(l.ritmo-rapido)/(lento-rapido);
+            // Escala de azul ABSOLUTA: el mismo ritmo conserva su azul entre actividades.
+            // Límites visuales provisionales (3:00–8:00), pendientes de validar.
+            const frac=Math.max(0,Math.min(1,(l.ritmo-180)/300));
+            const claridad=30+28*frac;
+            const rect=svg('rect',{x,y:Math.max(tope,y),width:w,height:Math.max(1,base-Math.max(tope,y)),rx:2,fill:`hsl(211 100% ${claridad}%)`,tabindex:0,role:'button','aria-label':`Vuelta ${l.n}, ritmo ${pace(l.ritmo)} min/km`,'aria-pressed':'false'});
+            rect.dataset.lapIndex=i;dibujo.append(rect);
+          }
+          const txt=svg('text',{x:x+w/2,y:194,'text-anchor':'middle',fill:'#b0b0b4','font-size':10});txt.textContent=String(l.n);dibujo.append(txt);
+          x+=w+5;
+        }
+        seleccionado=null;seleccion.textContent='Selecciona una barra o una vuelta para ver sus datos.';
+      }
+      async function leerCache(id,rev) {
+        const guardado=await ATLASDB.leer(clave(id));
+        if(rev!==revision)return;
+        if(guardado){
+          const leidas=interpretar(guardado.datos?.bruto);
+          if(leidas===null){aviso.textContent='El detalle guardado no contiene lapDTOs interpretables. No se han calculado vueltas.';return;}
+          vueltas=leidas;dibujar();
+          aviso.textContent=vueltas.length?`${vueltas.length} vueltas obtenidas de Garmin y guardadas en este dispositivo.`:'Garmin no ha devuelto vueltas para esta actividad.';
+          return true;
+        }
+        return false;
+      }
+      async function abrirActividad(a,esCarrera) {
+        revision++;const rev=revision;limpiar();
+        if(!esCarrera){caja.hidden=true;return;}
+        caja.hidden=false;actual=idValido(a);
+        aviso.textContent='Buscando vueltas guardadas para esta actividad…';
+        if(actual===null){aviso.textContent='La actividad no tiene un ID Garmin válido para solicitar vueltas.';return;}
+        try{
+          if(await leerCache(actual,rev))return;
+          if(rev!==revision)return;
+          const progreso=await ATLASIMPORT.leerProgreso({fuente:'privada',familia:'vueltas',id:actual});
+          if(rev!==revision)return;
+          if(progreso.estado==='completado'){
+            aviso.textContent='La consulta anterior no devolvió vueltas almacenables para esta actividad.';
+          }else{
+            aviso.textContent='No hay vueltas detalladas guardadas. Puedes consultar solo esta actividad en Garmin.';
+            solicitar.hidden=false;
+          }
+        }catch{if(rev===revision)aviso.textContent='No se pudo leer el detalle local de vueltas.';}
+      }
+      async function consultar() {
+        if(pendiente||actual===null)return;
+        pendiente=true;const id=actual,rev=revision;solicitar.disabled=true;
+        aviso.textContent='Consultando las vueltas de esta única actividad…';
+        try{
+          const r=await ATLASACCESO.solicitarSiguiente({fuente:'privada',familia:'vueltas',id});
+          if(rev!==revision)return;
+          if(['completado','confirmado','repetido'].includes(r.estado)){
+            if(!await leerCache(id,rev))aviso.textContent='Garmin respondió, pero no hay vueltas disponibles para mostrar.';
+            solicitar.hidden=true;
+          }else{
+            const mensajes={sin_configurar:'Configura primero el acceso a Garmin en Ajustes.',limite_garmin:'Garmin ha limitado temporalmente las consultas.',acceso_denegado:'Garmin ha rechazado la consulta de esta actividad.',no_autorizado:'La clave de acceso al Worker no está autorizada.',recurso_no_disponible:'Garmin no ofrece vueltas para esta actividad.',error_red_o_cors:'No se ha podido conectar al Worker. Comprueba la conexión.',formato_inesperado:'Garmin ha devuelto un formato inesperado.'};
+            aviso.textContent=mensajes[r.estado]||'No se han podido obtener las vueltas ('+texto(r.estado||'error')+').';
+          }
+        }catch{if(rev===revision)aviso.textContent='La consulta se ha interrumpido. No se ha modificado el histórico de actividades.';}
+        finally{pendiente=false;if(rev===revision)solicitar.disabled=false;}
+      }
+      caja.addEventListener('click',event=>{
+        const target=event.target.closest('[data-lap-index]');
+        if(target)marcar(Number(target.dataset.lapIndex));
+      });
+      caja.addEventListener('keydown',event=>{
+        if(!['Enter',' '].includes(event.key))return;
+        const target=event.target.closest('[data-lap-index]');
+        if(target){event.preventDefault();marcar(Number(target.dataset.lapIndex));}
+      });
+      solicitar.addEventListener('click',consultar);
+      return Object.freeze({abrirActividad});
+    })();
+
+  </script>
+
+  <script>
+    // ATLAS 5.3: trazado GPS de una actividad seleccionada, lectura voluntaria y puntual.
+    // Mapdetails privada Garmin solo si Worker v0.46 está desplegado; NO cartografía externa.
+    const ATLASGPS = (() => {
+      const caja=document.getElementById('atlas-actividad-mapa-pendiente');
+      const titulo=document.getElementById('atlas-gps-titulo');
+      const aviso=document.getElementById('atlas-gps-estado');
+      const consultar=document.getElementById('atlas-gps-consultar');
+      const trazado=document.getElementById('atlas-gps-trazado');
+      const grafico=document.getElementById('atlas-gps-svg');
+      const icono=document.getElementById('atlas-gps-icono');
+      const NS='http://www.w3.org/2000/svg';
+      let id=null,revision=0,consultando=false;
+      const numero=n=>typeof n==='number'&&Number.isFinite(n)?n:null;
+      const idActividad=a=>{
+        const n=a?.activityId;
+        const t=typeof n==='number'?n:typeof n==='string'&&/^[1-9]\d*$/.test(n)?Number(n):null;
+        return Number.isSafeInteger(t)&&t>0?t:null;
+      };
+      const clave=n=>'historico:dato:privada:mapa_actividad:id:'+n;
+      const nuevaFigura=(tag,atributos)=>{
+        const node=document.createElementNS(NS,tag);
+        for(const [k,v] of Object.entries(atributos))node.setAttribute(k,String(v));
+        return node;
+      };
+      // Interpretar únicamente pares numéricos Garmin, sin geocodificar ni inventar coordenadas.
+      function extraerPuntos(datos){
+        const candidates=[datos?.geoPolylineDTO?.polyline,datos?.polyline,
+          datos?.mapDetails?.geoPolylineDTO?.polyline,datos?.activity?.geoPolylineDTO?.polyline];
+        const lista=candidates.find(Array.isArray);
+        if(!lista)return null;
+        const salida=[];
+        for(const p of lista.slice(0,12000)){
+          const lat=numero(p?.lat)??numero(p?.latitude);
+          const lon=numero(p?.lon)??numero(p?.lng)??numero(p?.longitude);
+          if(lat!==null&&lon!==null&&lat>=-85&&lat<=85&&lon>=-180&&lon<=180)salida.push({lat,lon});
+        }
+        return salida.length>=2?salida:null;
+      }
+      function dibujar(puntos){
+        grafico.replaceChildren();
+        // Proyección Mercator, suficiente para el dibujo fiel del trazado, no mapa base.
+        const projected=puntos.map(p=>{
+          const lat=p.lat*Math.PI/180;
+          return {x:p.lon*Math.PI/180,y:-Math.log(Math.tan(Math.PI/4+lat/2))};
+        });
+        const xs=projected.map(p=>p.x),ys=projected.map(p=>p.y);
+        const xmin=Math.min(...xs),xmax=Math.max(...xs),ymin=Math.min(...ys),ymax=Math.max(...ys);
+        const dx=Math.max(xmax-xmin,0.00001),dy=Math.max(ymax-ymin,0.00001);
+        const ratio=Math.min(254/dx,130/dy);
+        const ancho=dx*ratio,alto=dy*ratio;
+        const offsetX=(280-ancho)/2,offsetY=(155-alto)/2;
+        const puntosSvg=projected.map(p=>({x:offsetX+(p.x-xmin)*ratio,y:offsetY+(p.y-ymin)*ratio}));
+        const d=puntosSvg.map((p,i)=>(i?'L':'M')+p.x.toFixed(2)+' '+p.y.toFixed(2)).join(' ');
+        grafico.append(nuevaFigura('path',{d,fill:'none',stroke:'#0a84ff','stroke-width':3,'stroke-linejoin':'round','stroke-linecap':'round'}));
+        for(const [p,color] of [[puntosSvg[0],'#30d158'],[puntosSvg[puntosSvg.length-1],'#ff453a']]){
+          grafico.append(nuevaFigura('circle',{cx:p.x,cy:p.y,r:3.7,fill:color,stroke:'#fff','stroke-width':1}));
+        }
+      }
+      async function leerGuardado(n,rev){
+        const fila=await ATLASDB.leer(clave(n));
+        if(rev!==revision)return false;
+        if(!fila)return false;
+        const puntos=extraerPuntos(fila.datos?.bruto);
+        if(!puntos){
+          titulo.textContent='GPS sin puntos utilizables';
+          aviso.textContent='Garmin respondió, pero no contiene una geometría reconocible. No se ha dibujado un recorrido.';
+          return true;
+        }
+        dibujar(puntos);
+        titulo.textContent='Recorrido GPS Garmin';
+        aviso.textContent=puntos.length+' puntos válidos. Sin cartografía base todavía.';
+        trazado.hidden=false;
+        consultar.hidden=true;
+        icono.hidden=true;
+        return true;
+      }
+      async function abrirActividad(a,esGPS){
+        revision++;const rev=revision;
+        id=idActividad(a);consultando=false;
+        grafico.replaceChildren();trazado.hidden=true;consultar.hidden=true;consultar.disabled=false;
+        titulo.textContent='Recorrido GPS pendiente';aviso.textContent='Comprobando si existe un trazado guardado…';
+        icono.hidden=false;
+        if(!esGPS||id===null){
+          if(esGPS){aviso.textContent='Esta actividad no dispone de un identificador Garmin válido.';}
+          return;
+        }
+        try{
+          if(await leerGuardado(id,rev))return;
+          if(rev!==revision)return;
+          const progreso=await ATLASIMPORT.leerProgreso({fuente:'privada',familia:'mapa_actividad',id});
+          if(rev!==revision)return;
+          if(progreso.estado==='completado'){
+            aviso.textContent='La lectura anterior no proporcionó puntos GPS reconocibles.';
+          }else{
+            aviso.textContent='El mapa GPS no se descargará hasta que lo solicites.';
+            consultar.hidden=false;
+          }
+        }catch{if(rev===revision)aviso.textContent='No se ha podido consultar la caché local del GPS.';}
+      }
+      async function solicitar(){
+        if(consultando||id===null)return;
+        consultando=true;
+        const n=id,rev=revision;
+        consultar.disabled=true;aviso.textContent='Consultando GPS solo de esta actividad…';
+        try{
+          const r=await ATLASACCESO.solicitarSiguiente({fuente:'privada',familia:'mapa_actividad',id:n});
+          if(rev!==revision)return;
+          if(['completado','confirmado','repetido'].includes(r.estado)){
+            consultar.hidden=true;
+            if(!await leerGuardado(n,rev))aviso.textContent='No se recibió un trazado GPS interpretable.';
+          }else{
+            const mensajes={sin_configurar:'Configura el Worker en Ajustes.',
+              limite_garmin:'Garmin ha limitado temporalmente las consultas.',
+              acceso_denegado:'Garmin ha denegado esta consulta.',
+              no_autorizado:'La clave del Worker no está autorizada.',
+              importacion_no_habilitada:'Despliega primero Worker v0.46.',
+              familia_no_admitida:'Es necesario desplegar Worker v0.46.',
+              recurso_no_disponible:'Garmin no ofrece puntos GPS para esta actividad.',
+              respuesta_excesiva:'Garmin devolvió un trazado demasiado grande para esta lectura.',
+              formato_inesperado:'El formato del GPS no coincide con el esperado.',
+              error_red_o_cors:'Sin conexión con el Worker.'};
+            aviso.textContent=mensajes[r.estado]||'No se ha podido consultar el GPS ('+String(r.estado||'error').slice(0,40)+').';
+          }
+        }catch{if(rev===revision)aviso.textContent='La lectura del GPS se ha interrumpido; no se ha modificado el histórico.';}
+        finally{consultando=false;if(rev===revision)consultar.disabled=false;}
+      }
+      consultar.addEventListener('click',solicitar);
+      return Object.freeze({abrirActividad});
     })();
   </script>
 </body>
