@@ -189,12 +189,12 @@
   .atlas-ficha-metrica {padding:max(59px,calc(env(safe-area-inset-top,0px) + 15px)) 20px 34px;min-width:0;}
   .atlas-ficha-metrica__titulo {margin:17px 0 23px;font-size:31px;font-weight:750;letter-spacing:-.035em;line-height:1.16;}
   .atlas-ficha-metrica__periodos {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;width:100%;}
-  .atlas-ficha-metrica__periodos button {min-width:0;min-height:43px;padding:8px 0;border:1px solid rgba(10,132,255,.30);border-radius:11px;
-    background:rgba(10,132,255,.08);color:#79baff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
+  .atlas-ficha-metrica__periodos button {min-width:0;min-height:43px;padding:8px 0;border:1px solid transparent;border-radius:11px;
+    background:transparent;color:#79baff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
   .atlas-ficha-metrica__periodos button[aria-pressed="true"] {background:var(--atlas-blue);color:#fff;border-color:var(--atlas-blue);}
   .atlas-ficha-metrica__periodos button:focus-visible,.atlas-ficha-metrica__navegar button:focus-visible {outline:2px solid white;outline-offset:2px;}
   .atlas-ficha-metrica__navegar {display:flex;align-items:center;justify-content:space-between;gap:6px;margin:19px 0 14px;min-height:39px;}
-  .atlas-ficha-metrica__navegar strong {font-weight:730;font-size:14px;text-align:center;line-height:1.35;}
+  .atlas-ficha-metrica__navegar strong {font-weight:750;font-size:clamp(12px,4.3vw,18px);white-space:nowrap;text-align:center;line-height:1.35;}
   .atlas-ficha-metrica__navegar button {display:grid;place-items:center;border:0;background:transparent;color:var(--atlas-blue);
     width:39px;height:39px;flex:0 0 39px;font-size:30px;font-weight:700;font-family:inherit;cursor:pointer;}
   .atlas-ficha-metrica__navegar button:disabled {opacity:.25;cursor:default;}
@@ -202,11 +202,12 @@
   .atlas-ficha-metrica__eje {position:relative;height:259px;color:#9a9aa7;font-size:10px;}
   .atlas-ficha-metrica__eje span {position:absolute;right:5px;transform:translateY(-50%);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-ficha-metrica__scroll {width:100%;overflow-x:auto;overflow-y:hidden;min-width:0;scrollbar-width:thin;scrollbar-color:#35353d transparent;
-    overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x;}
+    overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
   .atlas-ficha-metrica__svg {display:block;max-width:none;overflow:visible;height:260px;cursor:crosshair;}
   .atlas-ficha-metrica__punto {fill:transparent;cursor:pointer;}
-  .atlas-ficha-metrica__seleccion {margin:10px 0 6px;min-height:36px;font-size:13px;color:#d8d9df;line-height:1.45;text-align:center;}
+  .atlas-ficha-metrica__seleccion {margin:10px 0 6px;min-height:0;font-size:13px;color:#d8d9df;line-height:1.45;text-align:center;}
   .atlas-ficha-metrica__seleccion strong {color:white;}
+  .atlas-ficha-metrica__nota[hidden]{display:none!important;}
   .atlas-ficha-metrica__nota {color:#92929f;font-size:11px;line-height:1.42;text-align:center;margin:4px 0 23px;}
   .atlas-ficha-metrica__descripcion {margin:4px 0 0;font-size:13px;line-height:1.55;color:#bfc0cb;text-align:justify;}
   .atlas-ficha-metrica__pie {margin-top:36px;}
@@ -274,7 +275,7 @@
   </div>
   <div class="atlas-ficha-metrica__grafica" role="group" aria-label="Gráfica histórica interactiva">
     <div id="atlas-ficha-eje" class="atlas-ficha-metrica__eje" aria-hidden="true"></div>
-    <div id="atlas-ficha-scroll" class="atlas-ficha-metrica__scroll"><svg id="atlas-ficha-svg" class="atlas-ficha-metrica__svg" role="img" aria-label="Datos históricos; selecciona un punto para consultar el valor"></svg></div>
+    <div id="atlas-ficha-scroll" class="atlas-ficha-metrica__scroll"><svg id="atlas-ficha-svg" class="atlas-ficha-metrica__svg" role="img" aria-label="Gráfica histórica interactiva"></svg></div>
   </div>
   <p id="atlas-ficha-seleccion" class="atlas-ficha-metrica__seleccion" aria-live="polite"></p>
   <p id="atlas-ficha-nota" class="atlas-ficha-metrica__nota"></p>
@@ -383,7 +384,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.42 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.43 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -2984,233 +2985,275 @@
 <script id="atlas-fichas-metricas-controlador">
 (() => {
   "use strict";
-  // 5.5.4: lectura exclusiva de IndexedDB; sin descargas, migraciones ni dependencias.
+  // ATLAS 5.5.4 — fichas históricas; lectura local y fechas reales.
   const CONFIG = Object.freeze({
-    sueno:{titulo:"💤 Sueño",tipo:"barras",unidad:"h",texto:"La duración del sueño refleja el descanso registrado. Su puntuación orienta sobre la calidad, pero debe interpretarse junto a las sensaciones y la recuperación."},
-    vfc:{titulo:"🫀 VFC",tipo:"linea",unidad:"ms",texto:"La variabilidad de la frecuencia cardiaca ayuda a interpretar la recuperación. La tendencia y su rango de referencia personal son más útiles que un dato aislado."},
-    reposo:{titulo:"❤️ FC en reposo",tipo:"linea",unidad:"ppm",texto:"La frecuencia cardiaca en reposo puede cambiar con la recuperación, el estrés y otros factores. Conviene observar la evolución respecto a tus valores habituales."},
-    carga:{titulo:"⚡ Carga de entrenamiento",tipo:"linea",unidad:"",texto:"La carga aguda refleja trabajo reciente, no la recuperación por sí sola. Solo se muestran los días con registros guardados de Garmin; todavía no existe una serie histórica completa."},
-    spo2:{titulo:"🩸 Oxígeno en sangre",tipo:"barras",unidad:"%",texto:"La saturación de oxígeno se muestra como media registrada. Las mediciones pueden variar según las condiciones del sensor; ATLAS todavía no clasifica sus valores con umbrales clínicos."}
+    sueno:{titulo:"💤 Sueño",tipo:"barras",unidad:"h"},
+    vfc:{titulo:"🫀 VFC",tipo:"linea",unidad:"ms"},
+    reposo:{titulo:"❤️ FC en reposo",tipo:"linea",unidad:"ppm"},
+    carga:{titulo:"⚡ Carga de entrenamiento",tipo:"linea",unidad:""},
+    spo2:{titulo:"🩸 Oxígeno en sangre",tipo:"barras",unidad:"%"}
   });
-  const ESTILOS={excelente:"#0a84ff",bueno:"#30d158",regular:"#ffd60a",malo:"#ff453a",neutral:"#86868f"};
+  const COLORES={excelente:"#0a84ff",bueno:"#30d158",regular:"#ffd60a",malo:"#ff453a",neutral:"#86868f"};
   const $=id=>document.getElementById(id), pagina=$("atlas-ficha-metrica"), marco=document.querySelector(".atlas-frame"), barra=$("atlas-tabs");
-  const nombresMes=["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-  let metrica=null, periodo="7d", pivote=null, scrollPrevio=0, datos=new Map(), cargas=new Map(), serie=[], seleccion=null, factorZoom=1;
-  let pinch=null, cargando=false;
+  const sc=$("atlas-ficha-scroll"), svg=$("atlas-ficha-svg"), eje=$("atlas-ficha-eje");
+  const MESES=["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
+  let metrica=null,periodo="7d",finVisible=null,scrollPrevio=0,datos=new Map(),cargas=new Map(),serie=[],seleccion=null,zoom=1,pinch=null,baseWidth=1,arrastre=false,cargando=false;
   const hoy=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
   const fechaUTC=s=>new Date(s+"T00:00:00Z");
   const desplazar=(s,n)=>new Date(fechaUTC(s).getTime()+n*86400000).toISOString().slice(0,10);
-  const mes=(y,m)=>`${y}-${String(m).padStart(2,"0")}`;
-  const primerMes=s=>s.slice(0,7)+"-01";
-  const agregarMeses=(dia,n)=>{const [y,m]=dia.split("-").map(Number);const t=new Date(Date.UTC(y,m-1+n,1));return t.toISOString().slice(0,10);};
-  const numero=(v,lim=100000)=>typeof v==="number"&&Number.isFinite(v)&&v>=0&&v<=lim?v:null;
-  const redondear=(n,d=0)=>Number(n.toFixed(d));
-  const media=arr=>arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:null;
+  const num=(v,lim=100000)=>typeof v==="number"&&Number.isFinite(v)&&v>=0&&v<=lim?v:null;
+  const media=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+  const redondear=(v,d=0)=>Number(v.toFixed(d));
+  const tipoSerie=()=>metrica==="sueno"&&periodo==="1y"?"mes":metrica==="sueno"&&periodo==="todo"?"ano":"dia";
+  const validarFecha=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+"T00:00:00Z"));
   function datoDia(tipo,dia){
-    const d=datos.get(dia)||{}, salud=d.salud||{}, sueno=d.sueno||{}, vfc=d.vfc||{}, carga=cargas.get(dia)||{};
-    let valor=null, calidad=null, inferior=null, superior=null;
-    if(tipo==="sueno") { const seg=numero(sueno.totalSeg,86400);valor=seg===null?null:seg/3600;calidad=numero(sueno.puntuacion,100); }
-    if(tipo==="vfc") {valor=numero(vfc.ultimaNoche,300);inferior=numero(vfc.referenciaInferior,300);superior=numero(vfc.referenciaSuperior,300);}
-    if(tipo==="reposo") valor=numero(salud.fcReposo,240);
-    if(tipo==="carga") {valor=numero(carga.aguda);inferior=numero(carga.rangoInferior);superior=numero(carga.rangoSuperior);}
-    if(tipo==="spo2") valor=numero(salud.spo2Media,100);
+    const d=datos.get(dia)||{},salud=d.salud||{},sueno=d.sueno||{},vfc=d.vfc||{},c=cargas.get(dia)||{};
+    let valor=null,calidad=null,inferior=null,superior=null;
+    if(tipo==="sueno"){const s=num(sueno.totalSeg,86400);valor=s===null?null:s/3600;calidad=num(sueno.puntuacion,100);}
+    if(tipo==="vfc"){valor=num(vfc.ultimaNoche,300);inferior=num(vfc.referenciaInferior,300);superior=num(vfc.referenciaSuperior,300);}
+    if(tipo==="reposo")valor=num(salud.fcReposo,240);
+    if(tipo==="carga"){valor=num(c.aguda);inferior=num(c.rangoInferior);superior=num(c.rangoSuperior);}
+    if(tipo==="spo2")valor=num(salud.spo2Media,100);
     return {valor,calidad,inferior,superior};
   }
+  function fechasDisponibles(){
+    const keys=metrica==="carga"?[...cargas.keys()]:[...datos.keys()];
+    return keys.filter(d=>validarFecha(d)&&d<=hoy()&&datoDia(metrica,d).valor!==null).sort();
+  }
   function inicioFin(){
-    const actual=hoy();const base=pivote||actual;
-    if(periodo==="7d") return {ini:desplazar(base,-6),fin:base,tipo:"dia"};
-    if(periodo==="1m") {const ini=primerMes(base);return {ini,fin:desplazar(agregarMeses(ini,1),-1),tipo:"dia"};}
-    if(periodo==="1y") return {ini:base.slice(0,4)+"-01-01",fin:base.slice(0,4)+"-12-31",tipo:"mes"};
-    const fechas=[...datos.keys(),...cargas.keys()].filter(d=>/^\d{4}-\d\d-\d\d$/.test(d)&&d<=actual);
-    const min=fechas.length?fechas.reduce((a,b)=>a<b?a:b,actual):actual;
-    return {ini:min.slice(0,4)+"-01-01",fin:actual,tipo:"ano"};
-  }
-  function calcularSerie(){
-    const {ini,fin,tipo}=inicioFin(), arr=[];
-    const grupos=new Map();
-    if(tipo==="dia") for(let d=ini;d<=fin;d=desplazar(d,1)) grupos.set(d,[d]);
-    else if(tipo==="mes") for(let m=1;m<=12;m++) {const clave=mes(Number(ini.slice(0,4)),m);
-      const dias=[], ultimo=desplazar(agregarMeses(clave+"-01",1),-1);
-      for(let d=clave+"-01";d<=ultimo;d=desplazar(d,1))dias.push(d);
-      grupos.set(clave,dias);
-    } else for(let y=Number(ini.slice(0,4));y<=Number(fin.slice(0,4));y++){
-      const dias=[];for(let d=y+"-01-01";d<=y+"-12-31"&&d<=hoy();d=desplazar(d,1))dias.push(d);
-      grupos.set(String(y),dias);
+    const fechas=fechasDisponibles(),ultimo=hoy();
+    if(periodo==="todo"){
+      const fin=fechas.at(-1)||ultimo;
+      return {ini:fechas[0]||fin,fin};
     }
-    for(const [clave,dias] of grupos){
-      const validos=dias.map(d=>datoDia(metrica,d)).filter(d=>d.valor!==null);
-      const registro={clave,valor:media(validos.map(d=>d.valor)),calidad:media(validos.map(d=>d.calidad).filter(v=>v!==null)),
-        inferior:media(validos.map(d=>d.inferior).filter(v=>v!==null)),superior:media(validos.map(d=>d.superior).filter(v=>v!==null)),
-        cuantos:validos.length};
-      arr.push(registro);
+    const fin=finVisible&&finVisible<ultimo?finVisible:ultimo;
+    const dias=periodo==="7d"?7:periodo==="1m"?30:365;
+    return {ini:desplazar(fin,1-dias),fin};
+  }
+  function calcularSerie(rango){
+    const {ini,fin}=rango,modo=tipoSerie(),salida=[];
+    function agregar(clave,dias){
+      const entradas=dias.map(d=>datoDia(metrica,d));
+      const validos=entradas.filter(e=>e.valor!==null);
+      const limites=entradas.filter(e=>e.inferior!==null&&e.superior!==null&&e.inferior<=e.superior);
+      salida.push({clave,valor:media(validos.map(e=>e.valor)),calidad:media(validos.map(e=>e.calidad).filter(v=>v!==null)),
+        inferior:media(limites.map(e=>e.inferior)),superior:media(limites.map(e=>e.superior)),cuantos:validos.length});
     }
-    return arr;
+    if(modo==="dia")for(let d=ini;d<=fin;d=desplazar(d,1))agregar(d,[d]);
+    if(modo==="mes"){
+      for(let clave=ini.slice(0,7);clave<=fin.slice(0,7);){
+        const [y,m]=clave.split("-").map(Number),proximo=new Date(Date.UTC(y,m,1)).toISOString().slice(0,10);
+        let d=clave+"-01",dias=[];for(;d<proximo&&d<=fin;d=desplazar(d,1))if(d>=ini)dias.push(d);
+        agregar(clave,dias);clave=proximo.slice(0,7);
+      }
+    }
+    if(modo==="ano")for(let year=Number(ini.slice(0,4));year<=Number(fin.slice(0,4));year++){
+      const dias=[];for(let d=year+"-01-01";d<=year+"-12-31"&&d<=fin;d=desplazar(d,1))if(d>=ini)dias.push(d);
+      agregar(String(year),dias);
+    }
+    return salida;
   }
-  function colorBarra(p){
-    if(metrica==="spo2")return ESTILOS.neutral; // Categorías SpO₂ aún no validadas.
-    if(p.calidad===null)return ESTILOS.neutral;
-    return p.calidad>=90?ESTILOS.excelente:p.calidad>=80?ESTILOS.bueno:p.calidad>=60?ESTILOS.regular:ESTILOS.malo;
+  function colorBarra(p){if(metrica==="spo2")return COLORES.neutral;
+    if(p.calidad===null)return COLORES.neutral;
+    return p.calidad>=90?COLORES.excelente:p.calidad>=80?COLORES.bueno:p.calidad>=60?COLORES.regular:COLORES.malo;
   }
-  function mostrarNumero(v){if(v===null)return "Sin datos";if(metrica==="sueno"){
-    const minutos=Math.round(v*60);return Math.floor(minutos/60)+" h "+String(minutos%60).padStart(2,"0")+" min";}
-    return (metrica==="spo2"?redondear(v,1):Math.round(v))+ (CONFIG[metrica].unidad?" "+CONFIG[metrica].unidad:"");}
-  function etiquetaFecha(clave){
-    if(clave.length===4)return clave;
-    if(clave.length===7){const [y,m]=clave.split("-");return nombresMes[Number(m)-1]+" de "+y;}
-    return new Intl.DateTimeFormat("es-ES",{day:"numeric",month:"long",year:"numeric",timeZone:"UTC"}).format(fechaUTC(clave));
-  }
+  function duracion(v){if(v===null)return "Sin datos";let m=Math.round(v*60);return `${Math.floor(m/60)} h ${String(m%60).padStart(2,"0")} min`;}
+  function mostrar(v){if(v===null)return "Sin datos";if(metrica==="sueno")return duracion(v);
+    return (metrica==="spo2"?redondear(v,1):Math.round(v))+(CONFIG[metrica].unidad?" "+CONFIG[metrica].unidad:"");}
+  function etiquetaFecha(clave){if(clave.length===4)return clave;
+    if(clave.length===7)return MESES[Number(clave.slice(5))-1]+" "+clave.slice(0,4);
+    return `${Number(clave.slice(8))} ${MESES[Number(clave.slice(5,7))-1]} ${clave.slice(2,4)}`;}
   function etiquetaEje(clave){
-    if(clave.length===4)return clave;
-    if(clave.length===7)return nombresMes[Number(clave.slice(5))-1].slice(0,3).toUpperCase();
+    if(clave.length===4)return clave;if(clave.length===7)return MESES[Number(clave.slice(5))-1];
+    if(periodo==="1y"||periodo==="todo")return MESES[Number(clave.slice(5,7))-1]+" "+clave.slice(2,4);
     return String(Number(clave.slice(8)));
   }
-  function ponerSeleccion(index){
-    seleccion=index; const p=serie[index], salida=$("atlas-ficha-seleccion");
-    if(!p){salida.textContent="Selecciona una fecha de la gráfica.";return;}
-    const rango=p.cuantos>1?` · media de ${p.cuantos} días`:"";
-    salida.replaceChildren();const fuerte=document.createElement("strong");fuerte.textContent=etiquetaFecha(p.clave);
-    salida.append(fuerte, document.createTextNode(" · "+mostrarNumero(p.valor)+rango));
-    if(metrica==="sueno"&&p.calidad!==null) salida.append(document.createTextNode(" · calidad "+Math.round(p.calidad)+"/100"));
+  function svgEl(tag,attrs={},contenido){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);
+    for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));if(contenido!==undefined)el.textContent=String(contenido);return el;
   }
-  function svgEl(tag,attrs={},texto){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);
-    for(const[k,v]of Object.entries(attrs))el.setAttribute(k,String(v));if(texto!==undefined)el.textContent=String(texto);return el;}
-  function pintar(centrarFinal=false){
-    serie=calcularSerie();const yEl=$("atlas-ficha-eje"), graf=$("atlas-ficha-svg"), sc=$("atlas-ficha-scroll");
+  function aplicarZoom(){
+    svg.setAttribute("width",String(Math.max(1,baseWidth*zoom)));
+    sc.style.overflowX=zoom>1.005?"auto":"hidden";
+    if(zoom<=1.005)sc.scrollLeft=0;
+  }
+  function mostrarSeleccion(){
+    const salida=$("atlas-ficha-seleccion");salida.replaceChildren();
+    svg.querySelectorAll("[data-barra]").forEach(el=>{
+      const marcado=Number(el.getAttribute("data-barra"))===seleccion;
+      el.setAttribute("stroke",marcado?"#ffffff":"none");el.setAttribute("stroke-width",marcado?"1.5":"0");
+    });
+    svg.querySelector("#atlas-grafica-indicador")?.remove();
+    if(seleccion===null||!serie[seleccion])return;
+    const p=serie[seleccion],f=document.createElement("strong");f.textContent=etiquetaFecha(p.clave);
+    salida.append(f,document.createTextNode(" · "+mostrar(p.valor)+(p.cuantos>1?` · media de ${p.cuantos} días`:"")));
+    if(metrica==="sueno"&&p.calidad!==null)salida.append(document.createTextNode(` · calidad ${Math.round(p.calidad)}/100`));
+    if(CONFIG[metrica].tipo==="linea"&&p.valor!==null){
+      const cx=baseWidth*(seleccion+.5)/serie.length;
+      const group=svgEl("g",{id:"atlas-grafica-indicador","pointer-events":"none"});
+      group.append(svgEl("line",{x1:cx,y1:18,x2:cx,y2:220,stroke:"#8e8e93","stroke-width":1,"stroke-dasharray":"3 4"}));
+      const y=Number(svg.getAttribute("data-y-min")), ymax=Number(svg.getAttribute("data-y-max"));
+      group.append(svgEl("circle",{cx,cy:220-(p.valor-y)/(ymax-y)*196,r:4,fill:"#ff453a",stroke:"#fff","stroke-width":1.3}));svg.append(group);
+    }
+  }
+  function seleccionar(index,repetido=false){
+    if(!serie.length)return;
+    const elegido=Math.max(0,Math.min(serie.length-1,index));
+    seleccion=repetido&&seleccion===elegido?null:elegido;mostrarSeleccion();
+  }
+  function pintar(){
+    const rango=inicioFin();serie=calcularSerie(rango);
     const barras=CONFIG[metrica].tipo==="barras";
-    const anchoBase=Math.max(sc.clientWidth,serie.length*(periodo==="7d"?43:periodo==="1m"?34:periodo==="1y"?44:65));
-    const w=Math.max(1,Math.round(anchoBase*factorZoom)), h=260, top=22,bottom=203,alto=bottom-top;
-    let valores=serie.flatMap(p=>[p.valor,...(metrica==="vfc"||metrica==="carga"?[p.inferior,p.superior]:[])]).filter(v=>v!==null);
-    const minimo=valores.length?Math.min(...valores):0,maximo=valores.length?Math.max(...valores):100;
-    let lower=barras?0:Math.max(0,Math.floor((minimo-(maximo-minimo||10)*.22)/5)*5);
-    let upper=Math.ceil((maximo+(maximo-minimo||10)*.22)/5)*5;
-    if(metrica==="spo2"){lower=0;upper=100;} // Saturación 0–100 %.
+    baseWidth=Math.max(1,sc.clientWidth);const w=baseWidth,top=barras&&metrica==="sueno"?78:18,bottom=220,h=262,alto=bottom-top;
+    let valores=serie.flatMap(p=>[p.valor,...(!barras?[p.inferior,p.superior]:[])]).filter(v=>v!==null);
+    let mn=valores.length?Math.min(...valores):0,mx=valores.length?Math.max(...valores):100;
+    let lower=barras?0:Math.max(0,Math.floor((mn-(mx-mn||10)*.25)/5)*5);
+    let upper=Math.ceil((mx+(mx-mn||10)*.25)/5)*5;
+    if(metrica==="spo2"){lower=0;upper=100;}
     if(upper<=lower)upper=lower+10;
     const y=v=>bottom-(v-lower)/(upper-lower)*alto;
-    graf.setAttribute("width",String(w));graf.setAttribute("height",String(h));graf.setAttribute("viewBox",`0 0 ${w} ${h}`);
-    graf.replaceChildren();yEl.replaceChildren();
-    for(let i=0;i<=4;i++){
+    svg.setAttribute("height",h);svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
+    svg.setAttribute("data-y-min",lower);svg.setAttribute("data-y-max",upper);
+    svg.replaceChildren();eje.replaceChildren();
+    const defs=svgEl("defs"),grad=svgEl("linearGradient",{id:"atlas-lineas-sombra",x1:"0",y1:"0",x2:"0",y2:"1"});
+    grad.append(svgEl("stop",{offset:"0%","stop-color":"#ff453a","stop-opacity":".23"}));
+    grad.append(svgEl("stop",{offset:"100%","stop-color":"#ff453a","stop-opacity":"0"}));defs.append(grad);svg.append(defs);
+    eje.style.height=h+"px";for(let i=0;i<=4;i++){
       const v=upper-(upper-lower)*i/4,py=top+alto*i/4;
-      graf.append(svgEl("line",{x1:0,y1:py,x2:w,y2:py,stroke:"#282830","stroke-width":1}));
-      const etiqueta=document.createElement("span");etiqueta.textContent=metrica==="sueno"?redondear(v,1):Math.round(v);
-      etiqueta.style.top=py+"px";yEl.append(etiqueta);
+      svg.append(svgEl("line",{x1:0,x2:w,y1:py,y2:py,stroke:"#292932","stroke-width":1}));
+      const label=document.createElement("span");label.textContent=metrica==="sueno"?redondear(v,1):Math.round(v);
+      label.style.top=py+"px";eje.append(label);
     }
-    const cw=w/Math.max(serie.length,1),x=i=>cw*(i+.5),valid=i=>serie[i]&&serie[i].valor!==null;
+    const cw=w/Math.max(serie.length,1),x=i=>cw*(i+.5);
     if(!barras){
-      // Solo dibuja una banda cuando ambos límites son datos reales; no interpola días ausentes.
-      for(let i=0;i<serie.length;i++){
-        const p=serie[i];if(p.valor===null||p.inferior===null||p.superior===null||p.inferior>p.superior)continue;
-        const izq=Math.max(0,x(i)-cw*.48),ancho=cw*.96;
-        graf.append(svgEl("rect",{x:izq,y:y(p.superior),width:ancho,height:Math.max(0,y(p.inferior)-y(p.superior)),fill:"rgba(48,209,88,.12)"}));
+      // Franja de referencia continua por tramos diarios: límites de cada fecha, no rango actual repetido.
+      const limiteValido=i=>serie[i]&&serie[i].inferior!==null&&serie[i].superior!==null&&serie[i].inferior<=serie[i].superior;
+      for(let i=0;i<serie.length;){if(!limiteValido(i)){i++;continue;}let j=i;
+        while(j+1<serie.length&&limiteValido(j+1))j++;
+        const sup=[],inf=[];for(let k=i;k<=j;k++){sup.push(`${x(k)},${y(serie[k].superior)}`);inf.unshift(`${x(k)},${y(serie[k].inferior)}`);}
+        if(i===j){const left=x(i)-cw*.5,right=x(i)+cw*.5;
+          svg.append(svgEl("rect",{x:left,y:y(serie[i].superior),width:right-left,height:Math.max(0,y(serie[i].inferior)-y(serie[i].superior)),fill:"rgba(48,209,88,.18)"}));
+        }else svg.append(svgEl("polygon",{points:sup.concat(inf).join(" "),fill:"rgba(48,209,88,.18)"}));i=j+1;
       }
-      for(let i=0;i<serie.length;){if(!valid(i)){i++;continue;}let j=i;
-        while(j+1<serie.length&&valid(j+1))j++;
-        if(j>i){const puntos=serie.slice(i,j+1).map((p,k)=>`${x(i+k)},${y(p.valor)}`).join(" ");
-          const area=`${x(i)},${bottom} `+puntos+` ${x(j)},${bottom}`;
-          graf.append(svgEl("polygon",{points:area,fill:"rgba(255,69,58,.15)"}));
-          graf.append(svgEl("polyline",{points:puntos,stroke:"#ff453a","stroke-width":2.4,fill:"none","stroke-linecap":"round","stroke-linejoin":"round"}));}
+      const valido=i=>serie[i]&&serie[i].valor!==null;
+      for(let i=0;i<serie.length;){if(!valido(i)){i++;continue;}let j=i;while(j+1<serie.length&&valido(j+1))j++;
+        if(j>i){const pts=serie.slice(i,j+1).map((p,k)=>`${x(i+k)},${y(p.valor)}`).join(" ");
+          svg.append(svgEl("polygon",{points:`${x(i)},${bottom} ${pts} ${x(j)},${bottom}`,fill:"url(#atlas-lineas-sombra)"}));
+          svg.append(svgEl("polyline",{points:pts,stroke:"#ff453a","stroke-width":2,fill:"none","stroke-linecap":"round","stroke-linejoin":"round"}));
+        }else svg.append(svgEl("line",{x1:x(i)-Math.max(1,cw*.08),y1:y(serie[i].valor),x2:x(i)+Math.max(1,cw*.08),y2:y(serie[i].valor),stroke:"#ff453a","stroke-width":2}));
         i=j+1;
       }
     }
+    const total=serie.length;
+    const pasoEtiquetas=total<=12?1:total<=31?Math.ceil(total/9):Math.ceil(total/7);
     serie.forEach((p,i)=>{
-      const cx=x(i),etiqueta=svgEl("text",{x:cx,y:232,"text-anchor":"middle","font-size":periodo==="1m"?10:11,fill:"#9a9aa7"},etiquetaEje(p.clave));graf.append(etiqueta);
-      if(p.valor!==null){
-        if(barras){const b=Math.min(cw*.72,38),py=Math.max(top,Math.min(bottom,y(p.valor)));
-          graf.append(svgEl("rect",{x:cx-b/2,y:py,width:b,height:Math.max(1,bottom-py),rx:2,fill:colorBarra(p)}));}
-        else graf.append(svgEl("circle",{cx,cy:y(p.valor),r:3.5,fill:"#ff453a",stroke:"#000","stroke-width":1}));
+      const cx=x(i);
+      if(i%pasoEtiquetas===0||(i===total-1&&i%pasoEtiquetas>pasoEtiquetas/2)){
+        svg.append(svgEl("text",{x:cx,y:251,"text-anchor":"middle","font-size":10.5,fill:"#9999a5"},etiquetaEje(p.clave)));
       }
-      const zona=svgEl("rect",{x:cx-cw/2,y:top,width:cw,height:bottom-top+43,class:"atlas-ficha-metrica__punto",tabindex:0,
-        role:"button","aria-label":etiquetaFecha(p.clave)+": "+mostrarNumero(p.valor)});
-      zona.addEventListener("click",()=>ponerSeleccion(i));zona.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();ponerSeleccion(i);}});
-      graf.append(zona);
+      if(barras&&p.valor!==null){
+        const py=Math.max(top,Math.min(bottom,y(p.valor))),bw=Math.max(1,Math.min(cw*.74,39));
+        svg.append(svgEl("rect",{x:cx-bw/2,y:py,width:bw,height:Math.max(1,bottom-py),rx:1.6,fill:colorBarra(p),"data-barra":i}));
+        if(metrica==="sueno"){
+          const val=duracion(p.valor).replaceAll(" ","").replace("min","m");
+          const compacto=total>7,pyTxt=Math.max(8,py-6);
+          const attrs={x:cx,y:pyTxt,fill:"#ececf0","font-size":compacto?(total>22?9:10.5):11,"font-weight":650};
+          if(compacto){attrs.transform=`rotate(-90 ${cx} ${pyTxt})`;attrs["text-anchor"]="start";}
+          else attrs["text-anchor"]="middle";
+          svg.append(svgEl("text",attrs,val));
+        }
+      }
     });
-    if(seleccion!==null && seleccion<serie.length)ponerSeleccion(seleccion);
-    else ponerSeleccion(null);
-    if(centrarFinal)requestAnimationFrame(()=>sc.scrollLeft=sc.scrollWidth-sc.clientWidth);
+    aplicarZoom();mostrarSeleccion();
   }
-  function cabecera(){
-    const {ini,fin}=inicioFin();
-    $("atlas-ficha-rango").textContent=periodo==="todo"?"Todo el histórico":periodo==="1y"?ini.slice(0,4):
-      periodo==="1m"?nombresMes[Number(ini.slice(5,7))-1].toUpperCase()+" "+ini.slice(0,4):
-      `${Number(ini.slice(8))} ${nombresMes[Number(ini.slice(5,7))-1].slice(0,3).toUpperCase()} – ${Number(fin.slice(8))} ${nombresMes[Number(fin.slice(5,7))-1].slice(0,3).toUpperCase()} ${fin.slice(0,4)}`;
-    const today=hoy();$("atlas-ficha-next").disabled=periodo==="todo"||fin>=today;
+  const abreviarFecha=dia=>`${Number(dia.slice(8))} ${MESES[Number(dia.slice(5,7))-1]} ${dia.slice(2,4)}`;
+  function etiquetaRango(ini,fin){
+    if(ini===fin)return abreviarFecha(ini);
+    const a=ini.split("-"),b=fin.split("-");
+    if(a[0]===b[0]&&a[1]===b[1])return `${Number(a[2])} - ${Number(b[2])} ${MESES[Number(b[1])-1]} ${b[0].slice(2)}`;
+    if(a[0]===b[0])return `${Number(a[2])} ${MESES[Number(a[1])-1]} - ${Number(b[2])} ${MESES[Number(b[1])-1]} ${b[0].slice(2)}`;
+    return `${abreviarFecha(ini)} - ${abreviarFecha(fin)}`;
+  }
+  function descripcion(){
+    const muestra=fechasDisponibles(),reciente=muestra.at(-1),actual=reciente?datoDia(metrica,reciente):null;
+    const observacion= !actual?"No hay registros locales suficientes para interpretar tu situación actual.":
+      metrica==="sueno"?`Último descanso registrado: ${duracion(actual.valor)}${actual.calidad===null?"":` y ${Math.round(actual.calidad)}/100 de calidad`}; observa también la regularidad y cómo te encuentras al despertar.`:
+      metrica==="vfc"?`Última noche: ${Math.round(actual.valor)} ms${actual.inferior!==null&&actual.superior!==null?`, frente a tu referencia de ${Math.round(actual.inferior)}–${Math.round(actual.superior)} ms`:""}. Una tendencia sostenida fuera de tu rango merece ajustar la recuperación.`:
+      metrica==="reposo"?`Último registro: ${Math.round(actual.valor)} ppm. Un aumento persistente sobre tu nivel habitual puede acompañar fatiga, estrés o enfermedad; una sola medición no basta.`:
+      metrica==="carga"?`Última carga aguda registrada: ${Math.round(actual.valor)}. Interprétala junto al rango óptimo personal y la recuperación, no como una medida aislada de forma física.`:
+      `Última media registrada: ${redondear(actual.valor,1)} %. Las lecturas de muñeca pueden variar con el ajuste y el movimiento; evita interpretar un único valor como diagnóstico.`;
+    const base={
+      sueno:"El sueño es el tiempo de descanso nocturno medido por Garmin; la puntuación añade una valoración de su calidad. Dormir suficiente y con regularidad ayuda a recuperar el esfuerzo y sostener la adaptación al entrenamiento.",
+      vfc:"La variabilidad de la frecuencia cardiaca (VFC) mide cuánto varía el tiempo entre latidos. Su evolución respecto a tu rango personal orienta sobre la recuperación y la respuesta al estrés; un valor alto no siempre es mejor.",
+      reposo:"La frecuencia cardiaca en reposo es el pulso medido cuando el organismo está relajado. Su tendencia frente a tu media habitual puede aportar señales sobre recuperación, estrés y cambios de condición física.",
+      carga:"La carga aguda resume el estrés del entrenamiento reciente calculado por Garmin. El objetivo es mantener una dosis de trabajo coherente con tu capacidad, observando cómo cambia el intervalo óptimo personal a lo largo del tiempo.",
+      spo2:"La SpO₂ estima el porcentaje de hemoglobina que transporta oxígeno. En running, los cambios persistentes o asociados a altitud pueden aportar contexto, pero la lectura de muñeca es orientativa y no sustituye una valoración médica."
+    }[metrica];
+    $("atlas-ficha-descripcion").textContent=base+" "+observacion;
+  }
+  function refrescar(){
+    const rango=inicioFin();$("atlas-ficha-rango").textContent=etiquetaRango(rango.ini,rango.fin);
+    $("atlas-ficha-next").disabled=periodo==="todo"||rango.fin>=hoy();
     $("atlas-ficha-prev").disabled=periodo==="todo";
     $("atlas-ficha-periodos").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.periodo===periodo)));
-    $("atlas-ficha-nota").textContent=metrica==="carga"?"Solo lecturas de carga almacenadas; sin histórico ni rango óptimo inventados.":
-      metrica==="spo2"?"Medias registradas; clasificación cromática de SpO₂ pendiente de validar.":
-      periodo==="1y"||periodo==="todo"?"Medias de días disponibles; las fechas sin registros permanecen visibles.":
-      "Toca un dato para verlo; en líneas, separa dos dedos para ampliar hasta 8×.";
+    const nota=$("atlas-ficha-nota");
+    nota.textContent=metrica==="carga"&&cargas.size<3?"La carga histórica aún no está importada; solo se muestran lecturas Garmin ya guardadas.":
+      metrica==="spo2"?"Categorías de SpO₂ pendientes de validación; se representa la media disponible.":"";
+    nota.hidden=!nota.textContent;
+    zoom=1;pinch=null;seleccion=null;pintar();descripcion();
   }
-  function actualizarVista(recolocar=false){cabecera();pintar(recolocar);}
   async function leerAlmacen(){
-    await ATLASDB.abrir();
-    const raw=new Map(),c=new Map();
+    await ATLASDB.abrir();const raw=new Map(),c=new Map();
     await new Promise((ok,fallo)=>{
       const tx=ATLASDB.almacen("readonly").transaction,st=tx.objectStore("registros");
-      for(const [pref,final,dest] of [["historico:resumen:dia:","9999-12-31",raw],["vista:hoy:carga:","9999-12-31",c]]){
-        const req=st.openCursor(IDBKeyRange.bound(pref,pref+final));
+      for(const [pref,dest] of [["historico:resumen:dia:",raw],["vista:hoy:carga:",c]]){
+        const req=st.openCursor(IDBKeyRange.bound(pref,pref+"9999-12-31"));
         req.onsuccess=()=>{const cursor=req.result;if(!cursor)return;
           const clave=String(cursor.key).slice(pref.length),dato=cursor.value?.datos;
-          if(/^\d{4}-\d{2}-\d{2}$/.test(clave)&&dato?.dia===clave&&dest===raw)dest.set(clave,dato);
-          if(/^\d{4}-\d{2}-\d{2}$/.test(clave)&&dato?.fecha===clave&&dest===c)dest.set(clave,dato);
-          cursor.continue();};
-        req.onerror=()=>fallo(req.error||Error("lectura fallida"));
+          if(validarFecha(clave)&&((dest===raw&&dato?.dia===clave)||(dest===c&&dato?.fecha===clave)))dest.set(clave,dato);
+          cursor.continue();};req.onerror=()=>fallo(req.error||Error("lectura fallida"));
       }
-      tx.oncomplete=()=>ok();tx.onabort=()=>fallo(tx.error||Error("transacción interrumpida"));
-    });
-    datos=raw;cargas=c;
+      tx.oncomplete=ok;tx.onabort=()=>fallo(tx.error||Error("transacción interrumpida"));
+    });datos=raw;cargas=c;
   }
-  async function abrir(tipo){
-    if(!CONFIG[tipo]||cargando)return;
-    cargando=true;metrica=tipo;periodo="7d";pivote=hoy();factorZoom=1;seleccion=null;
-    scrollPrevio=window.scrollY;
-    $("atlas-ficha-titulo").textContent=CONFIG[tipo].titulo;
-    $("atlas-ficha-descripcion").textContent=CONFIG[tipo].texto;
+  async function abrir(tipo){if(!CONFIG[tipo]||cargando)return;
+    cargando=true;metrica=tipo;periodo="7d";finVisible=hoy();zoom=1;seleccion=null;
+    scrollPrevio=window.scrollY;$("atlas-ficha-titulo").textContent=CONFIG[tipo].titulo;
     pagina.hidden=false;marco.classList.add("atlas-metrica-abierta");barra.hidden=true;window.scrollTo(0,0);
-    $("atlas-ficha-seleccion").textContent="Consultando histórico local…";
-    try{await leerAlmacen();actualizarVista(true);}catch(e){datos=new Map();cargas=new Map();actualizarVista();$("atlas-ficha-seleccion").textContent="No se puede consultar el histórico local.";}
+    try{await leerAlmacen();refrescar();}catch(e){datos=new Map();cargas=new Map();refrescar();$("atlas-ficha-nota").hidden=false;$("atlas-ficha-nota").textContent="No se ha podido leer el histórico local.";}
     finally{cargando=false;}
   }
-  function cerrar(){pagina.hidden=true;marco.classList.remove("atlas-metrica-abierta");barra.hidden=false;
-    window.scrollTo(0,scrollPrevio);}
-  function mover(direccion){if(periodo==="todo")return;
-    if(periodo==="7d")pivote=desplazar(pivote,direccion*7);
-    if(periodo==="1m")pivote=agregarMeses(pivote,direccion);
-    if(periodo==="1y")pivote=agregarMeses(pivote,direccion*12);
-    if(pivote>hoy())pivote=hoy();factorZoom=1;seleccion=null;actualizarVista(direccion>0);
-  }
+  function cerrar(){pagina.hidden=true;marco.classList.remove("atlas-metrica-abierta");barra.hidden=false;window.scrollTo(0,scrollPrevio);}
+  function mover(dir){if(periodo==="todo")return;let tramo=periodo==="7d"?7:periodo==="1m"?30:365;
+    finVisible=desplazar(inicioFin().fin,dir*tramo);if(finVisible>hoy())finVisible=hoy();refrescar();}
   document.querySelectorAll("#atlas-hoy-metricas [data-metrica]").forEach(b=>b.addEventListener("click",()=>abrir(b.dataset.metrica)));
   $("atlas-ficha-volver").addEventListener("click",cerrar);$("atlas-ficha-volver-abajo").addEventListener("click",cerrar);
   $("atlas-ficha-prev").addEventListener("click",()=>mover(-1));$("atlas-ficha-next").addEventListener("click",()=>mover(1));
   $("atlas-ficha-periodos").addEventListener("click",e=>{const tipo=e.target.closest("button")?.dataset.periodo;
-    if(!tipo||tipo===periodo)return;periodo=tipo;pivote=hoy();factorZoom=1;seleccion=null;actualizarVista(true);});
-  window.addEventListener("resize",()=>{if(!pagina.hidden&&metrica)requestAnimationFrame(()=>pintar(false));});
-  window.addEventListener("atlas:hoy:metricas-actualizadas",()=>{if(pagina.hidden)return;
-    leerAlmacen().then(()=>actualizarVista()).catch(()=>{});});
-  // Selección continua durante arrastre; tocar y mantener recorre los puntos sin inventar datos.
-  const sc=$("atlas-ficha-scroll"), grafico=$("atlas-ficha-svg");
-  let arrastrando=false;
-  function seleccionarEn(clientX){
-    if(!serie.length)return;
-    const x=clientX-grafico.getBoundingClientRect().left;
-    const i=Math.max(0,Math.min(serie.length-1,Math.floor(x/Math.max(grafico.getBoundingClientRect().width,1)*serie.length)));
-    ponerSeleccion(i);
-  }
-  grafico.addEventListener("pointerdown",e=>{if(e.pointerType==="mouse"&&e.button!==0)return;arrastrando=true;seleccionarEn(e.clientX);});
-  window.addEventListener("pointerup",()=>arrastrando=false);
-  window.addEventListener("pointercancel",()=>arrastrando=false);
-  grafico.addEventListener("pointermove",e=>{if(arrastrando&&e.isPrimary)seleccionarEn(e.clientX);});
-  sc.addEventListener("touchmove",e=>{if(e.touches.length===1)seleccionarEn(e.touches[0].clientX);},{passive:true});
-  // Pinza en SVG: zoom horizontal continuo sin alterar la altura; eje Y independiente.
+    if(!tipo||tipo===periodo)return;periodo=tipo;finVisible=hoy();refrescar();});
+  window.addEventListener("resize",()=>{if(!pagina.hidden&&metrica)requestAnimationFrame(()=>{
+    const posicion=sc.scrollWidth?sc.scrollLeft/sc.scrollWidth:0;pintar();sc.scrollLeft=posicion*sc.scrollWidth;
+  });});
+  window.addEventListener("atlas:hoy:metricas-actualizadas",()=>{if(pagina.hidden)return;leerAlmacen().then(()=>refrescar()).catch(()=>{});});
+  function indexX(clientX){const r=svg.getBoundingClientRect(),x=(clientX-r.left)/Math.max(r.width,1);
+    return Math.max(0,Math.min(serie.length-1,Math.floor(x*serie.length)));}
+  svg.addEventListener("pointerdown",e=>{if(pinch||e.button>0||!serie.length)return;
+    arrastre=true;seleccionar(indexX(e.clientX),true);});
+  svg.addEventListener("pointermove",e=>{if(arrastre&&!pinch&&e.isPrimary)seleccionar(indexX(e.clientX),false);});
+  window.addEventListener("pointerup",()=>arrastre=false);window.addEventListener("pointercancel",()=>arrastre=false);
   sc.addEventListener("touchstart",e=>{if(e.touches.length!==2){pinch=null;return;}
-    const a=e.touches[0],b=e.touches[1];pinch={dist:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),zoom:factorZoom,
-      origen:(sc.scrollLeft+(a.clientX+b.clientX)/2-sc.getBoundingClientRect().left)/Math.max(sc.scrollWidth,1)};
+    arrastre=false;const [a,b]=e.touches,rect=sc.getBoundingClientRect(),centro=(a.clientX+b.clientX)/2;
+    pinch={dist:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),zoom,
+      ancla:(sc.scrollLeft+centro-rect.left)/Math.max(sc.scrollWidth,1)};
   },{passive:true});
   sc.addEventListener("touchmove",e=>{if(!pinch||e.touches.length!==2)return;
-    const a=e.touches[0],b=e.touches[1],dist=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-    if(!pinch.dist)return;e.preventDefault();factorZoom=Math.min(8,Math.max(1,pinch.zoom*dist/pinch.dist));
-    pintar();sc.scrollLeft=pinch.origen*sc.scrollWidth-((a.clientX+b.clientX)/2-sc.getBoundingClientRect().left);
+    e.preventDefault();const [a,b]=e.touches,dist=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+    if(!pinch.dist)return;
+    zoom=Math.min(8,Math.max(1,pinch.zoom*dist/pinch.dist));
+    aplicarZoom();const centro=(a.clientX+b.clientX)/2-sc.getBoundingClientRect().left;
+    sc.scrollLeft=pinch.ancla*sc.scrollWidth-centro;
   },{passive:false});
   sc.addEventListener("touchend",e=>{if(e.touches.length<2)pinch=null;},{passive:true});
 })();
+
 </script>
 </body></html>
