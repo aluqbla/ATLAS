@@ -203,7 +203,7 @@
   .atlas-ficha-metrica__eje span {position:absolute;right:5px;transform:translateY(-50%);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-ficha-metrica__scroll {width:100%;overflow-x:auto;overflow-y:hidden;min-width:0;scrollbar-width:thin;scrollbar-color:#35353d transparent;
     overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
-  .atlas-ficha-metrica__svg {display:block;max-width:none;overflow:visible;height:260px;cursor:crosshair;
+  .atlas-ficha-metrica__svg {display:block;max-width:none;overflow:hidden;height:262px;cursor:crosshair;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
   .atlas-ficha-metrica__punto {fill:transparent;cursor:pointer;}
   .atlas-ficha-metrica__seleccion {margin:10px 0 6px;min-height:0;font-size:13px;color:#d8d9df;line-height:1.45;text-align:center;}
@@ -276,7 +276,7 @@
   </div>
   <div class="atlas-ficha-metrica__grafica" role="group" aria-label="Gráfica histórica interactiva">
     <div id="atlas-ficha-eje" class="atlas-ficha-metrica__eje" aria-hidden="true"></div>
-    <div id="atlas-ficha-scroll" class="atlas-ficha-metrica__scroll"><svg id="atlas-ficha-svg" class="atlas-ficha-metrica__svg" role="img" aria-label="Gráfica histórica interactiva"></svg></div>
+    <div id="atlas-ficha-scroll" class="atlas-ficha-metrica__scroll"><svg id="atlas-ficha-svg" class="atlas-ficha-metrica__svg" preserveAspectRatio="none" role="img" aria-label="Gráfica histórica interactiva"></svg></div>
   </div>
   <p id="atlas-ficha-seleccion" class="atlas-ficha-metrica__seleccion" aria-live="polite"></p>
   <p id="atlas-ficha-nota" class="atlas-ficha-metrica__nota"></p>
@@ -3082,6 +3082,16 @@
     const ancho=Math.max(1,baseWidth*zoom);
     svg.style.width=ancho+"px";
     svg.setAttribute("width",String(ancho));
+    // SVG con ancho real ampliado y trazado geométrico escalado horizontalmente.
+    // No se deja que preserveAspectRatio centre el dibujo y produzca márgenes vacíos.
+    svg.setAttribute("viewBox",`0 0 ${ancho} 262`);
+    svg.querySelector("#atlas-grafica-dibujo")?.setAttribute("transform",`scale(${zoom} 1)`);
+    svg.querySelectorAll("#atlas-grafica-textos text[data-base-x]").forEach(texto=>{
+      const x=Number(texto.getAttribute("data-base-x"))*zoom;
+      texto.setAttribute("x",String(x));
+      const rotY=texto.getAttribute("data-rotar-y");
+      if(rotY!==null)texto.setAttribute("transform",`rotate(-90 ${x} ${rotY})`);
+    });
     const activo=zoom>1.002;
     sc.style.overflowX=activo?"auto":"hidden";
     sc.style.touchAction=activo?"pan-x pan-y":"pan-y";
@@ -3124,11 +3134,12 @@
     if(metrica==="spo2"&&p.valor!==null)
       salida.append(document.createTextNode(` · ${categoriaSpo2(p.valor).texto.toLowerCase()} (orientativo)`));
     if(CONFIG[metrica].tipo==="linea"&&p.valor!==null){
-      const cx=baseWidth*(seleccion+.5)/serie.length;
+      const cx=CONFIG[metrica].tipo==="barras"?baseWidth*(seleccion+.5)/serie.length:
+        serie.length>1?1+(baseWidth-2)*seleccion/(serie.length-1):baseWidth/2;
       const group=svgEl("g",{id:"atlas-grafica-indicador","pointer-events":"none"});
       group.append(svgEl("line",{x1:cx,y1:18,x2:cx,y2:220,stroke:"#8e8e93","stroke-width":1,"stroke-dasharray":"3 4"}));
       const y=Number(svg.getAttribute("data-y-min")), ymax=Number(svg.getAttribute("data-y-max"));
-      group.append(svgEl("circle",{cx,cy:220-(p.valor-y)/(ymax-y)*196,r:4,fill:"#ff453a",stroke:"#fff","stroke-width":1.3}));svg.append(group);
+      group.append(svgEl("circle",{cx,cy:220-(p.valor-y)/(ymax-y)*196,r:4,fill:"#ff453a",stroke:"#fff","stroke-width":1.3}));svg.querySelector("#atlas-grafica-dibujo")?.append(group);
     }
   }
   function seleccionar(index,repetido=false){
@@ -3149,15 +3160,17 @@
     const y=v=>bottom-(v-lower)/(upper-lower)*alto;
     svg.setAttribute("height",h);svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
     svg.setAttribute("data-y-min",lower);svg.setAttribute("data-y-max",upper);
-    svg.replaceChildren();eje.replaceChildren();
+    const dibujo=svgEl("g",{id:"atlas-grafica-dibujo"});
+    const textos=svgEl("g",{id:"atlas-grafica-textos"});
+    svg.replaceChildren(dibujo,textos);eje.replaceChildren();
     // Sin degradado rojo: la banda verde de VFC y Carga permanece visible.
     eje.style.height=h+"px";for(let i=0;i<=4;i++){
       const v=upper-(upper-lower)*i/4,py=top+alto*i/4;
-      svg.append(svgEl("line",{x1:0,x2:w,y1:py,y2:py,stroke:"#292932","stroke-width":1}));
+      dibujo.append(svgEl("line",{x1:0,x2:w,y1:py,y2:py,stroke:"#292932","stroke-width":1}));
       const label=document.createElement("span");label.textContent=metrica==="sueno"?redondear(v,1):Math.round(v);
       label.style.top=py+"px";eje.append(label);
     }
-    const cw=w/Math.max(serie.length,1),x=i=>cw*(i+.5);
+    const cw=w/Math.max(serie.length,1),x=i=>barras?cw*(i+.5):serie.length>1?1+(w-2)*i/(serie.length-1):w/2;
     if(!barras){
       // Franja de referencia continua por tramos diarios: límites de cada fecha, no rango actual repetido.
       const limiteValido=i=>serie[i]&&serie[i].inferior!==null&&serie[i].superior!==null&&serie[i].inferior<=serie[i].superior;
@@ -3165,14 +3178,14 @@
         while(j+1<serie.length&&limiteValido(j+1))j++;
         const sup=[],inf=[];for(let k=i;k<=j;k++){sup.push(`${x(k)},${y(serie[k].superior)}`);inf.unshift(`${x(k)},${y(serie[k].inferior)}`);}
         if(i===j){const left=x(i)-cw*.5,right=x(i)+cw*.5;
-          svg.append(svgEl("rect",{x:left,y:y(serie[i].superior),width:right-left,height:Math.max(0,y(serie[i].inferior)-y(serie[i].superior)),fill:"rgba(48,209,88,.18)"}));
-        }else svg.append(svgEl("polygon",{points:sup.concat(inf).join(" "),fill:"rgba(48,209,88,.18)"}));i=j+1;
+          dibujo.append(svgEl("rect",{x:left,y:y(serie[i].superior),width:right-left,height:Math.max(0,y(serie[i].inferior)-y(serie[i].superior)),fill:"rgba(48,209,88,.18)"}));
+        }else dibujo.append(svgEl("polygon",{points:sup.concat(inf).join(" "),fill:"rgba(48,209,88,.18)"}));i=j+1;
       }
       const valido=i=>serie[i]&&serie[i].valor!==null;
       for(let i=0;i<serie.length;){if(!valido(i)){i++;continue;}let j=i;while(j+1<serie.length&&valido(j+1))j++;
         if(j>i){const pts=serie.slice(i,j+1).map((p,k)=>`${x(i+k)},${y(p.valor)}`).join(" ");
-          svg.append(svgEl("polyline",{points:pts,stroke:"#ff453a","stroke-width":2,fill:"none","stroke-linecap":"round","stroke-linejoin":"round"}));
-        }else svg.append(svgEl("line",{x1:x(i)-Math.max(1,cw*.08),y1:y(serie[i].valor),x2:x(i)+Math.max(1,cw*.08),y2:y(serie[i].valor),stroke:"#ff453a","stroke-width":2}));
+          dibujo.append(svgEl("polyline",{points:pts,stroke:"#ff453a","stroke-width":2,fill:"none","stroke-linecap":"round","stroke-linejoin":"round"}));
+        }else dibujo.append(svgEl("line",{x1:x(i)-Math.max(1,cw*.08),y1:y(serie[i].valor),x2:x(i)+Math.max(1,cw*.08),y2:y(serie[i].valor),stroke:"#ff453a","stroke-width":2}));
         i=j+1;
       }
     }
@@ -3181,34 +3194,27 @@
     serie.forEach((p,i)=>{
       const cx=x(i);
       if(i%pasoEtiquetas===0||(i===total-1&&i%pasoEtiquetas>pasoEtiquetas/2)){
-        svg.append(svgEl("text",{x:cx,y:251,"text-anchor":"middle","font-size":10.5,fill:"#9999a5"},etiquetaEje(p.clave)));
+        textos.append(svgEl("text",{x:cx,"data-base-x":cx,y:251,"text-anchor":"middle","font-size":10.5,fill:"#9999a5"},etiquetaEje(p.clave)));
       }
       if(barras&&p.valor!==null){
         const py=Math.max(top,Math.min(bottom,y(p.valor))),bw=Math.max(1,Math.min(cw*.74,39));
-        svg.append(svgEl("rect",{x:cx-bw/2,y:py,width:bw,height:Math.max(1,bottom-py),rx:1.6,fill:colorBarra(p),"data-barra":i}));
+        dibujo.append(svgEl("rect",{x:cx-bw/2,y:py,width:bw,height:Math.max(1,bottom-py),rx:1.6,fill:colorBarra(p),"data-barra":i}));
         if(metrica==="sueno"){
           const mins=Math.round(p.valor*60),hours=Math.floor(mins/60),minutes=mins%60;
           const compacto=total>7,pyTxt=Math.max(8,py-6);
+          // Una única línea por barra, siempre. Tamaño ATLAS ajustado a la anchura útil.
+          const texto=svgEl("text",{x:cx,"data-base-x":cx,y:pyTxt,fill:"#ececf0",
+            "font-size":total>22?9.2:10,"font-weight":700,
+            "text-anchor":compacto?"start":"middle",
+            ...(compacto?{"data-rotar-y":pyTxt,transform:`rotate(-90 ${cx} ${pyTxt})`}:{})});
+          texto.append(svgEl("tspan",{},String(hours)));
+          texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," h "));
+          texto.append(svgEl("tspan",{},String(minutes)));
+          texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," min"));
+          textos.append(texto);
           if(!compacto){
-            // Dos líneas por columna: lectura completa, sin solapes en un iPhone.
-            const linea=(y,numero,unidad)=>{
-              const texto=svgEl("text",{x:cx,y,"text-anchor":"middle",fill:"#ececf0",
-                "font-size":12,"font-weight":700});
-              texto.append(svgEl("tspan",{},String(numero)));
-              texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," "+unidad));
-              svg.append(texto);
-            };
-            const inicio=Math.max(23,py-21);
-            linea(inicio,hours,"h");linea(inicio+12.5,minutes,"min");
-          }else{
-            const texto=svgEl("text",{x:cx,y:pyTxt,fill:"#ececf0",
-              "font-size":total>22?9.2:11,"font-weight":700,"text-anchor":"start",
-              transform:`rotate(-90 ${cx} ${pyTxt})`});
-            texto.append(svgEl("tspan",{},String(hours)));
-            texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," h "));
-            texto.append(svgEl("tspan",{},String(minutes)));
-            texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," min"));
-            svg.append(texto);
+            const natural=texto.getComputedTextLength();
+            if(natural>cw-6)texto.setAttribute("font-size",String(Math.max(4.5,10*(cw-6)/natural)));
           }
         }
       }
@@ -3285,7 +3291,8 @@
   });});
   window.addEventListener("atlas:hoy:metricas-actualizadas",()=>{if(pagina.hidden)return;leerAlmacen().then(()=>refrescar()).catch(()=>{});});
   function indexX(clientX){const r=svg.getBoundingClientRect(),x=(clientX-r.left)/Math.max(r.width,1);
-    return Math.max(0,Math.min(serie.length-1,Math.floor(x*serie.length)));}
+    const indice=CONFIG[metrica].tipo==="linea"?Math.round(x*(serie.length-1)):Math.floor(x*serie.length);
+    return Math.max(0,Math.min(serie.length-1,indice));}
   svg.addEventListener("pointerdown",e=>{if(pinch||e.button>0||!serie.length)return;
     arrastre=true;seleccionar(indexX(e.clientX),true);});
   svg.addEventListener("pointermove",e=>{if(arrastre&&!pinch&&e.isPrimary)seleccionar(indexX(e.clientX),false);});
