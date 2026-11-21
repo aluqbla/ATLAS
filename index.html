@@ -42,7 +42,7 @@
 
   /* 5.3: Perfil solo incorpora el acceso canónico a Ajustes. */
   .atlas-profile-toolbar { display:flex;align-items:center;justify-content:space-between;
-    margin:24px 22px 0; min-height:50px; }
+    margin:19px 22px 0; min-height:46px; }
   .atlas-profile-toolbar h2 {margin:0;font-size:32px;line-height:1.15;font-weight:750;letter-spacing:-.035em;}
   /* Reutilizable en toda página sin cabecera ATLAS (incluida Ajustes). */
   .atlas-pagina-sin-cabecera {padding-top:max(68px,calc(env(safe-area-inset-top,0px) + 18px));}
@@ -203,7 +203,8 @@
   .atlas-ficha-metrica__eje span {position:absolute;right:5px;transform:translateY(-50%);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-ficha-metrica__scroll {width:100%;overflow-x:auto;overflow-y:hidden;min-width:0;scrollbar-width:thin;scrollbar-color:#35353d transparent;
     overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
-  .atlas-ficha-metrica__svg {display:block;max-width:none;overflow:visible;height:260px;cursor:crosshair;}
+  .atlas-ficha-metrica__svg {display:block;max-width:none;overflow:visible;height:260px;cursor:crosshair;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
   .atlas-ficha-metrica__punto {fill:transparent;cursor:pointer;}
   .atlas-ficha-metrica__seleccion {margin:10px 0 6px;min-height:0;font-size:13px;color:#d8d9df;line-height:1.45;text-align:center;}
   .atlas-ficha-metrica__seleccion strong {color:white;}
@@ -384,7 +385,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.43 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.44 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -2623,7 +2624,7 @@
       const minutos = Math.round(seg/60);
       const puntos = numeroNoNegativo(sueno?.puntuacion,100);
       ponerMetrica("sueno",[[String(Math.floor(minutos/60)),false],[" h ",true],
-        [String(minutos%60).padStart(2,"0"),false],[" min",true]],
+        [String(minutos%60),false],[" min",true]],
         puntos===null ? "Sin valoración" : categoriaSueno(puntos).texto,
         puntos===null ? null : categoriaSueno(puntos).color);
     } else ponerMetrica("sueno",null);
@@ -2647,8 +2648,11 @@
     ponerMetrica("carga",aguda===null?null:[[String(Math.round(aguda)),false]],
       aguda===null ? "Sin datos" : nivelCarga?.[0] ?? "Carga aguda",nivelCarga?.[1]);
     const spo2=numeroNoNegativo(salud?.spo2Media,100);
+    // Escala visual provisional; Garmin no aporta estos cuatro estados como clasificación propia.
+    const estadoSpo2=spo2===null?null:spo2>=95?["Normal","#86868f"]:
+      spo2>=92?["Baja","#ffd60a"]:spo2>=90?["Límite","#ff9f0a"]:["Crítica","#ff453a"];
     ponerMetrica("spo2",spo2===null?null:[[String(Math.round(spo2)),false],[" %",true]],
-      spo2===null ? "Sin datos" : "Media diaria");
+      spo2===null ? "Sin datos" : estadoSpo2[0],estadoSpo2?.[1]);
     requestAnimationFrame(ajustarTamanoMetricas);
     window.dispatchEvent(new Event("atlas:hoy:metricas-actualizadas"));
   }
@@ -3004,7 +3008,7 @@
   const num=(v,lim=100000)=>typeof v==="number"&&Number.isFinite(v)&&v>=0&&v<=lim?v:null;
   const media=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
   const redondear=(v,d=0)=>Number(v.toFixed(d));
-  const tipoSerie=()=>metrica==="sueno"&&periodo==="1y"?"mes":metrica==="sueno"&&periodo==="todo"?"ano":"dia";
+  const tipoSerie=()=>["sueno","spo2"].includes(metrica)&&periodo==="1y"?"mes":["sueno","spo2"].includes(metrica)&&periodo==="todo"?"ano":"dia";
   const validarFecha=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+"T00:00:00Z"));
   function datoDia(tipo,dia){
     const d=datos.get(dia)||{},salud=d.salud||{},sueno=d.sueno||{},vfc=d.vfc||{},c=cargas.get(dia)||{};
@@ -3053,11 +3057,14 @@
     }
     return salida;
   }
-  function colorBarra(p){if(metrica==="spo2")return COLORES.neutral;
+  // Clasificación orientativa de SpO₂: umbrales propuestos, requieren validación expresa.
+  // Garmin describe ≥95 % como habitual en la mayoría de entornos; una lectura de muñeca no es diagnóstica.
+  function categoriaSpo2(v){return v>=95?{texto:"Normal",color:COLORES.neutral}:v>=92?{texto:"Baja",color:COLORES.regular}:v>=90?{texto:"Límite",color:"#ff9f0a"}:{texto:"Crítica",color:COLORES.malo};}
+  function colorBarra(p){if(metrica==="spo2")return p.valor===null?COLORES.neutral:categoriaSpo2(p.valor).color;
     if(p.calidad===null)return COLORES.neutral;
     return p.calidad>=90?COLORES.excelente:p.calidad>=80?COLORES.bueno:p.calidad>=60?COLORES.regular:COLORES.malo;
   }
-  function duracion(v){if(v===null)return "Sin datos";let m=Math.round(v*60);return `${Math.floor(m/60)} h ${String(m%60).padStart(2,"0")} min`;}
+  function duracion(v){if(v===null)return "Sin datos";let m=Math.round(v*60);return `${Math.floor(m/60)} h ${m%60} min`;}
   function mostrar(v){if(v===null)return "Sin datos";if(metrica==="sueno")return duracion(v);
     return (metrica==="spo2"?redondear(v,1):Math.round(v))+(CONFIG[metrica].unidad?" "+CONFIG[metrica].unidad:"");}
   function etiquetaFecha(clave){if(clave.length===4)return clave;
@@ -3071,10 +3078,33 @@
   function svgEl(tag,attrs={},contenido){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);
     for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));if(contenido!==undefined)el.textContent=String(contenido);return el;
   }
-  function aplicarZoom(){
-    svg.setAttribute("width",String(Math.max(1,baseWidth*zoom)));
-    sc.style.overflowX=zoom>1.005?"auto":"hidden";
-    if(zoom<=1.005)sc.scrollLeft=0;
+  function aplicarZoom(ancla=null,centro=null){
+    const ancho=Math.max(1,baseWidth*zoom);
+    svg.style.width=ancho+"px";
+    svg.setAttribute("width",String(ancho));
+    const activo=zoom>1.002;
+    sc.style.overflowX=activo?"auto":"hidden";
+    sc.style.touchAction=activo?"pan-x pan-y":"pan-y";
+    if(!activo){sc.scrollLeft=0;return;}
+    if(ancla!==null&&centro!==null){
+      const max=Math.max(0,ancho-sc.clientWidth);
+      sc.scrollLeft=Math.min(max,Math.max(0,ancla*ancho-centro));
+    }else sc.scrollLeft=Math.min(Math.max(0,sc.scrollLeft),Math.max(0,ancho-sc.clientWidth));
+  }
+  function distanciaDedos(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
+  function activarPinza(a,b,origen){
+    const rect=sc.getBoundingClientRect();
+    const centro=(a.clientX+b.clientX)/2-rect.left;
+    seleccion=null;mostrarSeleccion();
+    pinch={origen,dist:Math.max(1,distanciaDedos(a,b)),zoomInicio:zoom,
+      ancla:(sc.scrollLeft+centro)/Math.max(1,baseWidth*zoom)};
+    arrastre=false;
+  }
+  function actualizarPinza(a,b){
+    if(!pinch)return;
+    zoom=Math.max(1,Math.min(8,pinch.zoomInicio*distanciaDedos(a,b)/pinch.dist));
+    const centro=(a.clientX+b.clientX)/2-sc.getBoundingClientRect().left;
+    aplicarZoom(pinch.ancla,centro);
   }
   function mostrarSeleccion(){
     const salida=$("atlas-ficha-seleccion");salida.replaceChildren();
@@ -3087,6 +3117,12 @@
     const p=serie[seleccion],f=document.createElement("strong");f.textContent=etiquetaFecha(p.clave);
     salida.append(f,document.createTextNode(" · "+mostrar(p.valor)+(p.cuantos>1?` · media de ${p.cuantos} días`:"")));
     if(metrica==="sueno"&&p.calidad!==null)salida.append(document.createTextNode(` · calidad ${Math.round(p.calidad)}/100`));
+    if(metrica==="vfc"&&p.inferior!==null&&p.superior!==null)
+      salida.append(document.createTextNode(` · referencia ${Math.round(p.inferior)}–${Math.round(p.superior)} ms`));
+    if(metrica==="carga"&&p.inferior!==null&&p.superior!==null)
+      salida.append(document.createTextNode(` · óptimo ${Math.round(p.inferior)}–${Math.round(p.superior)}`));
+    if(metrica==="spo2"&&p.valor!==null)
+      salida.append(document.createTextNode(` · ${categoriaSpo2(p.valor).texto.toLowerCase()} (orientativo)`));
     if(CONFIG[metrica].tipo==="linea"&&p.valor!==null){
       const cx=baseWidth*(seleccion+.5)/serie.length;
       const group=svgEl("g",{id:"atlas-grafica-indicador","pointer-events":"none"});
@@ -3114,9 +3150,7 @@
     svg.setAttribute("height",h);svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
     svg.setAttribute("data-y-min",lower);svg.setAttribute("data-y-max",upper);
     svg.replaceChildren();eje.replaceChildren();
-    const defs=svgEl("defs"),grad=svgEl("linearGradient",{id:"atlas-lineas-sombra",x1:"0",y1:"0",x2:"0",y2:"1"});
-    grad.append(svgEl("stop",{offset:"0%","stop-color":"#ff453a","stop-opacity":".23"}));
-    grad.append(svgEl("stop",{offset:"100%","stop-color":"#ff453a","stop-opacity":"0"}));defs.append(grad);svg.append(defs);
+    // Sin degradado rojo: la banda verde de VFC y Carga permanece visible.
     eje.style.height=h+"px";for(let i=0;i<=4;i++){
       const v=upper-(upper-lower)*i/4,py=top+alto*i/4;
       svg.append(svgEl("line",{x1:0,x2:w,y1:py,y2:py,stroke:"#292932","stroke-width":1}));
@@ -3137,7 +3171,6 @@
       const valido=i=>serie[i]&&serie[i].valor!==null;
       for(let i=0;i<serie.length;){if(!valido(i)){i++;continue;}let j=i;while(j+1<serie.length&&valido(j+1))j++;
         if(j>i){const pts=serie.slice(i,j+1).map((p,k)=>`${x(i+k)},${y(p.valor)}`).join(" ");
-          svg.append(svgEl("polygon",{points:`${x(i)},${bottom} ${pts} ${x(j)},${bottom}`,fill:"url(#atlas-lineas-sombra)"}));
           svg.append(svgEl("polyline",{points:pts,stroke:"#ff453a","stroke-width":2,fill:"none","stroke-linecap":"round","stroke-linejoin":"round"}));
         }else svg.append(svgEl("line",{x1:x(i)-Math.max(1,cw*.08),y1:y(serie[i].valor),x2:x(i)+Math.max(1,cw*.08),y2:y(serie[i].valor),stroke:"#ff453a","stroke-width":2}));
         i=j+1;
@@ -3154,12 +3187,29 @@
         const py=Math.max(top,Math.min(bottom,y(p.valor))),bw=Math.max(1,Math.min(cw*.74,39));
         svg.append(svgEl("rect",{x:cx-bw/2,y:py,width:bw,height:Math.max(1,bottom-py),rx:1.6,fill:colorBarra(p),"data-barra":i}));
         if(metrica==="sueno"){
-          const val=duracion(p.valor).replaceAll(" ","").replace("min","m");
+          const mins=Math.round(p.valor*60),hours=Math.floor(mins/60),minutes=mins%60;
           const compacto=total>7,pyTxt=Math.max(8,py-6);
-          const attrs={x:cx,y:pyTxt,fill:"#ececf0","font-size":compacto?(total>22?9:10.5):11,"font-weight":650};
-          if(compacto){attrs.transform=`rotate(-90 ${cx} ${pyTxt})`;attrs["text-anchor"]="start";}
-          else attrs["text-anchor"]="middle";
-          svg.append(svgEl("text",attrs,val));
+          if(!compacto){
+            // Dos líneas por columna: lectura completa, sin solapes en un iPhone.
+            const linea=(y,numero,unidad)=>{
+              const texto=svgEl("text",{x:cx,y,"text-anchor":"middle",fill:"#ececf0",
+                "font-size":12,"font-weight":700});
+              texto.append(svgEl("tspan",{},String(numero)));
+              texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," "+unidad));
+              svg.append(texto);
+            };
+            const inicio=Math.max(23,py-21);
+            linea(inicio,hours,"h");linea(inicio+12.5,minutes,"min");
+          }else{
+            const texto=svgEl("text",{x:cx,y:pyTxt,fill:"#ececf0",
+              "font-size":total>22?9.2:11,"font-weight":700,"text-anchor":"start",
+              transform:`rotate(-90 ${cx} ${pyTxt})`});
+            texto.append(svgEl("tspan",{},String(hours)));
+            texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," h "));
+            texto.append(svgEl("tspan",{},String(minutes)));
+            texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," min"));
+            svg.append(texto);
+          }
         }
       }
     });
@@ -3197,7 +3247,7 @@
     $("atlas-ficha-periodos").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.periodo===periodo)));
     const nota=$("atlas-ficha-nota");
     nota.textContent=metrica==="carga"&&cargas.size<3?"La carga histórica aún no está importada; solo se muestran lecturas Garmin ya guardadas.":
-      metrica==="spo2"?"Categorías de SpO₂ pendientes de validación; se representa la media disponible.":"";
+      metrica==="spo2"?"Clasificación SpO₂ orientativa, pendiente de aprobación; no es una valoración médica.":"";
     nota.hidden=!nota.textContent;
     zoom=1;pinch=null;seleccion=null;pintar();descripcion();
   }
@@ -3240,19 +3290,44 @@
     arrastre=true;seleccionar(indexX(e.clientX),true);});
   svg.addEventListener("pointermove",e=>{if(arrastre&&!pinch&&e.isPrimary)seleccionar(indexX(e.clientX),false);});
   window.addEventListener("pointerup",()=>arrastre=false);window.addEventListener("pointercancel",()=>arrastre=false);
-  sc.addEventListener("touchstart",e=>{if(e.touches.length!==2){pinch=null;return;}
-    arrastre=false;const [a,b]=e.touches,rect=sc.getBoundingClientRect(),centro=(a.clientX+b.clientX)/2;
-    pinch={dist:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),zoom,
-      ancla:(sc.scrollLeft+centro-rect.left)/Math.max(sc.scrollWidth,1)};
-  },{passive:true});
-  sc.addEventListener("touchmove",e=>{if(!pinch||e.touches.length!==2)return;
-    e.preventDefault();const [a,b]=e.touches,dist=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-    if(!pinch.dist)return;
-    zoom=Math.min(8,Math.max(1,pinch.zoom*dist/pinch.dist));
-    aplicarZoom();const centro=(a.clientX+b.clientX)/2-sc.getBoundingClientRect().left;
-    sc.scrollLeft=pinch.ancla*sc.scrollWidth-centro;
+  // Safari iPhone: la pinza se maneja con touch events no pasivos y, como respaldo,
+  // eventos gesture* de WebKit. Se modifica el ancho de forma continua, nunca por pasos.
+  sc.addEventListener("touchstart",e=>{
+    if(e.touches.length===2){
+      if(!pinch||pinch.origen!=="touch")activarPinza(e.touches[0],e.touches[1],"touch");
+      if(e.cancelable)e.preventDefault();
+    }
   },{passive:false});
-  sc.addEventListener("touchend",e=>{if(e.touches.length<2)pinch=null;},{passive:true});
+  sc.addEventListener("touchmove",e=>{
+    if(e.touches.length===2){
+      if(e.cancelable)e.preventDefault();
+      if(!pinch||pinch.origen!=="touch")activarPinza(e.touches[0],e.touches[1],"touch");
+      actualizarPinza(e.touches[0],e.touches[1]);
+    }
+  },{passive:false});
+  const finalizarPinza=e=>{if(e.touches.length<2){pinch=null;arrastre=false;aplicarZoom();}};
+  sc.addEventListener("touchend",finalizarPinza,{passive:true});
+  sc.addEventListener("touchcancel",finalizarPinza,{passive:true});
+  sc.addEventListener("gesturestart",e=>{
+    if(e.cancelable)e.preventDefault();
+    if(pinch?.origen==="touch")return;
+    const rect=sc.getBoundingClientRect(),centro=typeof e.clientX==="number"?e.clientX-rect.left:rect.width/2;
+    pinch={origen:"gesture",zoomInicio:zoom,ancla:(sc.scrollLeft+centro)/Math.max(1,baseWidth*zoom)};
+    arrastre=false;
+  },{passive:false});
+  sc.addEventListener("gesturechange",e=>{
+    if(e.cancelable)e.preventDefault();
+    if(pinch?.origen!=="gesture")return;
+    zoom=Math.max(1,Math.min(8,pinch.zoomInicio*(Number(e.scale)||1)));
+    const rect=sc.getBoundingClientRect(),centro=typeof e.clientX==="number"?e.clientX-rect.left:rect.width/2;
+    aplicarZoom(pinch.ancla,centro);
+  },{passive:false});
+  sc.addEventListener("gestureend",e=>{
+    if(e.cancelable)e.preventDefault();
+    if(pinch?.origen==="gesture")pinch=null;
+    aplicarZoom();
+  },{passive:false});
+
 })();
 
 </script>
