@@ -203,9 +203,7 @@
   .atlas-ficha-metrica__eje span {position:absolute;right:5px;transform:translateY(-50%);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-ficha-metrica__scroll {width:100%;overflow-x:auto;overflow-y:hidden;min-width:0;scrollbar-width:thin;scrollbar-color:#35353d transparent;
     overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
-  .atlas-ficha-metrica__svg {display:block;max-width:none;overflow:hidden;height:262px;cursor:crosshair;
-    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;}
-  .atlas-ficha-metrica__punto {fill:transparent;cursor:pointer;}
+  .atlas-ficha-metrica__canvas {display:block;max-width:none;overflow:hidden;height:262px;cursor:crosshair;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:pan-y;}
   .atlas-ficha-metrica__seleccion {margin:10px 0 6px;min-height:0;font-size:13px;color:#d8d9df;line-height:1.45;text-align:center;}
   .atlas-ficha-metrica__seleccion strong {color:white;}
   .atlas-ficha-metrica__nota[hidden]{display:none!important;}
@@ -276,7 +274,7 @@
   </div>
   <div class="atlas-ficha-metrica__grafica" role="group" aria-label="Gráfica histórica interactiva">
     <div id="atlas-ficha-eje" class="atlas-ficha-metrica__eje" aria-hidden="true"></div>
-    <div id="atlas-ficha-scroll" class="atlas-ficha-metrica__scroll"><svg id="atlas-ficha-svg" class="atlas-ficha-metrica__svg" preserveAspectRatio="none" role="img" aria-label="Gráfica histórica interactiva"></svg></div>
+    <div id="atlas-ficha-scroll" class="atlas-ficha-metrica__scroll"><canvas id="atlas-ficha-canvas" class="atlas-ficha-metrica__canvas" role="img" aria-label="Gráfica histórica interactiva"></canvas></div>
   </div>
   <p id="atlas-ficha-seleccion" class="atlas-ficha-metrica__seleccion" aria-live="polite"></p>
   <p id="atlas-ficha-nota" class="atlas-ficha-metrica__nota"></p>
@@ -2669,15 +2667,19 @@
     return {fecha:dia,aguda:dto.dailyTrainingLoadAcute,
       cronica:numeroNoNegativo(dto.dailyTrainingLoadChronic),
       acwr:numeroNoNegativo(dto.dailyAcuteChronicWorkloadRatio,20),
-      estado:typeof dto.acwrStatus==="string"?dto.acwrStatus:null};
+      estado:typeof dto.acwrStatus==="string"?dto.acwrStatus:null,
+      rangoInferior:numeroNoNegativo(dto.minTrainingLoadChronic),
+      rangoSuperior:numeroNoNegativo(dto.maxTrainingLoadChronic)};
   }
   async function actualizarCarga(dia) {
     const respuesta=await ATLASACCESO.consultarCarga(dia);
     if(respuesta.estado!=="recibido") return respuesta.estado;
     const dato=normalizarCarga(respuesta.datos,dia);
     if(!dato) return "sin_datos";
-    const registro={clave:CLAVE_CARGA(dia),tipo:"vista:carga",origen:"privada",datos:dato};
-    if(await ATLASDB.leer(registro.clave)) await ATLASDB.actualizar(registro);
+    const actual=await ATLASDB.leer(CLAVE_CARGA(dia));
+    const registro={clave:CLAVE_CARGA(dia),tipo:"vista:carga",origen:"privada",
+      datos:{...actual?.datos,...dato}};
+    if(actual) await ATLASDB.actualizar(registro);
     else await ATLASDB.crear(registro);
     return "actualizada";
   }
@@ -2988,353 +2990,311 @@
 </script>
 <script id="atlas-fichas-metricas-controlador">
 (() => {
-  "use strict";
-  // ATLAS 5.5.4 — fichas históricas; lectura local y fechas reales.
-  const CONFIG = Object.freeze({
-    sueno:{titulo:"💤 Sueño",tipo:"barras",unidad:"h"},
-    vfc:{titulo:"🫀 VFC",tipo:"linea",unidad:"ms"},
-    reposo:{titulo:"❤️ FC en reposo",tipo:"linea",unidad:"ppm"},
-    carga:{titulo:"⚡ Carga de entrenamiento",tipo:"linea",unidad:""},
-    spo2:{titulo:"🩸 Oxígeno en sangre",tipo:"barras",unidad:"%"}
+  'use strict';
+  // ATLAS 5.5.4 — Motor gráfico CANVAS nuevo. Sin escalado de SVG ni parches de zoom.
+  const CFG = Object.freeze({
+    sueno: { title:'💤 Sueño', kind:'bar', unit:'h' },
+    vfc: { title:'🫀 VFC', kind:'line', unit:'ms' },
+    reposo: { title:'❤️ FC en reposo', kind:'line', unit:'ppm' },
+    carga: { title:'⚡ Carga de entrenamiento', kind:'line', unit:'' },
+    spo2: { title:'🩸 Oxígeno en sangre', kind:'bar', unit:'%' }
   });
-  const COLORES={excelente:"#0a84ff",bueno:"#30d158",regular:"#ffd60a",malo:"#ff453a",neutral:"#86868f"};
-  const $=id=>document.getElementById(id), pagina=$("atlas-ficha-metrica"), marco=document.querySelector(".atlas-frame"), barra=$("atlas-tabs");
-  const sc=$("atlas-ficha-scroll"), svg=$("atlas-ficha-svg"), eje=$("atlas-ficha-eje");
-  const MESES=["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
-  let metrica=null,periodo="7d",finVisible=null,scrollPrevio=0,datos=new Map(),cargas=new Map(),serie=[],seleccion=null,zoom=1,pinch=null,baseWidth=1,arrastre=false,cargando=false;
-  const hoy=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
-  const fechaUTC=s=>new Date(s+"T00:00:00Z");
-  const desplazar=(s,n)=>new Date(fechaUTC(s).getTime()+n*86400000).toISOString().slice(0,10);
-  const num=(v,lim=100000)=>typeof v==="number"&&Number.isFinite(v)&&v>=0&&v<=lim?v:null;
-  const media=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
-  const redondear=(v,d=0)=>Number(v.toFixed(d));
-  const tipoSerie=()=>["sueno","spo2"].includes(metrica)&&periodo==="1y"?"mes":["sueno","spo2"].includes(metrica)&&periodo==="todo"?"ano":"dia";
-  const validarFecha=s=>/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s+"T00:00:00Z"));
-  function datoDia(tipo,dia){
-    const d=datos.get(dia)||{},salud=d.salud||{},sueno=d.sueno||{},vfc=d.vfc||{},c=cargas.get(dia)||{};
-    let valor=null,calidad=null,inferior=null,superior=null;
-    if(tipo==="sueno"){const s=num(sueno.totalSeg,86400);valor=s===null?null:s/3600;calidad=num(sueno.puntuacion,100);}
-    if(tipo==="vfc"){valor=num(vfc.ultimaNoche,300);inferior=num(vfc.referenciaInferior,300);superior=num(vfc.referenciaSuperior,300);}
-    if(tipo==="reposo")valor=num(salud.fcReposo,240);
-    if(tipo==="carga"){valor=num(c.aguda);inferior=num(c.rangoInferior);superior=num(c.rangoSuperior);}
-    if(tipo==="spo2")valor=num(salud.spo2Media,100);
-    return {valor,calidad,inferior,superior};
-  }
-  function fechasDisponibles(){
-    const keys=metrica==="carga"?[...cargas.keys()]:[...datos.keys()];
-    return keys.filter(d=>validarFecha(d)&&d<=hoy()&&datoDia(metrica,d).valor!==null).sort();
-  }
-  function inicioFin(){
-    const fechas=fechasDisponibles(),ultimo=hoy();
-    if(periodo==="todo"){
-      const fin=fechas.at(-1)||ultimo;
-      return {ini:fechas[0]||fin,fin};
-    }
-    const fin=finVisible&&finVisible<ultimo?finVisible:ultimo;
-    const dias=periodo==="7d"?7:periodo==="1m"?30:365;
-    return {ini:desplazar(fin,1-dias),fin};
-  }
-  function calcularSerie(rango){
-    const {ini,fin}=rango,modo=tipoSerie(),salida=[];
-    function agregar(clave,dias){
-      const entradas=dias.map(d=>datoDia(metrica,d));
-      const validos=entradas.filter(e=>e.valor!==null);
-      const limites=entradas.filter(e=>e.inferior!==null&&e.superior!==null&&e.inferior<=e.superior);
-      salida.push({clave,valor:media(validos.map(e=>e.valor)),calidad:media(validos.map(e=>e.calidad).filter(v=>v!==null)),
-        inferior:media(limites.map(e=>e.inferior)),superior:media(limites.map(e=>e.superior)),cuantos:validos.length});
-    }
-    if(modo==="dia")for(let d=ini;d<=fin;d=desplazar(d,1))agregar(d,[d]);
-    if(modo==="mes"){
-      for(let clave=ini.slice(0,7);clave<=fin.slice(0,7);){
-        const [y,m]=clave.split("-").map(Number),proximo=new Date(Date.UTC(y,m,1)).toISOString().slice(0,10);
-        let d=clave+"-01",dias=[];for(;d<proximo&&d<=fin;d=desplazar(d,1))if(d>=ini)dias.push(d);
-        agregar(clave,dias);clave=proximo.slice(0,7);
-      }
-    }
-    if(modo==="ano")for(let year=Number(ini.slice(0,4));year<=Number(fin.slice(0,4));year++){
-      const dias=[];for(let d=year+"-01-01";d<=year+"-12-31"&&d<=fin;d=desplazar(d,1))if(d>=ini)dias.push(d);
-      agregar(String(year),dias);
-    }
-    return salida;
-  }
-  // Clasificación orientativa de SpO₂: umbrales propuestos, requieren validación expresa.
-  // Garmin describe ≥95 % como habitual en la mayoría de entornos; una lectura de muñeca no es diagnóstica.
-  function categoriaSpo2(v){return v>=95?{texto:"Normal",color:COLORES.neutral}:v>=92?{texto:"Baja",color:COLORES.regular}:v>=90?{texto:"Límite",color:"#ff9f0a"}:{texto:"Crítica",color:COLORES.malo};}
-  function colorBarra(p){if(metrica==="spo2")return p.valor===null?COLORES.neutral:categoriaSpo2(p.valor).color;
-    if(p.calidad===null)return COLORES.neutral;
-    return p.calidad>=90?COLORES.excelente:p.calidad>=80?COLORES.bueno:p.calidad>=60?COLORES.regular:COLORES.malo;
-  }
-  function duracion(v){if(v===null)return "Sin datos";let m=Math.round(v*60);return `${Math.floor(m/60)} h ${m%60} min`;}
-  function mostrar(v){if(v===null)return "Sin datos";if(metrica==="sueno")return duracion(v);
-    return (metrica==="spo2"?redondear(v,1):Math.round(v))+(CONFIG[metrica].unidad?" "+CONFIG[metrica].unidad:"");}
-  function etiquetaFecha(clave){if(clave.length===4)return clave;
-    if(clave.length===7)return MESES[Number(clave.slice(5))-1]+" "+clave.slice(0,4);
-    return `${Number(clave.slice(8))} ${MESES[Number(clave.slice(5,7))-1]} ${clave.slice(2,4)}`;}
-  function etiquetaEje(clave){
-    if(clave.length===4)return clave;if(clave.length===7)return MESES[Number(clave.slice(5))-1];
-    if(periodo==="1y"||periodo==="todo")return MESES[Number(clave.slice(5,7))-1]+" "+clave.slice(2,4);
-    return String(Number(clave.slice(8)));
-  }
-  function svgEl(tag,attrs={},contenido){const el=document.createElementNS("http://www.w3.org/2000/svg",tag);
-    for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));if(contenido!==undefined)el.textContent=String(contenido);return el;
-  }
-  function aplicarZoom(ancla=null,centro=null){
-    const ancho=Math.max(1,baseWidth*zoom);
-    svg.style.width=ancho+"px";
-    svg.setAttribute("width",String(ancho));
-    // SVG con ancho real ampliado y trazado geométrico escalado horizontalmente.
-    // No se deja que preserveAspectRatio centre el dibujo y produzca márgenes vacíos.
-    svg.setAttribute("viewBox",`0 0 ${ancho} 262`);
-    svg.querySelector("#atlas-grafica-dibujo")?.setAttribute("transform",`scale(${zoom} 1)`);
-    svg.querySelectorAll("#atlas-grafica-textos text[data-base-x]").forEach(texto=>{
-      const x=Number(texto.getAttribute("data-base-x"))*zoom;
-      texto.setAttribute("x",String(x));
-      const rotY=texto.getAttribute("data-rotar-y");
-      if(rotY!==null)texto.setAttribute("transform",`rotate(-90 ${x} ${rotY})`);
-    });
-    const activo=zoom>1.002;
-    sc.style.overflowX=activo?"auto":"hidden";
-    sc.style.touchAction=activo?"pan-x pan-y":"pan-y";
-    if(!activo){sc.scrollLeft=0;return;}
-    if(ancla!==null&&centro!==null){
-      const max=Math.max(0,ancho-sc.clientWidth);
-      sc.scrollLeft=Math.min(max,Math.max(0,ancla*ancho-centro));
-    }else sc.scrollLeft=Math.min(Math.max(0,sc.scrollLeft),Math.max(0,ancho-sc.clientWidth));
-  }
-  function distanciaDedos(a,b){return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);}
-  function activarPinza(a,b,origen){
-    const rect=sc.getBoundingClientRect();
-    const centro=(a.clientX+b.clientX)/2-rect.left;
-    seleccion=null;mostrarSeleccion();
-    pinch={origen,dist:Math.max(1,distanciaDedos(a,b)),zoomInicio:zoom,
-      ancla:(sc.scrollLeft+centro)/Math.max(1,baseWidth*zoom)};
-    arrastre=false;
-  }
-  function actualizarPinza(a,b){
-    if(!pinch)return;
-    zoom=Math.max(1,Math.min(8,pinch.zoomInicio*distanciaDedos(a,b)/pinch.dist));
-    const centro=(a.clientX+b.clientX)/2-sc.getBoundingClientRect().left;
-    aplicarZoom(pinch.ancla,centro);
-  }
-  function mostrarSeleccion(){
-    const salida=$("atlas-ficha-seleccion");salida.replaceChildren();
-    svg.querySelectorAll("[data-barra]").forEach(el=>{
-      const marcado=Number(el.getAttribute("data-barra"))===seleccion;
-      el.setAttribute("stroke",marcado?"#ffffff":"none");el.setAttribute("stroke-width",marcado?"1.5":"0");
-    });
-    svg.querySelector("#atlas-grafica-indicador")?.remove();
-    if(seleccion===null||!serie[seleccion])return;
-    const p=serie[seleccion],f=document.createElement("strong");f.textContent=etiquetaFecha(p.clave);
-    salida.append(f,document.createTextNode(" · "+mostrar(p.valor)+(p.cuantos>1?` · media de ${p.cuantos} días`:"")));
-    if(metrica==="sueno"&&p.calidad!==null)salida.append(document.createTextNode(` · calidad ${Math.round(p.calidad)}/100`));
-    if(metrica==="vfc"&&p.inferior!==null&&p.superior!==null)
-      salida.append(document.createTextNode(` · referencia ${Math.round(p.inferior)}–${Math.round(p.superior)} ms`));
-    if(metrica==="carga"&&p.inferior!==null&&p.superior!==null)
-      salida.append(document.createTextNode(` · óptimo ${Math.round(p.inferior)}–${Math.round(p.superior)}`));
-    if(metrica==="spo2"&&p.valor!==null)
-      salida.append(document.createTextNode(` · ${categoriaSpo2(p.valor).texto.toLowerCase()} (orientativo)`));
-    if(CONFIG[metrica].tipo==="linea"&&p.valor!==null){
-      const cx=CONFIG[metrica].tipo==="barras"?baseWidth*(seleccion+.5)/serie.length:
-        serie.length>1?1+(baseWidth-2)*seleccion/(serie.length-1):baseWidth/2;
-      const group=svgEl("g",{id:"atlas-grafica-indicador","pointer-events":"none"});
-      group.append(svgEl("line",{x1:cx,y1:18,x2:cx,y2:220,stroke:"#8e8e93","stroke-width":1,"stroke-dasharray":"3 4"}));
-      const y=Number(svg.getAttribute("data-y-min")), ymax=Number(svg.getAttribute("data-y-max"));
-      group.append(svgEl("circle",{cx,cy:220-(p.valor-y)/(ymax-y)*196,r:4,fill:"#ff453a",stroke:"#fff","stroke-width":1.3}));svg.querySelector("#atlas-grafica-dibujo")?.append(group);
-    }
-  }
-  function seleccionar(index,repetido=false){
-    if(!serie.length)return;
-    const elegido=Math.max(0,Math.min(serie.length-1,index));
-    seleccion=repetido&&seleccion===elegido?null:elegido;mostrarSeleccion();
-  }
-  function pintar(){
-    const rango=inicioFin();serie=calcularSerie(rango);
-    const barras=CONFIG[metrica].tipo==="barras";
-    baseWidth=Math.max(1,sc.clientWidth);const w=baseWidth,top=barras&&metrica==="sueno"?78:18,bottom=220,h=262,alto=bottom-top;
-    let valores=serie.flatMap(p=>[p.valor,...(!barras?[p.inferior,p.superior]:[])]).filter(v=>v!==null);
-    let mn=valores.length?Math.min(...valores):0,mx=valores.length?Math.max(...valores):100;
-    let lower=barras?0:Math.max(0,Math.floor((mn-(mx-mn||10)*.25)/5)*5);
-    let upper=Math.ceil((mx+(mx-mn||10)*.25)/5)*5;
-    if(metrica==="spo2"){lower=0;upper=100;}
-    if(upper<=lower)upper=lower+10;
-    const y=v=>bottom-(v-lower)/(upper-lower)*alto;
-    svg.setAttribute("height",h);svg.setAttribute("viewBox",`0 0 ${w} ${h}`);
-    svg.setAttribute("data-y-min",lower);svg.setAttribute("data-y-max",upper);
-    const dibujo=svgEl("g",{id:"atlas-grafica-dibujo"});
-    const textos=svgEl("g",{id:"atlas-grafica-textos"});
-    svg.replaceChildren(dibujo,textos);eje.replaceChildren();
-    // Sin degradado rojo: la banda verde de VFC y Carga permanece visible.
-    eje.style.height=h+"px";for(let i=0;i<=4;i++){
-      const v=upper-(upper-lower)*i/4,py=top+alto*i/4;
-      dibujo.append(svgEl("line",{x1:0,x2:w,y1:py,y2:py,stroke:"#292932","stroke-width":1}));
-      const label=document.createElement("span");label.textContent=metrica==="sueno"?redondear(v,1):Math.round(v);
-      label.style.top=py+"px";eje.append(label);
-    }
-    const cw=w/Math.max(serie.length,1),x=i=>barras?cw*(i+.5):serie.length>1?1+(w-2)*i/(serie.length-1):w/2;
-    if(!barras){
-      // Franja de referencia continua por tramos diarios: límites de cada fecha, no rango actual repetido.
-      const limiteValido=i=>serie[i]&&serie[i].inferior!==null&&serie[i].superior!==null&&serie[i].inferior<=serie[i].superior;
-      for(let i=0;i<serie.length;){if(!limiteValido(i)){i++;continue;}let j=i;
-        while(j+1<serie.length&&limiteValido(j+1))j++;
-        const sup=[],inf=[];for(let k=i;k<=j;k++){sup.push(`${x(k)},${y(serie[k].superior)}`);inf.unshift(`${x(k)},${y(serie[k].inferior)}`);}
-        if(i===j){const left=x(i)-cw*.5,right=x(i)+cw*.5;
-          dibujo.append(svgEl("rect",{x:left,y:y(serie[i].superior),width:right-left,height:Math.max(0,y(serie[i].inferior)-y(serie[i].superior)),fill:"rgba(48,209,88,.18)"}));
-        }else dibujo.append(svgEl("polygon",{points:sup.concat(inf).join(" "),fill:"rgba(48,209,88,.18)"}));i=j+1;
-      }
-      const valido=i=>serie[i]&&serie[i].valor!==null;
-      for(let i=0;i<serie.length;){if(!valido(i)){i++;continue;}let j=i;while(j+1<serie.length&&valido(j+1))j++;
-        if(j>i){const pts=serie.slice(i,j+1).map((p,k)=>`${x(i+k)},${y(p.valor)}`).join(" ");
-          dibujo.append(svgEl("polyline",{points:pts,stroke:"#ff453a","stroke-width":2,fill:"none","stroke-linecap":"round","stroke-linejoin":"round"}));
-        }else dibujo.append(svgEl("line",{x1:x(i)-Math.max(1,cw*.08),y1:y(serie[i].valor),x2:x(i)+Math.max(1,cw*.08),y2:y(serie[i].valor),stroke:"#ff453a","stroke-width":2}));
-        i=j+1;
-      }
-    }
-    const total=serie.length;
-    const pasoEtiquetas=total<=12?1:total<=31?Math.ceil(total/9):Math.ceil(total/7);
-    serie.forEach((p,i)=>{
-      const cx=x(i);
-      if(i%pasoEtiquetas===0||(i===total-1&&i%pasoEtiquetas>pasoEtiquetas/2)){
-        textos.append(svgEl("text",{x:cx,"data-base-x":cx,y:251,"text-anchor":"middle","font-size":10.5,fill:"#9999a5"},etiquetaEje(p.clave)));
-      }
-      if(barras&&p.valor!==null){
-        const py=Math.max(top,Math.min(bottom,y(p.valor))),bw=Math.max(1,Math.min(cw*.74,39));
-        dibujo.append(svgEl("rect",{x:cx-bw/2,y:py,width:bw,height:Math.max(1,bottom-py),rx:1.6,fill:colorBarra(p),"data-barra":i}));
-        if(metrica==="sueno"){
-          const mins=Math.round(p.valor*60),hours=Math.floor(mins/60),minutes=mins%60;
-          const compacto=total>7,pyTxt=Math.max(8,py-6);
-          // Una única línea por barra, siempre. Tamaño ATLAS ajustado a la anchura útil.
-          const texto=svgEl("text",{x:cx,"data-base-x":cx,y:pyTxt,fill:"#ececf0",
-            "font-size":total>22?9.2:10,"font-weight":700,
-            "text-anchor":compacto?"start":"middle",
-            ...(compacto?{"data-rotar-y":pyTxt,transform:`rotate(-90 ${cx} ${pyTxt})`}:{})});
-          texto.append(svgEl("tspan",{},String(hours)));
-          texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," h "));
-          texto.append(svgEl("tspan",{},String(minutes)));
-          texto.append(svgEl("tspan",{"font-size":".72em","font-weight":500}," min"));
-          textos.append(texto);
-          if(!compacto){
-            const natural=texto.getComputedTextLength();
-            if(natural>cw-6)texto.setAttribute("font-size",String(Math.max(4.5,10*(cw-6)/natural)));
-          }
-        }
-      }
-    });
-    aplicarZoom();mostrarSeleccion();
-  }
-  const abreviarFecha=dia=>`${Number(dia.slice(8))} ${MESES[Number(dia.slice(5,7))-1]} ${dia.slice(2,4)}`;
-  function etiquetaRango(ini,fin){
-    if(ini===fin)return abreviarFecha(ini);
-    const a=ini.split("-"),b=fin.split("-");
-    if(a[0]===b[0]&&a[1]===b[1])return `${Number(a[2])} - ${Number(b[2])} ${MESES[Number(b[1])-1]} ${b[0].slice(2)}`;
-    if(a[0]===b[0])return `${Number(a[2])} ${MESES[Number(a[1])-1]} - ${Number(b[2])} ${MESES[Number(b[1])-1]} ${b[0].slice(2)}`;
-    return `${abreviarFecha(ini)} - ${abreviarFecha(fin)}`;
-  }
-  function descripcion(){
-    const muestra=fechasDisponibles(),reciente=muestra.at(-1),actual=reciente?datoDia(metrica,reciente):null;
-    const observacion= !actual?"No hay registros locales suficientes para interpretar tu situación actual.":
-      metrica==="sueno"?`Último descanso registrado: ${duracion(actual.valor)}${actual.calidad===null?"":` y ${Math.round(actual.calidad)}/100 de calidad`}; observa también la regularidad y cómo te encuentras al despertar.`:
-      metrica==="vfc"?`Última noche: ${Math.round(actual.valor)} ms${actual.inferior!==null&&actual.superior!==null?`, frente a tu referencia de ${Math.round(actual.inferior)}–${Math.round(actual.superior)} ms`:""}. Una tendencia sostenida fuera de tu rango merece ajustar la recuperación.`:
-      metrica==="reposo"?`Último registro: ${Math.round(actual.valor)} ppm. Un aumento persistente sobre tu nivel habitual puede acompañar fatiga, estrés o enfermedad; una sola medición no basta.`:
-      metrica==="carga"?`Última carga aguda registrada: ${Math.round(actual.valor)}. Interprétala junto al rango óptimo personal y la recuperación, no como una medida aislada de forma física.`:
-      `Última media registrada: ${redondear(actual.valor,1)} %. Las lecturas de muñeca pueden variar con el ajuste y el movimiento; evita interpretar un único valor como diagnóstico.`;
-    const base={
-      sueno:"El sueño es el tiempo de descanso nocturno medido por Garmin; la puntuación añade una valoración de su calidad. Dormir suficiente y con regularidad ayuda a recuperar el esfuerzo y sostener la adaptación al entrenamiento.",
-      vfc:"La variabilidad de la frecuencia cardiaca (VFC) mide cuánto varía el tiempo entre latidos. Su evolución respecto a tu rango personal orienta sobre la recuperación y la respuesta al estrés; un valor alto no siempre es mejor.",
-      reposo:"La frecuencia cardiaca en reposo es el pulso medido cuando el organismo está relajado. Su tendencia frente a tu media habitual puede aportar señales sobre recuperación, estrés y cambios de condición física.",
-      carga:"La carga aguda resume el estrés del entrenamiento reciente calculado por Garmin. El objetivo es mantener una dosis de trabajo coherente con tu capacidad, observando cómo cambia el intervalo óptimo personal a lo largo del tiempo.",
-      spo2:"La SpO₂ estima el porcentaje de hemoglobina que transporta oxígeno. En running, los cambios persistentes o asociados a altitud pueden aportar contexto, pero la lectura de muñeca es orientativa y no sustituye una valoración médica."
-    }[metrica];
-    $("atlas-ficha-descripcion").textContent=base+" "+observacion;
-  }
-  function refrescar(){
-    const rango=inicioFin();$("atlas-ficha-rango").textContent=etiquetaRango(rango.ini,rango.fin);
-    $("atlas-ficha-next").disabled=periodo==="todo"||rango.fin>=hoy();
-    $("atlas-ficha-prev").disabled=periodo==="todo";
-    $("atlas-ficha-periodos").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.periodo===periodo)));
-    const nota=$("atlas-ficha-nota");
-    nota.textContent=metrica==="carga"&&cargas.size<3?"La carga histórica aún no está importada; solo se muestran lecturas Garmin ya guardadas.":
-      metrica==="spo2"?"Clasificación SpO₂ orientativa, pendiente de aprobación; no es una valoración médica.":"";
-    nota.hidden=!nota.textContent;
-    zoom=1;pinch=null;seleccion=null;pintar();descripcion();
-  }
-  async function leerAlmacen(){
-    await ATLASDB.abrir();const raw=new Map(),c=new Map();
-    await new Promise((ok,fallo)=>{
-      const tx=ATLASDB.almacen("readonly").transaction,st=tx.objectStore("registros");
-      for(const [pref,dest] of [["historico:resumen:dia:",raw],["vista:hoy:carga:",c]]){
-        const req=st.openCursor(IDBKeyRange.bound(pref,pref+"9999-12-31"));
-        req.onsuccess=()=>{const cursor=req.result;if(!cursor)return;
-          const clave=String(cursor.key).slice(pref.length),dato=cursor.value?.datos;
-          if(validarFecha(clave)&&((dest===raw&&dato?.dia===clave)||(dest===c&&dato?.fecha===clave)))dest.set(clave,dato);
-          cursor.continue();};req.onerror=()=>fallo(req.error||Error("lectura fallida"));
-      }
-      tx.oncomplete=ok;tx.onabort=()=>fallo(tx.error||Error("transacción interrumpida"));
-    });datos=raw;cargas=c;
-  }
-  async function abrir(tipo){if(!CONFIG[tipo]||cargando)return;
-    cargando=true;metrica=tipo;periodo="7d";finVisible=hoy();zoom=1;seleccion=null;
-    scrollPrevio=window.scrollY;$("atlas-ficha-titulo").textContent=CONFIG[tipo].titulo;
-    pagina.hidden=false;marco.classList.add("atlas-metrica-abierta");barra.hidden=true;window.scrollTo(0,0);
-    try{await leerAlmacen();refrescar();}catch(e){datos=new Map();cargas=new Map();refrescar();$("atlas-ficha-nota").hidden=false;$("atlas-ficha-nota").textContent="No se ha podido leer el histórico local.";}
-    finally{cargando=false;}
-  }
-  function cerrar(){pagina.hidden=true;marco.classList.remove("atlas-metrica-abierta");barra.hidden=false;window.scrollTo(0,scrollPrevio);}
-  function mover(dir){if(periodo==="todo")return;let tramo=periodo==="7d"?7:periodo==="1m"?30:365;
-    finVisible=desplazar(inicioFin().fin,dir*tramo);if(finVisible>hoy())finVisible=hoy();refrescar();}
-  document.querySelectorAll("#atlas-hoy-metricas [data-metrica]").forEach(b=>b.addEventListener("click",()=>abrir(b.dataset.metrica)));
-  $("atlas-ficha-volver").addEventListener("click",cerrar);$("atlas-ficha-volver-abajo").addEventListener("click",cerrar);
-  $("atlas-ficha-prev").addEventListener("click",()=>mover(-1));$("atlas-ficha-next").addEventListener("click",()=>mover(1));
-  $("atlas-ficha-periodos").addEventListener("click",e=>{const tipo=e.target.closest("button")?.dataset.periodo;
-    if(!tipo||tipo===periodo)return;periodo=tipo;finVisible=hoy();refrescar();});
-  window.addEventListener("resize",()=>{if(!pagina.hidden&&metrica)requestAnimationFrame(()=>{
-    const posicion=sc.scrollWidth?sc.scrollLeft/sc.scrollWidth:0;pintar();sc.scrollLeft=posicion*sc.scrollWidth;
-  });});
-  window.addEventListener("atlas:hoy:metricas-actualizadas",()=>{if(pagina.hidden)return;leerAlmacen().then(()=>refrescar()).catch(()=>{});});
-  function indexX(clientX){const r=svg.getBoundingClientRect(),x=(clientX-r.left)/Math.max(r.width,1);
-    const indice=CONFIG[metrica].tipo==="linea"?Math.round(x*(serie.length-1)):Math.floor(x*serie.length);
-    return Math.max(0,Math.min(serie.length-1,indice));}
-  svg.addEventListener("pointerdown",e=>{if(pinch||e.button>0||!serie.length)return;
-    arrastre=true;seleccionar(indexX(e.clientX),true);});
-  svg.addEventListener("pointermove",e=>{if(arrastre&&!pinch&&e.isPrimary)seleccionar(indexX(e.clientX),false);});
-  window.addEventListener("pointerup",()=>arrastre=false);window.addEventListener("pointercancel",()=>arrastre=false);
-  // Safari iPhone: la pinza se maneja con touch events no pasivos y, como respaldo,
-  // eventos gesture* de WebKit. Se modifica el ancho de forma continua, nunca por pasos.
-  sc.addEventListener("touchstart",e=>{
-    if(e.touches.length===2){
-      if(!pinch||pinch.origen!=="touch")activarPinza(e.touches[0],e.touches[1],"touch");
-      if(e.cancelable)e.preventDefault();
-    }
-  },{passive:false});
-  sc.addEventListener("touchmove",e=>{
-    if(e.touches.length===2){
-      if(e.cancelable)e.preventDefault();
-      if(!pinch||pinch.origen!=="touch")activarPinza(e.touches[0],e.touches[1],"touch");
-      actualizarPinza(e.touches[0],e.touches[1]);
-    }
-  },{passive:false});
-  const finalizarPinza=e=>{if(e.touches.length<2){pinch=null;arrastre=false;aplicarZoom();}};
-  sc.addEventListener("touchend",finalizarPinza,{passive:true});
-  sc.addEventListener("touchcancel",finalizarPinza,{passive:true});
-  sc.addEventListener("gesturestart",e=>{
-    if(e.cancelable)e.preventDefault();
-    if(pinch?.origen==="touch")return;
-    const rect=sc.getBoundingClientRect(),centro=typeof e.clientX==="number"?e.clientX-rect.left:rect.width/2;
-    pinch={origen:"gesture",zoomInicio:zoom,ancla:(sc.scrollLeft+centro)/Math.max(1,baseWidth*zoom)};
-    arrastre=false;
-  },{passive:false});
-  sc.addEventListener("gesturechange",e=>{
-    if(e.cancelable)e.preventDefault();
-    if(pinch?.origen!=="gesture")return;
-    zoom=Math.max(1,Math.min(8,pinch.zoomInicio*(Number(e.scale)||1)));
-    const rect=sc.getBoundingClientRect(),centro=typeof e.clientX==="number"?e.clientX-rect.left:rect.width/2;
-    aplicarZoom(pinch.ancla,centro);
-  },{passive:false});
-  sc.addEventListener("gestureend",e=>{
-    if(e.cancelable)e.preventDefault();
-    if(pinch?.origen==="gesture")pinch=null;
-    aplicarZoom();
-  },{passive:false});
+  const COLOR = { blue:'#0a84ff',green:'#30d158',yellow:'#ffd60a',red:'#ff453a',orange:'#ff9f0a',gray:'#86868f' };
+  const MONTH = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const $ = id => document.getElementById(id);
+  const page = $('atlas-ficha-metrica'), frame = document.querySelector('.atlas-frame'), tabs = $('atlas-tabs');
+  const scroll = $('atlas-ficha-scroll'), canvas = $('atlas-ficha-canvas'), axis = $('atlas-ficha-eje');
+  const context = canvas.getContext('2d', { alpha: false });
+  const CHART_H = 262, BOTTOM = 220;
+  let metric = null, period = '7d', endDate = null, oldScroll = 0;
+  let health = new Map(), load = new Map(), series = [], selected = null, chart = null;
+  let zoom = 1, pinch = null, pointerDrag = false, opening = false, requestVersion = 0;
+  let loadStatus = '', raf = 0, focusX = null;
 
+  const dayNow = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+  const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s+'T00:00:00Z'));
+  const stepDay = (s,n) => new Date(Date.parse(s+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);
+  const number = (n,max=100000) => typeof n === 'number' && Number.isFinite(n) && n>=0 && n<=max ? n : null;
+  const average = a => a.length ? a.reduce((s,x)=>s+x,0)/a.length : null;
+  const duration = n => { if(n===null)return 'Sin datos';const m=Math.round(n*60);return `${Math.floor(m/60)} h ${m%60} min`; };
+  const fmt = n => metric==='sueno'?duration(n):n===null?'Sin datos':`${metric==='spo2'?Number(n.toFixed(1)):Math.round(n)}${CFG[metric].unit?' '+CFG[metric].unit:''}`;
+  const labelDate = s => s.length===4?s:s.length===7?`${MONTH[+s.slice(5)-1]} ${s.slice(0,4)}`:`${+s.slice(8)} ${MONTH[+s.slice(5,7)-1]} ${s.slice(2,4)}`;
+  const axisDate = s => s.length===4?s:s.length===7?MONTH[+s.slice(5)-1]:period==='1y'||period==='todo'?`${MONTH[+s.slice(5,7)-1]} ${s.slice(2,4)}`:String(+s.slice(8));
+  const shortDate = s => `${+s.slice(8)} ${MONTH[+s.slice(5,7)-1]} ${s.slice(2,4)}`;
+  function rangeLabel(a,b) {
+    if(a===b)return shortDate(a);
+    const x=a.split('-'),y=b.split('-');
+    if(x[0]===y[0]&&x[1]===y[1])return `${+x[2]} - ${+y[2]} ${MONTH[+y[1]-1]} ${y[0].slice(2)}`;
+    if(x[0]===y[0])return `${+x[2]} ${MONTH[+x[1]-1]} - ${+y[2]} ${MONTH[+y[1]-1]} ${y[0].slice(2)}`;
+    return `${shortDate(a)} - ${shortDate(b)}`;
+  }
+  function rowAt(type,day) {
+    const d=health.get(day)||{}, h=d.salud||{}, s=d.sueno||{}, v=d.vfc||{}, c=load.get(day)||{};
+    let value=null,score=null,lo=null,hi=null;
+    if(type==='sueno') {const seconds=number(s.totalSeg,86400);value=seconds===null?null:seconds/3600;score=number(s.puntuacion,100);}
+    if(type==='vfc'){value=number(v.ultimaNoche,300);lo=number(v.referenciaInferior,300);hi=number(v.referenciaSuperior,300);}
+    if(type==='reposo')value=number(h.fcReposo,240);
+    if(type==='carga'){value=number(c.aguda);lo=number(c.rangoInferior);hi=number(c.rangoSuperior);}
+    if(type==='spo2')value=number(h.spo2Media,100);
+    return {value,score,lo,hi};
+  }
+  function available() {return [...(metric==='carga'?load:health).keys()].filter(d=>validDate(d)&&d<=dayNow()&&rowAt(metric,d).value!==null).sort();}
+  function dates() {
+    const all=available(),today=dayNow();
+    if(period==='todo') {
+      const healthDays=metric==='carga'?[...health.keys()].filter(validDate).sort():[];
+      const first=[all[0],healthDays[0]].filter(Boolean).sort()[0];
+      const last=all.at(-1)||today;return {start:first||last,end:last};
+    }
+    const end=endDate&&endDate<today?endDate:today;
+    return {start:stepDay(end,1-(period==='7d'?7:period==='1m'?30:365)),end};
+  }
+  const grouping=()=>['sueno','spo2'].includes(metric)&&period==='1y'?'month':['sueno','spo2'].includes(metric)&&period==='todo'?'year':'day';
+  function buildSeries({start,end}) {
+    const result=[],mode=grouping();
+    const add=(key,days)=>{const rows=days.map(d=>rowAt(metric,d));const good=rows.filter(r=>r.value!==null),bounds=rows.filter(r=>r.lo!==null&&r.hi!==null&&r.lo<=r.hi);
+      result.push({key,value:average(good.map(r=>r.value)),score:average(good.map(r=>r.score).filter(x=>x!==null)),lo:average(bounds.map(r=>r.lo)),hi:average(bounds.map(r=>r.hi)),count:good.length});};
+    if(mode==='day')for(let d=start;d<=end;d=stepDay(d,1))add(d,[d]);
+    if(mode==='month')for(let month=start.slice(0,7);month<=end.slice(0,7);){const [y,m]=month.split('-').map(Number),next=new Date(Date.UTC(y,m,1)).toISOString().slice(0,10);const days=[];
+      for(let d=month+'-01';d<next&&d<=end;d=stepDay(d,1))if(d>=start)days.push(d);
+      add(month,days);month=next.slice(0,7);}
+    if(mode==='year')for(let y=+start.slice(0,4);y<=+end.slice(0,4);y++){const days=[];
+      for(let d=y+'-01-01';d<=y+'-12-31'&&d<=end;d=stepDay(d,1))if(d>=start)days.push(d);
+      add(String(y),days);}
+    return result;
+  }
+  function barColor(p) {
+    if(metric==='spo2')return p.value===null?COLOR.gray:p.value>=95?COLOR.gray:p.value>=92?COLOR.yellow:p.value>=90?COLOR.orange:COLOR.red;
+    return p.score===null?COLOR.gray:p.score>=90?COLOR.blue:p.score>=80?COLOR.green:p.score>=60?COLOR.yellow:COLOR.red;
+  }
+  function plotSetup() {
+    const bars=CFG[metric].kind==='bar',top=metric==='sueno'&&bars?76:18;
+    const values=series.flatMap(p=>bars?[p.value]:[p.value,p.lo,p.hi]).filter(x=>x!==null);
+    const mn=values.length?Math.min(...values):0,mx=values.length?Math.max(...values):100;
+    let low=bars?0:Math.max(0,Math.floor((mn-(mx-mn||10)*.25)/5)*5);
+    let high=Math.ceil((mx+(mx-mn||10)*.25)/5)*5;
+    if(metric==='spo2'){low=0;high=100;} if(high<=low)high=low+10;
+    chart={bars,top,low,high,height:BOTTOM-top};
+    axis.replaceChildren();axis.style.height=CHART_H+'px';
+    for(let i=0;i<=4;i++){const value=high-(high-low)*i/4,py=top+chart.height*i/4;
+      const label=document.createElement('span');label.textContent=metric==='sueno'?Number(value.toFixed(1)):Math.round(value);label.style.top=py+'px';axis.append(label);}
+  }
+  function xAt(index,width) { const n=series.length;return chart.bars?width*(index+.5)/n:n>1?2+(width-4)*index/(n-1):width/2; }
+  const yAt=value=>BOTTOM-(value-chart.low)/(chart.high-chart.low)*chart.height;
+  function drawSleepLabel(ctx,p,x,y,cell) {
+    const m=Math.round(p.value*60),h=Math.floor(m/60),min=m%60;
+    const parts=[[String(h),true],[' h ',false],[String(min),true],[' min',false]];
+    const compact=series.length>7;
+    ctx.save();ctx.fillStyle='#ececf0';ctx.textBaseline='middle';
+    ctx.translate(x,Math.max(15,y-6));
+    if(compact)ctx.rotate(-Math.PI/2);
+    const natural=size=>parts.reduce((s,[t,b])=>{ctx.font=`${b?700:500} ${b?size:size*.72}px -apple-system, BlinkMacSystemFont, sans-serif`;return s+ctx.measureText(t).width;},0);
+    let size=10.5;if(!compact){while(size>4.8&&natural(size)>cell-4)size-=.25;}
+    let dx=compact?0:-natural(size)/2;
+    for(const [text,bold] of parts){ctx.font=`${bold?700:500} ${bold?size:size*.72}px -apple-system,BlinkMacSystemFont,sans-serif`;ctx.fillText(text,dx,0);dx+=ctx.measureText(text).width;}
+    ctx.restore();
+  }
+  function paint() {
+    if(!metric||!chart||page.hidden)return;
+    const view=Math.max(1,scroll.clientWidth),width=Math.max(view,view*zoom),ratio=Math.min(window.devicePixelRatio||1,2.5);
+    canvas.style.width=width+'px';canvas.style.height=CHART_H+'px';
+    const pixelsW=Math.max(1,Math.round(width*ratio)),pixelsH=Math.round(CHART_H*ratio);
+    if(canvas.width!==pixelsW||canvas.height!==pixelsH){canvas.width=pixelsW;canvas.height=pixelsH;}
+    const ctx=context;ctx.setTransform(ratio,0,0,ratio,0,0);
+    ctx.fillStyle='#000000';ctx.fillRect(0,0,width,CHART_H);
+    for(let i=0;i<=4;i++){const py=chart.top+chart.height*i/4;ctx.beginPath();ctx.moveTo(0,py+.5);ctx.lineTo(width,py+.5);ctx.strokeStyle='#292932';ctx.lineWidth=1;ctx.stroke();}
+    if(!series.length)return;
+    const cell=width/series.length;
+    if(!chart.bars){
+      // Rangos propios y variables por fecha; no se repite un límite actual en el pasado.
+      let first=-1;
+      const band=(start,end)=>{if(start<0)return;ctx.beginPath();
+        if(start===end){const x=xAt(start,width);ctx.rect(Math.max(0,x-cell/2),yAt(series[start].hi),Math.min(width,cell),Math.max(0,yAt(series[start].lo)-yAt(series[start].hi)));}
+        else {ctx.moveTo(xAt(start,width),yAt(series[start].hi));for(let k=start+1;k<=end;k++)ctx.lineTo(xAt(k,width),yAt(series[k].hi));
+          for(let k=end;k>=start;k--)ctx.lineTo(xAt(k,width),yAt(series[k].lo));ctx.closePath();}
+        ctx.fillStyle='rgba(48,209,88,.21)';ctx.fill();};
+      for(let i=0;i<=series.length;i++) {const p=series[i],valid=p&&p.lo!==null&&p.hi!==null&&p.lo<=p.hi;
+        if(valid&&first===-1)first=i;if(!valid&&first!==-1){band(first,i-1);first=-1;}}
+      const drawLine=(first,last)=>{if(first<0)return;ctx.beginPath();
+        if(first===last){const x=xAt(first,width),y=yAt(series[first].value);ctx.moveTo(x-1,y);ctx.lineTo(x+1,y);}
+        else for(let i=first;i<=last;i++){const x=xAt(i,width),y=yAt(series[i].value);if(i===first)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
+        ctx.strokeStyle=COLOR.red;ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();};
+      first=-1;
+      for(let i=0;i<=series.length;i++){const valid=series[i]?.value!==null&&series[i]?.value!==undefined;
+        if(valid&&first===-1)first=i;if(!valid&&first!==-1){drawLine(first,i-1);first=-1;}}
+    } else {
+      for(let i=0;i<series.length;i++){const p=series[i];if(p.value===null)continue;
+        const cx=xAt(i,width),py=Math.max(chart.top,Math.min(BOTTOM,yAt(p.value))),barW=Math.max(1,Math.min(cell*.74,39*zoom));
+        ctx.fillStyle=barColor(p);ctx.fillRect(cx-barW/2,py,barW,Math.max(1,BOTTOM-py));
+        if(i===selected){ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(cx-barW/2,py,barW,Math.max(1,BOTTOM-py));}
+        if(metric==='sueno')drawSleepLabel(ctx,p,cx,py,cell);
+      }
+    }
+    // Etiquetas fijas en tamaño tipográfico, no distorsionadas por transformaciones geométricas.
+    const n=series.length,step=n<=12?1:n<=31?Math.ceil(n/9):Math.ceil(n/7);
+    ctx.font='10.5px -apple-system,BlinkMacSystemFont,sans-serif';ctx.fillStyle='#9999a5';ctx.textAlign='center';ctx.textBaseline='alphabetic';
+    for(let i=0;i<n;i++)if(i%step===0||(i===n-1&&i%step>step/2)){
+      const text=axisDate(series[i].key),half=ctx.measureText(text).width/2;
+      ctx.fillText(text,Math.min(width-half-2,Math.max(half+2,xAt(i,width))),251);
+    }
+    if(selected!==null&&series[selected]?.value!==null&&!chart.bars){
+      const x=xAt(selected,width),y=yAt(series[selected].value);
+      ctx.beginPath();ctx.setLineDash([3,4]);ctx.moveTo(x,chart.top);ctx.lineTo(x,BOTTOM);ctx.strokeStyle='#8e8e93';ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
+      ctx.beginPath();ctx.arc(x,y,4.5,0,Math.PI*2);ctx.fillStyle=COLOR.red;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.4;ctx.stroke();
+    }
+  }
+  function schedulePaint(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;paint();});}
+  function clampScroll(){const max=Math.max(0,scroll.scrollWidth-scroll.clientWidth);scroll.scrollLeft=Math.max(0,Math.min(max,scroll.scrollLeft));}
+  function setZoom(newZoom,anchor=null,center=null){
+    zoom=Math.max(1,Math.min(8,newZoom));const view=scroll.clientWidth;
+    scroll.style.overflowX=zoom>1.002?'auto':'hidden';
+    scroll.style.touchAction=zoom>1.002?'pan-x pan-y':'pan-y';
+    canvas.style.touchAction=zoom>1.002?'pan-x pan-y':'pan-y';
+    // Se redibuja TODO el trazado sobre el ancho nuevo: líneas y puntos no se deforman.
+    paint();
+    if(zoom<=1.002){scroll.scrollLeft=0;return;}
+    if(anchor!==null&&center!==null){const max=Math.max(0,scroll.scrollWidth-view);scroll.scrollLeft=Math.min(max,Math.max(0,anchor*(view*zoom)-center));}
+    else clampScroll();
+  }
+  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+  function startPinch(a,b,source){const rect=scroll.getBoundingClientRect(),center=(a.clientX+b.clientX)/2-rect.left;
+    pinch={source,distance:Math.max(1,dist(a,b)),initial:zoom,anchor:(scroll.scrollLeft+center)/(scroll.clientWidth*zoom)};
+    pointerDrag=false;selected=null;showSelected();}
+  function updatePinch(a,b){if(!pinch)return;
+    const center=(a.clientX+b.clientX)/2-scroll.getBoundingClientRect().left;
+    setZoom(pinch.initial*dist(a,b)/pinch.distance,pinch.anchor,center);}
+  function indexAt(clientX){const width=canvas.getBoundingClientRect().width,x=clientX-canvas.getBoundingClientRect().left;
+    const idx=chart.bars?Math.floor(x/width*series.length):Math.round((x-2)/(width-4)*(series.length-1));
+    return Math.max(0,Math.min(series.length-1,idx));}
+  function showSelected(){const output=$('atlas-ficha-seleccion');output.replaceChildren();
+    if(selected===null||!series[selected]){schedulePaint();return;}
+    const p=series[selected],title=document.createElement('strong');title.textContent=labelDate(p.key);
+    output.append(title,document.createTextNode(' · '+fmt(p.value)+(p.count>1?` · media de ${p.count} días`:'')));
+    if(metric==='sueno'&&p.score!==null)output.append(document.createTextNode(` · calidad ${Math.round(p.score)}/100`));
+    if(metric==='vfc'&&p.lo!==null&&p.hi!==null)output.append(document.createTextNode(` · referencia ${Math.round(p.lo)}–${Math.round(p.hi)} ms`));
+    if(metric==='carga'&&p.lo!==null&&p.hi!==null)output.append(document.createTextNode(` · óptimo ${Math.round(p.lo)}–${Math.round(p.hi)}`));
+    schedulePaint();
+  }
+  function selectIndex(i,toggle){if(!series.length)return;const n=Math.max(0,Math.min(series.length-1,i));selected=toggle&&selected===n?null:n;showSelected();}
+  function narrative(){const recent=available().at(-1),r=recent?rowAt(metric,recent):null;
+    const observation=!r?'No hay registros locales suficientes para interpretar tu evolución.':
+      metric==='sueno'?`Último descanso: ${duration(r.value)}${r.score===null?'':` y ${Math.round(r.score)}/100 de calidad`}. Interesa especialmente la regularidad y cómo respondes a la carga de entrenamiento.`:
+      metric==='vfc'?`Última noche: ${Math.round(r.value)} ms${r.lo===null||r.hi===null?'':`, referencia personal ${Math.round(r.lo)}–${Math.round(r.hi)} ms`}. Valora la tendencia, no una sola noche.`:
+      metric==='reposo'?`Último registro: ${Math.round(r.value)} ppm. Un aumento sostenido puede acompañar fatiga o estrés; una medición aislada no confirma la causa.`:
+      metric==='carga'?`Última carga aguda registrada: ${Math.round(r.value)}${r.lo===null||r.hi===null?'':`, intervalo personal ${Math.round(r.lo)}–${Math.round(r.hi)}`}. Interprétala junto con la recuperación.`:
+      `Última media registrada: ${Number(r.value.toFixed(1))} %. Es una medida orientativa de muñeca, no un diagnóstico.`;
+    const definition={
+      sueno:'El sueño es el periodo de descanso nocturno; Garmin combina duración y calidad. La regularidad facilita la recuperación y la adaptación al entrenamiento.',
+      vfc:'La variabilidad de la frecuencia cardiaca es la variación de los intervalos entre latidos. Compararla con el rango personal ayuda a contextualizar recuperación y estrés.',
+      reposo:'La frecuencia cardiaca en reposo mide los latidos por minuto en reposo. Su tendencia puede aportar contexto sobre adaptación al entrenamiento, cansancio o estrés.',
+      carga:'La carga aguda cuantifica el estrés del entrenamiento reciente, y Garmin ajusta un intervalo óptimo según el historial y la condición física. No sustituye las señales de recuperación.',
+      spo2:'La SpO₂ estima la saturación de oxígeno en sangre. Las lecturas de muñeca pueden variar con la altitud, el ajuste del sensor y el movimiento; no deben interpretarse aisladas.'
+    };$('atlas-ficha-descripcion').textContent=definition[metric]+' '+observation;
+  }
+  function updateLabels(){const dateRange=dates();$('atlas-ficha-rango').textContent=rangeLabel(dateRange.start,dateRange.end);
+    $('atlas-ficha-next').disabled=period==='todo'||dateRange.end>=dayNow();$('atlas-ficha-prev').disabled=period==='todo';
+    $('atlas-ficha-periodos').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.periodo===period)));
+    const note=$('atlas-ficha-nota');note.textContent=metric==='carga'?loadStatus:metric==='spo2'?'Clasificación de SpO₂ orientativa, pendiente de aprobación; no constituye un diagnóstico médico.':'';note.hidden=!note.textContent;
+  }
+  function refresh(resetZoom=true){series=buildSeries(dates());selected=null;chart=null;plotSetup();updateLabels();
+    if(resetZoom)zoom=1;pinch=null;scroll.scrollLeft=0;setZoom(zoom);showSelected();narrative();}
+  async function readStore(){await ATLASDB.abrir();const h=new Map(),l=new Map();
+    await new Promise((done,fail)=>{const tx=ATLASDB.almacen('readonly').transaction,store=tx.objectStore('registros');
+      for(const [prefix,target] of [['historico:resumen:dia:',h],['vista:hoy:carga:',l]]){
+        const req=store.openCursor(IDBKeyRange.bound(prefix,prefix+'9999-12-31'));
+        req.onsuccess=()=>{const cur=req.result;if(!cur)return;const day=String(cur.key).slice(prefix.length),data=cur.value?.datos;
+          if(validDate(day)&&((target===h&&data?.dia===day)||(target===l&&data?.fecha===day)))target.set(day,data);cur.continue();};
+        req.onerror=()=>fail(req.error||Error('fallo de lectura'));}
+      tx.oncomplete=done;tx.onabort=()=>fail(tx.error||Error('transacción abortada'));});
+    health=h;load=l;
+  }
+  // Carga: ventanas mensuales pequeñas, consultadas solo cuando el usuario abre su ficha.
+  const ym=(y,m)=>`${y}-${String(m).padStart(2,'0')}`;
+  function monthsBetween(start,end){const result=[];let y=+start.slice(0,4),m=+start.slice(5,7),lastY=+end.slice(0,4),lastM=+end.slice(5,7);
+    while(y<lastY||(y===lastY&&m<=lastM)){const month=ym(y,m),next=new Date(Date.UTC(y,m,1)).toISOString().slice(0,10);
+      result.push({month,from:month+'-01',to:stepDay(next,-1)>dayNow()?dayNow():stepDay(next,-1)});m++;if(m===13){m=1;y++;}}
+    return result.filter(x=>x.to>=start);
+  }
+  async function loadConnection(){return (await ATLASDB.leer('sistema:acceso:worker'))?.datos||null;}
+  async function loadMonth(window,connection){
+    const marker='vista:hoy:carga:mes:'+window.month;
+    // Mes en curso: se reconsulta; meses cerrados solo si no se han importado previamente.
+    if(window.month!==dayNow().slice(0,7) && await ATLASDB.leer(marker))return;
+    const abort=new AbortController(),timeout=setTimeout(()=>abort.abort(),45000);
+    try {
+      const r=await fetch(connection.worker.replace(/\/$/,'')+'/api/hoy/carga-historica',{
+        method:'POST',cache:'no-store',credentials:'omit',signal:abort.signal,
+        headers:{Authorization:'Bearer '+encodeURIComponent(connection.clave),'Content-Type':'application/json'},
+        body:JSON.stringify({desde:window.from,hasta:window.to})});
+      const body=await r.json();if(!r.ok||body.estado!=='ok'||!Array.isArray(body.registros))throw Error('La consulta histórica no está disponible.');
+      for(const item of body.registros){if(!validDate(item.fecha)||item.fecha<window.from||item.fecha>window.to)continue;
+        const key='vista:hoy:carga:'+item.fecha,old=await ATLASDB.leer(key);
+        const value={...old?.datos,fecha:item.fecha,aguda:item.aguda,cronica:item.cronica,acwr:item.acwr,
+          rangoInferior:item.rangoInferior,rangoSuperior:item.rangoSuperior,estado:item.estado};
+        const record={clave:key,tipo:'vista:carga',origen:'privada',datos:value};
+        if(old)await ATLASDB.actualizar(record);else await ATLASDB.crear(record);
+      }
+      if(window.month!==dayNow().slice(0,7)){
+        const note={clave:marker,tipo:'vista:carga:mes',origen:'privada',datos:{mes:window.month,completo:true}};
+        if(await ATLASDB.leer(marker))await ATLASDB.actualizar(note);else await ATLASDB.crear(note);
+      }
+    }finally{clearTimeout(timeout);}
+  }
+  async function fetchLoad(){if(metric!=='carga')return;
+    const ticket=++requestVersion,connection=await loadConnection();
+    if(!connection?.worker||!connection?.clave){loadStatus='Histórico de carga: configura la conexión Garmin para obtener más días.';updateLabels();return;}
+    const {start,end}=dates(),months=monthsBetween(start,end);
+    // Límite para evitar una importación indiscriminada: el intervalo solicitado es el que se consulta.
+    loadStatus='Consultando el histórico de carga en Garmin…';updateLabels();
+    try {
+      for(let i=0;i<months.length;i++){
+        if(ticket!==requestVersion||metric!=='carga')return;
+        await loadMonth(months[i],connection);
+        if(ticket!==requestVersion||metric!=='carga')return;
+        await readStore();
+        const prior=zoom;series=buildSeries(dates());plotSetup();setZoom(prior);showSelected();narrative();
+        loadStatus=`Carga histórica: ${i+1}/${months.length} meses consultados.`;updateLabels();
+      }
+      loadStatus='';updateLabels();
+    }catch(e){if(ticket!==requestVersion)return;loadStatus='No se pudo completar la consulta histórica de Carga. Se conservan los datos disponibles.';updateLabels();}
+  }
+  async function openMetric(name){if(!CFG[name]||opening)return;opening=true;requestVersion++;
+    metric=name;period='7d';endDate=dayNow();zoom=1;selected=null;loadStatus='';oldScroll=window.scrollY;
+    $('atlas-ficha-titulo').textContent=CFG[name].title;
+    page.hidden=false;frame.classList.add('atlas-metrica-abierta');tabs.hidden=true;window.scrollTo(0,0);
+    try{await readStore();refresh();}catch{health=new Map();load=new Map();refresh();loadStatus='No se pudo leer el histórico local.';updateLabels();}
+    finally{opening=false;}
+    if(name==='carga')void fetchLoad();
+  }
+  function closeMetric(){requestVersion++;page.hidden=true;frame.classList.remove('atlas-metrica-abierta');tabs.hidden=false;window.scrollTo(0,oldScroll);}
+  function movePeriod(direction){if(period==='todo')return;const step=period==='7d'?7:period==='1m'?30:365;
+    endDate=stepDay(dates().end,direction*step);if(endDate>dayNow())endDate=dayNow();requestVersion++;refresh();if(metric==='carga')void fetchLoad();}
+  document.querySelectorAll('#atlas-hoy-metricas [data-metrica]').forEach(b=>b.addEventListener('click',()=>openMetric(b.dataset.metrica)));
+  $('atlas-ficha-volver').addEventListener('click',closeMetric);$('atlas-ficha-volver-abajo').addEventListener('click',closeMetric);
+  $('atlas-ficha-prev').addEventListener('click',()=>movePeriod(-1));$('atlas-ficha-next').addEventListener('click',()=>movePeriod(1));
+  $('atlas-ficha-periodos').addEventListener('click',e=>{const p=e.target.closest('button')?.dataset.periodo;if(!p||p===period)return;
+    period=p;endDate=dayNow();requestVersion++;refresh();if(metric==='carga')void fetchLoad();});
+  window.addEventListener('resize',()=>{if(page.hidden||!metric)return;const old=zoom;setZoom(old);});
+  window.addEventListener('atlas:hoy:metricas-actualizadas',()=>{if(page.hidden)return;readStore().then(()=>refresh(false)).catch(()=>{});});
+  canvas.addEventListener('pointerdown',e=>{if(pinch||!series.length||e.button>0||!e.isPrimary)return;
+    if(e.pointerType==='touch'&&e.width>40)return;pointerDrag=true;selectIndex(indexAt(e.clientX),true);});
+  canvas.addEventListener('pointermove',e=>{if(pointerDrag&&!pinch&&e.isPrimary)selectIndex(indexAt(e.clientX),false);});
+  window.addEventListener('pointerup',()=>pointerDrag=false);window.addEventListener('pointercancel',()=>pointerDrag=false);
+  // Una sola fuente de gestos táctiles: dos dedos, escala fraccionaria continua y anclaje estable.
+  scroll.addEventListener('touchstart',e=>{if(e.touches.length!==2)return;if(e.cancelable)e.preventDefault();
+    if(!pinch||pinch.source!=='touch')startPinch(e.touches[0],e.touches[1],'touch');},{passive:false});
+  scroll.addEventListener('touchmove',e=>{if(e.touches.length!==2)return;if(e.cancelable)e.preventDefault();
+    if(!pinch||pinch.source!=='touch')startPinch(e.touches[0],e.touches[1],'touch');updatePinch(e.touches[0],e.touches[1]);},{passive:false});
+  const endPinch=e=>{if(e.touches.length<2){pinch=null;pointerDrag=false;setZoom(zoom);}};
+  scroll.addEventListener('touchend',endPinch,{passive:true});scroll.addEventListener('touchcancel',endPinch,{passive:true});
+  // Gesture events de Safari solo como alternativa si no se ha iniciado touch; nunca doble escalado.
+  scroll.addEventListener('gesturestart',e=>{if(e.cancelable)e.preventDefault();if(pinch)return;
+    const r=scroll.getBoundingClientRect(),center=(e.clientX??(r.left+r.width/2))-r.left;
+    pinch={source:'gesture',initial:zoom,anchor:(scroll.scrollLeft+center)/(scroll.clientWidth*zoom)};},{passive:false});
+  scroll.addEventListener('gesturechange',e=>{if(e.cancelable)e.preventDefault();if(pinch?.source!=='gesture')return;
+    const r=scroll.getBoundingClientRect(),center=(e.clientX??(r.left+r.width/2))-r.left;
+    setZoom(pinch.initial*(Number(e.scale)||1),pinch.anchor,center);},{passive:false});
+  scroll.addEventListener('gestureend',e=>{if(e.cancelable)e.preventDefault();if(pinch?.source==='gesture')pinch=null;setZoom(zoom);},{passive:false});
 })();
 
 </script>
