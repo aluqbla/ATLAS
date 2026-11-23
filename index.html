@@ -652,7 +652,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.61 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.62 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1318,8 +1318,11 @@
           const faseGarmin=/warm.?up/.test(intensidad)?'calentamiento':
             /cool.?down/.test(intensidad)?'enfriamiento':
             /active|recovery|rest|interval/.test(intensidad)?'principal':null;
+          const pasoIndice = [lap.workoutStepIndex,lap.workoutStep?.stepIndex,
+            lap.workoutStepDTO?.stepIndex,lap.stepIndex].find(x=>Number.isSafeInteger(x)&&x>=0);
           vueltas.push({ numero: i + 1, distancia_km: d / 1000, duracion_s: t,
             ritmo_s_km: ritmo, fc_media_ppm: medida(lap.averageHR), faseGarmin,
+            pasoIndice:pasoIndice??null,
             ascenso_m: ascenso, descenso_m: descenso,
             desnivel_neto_m: ascenso !== null && descenso !== null ? ascenso - descenso : null });
         }
@@ -4003,7 +4006,7 @@
   // Caché de sesión pequeña: reapertura instantánea tras una lectura satisfactoria.
   const complementosEnMemoria=new Map();
   function recordarComplemento(id,dato){
-    if(!dato||dato.estado!=='ok'||dato.contrato!==3)return;
+    if(!dato||dato.estado!=='ok'||![3,4].includes(dato.contrato))return;
     complementosEnMemoria.delete(id);complementosEnMemoria.set(id,dato);
     if(complementosEnMemoria.size>16)complementosEnMemoria.delete(complementosEnMemoria.keys().next().value);
   }
@@ -4246,72 +4249,142 @@
     }
     return salidas.some(x=>x!=='principal')?salidas:[];
   }
-  // Sólo una sesión de intervalos con evidencia de pasos de Garmin puede agruparse.
-  // Un rodaje con calentamiento y enfriamiento no se transforma en entrenamiento de series.
+  // 5.6.3: una división por bloques necesita pruebas aportadas por Garmin.
+  // Se permite identificar una estructura EXPLÍCITA del título de Garmin siempre que
+  // las vueltas medidas coincidan inequívocamente: nunca por ritmos ni por intuición.
   function esEntrenamientoIntervalos(pasos){
-    if(!Array.isArray(pasos)||!pasos.length||!actividadActual)return false;
-    const principales=pasos.filter(p=>p?.fase==='principal').length;
-    const nombre=String(actividadActual.activityName??'');
-    const tituloSerie=/(series|intervalos?|repeticiones|fartlek|cuestas|\d+\s*[x×]\s*\(?\d)/i.test(nombre);
-    return principales>=4||tituloSerie&&principales>=2;
+    const nombre=String(actividadActual?.activityName??'');
+    if(!actividadActual)return false;
+    const tituloSeries=/(series|intervalos?|repeticiones|fartlek|\b\d+\s*[x×]\s*\(?\s*\d)/i.test(nombre);
+    const principales=Array.isArray(pasos)?pasos.filter(x=>x?.fase==='principal'):[];
+    const alterna=principales.some(x=>/recov|rest|descanso|recover/.test(String(x?.tipo??''))) &&
+      principales.some(x=>/interval|active|run|work/.test(String(x?.tipo??'')));
+    return alterna||tituloSeries||principales.length>=4;
   }
   function fronteraVuelta(vueltas,valor,campo,desdeElFinal=false){
     if(!Number.isFinite(valor)||valor<=0)return null;
     let acumulado=0,mejor=null,error=Infinity;
     for(let n=1;n<vueltas.length;n++){
       const v=desdeElFinal?vueltas[vueltas.length-n]:vueltas[n-1];
-      const dato=campo==='distancia' ? v.distancia_km*1000:v.duracion_s;
+      const dato=campo==='distancia'?v.distancia_km*1000:v.duracion_s;
       if(!Number.isFinite(dato)||dato<0)return null;
       acumulado+=dato;
       const dif=Math.abs(acumulado-valor);
       if(dif<error){error=dif;mejor=desdeElFinal?vueltas.length-n:n;}
     }
-    const tolerancia=campo==='distancia'?Math.max(90,valor*.08):Math.max(16,valor*.09);
+    const tolerancia=campo==='distancia'?Math.max(100,valor*.10):Math.max(20,valor*.12);
     return error<=tolerancia?mejor:null;
   }
   function fronteraEtapa(vueltas,pasos,desdeElFinal=false){
-    // Evaluar una secuencia de calentamiento/enfriamiento con criterio de una sola unidad.
-    const conocidos=pasos.map(p=>p?.distancia_m);
-    const porDistancia=conocidos.every(n=>Number.isFinite(n)&&n>0);
-    const tiempos=pasos.map(p=>p?.tiempo_s);
-    const porTiempo=tiempos.every(n=>Number.isFinite(n)&&n>0);
-    if(porDistancia)return fronteraVuelta(vueltas,conocidos.reduce((a,b)=>a+b,0),'distancia',desdeElFinal);
-    if(porTiempo)return fronteraVuelta(vueltas,tiempos.reduce((a,b)=>a+b,0),'tiempo',desdeElFinal);
+    if(!pasos.length)return null;
+    const d=pasos.map(p=>p?.distancia_m),t=pasos.map(p=>p?.tiempo_s);
+    if(d.every(x=>Number.isFinite(x)&&x>0))
+      return fronteraVuelta(vueltas,d.reduce((a,b)=>a+b,0),'distancia',desdeElFinal);
+    if(t.every(x=>Number.isFinite(x)&&x>0))
+      return fronteraVuelta(vueltas,t.reduce((a,b)=>a+b,0),'tiempo',desdeElFinal);
     return null;
   }
-  function gruposIntervalos(vueltas,pasos){
-    if(!esEntrenamientoIntervalos(pasos)||vueltas.length<3)return [];
-    // Garmin debe establecer una secuencia inicio / principal / fin, no deducida del ritmo.
-    const tipos=pasos.map(p=>p.fase);
-    const primerPrincipal=tipos.indexOf('principal');
-    const ultimoPrincipal=tipos.lastIndexOf('principal');
-    if(primerPrincipal<=0||ultimoPrincipal<primerPrincipal||ultimoPrincipal>=tipos.length-1)return [];
-    if(tipos.slice(0,primerPrincipal).some(x=>x!=='calentamiento')||
-       tipos.slice(primerPrincipal,ultimoPrincipal+1).some(x=>x!=='principal')||
-       tipos.slice(ultimoPrincipal+1).some(x=>x!=='enfriamiento'))return [];
-    const directas=vueltas.map(v=>v.faseGarmin);
-    let asignadas=[];
-    if(directas.every(x=>['calentamiento','principal','enfriamiento'].includes(x)))asignadas=directas;
-    else asignadas=asociarFases(vueltas,pasos);
-    let a,b;
-    if(asignadas.length===vueltas.length){
-      a=asignadas.indexOf('principal');
-      b=asignadas.lastIndexOf('principal')+1;
-      if(asignadas.slice(0,a).some(x=>x!=='calentamiento')||
-        asignadas.slice(a,b).some(x=>x!=='principal')||
-        asignadas.slice(b).some(x=>x!=='enfriamiento'))return [];
-    }else{
-      // Permite series mixtas por distancia + recuperación por tiempo. Sólo usa los
-      // límites identificables de calentamiento y enfriamiento, sin inferir por ritmo.
-      a=fronteraEtapa(vueltas,pasos.slice(0,primerPrincipal));
-      b=fronteraEtapa(vueltas,pasos.slice(ultimoPrincipal+1),true);
+  const encabezadosFases=(a,b,total,origen)=>[
+    {fase:'calentamiento',desde:0,hasta:a,emoji:'🔥',nombre:'Calentamiento',origen},
+    {fase:'principal',desde:a,hasta:b,emoji:'⚡',nombre:'Bloque principal',origen},
+    {fase:'enfriamiento',desde:b,hasta:total,emoji:'🧊',nombre:'Enfriamiento',origen}
+  ];
+  function limitesPorEtiquetas(etiquetas){
+    const a=etiquetas.indexOf('principal'),b=etiquetas.lastIndexOf('principal')+1;
+    if(a<1||b<=a||b>=etiquetas.length ||
+      etiquetas.slice(0,a).some(x=>x!=='calentamiento')||
+      etiquetas.slice(a,b).some(x=>x!=='principal')||
+      etiquetas.slice(b).some(x=>x!=='enfriamiento'))return null;
+    return [a,b];
+  }
+  function limitesPorPasos(vueltas,pasos){
+    if(!Array.isArray(pasos)||!pasos.length||!esEntrenamientoIntervalos(pasos))return null;
+    const tipos=pasos.map(x=>x?.fase),limites=limitesPorEtiquetas(tipos);
+    if(!limites)return null;
+    // Primero, vínculo explícito Garmin por índice de paso de cada vuelta.
+    if(vueltas.every(x=>Number.isSafeInteger(x.pasoIndice))){
+      for(const desplazamiento of [0,1]){
+        const grupos=vueltas.map(x=>pasos.find(p=>p.indice===x.pasoIndice)||
+          pasos[x.pasoIndice-desplazamiento]);
+        if(grupos.every(Boolean)){
+          const encontrados=limitesPorEtiquetas(grupos.map(x=>x.fase));
+          if(encontrados)return encontrados;
+        }
+      }
     }
-    if(!Number.isInteger(a)||!Number.isInteger(b)||a<1||b<=a||b>=vueltas.length)return [];
-    return [
-      {fase:'calentamiento',desde:0,hasta:a,emoji:'🔥',nombre:'Calentamiento'},
-      {fase:'principal',desde:a,hasta:b,emoji:'⚡',nombre:'Bloque principal'},
-      {fase:'enfriamiento',desde:b,hasta:vueltas.length,emoji:'🧊',nombre:'Enfriamiento'}
-    ];
+    // También se aceptan las intensidades registradas directamente en las vueltas.
+    const directas=vueltas.map(x=>x.faseGarmin);
+    if(directas.every(Boolean)){
+      const encontrados=limitesPorEtiquetas(directas);
+      if(encontrados)return encontrados;
+    }
+    const asignadas=asociarFases(vueltas,pasos);
+    if(asignadas.length===vueltas.length){
+      const encontrados=limitesPorEtiquetas(asignadas);
+      if(encontrados)return encontrados;
+    }
+    // Un calentamiento o enfriamiento abierto no tiene una distancia/tiempo objetivo;
+    // buscar la frontera restante sólo si el encaje es inequívoco.
+    let a=fronteraEtapa(vueltas,pasos.slice(0,limites[0]));
+    let b=fronteraEtapa(vueltas,pasos.slice(limites[1]),true);
+    if(a===null&&b!==null&&pasos.length===vueltas.length)a=limites[0];
+    if(b===null&&a!==null&&pasos.length===vueltas.length)b=limites[1];
+    return Number.isInteger(a)&&Number.isInteger(b)&&a>=1&&b>a&&b<vueltas.length?[a,b]:null;
+  }
+  function limitesPorTituloGarmin(vueltas){
+    const nombre=String(actividadActual?.activityName??'');
+    // Sólo entrenamientos cuyo título de Garmin declare TODAS las partes.
+    const tieneWU=/(^|[+\s])(WU|warm[ -]?up|calentamiento)(?=[+\s]|$)/i.test(nombre);
+    const tieneCD=/(^|[+\s])(CD|cool[ -]?down|enfriamiento)(?=[+\s]|$)/i.test(nombre);
+    if(!tieneWU||!tieneCD)return null;
+    // Formato típico de Garmin: WU + 3 x (2 km @ ... R2') + CD.
+    const m=nombre.match(/(\d{1,2})\s*[x×]\s*\(?\s*(\d{1,2}(?:[.,]\d{1,2})?)\s*km\b/i);
+    if(!m)return null;
+    const n=Number(m[1]),km=Number(m[2].replace(',','.'));
+    if(n<2||n>20||km<.2||km>50||vueltas.length<n*2+2)return null;
+    const candidatos=[];
+    // La carrera no se deduce por ritmo: sólo cuenta que las distancias reales de las
+    // repeticiones cumplan el objetivo expresado en Garmin y tengan recuperaciones.
+    for(let inicio=1;inicio<vueltas.length-2;inicio++){
+      if(Math.abs(vueltas[inicio].distancia_km-km)>Math.max(.08,km*.055))continue;
+      let serie=[inicio],validos=true;
+      for(let j=inicio+1;j<vueltas.length-1&&serie.length<n;j++){
+        if(Math.abs(vueltas[j].distancia_km-km)<=Math.max(.08,km*.055)){
+          const desde=serie.at(-1)+1;
+          const intermedias=vueltas.slice(desde,j);
+          if(!intermedias.length||intermedias.some(v=>v.distancia_km>=km*.72)){
+            validos=false;break;
+          }
+          serie.push(j);
+        }
+      }
+      if(validos&&serie.length===n&&serie[0]>=1&&serie.at(-1)<vueltas.length-1){
+        // Las recuperaciones posteriores a la última serie pertenecen al principal.
+        // El enfriamiento, expresamente declarado, debe contener al menos una vuelta.
+        let final=serie.at(-1)+1;
+        while(final<vueltas.length-1&&vueltas[final].distancia_km<km*.72)final++;
+        if(final>inicio&&final<vueltas.length){
+          // Sólo un candidato no ambiguo puede etiquetarse.
+          candidatos.push([inicio,final]);
+        }
+      }
+    }
+    const unicos=[...new Map(candidatos.map(c=>[c.join(':'),c])).values()];
+    return unicos.length===1?unicos[0]:null;
+  }
+  function gruposIntervalos(vueltas,pasos){
+    if(!actividadActual||vueltas.length<4)return [];
+    // Primera prioridad: etapas explícitas en las vueltas de Garmin.
+    const directas=vueltas.map(v=>v.faseGarmin);
+    let limites=null,origen=null;
+    if(directas.every(Boolean)){
+      limites=limitesPorEtiquetas(directas);
+      if(limites&&esEntrenamientoIntervalos(pasos))origen='garmin_vueltas';
+      else limites=null;
+    }
+    if(!limites){limites=limitesPorPasos(vueltas,pasos);if(limites)origen='garmin_pasos';}
+    if(!limites){limites=limitesPorTituloGarmin(vueltas);if(limites)origen='titulo_garmin_y_vueltas';}
+    return limites?encabezadosFases(limites[0],limites[1],vueltas.length,origen):[];
   }
   function agruparTablaVueltas(){
     const filas=[...vueltasCuerpo.querySelectorAll('tr[data-indice]')]
@@ -4324,7 +4397,9 @@
       if(g){
         const fila=document.createElement('tr');fila.className='atlas-vueltas__bloque';
         const th=document.createElement('th');th.scope='rowgroup';th.colSpan=6;
-        th.textContent=g.emoji+' '+g.nombre;fila.append(th);fragmento.append(fila);
+        th.textContent=g.emoji+' '+g.nombre;
+        if(g.origen==='titulo_garmin_y_vueltas')th.title='Bloque identificado por el título explícito y las vueltas reales de Garmin';
+        fila.append(th);fragmento.append(fila);
       }
       fragmento.append(filas[i]);
     }
@@ -4691,8 +4766,10 @@
   async function complementoLocal(id){
     const r=await ATLASDB.leer(CLAVE_COMPLEMENTO(id));
     const datos=r?.datos;
-    if(datos?.bruto?.estado!=='ok'||datos.bruto.id!==id||datos.bruto.contrato!==3)return null;
-    return {dato:datos.bruto,consultado:datos.consultado||0};
+    if(datos?.bruto?.estado!=='ok'||datos.bruto.id!==id||![3,4].includes(datos.bruto.contrato))return null;
+    // La versión anterior aporta métricas fiables: se muestran inmediatamente,
+    // pero se renuevan etapas con el contrato 4, sin volver a importar actividades.
+    return {dato:datos.bruto,consultado:datos.consultado||0,etapasAntiguas:datos.bruto.contrato===3};
   }
   function mostrarDiagnosticoComp(datos){
     const d=datos?.diagnostico??{};
@@ -4708,7 +4785,7 @@
     complementosEstado.hidden=false;
     complementosEstado.textContent='Garmin no ha proporcionado: '+faltan.join(', ')+'.'+
       (fuentes.length?' Diagnóstico: '+fuentes.join(' · ')+'.':'')+
-      ' Comprueba que el Worker sea v0.53 y que ambas fuentes estén autorizadas.';
+      ' Comprueba los permisos Garmin y que el Worker sea v0.55.';
   }
   async function cargarComplementos(a,id,token){
     let local=null;
@@ -4727,7 +4804,7 @@
       local.dato.detalle.sensacion!=null&&
       (local.dato.detalle.vo2_actividad!=null||local.dato.vo2_dia!=null)&&
       local.dato.material?.length>0;
-    if(local&&Date.now()-local.consultado<(completo?86400000:30000))return;
+    if(local&&!local.etapasAntiguas&&Date.now()-local.consultado<(completo?86400000:30000))return;
     if(complementoPendiente.has(id)){
       const anterior=await complementoPendiente.get(id);
       if(token===ticket&&anterior?.estado==='ok'){
@@ -4747,7 +4824,7 @@
     let datos;
     try{datos=await tarea;}catch{datos={estado:'error_conexion'};}
     finally{complementoPendiente.delete(id);}
-    if(datos?.estado==='ok'&&datos?.id===id&&datos?.contrato===3){
+    if(datos?.estado==='ok'&&datos?.id===id&&datos?.contrato===4){
       recordarComplemento(id,datos);
       try{
         const anterior=await ATLASDB.leer(CLAVE_COMPLEMENTO(id));
@@ -4764,7 +4841,7 @@
     }else if(token===ticket){
       complementosEstado.hidden=false;
       complementosEstado.textContent='No se pudieron consultar los datos complementarios ('+
-        (datos?.estado||'respuesta_invalida')+'). Comprueba el Worker v0.54, la clave de acceso y la conexión Garmin.';
+        (datos?.estado||'respuesta_invalida')+'). Comprueba el Worker v0.55, la clave de acceso y la conexión Garmin.';
     }
   }
   async function completar(a,token){
