@@ -239,8 +239,9 @@
     font-size:10px;font-weight:720;color:#a5a6b0;letter-spacing:.01em;}
   .atlas-actividad-externa__fecha-dia {font-size:27px;font-weight:770;letter-spacing:-.04em;color:white;}
   .atlas-actividad-externa__contenido {min-width:0;padding-left:10px;}
-  .atlas-actividad-externa::before {content:"";position:absolute;left:53px;top:10%;
-    bottom:10%;width:2px;background:#303039;pointer-events:none;}
+  .atlas-actividad-externa::before {content:"";position:absolute;left:53px;
+    top:calc(10% + 4px);bottom:calc(10% - 4px);width:2px;
+    background:#303039;pointer-events:none;}
   .atlas-actividad-externa__nombre {display:block;margin:0 0 7px;font-size:var(--atlas-actividad-titulo,17px);
     font-weight:690;line-height:1.15;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:clip;}
   .atlas-actividad-externa__datos {display:flex;align-items:center;min-width:0;gap:0;}
@@ -369,11 +370,19 @@
   }
   .atlas-actividad-interior__nota {margin:-12px 0 17px;color:#9b9caa;font-size:11px;line-height:1.35;}
   .atlas-actividad-interior__nota[hidden] {display:none;}
-  .atlas-actividad-interior__zapatillas {display:flex;justify-content:space-between;gap:8px;
-    margin:15px 0 0;font-size:13px;color:#d8d8e0;}
+  .atlas-actividad-interior__zapatillas {display:flex;align-items:center;justify-content:space-between;
+    gap:8px;margin:15px 0 0;color:#f1f1f6;font-weight:750;}
   .atlas-actividad-interior__zapatillas[hidden],.atlas-vueltas[hidden] {display:none!important;}
-  .atlas-actividad-interior__zapatillas span {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .atlas-actividad-interior__zapatillas strong {white-space:nowrap;color:#a0a0ab;}
+  .atlas-zapatillas__rotulo {display:flex;align-items:center;gap:6px;min-width:0;
+    font-size:clamp(14px,4vw,17px);font-weight:760;}
+  .atlas-zapatillas__emoji {font-size:22px;flex:none;line-height:1.15;}
+  .atlas-zapatillas__nombre {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .atlas-actividad-interior__zapatillas strong {white-space:nowrap;color:#d7d7df;
+    font-size:clamp(12px,3.3vw,15px);font-weight:760;}
+  /* La ficha no presenta mensajes de carga, confirmación o procedencia de datos. */
+  #atlas-actividad-estado,#atlas-actividad-mapa-estado,
+  #atlas-actividad-complementos-estado,#atlas-actividad-nota-vo2,
+  #atlas-actividad-vueltas-estado {display:none!important;}
 
   /* Vueltas: barra más ancha para intervalos largos; ritmos con escala absoluta. */
   .atlas-vueltas {min-width:0;margin:12px 0 0;}
@@ -409,12 +418,30 @@
   .atlas-vueltas__tabla tbody tr[aria-selected="true"] {background:rgba(10,132,255,.22);}
   .atlas-vueltas__tabla tbody tr:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:-2px;}
   .atlas-vueltas__unidad {color:#9898a4;font-size:.70em;font-weight:520;letter-spacing:-.045em;}
-  /* 5.6 — Bloques identificados en la tabla, nunca superpuestos a la gráfica. */
-  .atlas-vueltas__tabla tbody tr.atlas-vueltas__bloque {cursor:default;}
-  .atlas-vueltas__tabla tbody tr.atlas-vueltas__bloque th {border-bottom:2px solid #303039;
-    padding:13px 5px 7px;text-align:left;color:#f1f1f6;font-size:12px;
-    font-weight:740;white-space:nowrap;letter-spacing:0;}
-  .atlas-vueltas__tabla tbody tr.atlas-vueltas__bloque:first-child th {padding-top:9px;}
+  /* 5.6 — Tres grupos en tabla, con cabeceras repetidas y selector solo del principal. */
+  .atlas-vueltas__tabla tr[hidden],.atlas-vueltas__tabla thead[hidden] {display:none!important;}
+  .atlas-vueltas__tabla tbody tr.atlas-vueltas__bloque,
+  .atlas-vueltas__tabla tbody tr.atlas-vueltas__cabecera {cursor:default;}
+  .atlas-vueltas__tabla tbody tr.atlas-vueltas__bloque th {border-bottom:0;
+    padding:17px 2px 8px;text-align:left;color:#f4f4f8;font-size:clamp(16px,4.25vw,19px);
+    font-weight:760;letter-spacing:-.025em;}
+  .atlas-vueltas__tabla tbody tr.atlas-vueltas__bloque:first-child th {padding-top:8px;}
+  .atlas-vueltas__bloque-contenido {display:flex;align-items:center;justify-content:space-between;
+    gap:6px;min-width:0;}
+  .atlas-vueltas__bloque-nombre {min-width:0;white-space:nowrap;}
+  .atlas-vueltas__bloque-emoji {font-size:1.18em;vertical-align:-.04em;}
+  .atlas-vueltas__filtro {appearance:none;-webkit-appearance:none;display:block;flex:0 0 auto;
+    max-width:43%;min-width:79px;height:33px;border:0;border-radius:9px;background:#111115;
+    color:#f5f5fa;font:inherit;font-size:12px;font-weight:650;cursor:pointer;
+    padding:0 20px 0 9px;outline:none;
+    background-image:linear-gradient(45deg,transparent 50%,#a4a4ae 50%),
+      linear-gradient(135deg,#a4a4ae 50%,transparent 50%);
+    background-position:calc(100% - 13px) calc(50% - 2px),calc(100% - 8px) calc(50% - 2px);
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+  .atlas-vueltas__filtro:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:1px;}
+  .atlas-vueltas__tabla tbody tr.atlas-vueltas__cabecera th {border-top:2px solid #373740;
+    border-bottom:2px solid #373740;padding:6px 1px;color:#9e9fa9;text-align:center;
+    font-size:var(--atlas-vuelta-cabecera,11px);font-weight:650;white-space:nowrap;}
   .atlas-vueltas__desnivel-positivo {color:#ff6257;}
   .atlas-vueltas__desnivel-negativo {color:#30d158;}
   .atlas-vueltas__estado {min-height:18px;color:#a7a8b2;font-size:12px;margin:0 0 10px;}
@@ -545,7 +572,7 @@
     <div id="atlas-actividad-vueltas-grafico" class="atlas-vueltas__grafico" aria-label="Ritmo de cada vuelta"></div>
     <table id="atlas-actividad-vueltas-tabla" class="atlas-vueltas__tabla" aria-label="Detalle de vueltas">
       <colgroup><col style="width:8%"><col style="width:18%"><col style="width:16%"><col style="width:23%"><col style="width:15%"><col style="width:20%"></colgroup>
-      <thead><tr><th scope="col" aria-label="Vuelta">Vuelta</th><th scope="col">Distancia</th><th scope="col">Tiempo</th><th scope="col">Ritmo</th><th scope="col">FC</th><th scope="col">Desnivel</th></tr></thead>
+      <thead><tr><th scope="col" data-columna="vuelta" aria-label="Vuelta">Vuelta</th><th scope="col">Distancia</th><th scope="col">Tiempo</th><th scope="col">Ritmo</th><th scope="col">FC</th><th scope="col">Desnivel</th></tr></thead>
       <tbody id="atlas-actividad-vueltas-cuerpo"></tbody>
     </table>
   </section>
@@ -652,7 +679,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.62 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.63 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1318,11 +1345,13 @@
           const faseGarmin=/warm.?up/.test(intensidad)?'calentamiento':
             /cool.?down/.test(intensidad)?'enfriamiento':
             /active|recovery|rest|interval/.test(intensidad)?'principal':null;
+          const tipoEsfuerzo=/recovery|rest|descanso|recover/.test(intensidad)?'recuperacion':
+            /active|interval|work|run/.test(intensidad)?'carrera':null;
           const pasoIndice = [lap.workoutStepIndex,lap.workoutStep?.stepIndex,
             lap.workoutStepDTO?.stepIndex,lap.stepIndex].find(x=>Number.isSafeInteger(x)&&x>=0);
           vueltas.push({ numero: i + 1, distancia_km: d / 1000, duracion_s: t,
             ritmo_s_km: ritmo, fc_media_ppm: medida(lap.averageHR), faseGarmin,
-            pasoIndice:pasoIndice??null,
+            tipoEsfuerzo,pasoIndice:pasoIndice??null,
             ascenso_m: ascenso, descenso_m: descenso,
             desnivel_neto_m: ascenso !== null && descenso !== null ? ascenso - descenso : null });
         }
@@ -4003,6 +4032,7 @@
   const CLAVE_COMPLEMENTO = id => 'historico:dato:garmin:complementos_actividad:id%3A'+id;
   let fasesActuales=[];
   let actividadActual=null;
+  let filtroBloquePrincipal='todo';
   // Caché de sesión pequeña: reapertura instantánea tras una lectura satisfactoria.
   const complementosEnMemoria=new Map();
   function recordarComplemento(id,dato){
@@ -4111,11 +4141,8 @@
       a.vo2MaxValue,a.vO2MaxValue);
     const vo2Dia=positivo(complemento?.vo2_dia?.valor);
     const vo2=vo2Actividad??vo2Dia;
-    notaVo2.hidden=vo2Actividad!==null || vo2Dia===null;
-    notaVo2.textContent=notaVo2.hidden?'':
-      (complemento?.vo2_dia?.alcance==='ultimo_anterior'
-        ? 'VO₂ máx. de Garmin del '+complemento.vo2_dia.fecha+' (último valor anterior o igual a la actividad); no específico de la carrera.'
-        : 'VO₂ máx. de Garmin del día; no medido exclusivamente en esta actividad.');
+    // La procedencia se conserva en datos locales, sin notas en la ficha deportiva.
+    notaVo2.hidden=true;notaVo2.textContent='';
     const datos=[
       ['🏁','Distancia',d===null?'—':formatearDecimal(d/1000,2),'km'],
       ['⏱️','Tiempo',formatearTiempo(t)],
@@ -4137,9 +4164,11 @@
     zapatillas.hidden=!materiales.length;
     zapatillas.replaceChildren();
     if(materiales.length){
-      const n=document.createElement('span');n.textContent='👟 '+materiales.map(x=>x.nombre).join(' · ');
-      n.title=materiales.map(x=>x.nombre).join(' · ');
-      zapatillas.append(n);
+      const rotulo=document.createElement('div');rotulo.className='atlas-zapatillas__rotulo';
+      const emoji=document.createElement('span');emoji.className='atlas-zapatillas__emoji';emoji.textContent='👟';
+      const nombre=document.createElement('span');nombre.className='atlas-zapatillas__nombre';
+      nombre.textContent=materiales.map(x=>x.nombre).join(' · ');nombre.title=nombre.textContent;
+      rotulo.append(emoji,nombre);zapatillas.append(rotulo);
       if(materiales.length===1 && typeof materiales[0].distancia_km==='number' &&
           Number.isFinite(materiales[0].distancia_km)){
         const km=document.createElement('strong');
@@ -4162,12 +4191,20 @@
     vueltasCuerpo.querySelectorAll('tr[data-indice]').forEach(n=>{
       n.setAttribute('aria-selected',String(Number(n.dataset.indice)===vueltaSeleccionada));
     });
+    // Si la gráfica selecciona una fila oculta, recuperar la vista completa del principal.
+    const fila=vueltasCuerpo.querySelector('tr[data-indice="'+vueltaSeleccionada+'"]');
+    if(fila?.hidden && filtroBloquePrincipal!=='todo'){
+      filtroBloquePrincipal='todo';
+      const filtro=vueltasCuerpo.querySelector('.atlas-vueltas__filtro');
+      if(filtro)filtro.value='todo';
+      aplicarFiltroPrincipal();
+    }
   }
   function ajustarTabla() {
     if(!activo||!vueltasTabla.clientWidth)return;
-    const cabeceras=[...vueltasTabla.querySelectorAll('thead th')];
-    const primera=cabeceras[0];
-    if(primera)primera.textContent='Vuelta';
+    const cabeceras=[...vueltasTabla.querySelectorAll('thead th, tbody tr.atlas-vueltas__cabecera th')];
+    const primeras=cabeceras.filter(n=>n.dataset.columna==='vuelta');
+    for(const primera of primeras)primera.textContent='Vuelta';
     // Cabecera y datos independientes: no sacrificar legibilidad numérica por rótulos.
     const cabe=()=>cabeceras.every(n=>{
       const rango=document.createRange();rango.selectNodeContents(n);
@@ -4179,8 +4216,8 @@
       vueltasTabla.style.setProperty('--atlas-vuelta-cabecera',px+'px');
       if(cabe()){cabeBien=true;break;}
     }
-    if(!cabeBien && primera){
-      primera.textContent='';
+    if(!cabeBien && primeras.length){
+      for(const primera of primeras)primera.textContent='';
       for(let px=maxCabecera;px>=9;px-=.25){
         vueltasTabla.style.setProperty('--atlas-vuelta-cabecera',px+'px');
         if(cabe())break;
@@ -4287,7 +4324,7 @@
   const encabezadosFases=(a,b,total,origen)=>[
     {fase:'calentamiento',desde:0,hasta:a,emoji:'🔥',nombre:'Calentamiento',origen},
     {fase:'principal',desde:a,hasta:b,emoji:'⚡',nombre:'Bloque principal',origen},
-    {fase:'enfriamiento',desde:b,hasta:total,emoji:'🧊',nombre:'Enfriamiento',origen}
+    {fase:'enfriamiento',desde:b,hasta:total,emoji:'❄️',nombre:'Enfriamiento',origen}
   ];
   function limitesPorEtiquetas(etiquetas){
     const a=etiquetas.indexOf('principal'),b=etiquetas.lastIndexOf('principal')+1;
@@ -4386,24 +4423,115 @@
     if(!limites){limites=limitesPorTituloGarmin(vueltas);if(limites)origen='titulo_garmin_y_vueltas';}
     return limites?encabezadosFases(limites[0],limites[1],vueltas.length,origen):[];
   }
+  // Etiqueta carrera/recuperación: sólo por intensidades o pasos Garmin, o por un
+  // patrón de repeticiones expresamente declarado y comprobado contra distancias.
+  function tipoEsfuerzo(texto){
+    const t=String(texto??'').toLowerCase();
+    if(/recovery|recover|rest|descanso|recuperacion|recuperación/.test(t))return 'recuperacion';
+    if(/interval|active|work|running|carrera|serie/.test(t))return 'carrera';
+    return null;
+  }
+  function clasificarPrincipal(vueltas,grupos,pasos){
+    const principal=grupos.find(g=>g.fase==='principal');
+    if(!principal)return new Map();
+    const tipos=new Map();
+    for(let i=principal.desde;i<principal.hasta;i++){
+      const lap=vueltas[i];
+      let tipo=tipoEsfuerzo(lap.tipoEsfuerzo);
+      if(!tipo&&Number.isInteger(lap.pasoIndice)){
+        const paso=pasos.find(p=>p.indice===lap.pasoIndice)??
+          pasos[lap.pasoIndice]??pasos[lap.pasoIndice-1];
+        tipo=tipoEsfuerzo(paso?.tipo);
+      }
+      if(!tipo&&pasos.length===vueltas.length)tipo=tipoEsfuerzo(pasos[i]?.tipo);
+      if(tipo)tipos.set(i,tipo);
+    }
+    // Título Garmin estructurado y compatible con cada intervalo de distancia.
+    // Ej.: WU + 3 x (2 km @ 4:20 R2') + CD, con series 2, 4, 6.
+    const nombre=String(actividadActual?.activityName??'');
+    const p=nombre.match(/(\d{1,2})\s*[x×]\s*\(?\s*(\d{1,2}(?:[.,]\d{1,2})?)\s*km\b/i);
+    const recuperacionDeclarada=/\bR\s*\d|recover|recuperaci[oó]n|descanso/i.test(nombre);
+    if(p&&recuperacionDeclarada){
+      const rep=Number(p[1]),km=Number(p[2].replace(',','.'));
+      const len=principal.hasta-principal.desde;
+      if(rep>=2&&rep<=20&&km>0&&km<=50&&(len===2*rep-1||len===2*rep)){
+        let valido=true;
+        for(let n=0;n<len;n++){
+          const vuelta=vueltas[principal.desde+n];
+          const esfuerzo=n%2===0;
+          if(esfuerzo){
+            if(Math.abs(vuelta.distancia_km-km)>Math.max(.08,km*.055))valido=false;
+          }else if(!(vuelta.distancia_km<km*.72))valido=false;
+        }
+        if(valido)for(let n=0;n<len;n++){
+          const i=principal.desde+n;
+          if(!tipos.has(i))tipos.set(i,n%2===0?'carrera':'recuperacion');
+        }
+      }
+    }
+    // No ofrecer filtro parcial si quedan vueltas sin clasificar o existe contradicción.
+    if(tipos.size!==principal.hasta-principal.desde)return new Map();
+    return tipos;
+  }
+  function aplicarFiltroPrincipal(){
+    vueltasCuerpo.querySelectorAll('tr[data-indice][data-bloque="principal"]').forEach(fila=>{
+      const tipo=fila.dataset.tipoEsfuerzo;
+      fila.hidden=filtroBloquePrincipal!=='todo'&&tipo!==filtroBloquePrincipal;
+    });
+  }
+  function cabeceraVueltas(){
+    const tr=document.createElement('tr');tr.className='atlas-vueltas__cabecera';
+    for(const [i,texto] of ['Vuelta','Distancia','Tiempo','Ritmo','FC','Desnivel'].entries()){
+      const th=document.createElement('th');th.scope='col';th.textContent=texto;
+      if(i===0)th.dataset.columna='vuelta';
+      tr.append(th);
+    }
+    return tr;
+  }
   function agruparTablaVueltas(){
     const filas=[...vueltasCuerpo.querySelectorAll('tr[data-indice]')]
       .sort((a,b)=>Number(a.dataset.indice)-Number(b.dataset.indice));
     if(!filas.length)return;
     const grupos=gruposIntervalos(vueltasMostradas,fasesActuales);
+    const tablaCabecera=vueltasTabla.querySelector('thead');
+    if(tablaCabecera)tablaCabecera.hidden=grupos.length>0;
+    const tipos=clasificarPrincipal(vueltasMostradas,grupos,fasesActuales);
+    const filtrable=tipos.size>0&&[...tipos.values()].includes('carrera')&&
+      [...tipos.values()].includes('recuperacion');
+    if(!filtrable)filtroBloquePrincipal='todo';
     const fragmento=document.createDocumentFragment();
     for(let i=0;i<filas.length;i++){
       const g=grupos.find(x=>x.desde===i);
       if(g){
         const fila=document.createElement('tr');fila.className='atlas-vueltas__bloque';
         const th=document.createElement('th');th.scope='rowgroup';th.colSpan=6;
-        th.textContent=g.emoji+' '+g.nombre;
-        if(g.origen==='titulo_garmin_y_vueltas')th.title='Bloque identificado por el título explícito y las vueltas reales de Garmin';
-        fila.append(th);fragmento.append(fila);
+        const contenido=document.createElement('div');contenido.className='atlas-vueltas__bloque-contenido';
+        const nombre=document.createElement('span');nombre.className='atlas-vueltas__bloque-nombre';
+        const emoji=document.createElement('span');emoji.className='atlas-vueltas__bloque-emoji';emoji.textContent=g.emoji;
+        nombre.append(emoji,document.createTextNode(' '+g.nombre));contenido.append(nombre);
+        if(g.fase==='principal'){
+          const filtro=document.createElement('select');
+          filtro.className='atlas-vueltas__filtro';filtro.setAttribute('aria-label','Filtrar vueltas del bloque principal');
+          for(const [valor,rotulo] of [['todo','Todo'],['carrera','Carrera'],['recuperacion','Recuperación']]){
+            const opcion=new Option(rotulo,valor);if(valor!=='todo'&&!filtrable)opcion.disabled=true;
+            filtro.append(opcion);
+          }
+          filtro.value=filtroBloquePrincipal;
+          filtro.addEventListener('change',()=>{
+            filtroBloquePrincipal=filtro.value;aplicarFiltroPrincipal();
+          });
+          contenido.append(filtro);
+        }
+        th.append(contenido);fila.append(th);fragmento.append(fila,cabeceraVueltas());
       }
+      filas[i].dataset.bloque=grupos.find(x=>i>=x.desde&&i<x.hasta)?.fase??'';
+      filas[i].dataset.tipoEsfuerzo=tipos.get(i)??'';
+      filas[i].hidden=false;
       fragmento.append(filas[i]);
     }
     vueltasCuerpo.replaceChildren(fragmento);
+    aplicarFiltroPrincipal();
+    requestAnimationFrame(ajustarTabla);
   }
   function mostrarVueltas(lista) {
     // Suprimir sólo residuos muy cortos al final, sin alterar la numeración de Garmin.
@@ -4510,7 +4638,7 @@
     requestAnimationFrame(ajustarTabla);
   }
   function limpiarVueltas() {
-    vueltasMostradas=[];vueltaSeleccionada=-1;vueltasSeccion.hidden=true;
+    vueltasMostradas=[];vueltaSeleccionada=-1;filtroBloquePrincipal='todo';vueltasSeccion.hidden=true;
     vueltasGrafico.replaceChildren();vueltasCuerpo.replaceChildren();vueltasEstado.textContent='';
   }
   function gpsAdmisible(a) {
