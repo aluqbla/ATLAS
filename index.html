@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#000000">
   <title>ATLAS</title>
   <style>
@@ -10,7 +10,14 @@
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif; }
   *,*::before,*::after { box-sizing:border-box; }
   html,body { margin:0; min-width:0; min-height:100%; background:var(--atlas-bg); color:var(--atlas-text); }
-  body { min-height:100vh; min-height:100dvh; overflow-x:hidden; }
+  body { min-height:100vh; min-height:100dvh; overflow-x:hidden; touch-action:manipulation; }
+  /* iPhone: interfaz tipo aplicación; el zoom de Canvas se gestiona por separado. */
+  @supports (-webkit-touch-callout:none) {
+    @media (hover:none) and (pointer:coarse) {
+      html,body,body * { -webkit-user-select:none;user-select:none;-webkit-touch-callout:none; }
+      input,textarea,[contenteditable="true"] { -webkit-user-select:text;user-select:text; }
+    }
+  }
   .atlas-frame { margin:0 auto; width:100%; max-width:430px; min-height:100vh; min-height:100dvh;
     display:flex; flex-direction:column; padding-bottom:calc(90px + env(safe-area-inset-bottom,0px)); }
   .atlas-header { display:flex; justify-content:center; padding:calc(28px + env(safe-area-inset-top,0px)) 20px 0; }
@@ -72,7 +79,7 @@
   .atlas-ajustes .panel .estado {font-size:13px;color:#e7e7ee;margin:13px 0 7px;line-height:1.45;}
   .atlas-ajustes .panel .subestado,.atlas-ajustes .panel small {display:block;
     color:#a1a1ae;font-size:12px;line-height:1.5;margin:8px 0;}
-  .atlas-ajustes .panel details {margin:14px 0 0;border-top:1px solid #303038;padding-top:12px;}
+  .atlas-ajustes .panel details {margin:14px 0 0;border-top:2px solid #303038;padding-top:12px;}
   .atlas-ajustes .panel summary {font-size:14px;cursor:pointer;color:#b9d9ff;}
   .atlas-ajustes .panel [id="atlas-ver-resultado"] {font-size:13px;line-height:1.45;min-width:0;}
   .atlas-ajustes .panel [id="atlas-ver-resultado"] pre {max-width:100%;overflow:auto;white-space:pre-wrap;}
@@ -159,7 +166,7 @@
   }
   /* Métricas directamente sobre el fondo OLED; cinco columnas invariables. */
   .atlas-hoy-metricas {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
-    width:100%;margin:24px 0 4px;--atlas-metrica-dato:19px;
+    width:100%;margin:14px 0 2px;--atlas-metrica-dato:19px;
     --atlas-metrica-rotulo:12px;--atlas-metrica-info:10.5px;}
   .atlas-hoy-metrica {display:flex;flex-direction:column;align-items:center;
     text-align:center;gap:5px;padding:3px 2px 4px;min-width:0;}
@@ -174,7 +181,7 @@
   .atlas-hoy-metrica__info {display:block;width:100%;font-size:var(--atlas-metrica-info);
     line-height:1.24;color:#a6a6b0;white-space:nowrap;font-weight:520;letter-spacing:-.025em;}
   @media(max-width:360px) {
-    .atlas-hoy-metricas {margin-top:22px;}
+    .atlas-hoy-metricas {margin-top:13px;}
     .atlas-hoy-metrica {padding-left:1px;padding-right:1px;}
   }
 
@@ -203,7 +210,7 @@
   .atlas-ficha-metrica__eje span {position:absolute;right:5px;transform:translateY(-50%);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-ficha-metrica__scroll {width:100%;overflow-x:auto;overflow-y:hidden;min-width:0;scrollbar-width:thin;scrollbar-color:#35353d transparent;
     overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
-  .atlas-ficha-metrica__canvas {display:block;max-width:none;overflow:hidden;height:262px;cursor:crosshair;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:pan-y;}
+  .atlas-ficha-metrica__canvas {display:block;max-width:none;overflow:hidden;height:262px;cursor:crosshair;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;}
   .atlas-ficha-metrica__seleccion {margin:10px 0 6px;min-height:0;font-size:13px;color:#d8d9df;line-height:1.45;text-align:center;}
   .atlas-ficha-metrica__seleccion strong {color:white;}
   .atlas-ficha-metrica__nota[hidden]{display:none!important;}
@@ -213,6 +220,217 @@
   @media(max-width:360px) {.atlas-ficha-metrica {padding-left:16px;padding-right:16px;}
     .atlas-ficha-metrica__titulo {font-size:27px;}.atlas-ficha-metrica__periodos button {font-size:12px;}}
 
+
+  /* 5.5.5 — Secciones de Hoy y ficha externa canónica de actividad (sin tarjetas). */
+  .atlas-hoy-seccion {margin:22px 0 0;min-width:0;}
+  .atlas-hoy-seccion + .atlas-hoy-seccion {margin-top:18px;}
+  .atlas-hoy-seccion__titulo {margin:0 0 16px;font-size:21px;line-height:1.25;
+    letter-spacing:-.025em;font-weight:730;}
+  .atlas-hoy-seccion__vacio {margin:0;color:#a8a8b4;font-size:13px;line-height:1.5;}
+  .atlas-actividad-externa {position:relative;display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;
+    align-items:center;min-width:0;padding:4px 0;}
+  .atlas-actividad-externa + .atlas-actividad-externa {margin-top:8px;padding-top:10px;}
+  .atlas-actividad-externa + .atlas-actividad-externa::after {
+    content:"";position:absolute;left:0;width:100%;height:2px;top:-2px;
+    background:#2f3038;pointer-events:none;}
+  .atlas-actividad-externa__fecha {display:flex;flex-direction:column;align-items:center;
+    justify-content:center;line-height:1.04;gap:0;white-space:nowrap;}
+  .atlas-actividad-externa__fecha-diasemana,.atlas-actividad-externa__fecha-mes {
+    font-size:10px;font-weight:720;color:#a5a6b0;letter-spacing:.01em;}
+  .atlas-actividad-externa__fecha-dia {font-size:27px;font-weight:770;letter-spacing:-.04em;color:white;}
+  .atlas-actividad-externa__contenido {min-width:0;padding-left:10px;}
+  .atlas-actividad-externa::before {content:"";position:absolute;left:53px;top:10%;
+    bottom:10%;width:2px;background:#303039;pointer-events:none;}
+  .atlas-actividad-externa__nombre {display:block;margin:0 0 7px;font-size:var(--atlas-actividad-titulo,17px);
+    font-weight:690;line-height:1.15;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:clip;}
+  .atlas-actividad-externa__datos {display:flex;align-items:center;min-width:0;gap:0;}
+  .atlas-actividad-externa__dato {position:relative;display:inline-flex;align-items:baseline;
+    justify-content:center;gap:2px;min-width:0;padding:0 9px;color:#f1f1f5;font-size:var(--atlas-actividad-dato,13px);
+    font-weight:650;line-height:1.25;white-space:nowrap;}
+  .atlas-actividad-externa__dato:first-child {padding-left:0;}
+  .atlas-actividad-externa__dato:last-child {padding-right:0;}
+  .atlas-actividad-externa__dato + .atlas-actividad-externa__dato::before {content:"";
+    position:absolute;left:0;top:10%;bottom:10%;width:2px;background:#303039;}
+  .atlas-actividad-externa__unidad {font-size:.82em;font-weight:520;color:#9a9aa6;}
+  @media(max-width:360px) {
+    .atlas-hoy-seccion__titulo {font-size:20px;}
+    .atlas-actividad-externa {grid-template-columns:44px minmax(0,1fr);gap:8px;}
+    .atlas-actividad-externa::before {left:48px;}
+    .atlas-actividad-externa__contenido {padding-left:8px;}
+    .atlas-actividad-externa__dato {padding-left:6px;padding-right:6px;}
+  }
+
+
+  /* 5.6 — Historial: controles funcionales y fichas canónicas, sin tarjetas añadidas. */
+  .atlas-actividades {min-width:0;padding:19px 22px 34px;}
+  .atlas-actividades__filtros {display:grid;grid-template-columns:minmax(0,7fr) minmax(0,3fr);
+    gap:8px;margin:18px 0 10px;}
+  .atlas-actividades__select,.atlas-actividades__buscar {display:block;width:100%;min-width:0;
+    min-height:44px;border-radius:12px;border:none;background:#111115;
+    color:#f5f5fa;font:inherit;font-size:16px;outline:none;box-shadow:none;}
+  .atlas-actividades__select {-webkit-appearance:none;appearance:none;padding:9px 30px 9px 13px;
+    cursor:pointer;text-overflow:ellipsis;background-image:linear-gradient(45deg,transparent 50%,#8e8e98 50%),
+    linear-gradient(135deg,#8e8e98 50%,transparent 50%);background-position:calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 12px) calc(50% - 2px);background-size:6px 6px,6px 6px;background-repeat:no-repeat;}
+  .atlas-actividades__buscar {padding:10px 13px;-webkit-appearance:none;appearance:none;}
+  .atlas-actividades__select:focus-visible,.atlas-actividades__buscar:focus-visible {
+    outline:2px solid var(--atlas-blue);outline-offset:1px;}
+  .atlas-actividades__estado {margin:12px 0;color:#9b9ba7;font-size:13px;line-height:1.45;}
+  .atlas-actividades__estado:empty {display:none;}
+  .atlas-actividades__mes {margin:25px 0 0;min-width:0;}
+  .atlas-actividades__mes-cabecera {display:flex;align-items:baseline;justify-content:space-between;
+    gap:8px;min-width:0;margin:0 0 15px;}
+  .atlas-actividades__mes-cabecera .atlas-hoy-seccion__titulo {margin:0;min-width:0;
+    font-size:clamp(17px,4.7vw,21px);white-space:nowrap;letter-spacing:-.035em;}
+  .atlas-actividades__contador {color:#a0a0ac;font-size:clamp(10px,2.9vw,12px);
+    font-weight:600;white-space:nowrap;flex-shrink:0;}
+  .atlas-actividades__lista {min-width:0;}
+  @media (max-width:360px) {
+    .atlas-actividades {padding-left:16px;padding-right:16px;}
+    .atlas-actividades__mes-cabecera {gap:5px;}
+  }
+
+
+  /* 5.6 incremento 2: única ficha interior canónica, sin nuevas dependencias. */
+  .atlas-frame.atlas-actividad-abierta > .atlas-header,
+  .atlas-frame.atlas-actividad-abierta > .atlas-view,
+  .atlas-frame.atlas-actividad-abierta > #atlas-hoy-detalle,
+  .atlas-frame.atlas-actividad-abierta > #atlas-ficha-metrica {display:none!important;}
+  .atlas-actividad-interior[hidden] {display:none!important;}
+  .atlas-actividad-interior {min-width:0;padding:max(59px,calc(env(safe-area-inset-top,0px) + 15px)) 22px 35px;}
+  .atlas-actividad-interior__titulo {font-size:var(--atlas-interior-titulo,29px);line-height:1.15;
+    font-weight:750;letter-spacing:-.035em;margin:14px 0 21px;white-space:nowrap;overflow:hidden;}
+  /* Datos compactos en una sola línea, seguidos por mapa a todo el ancho. */
+  .atlas-actividad-interior__contexto {display:flex;flex-direction:column;align-items:stretch;gap:11px;min-width:0;}
+  .atlas-actividad-interior__datos {display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;
+    width:100%;min-width:0;gap:5px;white-space:nowrap;overflow:hidden;}
+  .atlas-actividad-interior__datos span {font-size:var(--atlas-interior-dato,14px);font-weight:640;
+    line-height:1.35;white-space:nowrap;flex:0 0 auto;}
+  .atlas-actividad-interior__datos .atlas-interior-fecha-hora {font-weight:700;}
+  .atlas-actividad-interior__mapa {position:relative;display:block;width:100%;height:auto;flex:none;
+    aspect-ratio:1.7;max-height:320px;
+    border-radius:14px;overflow:hidden;background:#181b22;isolation:isolate;
+    touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none;}
+  .atlas-actividad-interior__mapa:active {cursor:grabbing;}
+  .atlas-actividad-interior__mapa.ampliado {position:fixed;inset:max(9px,env(safe-area-inset-top,0px)) 9px max(9px,env(safe-area-inset-bottom,0px));
+    height:auto;width:auto;max-height:none;aspect-ratio:auto;z-index:1001;border:2px solid #41414e;
+    box-shadow:0 0 0 100vmax rgba(0,0,0,.9);}
+  body.atlas-mapa-ampliado {overflow:hidden;}
+  .atlas-actividad-interior__mapa[hidden] {display:none!important;}
+  .atlas-actividad-interior__teselas {position:absolute;inset:0;overflow:hidden;z-index:0;}
+  .atlas-actividad-interior__teselas img {position:absolute;width:256px;height:256px;
+    max-width:none;user-select:none;pointer-events:none;opacity:0;will-change:transform;}
+  .atlas-actividad-interior__teselas img.atlas-tesela-cargada {opacity:1;}
+  .atlas-actividad-interior__ruta {position:absolute;inset:0;width:100%;height:100%;pointer-events:none;
+    z-index:1;}
+  .atlas-actividad-interior__mapa-estado {position:absolute;left:5px;top:5px;right:47px;
+    font-size:11px;line-height:1.35;color:#e0e1e8;text-align:center;background:rgba(0,0,0,.68);
+    border-radius:7px;padding:5px;pointer-events:none;}
+  .atlas-actividad-interior__mapa-estado:empty {display:none;}
+  .atlas-actividad-interior__mapa-controles {position:absolute;right:7px;top:7px;display:flex;
+    flex-direction:column;gap:5px;z-index:2;}
+  .atlas-actividad-interior__mapa-controles button {display:flex;align-items:center;justify-content:center;
+    width:30px;height:30px;padding:0;border:1px solid #4c5060;border-radius:8px;
+    background:rgba(12,15,22,.88);color:white;font-size:19px;font-weight:600;cursor:pointer;}
+  .atlas-actividad-interior__mapa-controles button:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:2px;}
+  .atlas-actividad-interior__atribucion {position:absolute;z-index:3;bottom:3px;right:3px;
+    padding:3px 4px;background:rgba(0,0,0,.8);border-radius:4px;
+    color:#fff;font-size:9px;line-height:1.2;text-align:right;}
+  .atlas-actividad-interior__atribucion a {color:#cde2ff;text-decoration:underline;}
+  .atlas-actividad-interior__estado {margin:12px 0 0;color:#a4a6b1;font-size:12px;line-height:1.5;}
+  .atlas-actividad-interior__pie {margin-top:30px;}
+  .atlas-actividad-externa[role="button"] {cursor:pointer;-webkit-tap-highlight-color:transparent;}
+  .atlas-actividad-externa[role="button"]:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:4px;border-radius:6px;}
+  @media(max-width:360px) {
+    .atlas-actividad-interior {padding-left:16px;padding-right:16px;}
+    .atlas-actividad-interior__datos {gap:3px;}
+    .atlas-actividad-interior__mapa {aspect-ratio:1.62;}
+  }
+
+  /* 5.6 incremento 3 — Métricas de carrera en dos filas de cinco (canon Hoy). */
+  .atlas-actividad-interior__metricas {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
+    row-gap:17px;margin:22px 0 26px;min-width:0;}
+  .atlas-actividad-interior__metrica {position:relative;display:flex;flex-direction:column;
+    align-items:center;gap:4px;min-width:0;padding:2px 4px;text-align:center;}
+  .atlas-actividad-interior__metrica:not(:nth-child(5n+1))::before {content:"";position:absolute;
+    left:0;top:10%;bottom:10%;width:2px;background:#303039;}
+  .atlas-actividad-interior__metricas::before {content:none;}
+  .atlas-actividad-interior__metrica:nth-child(n+6)::after {content:"";position:absolute;
+    left:-4px;right:-4px;top:-9px;height:2px;background:#303039;pointer-events:none;}
+  .atlas-actividad-interior__metrica-emoji {font-size:21px;line-height:1.15;}
+  .atlas-actividad-interior__metrica-titulo {font-size:var(--atlas-detalle-rotulo,12px);
+    font-weight:650;line-height:1.2;white-space:nowrap;max-width:100%;}
+  .atlas-actividad-interior__metrica-valor {font-size:var(--atlas-detalle-valor,17px);
+    font-weight:740;line-height:1.15;white-space:nowrap;max-width:calc(100% - 7px);letter-spacing:-.025em;}
+  .atlas-actividad-interior__metrica-unidad {font-size:.49em;font-weight:550;color:#9999a6;letter-spacing:-.055em;}
+  /* Ritmo conserva min/km, pero respeta una distancia real a ambos divisores. */
+  .atlas-actividad-interior__metrica[data-metrica="ritmo"] .atlas-actividad-interior__metrica-valor {
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    font-size:var(--atlas-detalle-valor,17px);max-width:calc(100% - 10px);letter-spacing:-.03em;
+  }
+  .atlas-actividad-interior__metrica[data-metrica="ritmo"] .atlas-actividad-interior__metrica-unidad {
+    display:block;font-size:9px;line-height:1.1;margin-top:1px;
+  }
+  .atlas-actividad-interior__nota {margin:-12px 0 17px;color:#9b9caa;font-size:11px;line-height:1.35;}
+  .atlas-actividad-interior__nota[hidden] {display:none;}
+  .atlas-actividad-interior__zapatillas {display:flex;justify-content:space-between;gap:8px;
+    margin:15px 0 0;font-size:13px;color:#d8d8e0;}
+  .atlas-actividad-interior__zapatillas[hidden],.atlas-vueltas[hidden] {display:none!important;}
+  .atlas-actividad-interior__zapatillas span {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .atlas-actividad-interior__zapatillas strong {white-space:nowrap;color:#a0a0ab;}
+
+  /* Vueltas: barra más ancha para intervalos largos; ritmos con escala absoluta. */
+  .atlas-vueltas {min-width:0;margin:12px 0 0;}
+  .atlas-vueltas__titulo {display:none;}
+  .atlas-vueltas__grafico {display:grid;grid-template-columns:45px minmax(0,1fr);
+    height:193px;min-width:0;gap:5px;margin-bottom:13px;}
+  .atlas-vueltas__eje {display:flex;flex-direction:column;justify-content:space-between;
+    align-items:flex-end;padding:0 1px 22px 0;color:#999aa6;font-size:10px;font-variant-numeric:tabular-nums;}
+  .atlas-vueltas__grafico-scroll {position:relative;min-width:0;min-height:0;overflow-x:hidden;
+    overflow-y:hidden;scrollbar-width:thin;touch-action:pan-y;overscroll-behavior-x:contain;}
+  .atlas-vueltas__grafico-scroll.con-zoom {overflow-x:auto;touch-action:pan-x pan-y;}
+  .atlas-vueltas__rejilla {position:absolute;left:0;right:0;top:0;bottom:22px;pointer-events:none;}
+  .atlas-vueltas__rejilla span {position:absolute;left:0;right:0;height:2px;background:#303039;}
+  .atlas-vueltas__barras {position:relative;display:flex;align-items:flex-end;gap:3px;width:100%;min-width:100%;
+    height:100%;padding:0 2px 22px 2px;}
+  .atlas-vueltas__barra {position:relative;flex-basis:0;min-width:0;
+    height:var(--atlas-barra-alto);padding:0;border:0;border-radius:3px 3px 0 0;
+    background:var(--atlas-barra-color);cursor:pointer;outline-offset:1px;}
+  .atlas-vueltas__barra::after {content:attr(data-vuelta);position:absolute;top:calc(100% + 5px);
+    left:50%;transform:translateX(-50%);color:#a1a1aa;font-size:10px;line-height:1;white-space:nowrap;
+    visibility:var(--atlas-vuelta-etiqueta,visible);}
+  .atlas-vueltas__barra[aria-pressed="true"] {outline:2px solid #fff;filter:brightness(1.2);}
+  .atlas-vueltas__barra[aria-pressed="true"]::after {color:#fff;font-weight:750;}
+  .atlas-vueltas__barra:focus-visible {outline:2px solid var(--atlas-blue);}
+  .atlas-vueltas__tabla {width:100%;border-collapse:collapse;table-layout:fixed;
+    font-size:var(--atlas-vuelta-letra,11px);font-variant-numeric:tabular-nums;}
+  .atlas-vueltas__tabla th {color:#9e9fa9;font-weight:650;font-size:var(--atlas-vuelta-cabecera,11px);
+    border-bottom:2px solid #373740;
+    padding:6px 1px;text-align:center;white-space:nowrap;}
+  .atlas-vueltas__tabla td {padding:8px 1px;text-align:center;white-space:nowrap;
+    border-bottom:2px solid #24242a;font-weight:640;}
+  .atlas-vueltas__tabla tbody tr {cursor:pointer;}
+  .atlas-vueltas__tabla tbody tr[aria-selected="true"] {background:rgba(10,132,255,.22);}
+  .atlas-vueltas__tabla tbody tr:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:-2px;}
+  .atlas-vueltas__unidad {color:#9898a4;font-size:.70em;font-weight:520;letter-spacing:-.045em;}
+  .atlas-vueltas__etapas {display:flex;align-items:center;justify-content:space-between;
+    min-width:0;margin:0 0 8px 48px;gap:5px;}
+  .atlas-vueltas__etapas[hidden] {display:none;}
+  .atlas-vueltas__etapa {min-width:0;text-align:center;font-size:clamp(9px,2.5vw,11px);
+    font-weight:690;color:#bfc7d4;white-space:nowrap;letter-spacing:-.02em;}
+  .atlas-vueltas__etapa + .atlas-vueltas__etapa {border-left:2px solid #384251;padding-left:6px;}
+  .atlas-vueltas__barra--fase::before {content:"";position:absolute;left:-4px;
+    top:0;bottom:0;width:2px;background:#d3d7e1;pointer-events:none;}
+  .atlas-vueltas__desnivel-positivo {color:#ff6257;}
+  .atlas-vueltas__desnivel-negativo {color:#30d158;}
+  .atlas-vueltas__estado {min-height:18px;color:#a7a8b2;font-size:12px;margin:0 0 10px;}
+  .atlas-vueltas__estado:empty {display:none;}
+  @media(max-width:360px) {
+    .atlas-actividad-interior__metricas {row-gap:16px;}
+    .atlas-actividad-interior__metrica {padding:1px 2px;}
+    .atlas-vueltas__grafico {grid-template-columns:39px minmax(0,1fr);}
+    .atlas-vueltas__tabla td,.atlas-vueltas__tabla th {padding-left:1px;padding-right:1px;}
+  }
 </style>
 </head><body>
 <div class="atlas-frame"><header class="atlas-header">
@@ -241,6 +459,16 @@
     <button type="button" class="atlas-hoy-metrica" data-metrica="reposo"><span class="atlas-hoy-metrica__emoji" aria-hidden="true">❤️</span><span class="atlas-hoy-metrica__rotulo">Reposo</span><span class="atlas-hoy-metrica__dato" id="atlas-metrica-reposo">—</span><span class="atlas-hoy-metrica__info" id="atlas-info-reposo">Sin datos</span></button>
     <button type="button" class="atlas-hoy-metrica" data-metrica="carga"><span class="atlas-hoy-metrica__emoji" aria-hidden="true">⚡</span><span class="atlas-hoy-metrica__rotulo">Carga</span><span class="atlas-hoy-metrica__dato" id="atlas-metrica-carga">—</span><span class="atlas-hoy-metrica__info" id="atlas-info-carga">Sin datos</span></button>
     <button type="button" class="atlas-hoy-metrica" data-metrica="spo2"><span class="atlas-hoy-metrica__emoji" aria-hidden="true">🩸</span><span class="atlas-hoy-metrica__rotulo">SpO₂</span><span class="atlas-hoy-metrica__dato" id="atlas-metrica-spo2">—</span><span class="atlas-hoy-metrica__info" id="atlas-info-spo2">Sin datos</span></button>
+  </section>
+  <section class="atlas-hoy-seccion" aria-labelledby="atlas-ultimo-entrenamiento-titulo">
+    <h3 class="atlas-hoy-seccion__titulo" id="atlas-ultimo-entrenamiento-titulo">Último entrenamiento</h3>
+    <div id="atlas-ultimo-entrenamiento-contenido" aria-live="polite">
+      <p class="atlas-hoy-seccion__vacio">Consultando actividades guardadas…</p>
+    </div>
+  </section>
+  <section class="atlas-hoy-seccion" aria-labelledby="atlas-proximos-entrenamientos-titulo">
+    <h3 class="atlas-hoy-seccion__titulo" id="atlas-proximos-entrenamientos-titulo">Próximos entrenamientos</h3>
+    <p class="atlas-hoy-seccion__vacio" id="atlas-proximos-entrenamientos-vacio">Todavía no hay entrenamientos programados en ATLAS.</p>
   </section>
 </main>
 <section id="atlas-hoy-detalle" class="atlas-hoy-detalle atlas-pagina-sin-cabecera" aria-label="Detalle del Estado ATLAS" hidden>
@@ -281,7 +509,55 @@
   <p id="atlas-ficha-descripcion" class="atlas-ficha-metrica__descripcion"></p>
   <button class="atlas-atras-inferior atlas-ficha-metrica__pie" id="atlas-ficha-volver-abajo" type="button">Atrás</button>
 </section>
-<main class="atlas-view" aria-label="Pestaña Actividades, vacía" data-tab="actividades" hidden><h2 class="atlas-visually-hidden">Actividades</h2></main>
+<main class="atlas-view atlas-actividades" id="atlas-actividades" aria-label="Pestaña Actividades" data-tab="actividades" hidden>
+  <div class="atlas-hoy__cabecera"><h2>Actividades</h2></div>
+  <div class="atlas-actividades__filtros" aria-label="Filtros del historial">
+    <label class="atlas-visually-hidden" for="atlas-actividades-deporte">Deporte</label>
+    <select id="atlas-actividades-deporte" class="atlas-actividades__select"><option value="">🏅 Todos los deportes</option></select>
+    <label class="atlas-visually-hidden" for="atlas-actividades-anio">Año</label>
+    <select id="atlas-actividades-anio" class="atlas-actividades__select"><option value="">Todo</option></select>
+  </div>
+  <label class="atlas-visually-hidden" for="atlas-actividades-buscar">Buscar por título de actividad</label>
+  <input id="atlas-actividades-buscar" class="atlas-actividades__buscar" type="search"
+    placeholder="Buscar por título…" autocomplete="off" spellcheck="false" />
+  <p id="atlas-actividades-estado" class="atlas-actividades__estado" role="status" aria-live="polite">Consultando actividades guardadas…</p>
+  <div id="atlas-actividades-resultados" aria-label="Historial de actividades"></div>
+</main>
+<section id="atlas-actividad-interior" class="atlas-actividad-interior atlas-pagina-sin-cabecera" hidden aria-labelledby="atlas-actividad-interior-titulo">
+  <button id="atlas-actividad-volver" class="atlas-control-icon atlas-atras-superior" type="button" aria-label="Volver a la lista" title="Volver"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 4-8 8 8 8"/></svg></button>
+  <h2 id="atlas-actividad-interior-titulo" class="atlas-actividad-interior__titulo"></h2>
+  <div id="atlas-actividad-contexto" class="atlas-actividad-interior__contexto">
+    <div id="atlas-actividad-contexto-datos" class="atlas-actividad-interior__datos" aria-label="Datos de la actividad"></div>
+    <div id="atlas-actividad-mapa" class="atlas-actividad-interior__mapa" hidden aria-label="Recorrido GPS sobre mapa real">
+      <div id="atlas-actividad-teselas" class="atlas-actividad-interior__teselas" aria-hidden="true"></div>
+      <canvas id="atlas-actividad-ruta" class="atlas-actividad-interior__ruta" aria-label="Recorrido GPS dibujado sobre el mapa" role="img"></canvas>
+      <div class="atlas-actividad-interior__mapa-controles" aria-label="Controles del mapa">
+        <button id="atlas-mapa-ampliar" type="button" aria-label="Ampliar mapa" title="Ampliar mapa">⛶</button>
+        <button id="atlas-mapa-acercar" type="button" aria-label="Acercar mapa" title="Acercar">+</button>
+        <button id="atlas-mapa-alejar" type="button" aria-label="Alejar mapa" title="Alejar">−</button>
+      </div>
+      <span id="atlas-actividad-mapa-estado" class="atlas-actividad-interior__mapa-estado"></span>
+      <small class="atlas-actividad-interior__atribucion">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors</small>
+    </div>
+  </div>
+  <p id="atlas-actividad-estado" class="atlas-actividad-interior__estado" role="status" aria-live="polite"></p>
+  <div id="atlas-actividad-zapatillas" class="atlas-actividad-interior__zapatillas" hidden></div>
+  <p id="atlas-actividad-complementos-estado" class="atlas-actividad-interior__nota" hidden role="status" aria-live="polite"></p>
+  <section id="atlas-actividad-metricas" class="atlas-actividad-interior__metricas" aria-label="Métricas de la actividad"></section>
+  <p id="atlas-actividad-nota-vo2" class="atlas-actividad-interior__nota" hidden></p>
+  <section id="atlas-actividad-vueltas" class="atlas-vueltas" aria-labelledby="atlas-actividad-vueltas-titulo" hidden>
+    <h3 id="atlas-actividad-vueltas-titulo" class="atlas-visually-hidden">Vueltas</h3>
+    <p id="atlas-actividad-vueltas-estado" class="atlas-vueltas__estado" role="status" aria-live="polite"></p>
+    <div id="atlas-actividad-etapas" class="atlas-vueltas__etapas" hidden aria-label="Etapas identificadas del entrenamiento"></div>
+    <div id="atlas-actividad-vueltas-grafico" class="atlas-vueltas__grafico" aria-label="Ritmo de cada vuelta"></div>
+    <table id="atlas-actividad-vueltas-tabla" class="atlas-vueltas__tabla" aria-label="Detalle de vueltas">
+      <colgroup><col style="width:8%"><col style="width:18%"><col style="width:16%"><col style="width:23%"><col style="width:15%"><col style="width:20%"></colgroup>
+      <thead><tr><th scope="col" aria-label="Vuelta">Vuelta</th><th scope="col">Distancia</th><th scope="col">Tiempo</th><th scope="col">Ritmo</th><th scope="col">FC</th><th scope="col">Desnivel</th></tr></thead>
+      <tbody id="atlas-actividad-vueltas-cuerpo"></tbody>
+    </table>
+  </section>
+  <button id="atlas-actividad-volver-abajo" class="atlas-atras-inferior atlas-actividad-interior__pie" type="button">Atrás</button>
+</section>
 <main class="atlas-view" aria-label="Pestaña Plan, vacía" data-tab="plan" hidden><h2 class="atlas-visually-hidden">Plan</h2></main>
 <main class="atlas-view" aria-label="Pestaña Evolución, vacía" data-tab="evolucion" hidden><h2 class="atlas-visually-hidden">Evolución</h2></main>
 <main class="atlas-view" aria-label="Pestaña Perfil" data-tab="perfil" hidden>
@@ -383,7 +659,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.44 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.59 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -882,6 +1158,31 @@
         } finally { clearTimeout(limite); }
       }
 
+      // 5.6 — Datos adicionales de UNA actividad. No descarga históricos masivos.
+      async function consultarComplementosActividad(id, dia) {
+        if (!Number.isSafeInteger(id) || id < 1 ||
+            typeof dia !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(dia)) return {estado:'solicitud_invalida'};
+        const acceso = await registroLocal();
+        if (!acceso) return {estado:'sin_configurar'};
+        const controller = new AbortController();
+        const reloj = setTimeout(()=>controller.abort(), 45000);
+        try {
+          const respuesta = await fetch(acceso.worker + '/api/actividad/complementos', {
+            method:'POST', mode:'cors', credentials:'omit', cache:'no-store',
+            redirect:'error', referrerPolicy:'no-referrer', signal:controller.signal,
+            headers:{ Authorization:'Bearer '+encodeURIComponent(acceso.clave),
+              'Content-Type':'application/json' }, body:JSON.stringify({id,dia}),
+          });
+          if (respuesta.status === 404) return {estado:'worker_no_actualizado'};
+          if (respuesta.status === 401) return {estado:'no_autorizado'};
+          if (respuesta.status === 403) return {estado:'origen_no_autorizado'};
+          const datos = await respuesta.json();
+          if (respuesta.status!==200 || datos?.estado!=='ok' || datos?.id!==id)
+            return {estado:datos?.estado||'error_servidor'};
+          return datos;
+        } catch {return {estado:controller.signal.aborted?'tiempo_agotado':'error_red_o_cors'};}
+        finally {clearTimeout(reloj);}
+      }
       // 5.4 — Lectura de una única página reciente; no utiliza el progreso histórico completado.
       async function consultarActividadesRecientes(desde, hasta, cursor) {
         const datos = await registroLocal();
@@ -988,7 +1289,7 @@
         finally { clearTimeout(limite); }
       }
       return Object.freeze({ configurar, estado, verificar, solicitarSiguiente, solicitarResumenRapido,
-        consultarVueltas, consultarGPS, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
+        consultarVueltas, consultarGPS, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
     })();
 
     // 5.4 — Servicio de vueltas por actividad. Listo para invocarse automáticamente al abrir
@@ -2440,15 +2741,21 @@
     const etiquetas = tabs.map(b => b.querySelector('.atlas-tabs__label'));
     ajustarTamanoATLAS(etiquetas, tabs, '--atlas-tab-font');
   }
+  const posiciones = new Map();
+  let actual = 'hoy';
   function abrir(nombre) {
     const destino = tabs.find(b => b.dataset.tab === nombre);
     if (!destino) return;
+    if (actual !== nombre) posiciones.set(actual, window.scrollY);
     tabs.forEach(b => {
       if (b === destino) b.setAttribute('aria-current', 'page');
       else b.removeAttribute('aria-current');
     });
     vistas.forEach(v => { v.hidden = v.dataset.tab !== nombre; });
-    window.scrollTo({top:0,left:0,behavior:'instant'});
+    actual = nombre;
+    const posicion = posiciones.get(nombre) ?? 0;
+    requestAnimationFrame(() => window.scrollTo({top:posicion,left:0,behavior:'instant'}));
+    window.dispatchEvent(new CustomEvent('atlas:pestana:abierta',{detail:{nombre}}));
   }
   tabs.forEach(b => b.addEventListener('click', () => abrir(b.dataset.tab)));
   window.addEventListener('resize', () => requestAnimationFrame(encajarTitulos));
@@ -2550,10 +2857,6 @@
     ["🌙", "Historial del sueño", "sleepHistory"]
   ];
   const COLORES = Object.freeze({azul:"#0a84ff",verde:"#30d158",amarillo:"#ffd60a",naranja:"#ff9f0a",rojo:"#ff453a"});
-  const CONTEXTOS = Object.freeze({
-    AFTER_WAKEUP_RESET:"La lectura corresponde al periodo posterior al despertar.",
-    AFTER_POST_EXERCISE_RESET:"La lectura se actualizó después del ejercicio; puede ser distinta de la que viste al despertar."
-  });
   const NOMBRES = Object.freeze({
     "Sueño":"el sueño reciente", "Recuperación":"la recuperación entre sesiones",
     "Carga aguda":"la relación de carga reciente", "Historial de estrés":"el historial de estrés",
@@ -2757,13 +3060,6 @@
     if (p <= 94) return "Los indicadores ofrecen un buen margen para entrenar.";
     return "Los indicadores muestran una predisposición especialmente favorable.";
   }
-  function consejo(p) {
-    if (p <= 24) return "Hoy prioriza descanso o movimiento muy suave según tus sensaciones; evita añadir intensidad por inercia.";
-    if (p <= 49) return "Si entrenas, considera un rodaje fácil o una sesión ligera y reevalúa antes de hacer intensidad.";
-    if (p <= 74) return "Un entrenamiento previsto puede ser razonable, ajustando la exigencia a sensaciones y recuperación.";
-    if (p <= 94) return "Hay margen para una sesión de calidad si encaja en tu planificación y te encuentras bien.";
-    return "La disposición es favorable, pero sigue mandando la progresión del plan y no solo esta puntuación.";
-  }
   function resumenATLAS(dato) {
     // Resumen directo de la orientacion del analisis interior, sin repetir los factores.
     const p = dato.puntuacion;
@@ -2773,22 +3069,43 @@
     if (p <= 94) return "Hay margen para entrenar con calidad si estaba previsto. Mantén la exigencia solo si las sensaciones acompañan.";
     return "La predisposición es excelente y favorece entrenar con garantías. Respeta la progresión prevista y escucha tus sensaciones.";
   }
-  function analisisATLAS(dato) {
-    const {lista,limitantes,apoyos} = puntosClave(dato);
-    const primera = "Con " + dato.puntuacion + "/100, " + fraseBase(dato.puntuacion).toLowerCase() + " " +
-      (CONTEXTOS[dato.contexto] || "Es una fotografía del momento, no una valoración definitiva de todo el día.");
-    let segunda;
-    if (!lista.length) segunda = "No se han recibido los seis factores de Garmin; no es posible atribuir esta puntuación a una causa concreta.";
-    else {
-      const frenos = limitantes.length ? "Las señales menos favorables aparecen en " + dosNombres(limitantes.slice(0,2)) +
-        ", con " + limitantes.slice(0,2).map(f => f.porcentaje + " %").join(" y ") + ". " :
-        "Los factores recuperados no muestran limitaciones marcadas. ";
-      const positivos = apoyos.length ? "Como apoyo destaca " + dosNombres(apoyos.slice(0,2)) +
-        " (" + apoyos.slice(0,2).map(f => f.porcentaje + " %").join(" y ") + "). " : "";
-      segunda = frenos + positivos + "Estos porcentajes son valoraciones de los factores de predisposición, no medidas directas de sueño o estrés.";
+  // Análisis ATLAS v0.0.47: lectura interpretativa, decisión de entrenamiento y mejora.
+  // Se basa solo en la puntuación y las seis valoraciones Garmin: no presume conocer
+  // el plan, el entrenamiento previsto, lesiones ni sensaciones que el usuario no ha dado.
+  function recomendacionSesion(p) {
+    if(p<=24)return "Hoy prioriza el descanso o una actividad muy suave; evita las sesiones intensas hasta encontrarte mejor recuperado.";
+    if(p<=49)return "Si tenías intensidad prevista, considera cambiarla por un rodaje fácil o descanso según tus sensaciones.";
+    if(p<=74)return "Si tenías una sesión exigente, empieza con un calentamiento progresivo y decide después si mantienes la intensidad.";
+    if(p<=94)return "Puedes realizar una sesión de calidad si estaba prevista y el calentamiento confirma buenas sensaciones.";
+    return "Puedes aprovechar una sesión exigente si encaja en tu planificación, sin añadir carga extra solo por esta puntuación.";
+  }
+  function pautaRecuperacion(factor) {
+    switch(factor?.nombre) {
+      case 'Sueño':return "Para favorecer la recuperación, protege las horas de sueño de esta noche y mantén horarios regulares.";
+      case 'Historial del sueño':return "Para mejorar la predisposición, da prioridad a varios días de sueño regular, no solo a una noche aislada.";
+      case 'Recuperación':return "Deja suficiente separación entre esfuerzos exigentes; no intentes compensar una sesión reducida al día siguiente.";
+      case 'Historial de estrés':return "Reduce la carga de estrés fuera del entrenamiento con pausas de desconexión y descanso suficiente.";
+      case 'Carga aguda':return "Evita subidas bruscas de volumen o intensidad y distribuye la carga de forma progresiva entre sesiones.";
+      case 'VFC':return "Cuida el descanso y observa la tendencia de la VFC durante varios días, no una lectura aislada.";
+      default:return "Cuida el descanso, la hidratación y la progresión de carga, y ajusta la sesión según tus sensaciones.";
     }
-    const tercera = consejo(dato.puntuacion) + " Contrasta esta orientación con las sensaciones y con el entrenamiento que tuvieras previsto; ATLAS todavía no conoce aquí tu plan ni ha evaluado la sesión.";
-    return [primera,segunda,tercera];
+  }
+  function analisisATLAS(dato) {
+    const {lista,limitantes,apoyos}=puntosClave(dato);
+    const principales=limitantes.slice(0,2);
+    const fortalezas=apoyos.slice(0,2);
+    let balance=fraseBase(dato.puntuacion);
+    if(principales.length) {
+      balance+=' Las señales que más limitan la predisposición son '+dosNombres(principales)+'.';
+    } else if(lista.length) {
+      balance+=' Ninguno de los factores disponibles presenta una limitación marcada.';
+    } else {
+      balance+=' No hay factores suficientes para identificar qué está influyendo más.';
+    }
+    if(fortalezas.length)balance+=' Como apoyo destacan '+dosNombres(fortalezas)+'.';
+    const masDebil=[...lista].sort((a,b)=>a.porcentaje-b.porcentaje)[0];
+    const siguiente=recomendacionSesion(dato.puntuacion)+' '+pautaRecuperacion(masDebil);
+    return [balance,siguiente];
   }
   function notaFactor(factor) {
     const p = factor.porcentaje;
@@ -3009,7 +3326,7 @@
   let metric = null, period = '7d', endDate = null, oldScroll = 0;
   let health = new Map(), load = new Map(), series = [], selected = null, chart = null;
   let zoom = 1, pinch = null, pointerDrag = false, opening = false, requestVersion = 0;
-  let loadStatus = '', raf = 0, focusX = null;
+  let loadStatus = '', raf = 0;
 
   const dayNow = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
   const validDate = s => /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s+'T00:00:00Z'));
@@ -3068,7 +3385,7 @@
     return p.score===null?COLOR.gray:p.score>=90?COLOR.blue:p.score>=80?COLOR.green:p.score>=60?COLOR.yellow:COLOR.red;
   }
   function plotSetup() {
-    const bars=CFG[metric].kind==='bar',top=metric==='sueno'&&bars?76:18;
+    const bars=CFG[metric].kind==='bar',top=18;
     const values=series.flatMap(p=>bars?[p.value]:[p.value,p.lo,p.hi]).filter(x=>x!==null);
     const mn=values.length?Math.min(...values):0,mx=values.length?Math.max(...values):100;
     let low=bars?0:Math.max(0,Math.floor((mn-(mx-mn||10)*.25)/5)*5);
@@ -3081,19 +3398,6 @@
   }
   function xAt(index,width) { const n=series.length;return chart.bars?width*(index+.5)/n:n>1?2+(width-4)*index/(n-1):width/2; }
   const yAt=value=>BOTTOM-(value-chart.low)/(chart.high-chart.low)*chart.height;
-  function drawSleepLabel(ctx,p,x,y,cell) {
-    const m=Math.round(p.value*60),h=Math.floor(m/60),min=m%60;
-    const parts=[[String(h),true],[' h ',false],[String(min),true],[' min',false]];
-    const compact=series.length>7;
-    ctx.save();ctx.fillStyle='#ececf0';ctx.textBaseline='middle';
-    ctx.translate(x,Math.max(15,y-6));
-    if(compact)ctx.rotate(-Math.PI/2);
-    const natural=size=>parts.reduce((s,[t,b])=>{ctx.font=`${b?700:500} ${b?size:size*.72}px -apple-system, BlinkMacSystemFont, sans-serif`;return s+ctx.measureText(t).width;},0);
-    let size=10.5;if(!compact){while(size>4.8&&natural(size)>cell-4)size-=.25;}
-    let dx=compact?0:-natural(size)/2;
-    for(const [text,bold] of parts){ctx.font=`${bold?700:500} ${bold?size:size*.72}px -apple-system,BlinkMacSystemFont,sans-serif`;ctx.fillText(text,dx,0);dx+=ctx.measureText(text).width;}
-    ctx.restore();
-  }
   function paint() {
     if(!metric||!chart||page.hidden)return;
     const view=Math.max(1,scroll.clientWidth),width=Math.max(view,view*zoom),ratio=Math.min(window.devicePixelRatio||1,2.5);
@@ -3127,7 +3431,6 @@
         const cx=xAt(i,width),py=Math.max(chart.top,Math.min(BOTTOM,yAt(p.value))),barW=Math.max(1,Math.min(cell*.74,39*zoom));
         ctx.fillStyle=barColor(p);ctx.fillRect(cx-barW/2,py,barW,Math.max(1,BOTTOM-py));
         if(i===selected){ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.strokeRect(cx-barW/2,py,barW,Math.max(1,BOTTOM-py));}
-        if(metric==='sueno')drawSleepLabel(ctx,p,cx,py,cell);
       }
     }
     // Etiquetas fijas en tamaño tipográfico, no distorsionadas por transformaciones geométricas.
@@ -3149,7 +3452,7 @@
     zoom=Math.max(1,Math.min(8,newZoom));const view=scroll.clientWidth;
     scroll.style.overflowX=zoom>1.002?'auto':'hidden';
     scroll.style.touchAction=zoom>1.002?'pan-x pan-y':'pan-y';
-    canvas.style.touchAction=zoom>1.002?'pan-x pan-y':'pan-y';
+    canvas.style.touchAction=zoom>1.002?'pan-x':'none'; // Pinza siempre controlada; navegación horizontal cuando está ampliada.
     // Se redibuja TODO el trazado sobre el ancho nuevo: líneas y puntos no se deforman.
     paint();
     if(zoom<=1.002){scroll.scrollLeft=0;return;}
@@ -3159,7 +3462,7 @@
   const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
   function startPinch(a,b,source){const rect=scroll.getBoundingClientRect(),center=(a.clientX+b.clientX)/2-rect.left;
     pinch={source,distance:Math.max(1,dist(a,b)),initial:zoom,anchor:(scroll.scrollLeft+center)/(scroll.clientWidth*zoom)};
-    pointerDrag=false;selected=null;showSelected();}
+    pointerDrag=false;touchSelecting=false;lastTouchX=null;selected=null;showSelected();}
   function updatePinch(a,b){if(!pinch)return;
     const center=(a.clientX+b.clientX)/2-scroll.getBoundingClientRect().left;
     setZoom(pinch.initial*dist(a,b)/pinch.distance,pinch.anchor,center);}
@@ -3276,10 +3579,25 @@
     period=p;endDate=dayNow();requestVersion++;refresh();if(metric==='carga')void fetchLoad();});
   window.addEventListener('resize',()=>{if(page.hidden||!metric)return;const old=zoom;setZoom(old);});
   window.addEventListener('atlas:hoy:metricas-actualizadas',()=>{if(page.hidden)return;readStore().then(()=>refresh(false)).catch(()=>{});});
-  canvas.addEventListener('pointerdown',e=>{if(pinch||!series.length||e.button>0||!e.isPrimary)return;
-    if(e.pointerType==='touch'&&e.width>40)return;pointerDrag=true;selectIndex(indexAt(e.clientX),true);});
-  canvas.addEventListener('pointermove',e=>{if(pointerDrag&&!pinch&&e.isPrimary)selectIndex(indexAt(e.clientX),false);});
+  // Ratón y lápiz: pulsación alterna seleccionar/deseleccionar, arrastre recorre valores.
+  canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||pinch||!series.length||e.button>0||!e.isPrimary)return;
+    pointerDrag=true;selectIndex(indexAt(e.clientX),true);});
+  canvas.addEventListener('pointermove',e=>{if(e.pointerType!=='touch'&&pointerDrag&&!pinch&&e.isPrimary)selectIndex(indexAt(e.clientX),false);});
   window.addEventListener('pointerup',()=>pointerDrag=false);window.addEventListener('pointercancel',()=>pointerDrag=false);
+  // Un dedo: selección continua sobre el trazado real. Dos dedos: pinza exclusiva para zoom.
+  let touchSelecting=false,lastTouchX=null;
+  canvas.addEventListener('touchstart',e=>{if(e.touches.length!==1||pinch||!series.length)return;
+    if(zoom<=1.002&&e.cancelable)e.preventDefault();
+    touchSelecting=true;lastTouchX=e.touches[0].clientX;selectIndex(indexAt(lastTouchX),true);
+  },{passive:false});
+  canvas.addEventListener('touchmove',e=>{if(e.touches.length!==1||!touchSelecting||pinch)return;
+    if(zoom<=1.002&&e.cancelable)e.preventDefault();
+    lastTouchX=e.touches[0].clientX;selectIndex(indexAt(lastTouchX),false);
+  },{passive:false});
+  scroll.addEventListener('scroll',()=>{if(touchSelecting&&zoom>1.002&&lastTouchX!==null&&!pinch)
+    selectIndex(indexAt(lastTouchX),false);},{passive:true});
+  canvas.addEventListener('touchend',()=>{touchSelecting=false;lastTouchX=null;},{passive:true});
+  canvas.addEventListener('touchcancel',()=>{touchSelecting=false;lastTouchX=null;},{passive:true});
   // Una sola fuente de gestos táctiles: dos dedos, escala fraccionaria continua y anclaje estable.
   scroll.addEventListener('touchstart',e=>{if(e.touches.length!==2)return;if(e.cancelable)e.preventDefault();
     if(!pinch||pinch.source!=='touch')startPinch(e.touches[0],e.touches[1],'touch');},{passive:false});
@@ -3297,5 +3615,1154 @@
   scroll.addEventListener('gestureend',e=>{if(e.cancelable)e.preventDefault();if(pinch?.source==='gesture')pinch=null;setZoom(zoom);},{passive:false});
 })();
 
+</script>
+<script id="atlas-bloqueo-zoom-pagina">
+(() => {
+  'use strict';
+  // Solo en la página: los gestos de dos dedos en las gráficas los gestiona su motor Canvas.
+  document.addEventListener('gesturestart', e => {
+    if (!e.target.closest?.('#atlas-ficha-scroll') && e.cancelable) e.preventDefault();
+  }, {passive:false});
+  document.addEventListener('gesturechange', e => {
+    if (!e.target.closest?.('#atlas-ficha-scroll') && e.cancelable) e.preventDefault();
+  }, {passive:false});
+})();
+</script>
+<script id="atlas-hoy-entrenamientos-controlador">
+(() => {
+  'use strict';
+  // 5.5.5 — Solo consulta IndexedDB. La ficha interior de actividad corresponde a 5.6.
+  // No anticipar planes ni entrenamientos inventados (fases 5.9 y 6).
+  const DESTINO = document.getElementById('atlas-ultimo-entrenamiento-contenido');
+  const PREFIJO = 'historico:dato:oficial:actividades:id%3A';
+  const DIAS = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+  const MESES = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const EMOJI_CARRERA = '🏃🏻‍♂️';
+  const EMOJI_CAMINAR = '🚶🏻‍♂️';
+  const EMOJI_CICLISMO = '🚴🏻‍♂️';
+  const EMOJI_MONTAÑA = '⛰️';
+  const EMOJI_NATACION = '🏊🏻‍♂️';
+  const EMOJI_FUERZA = '🏋🏻‍♂️';
+  const EMOJI_YOGA = '🧘🏻‍♂️';
+  const EMOJI_REMO = '🚣🏻‍♂️';
+  const EMOJI_ESCALADA = '🧗🏻‍♂️';
+  const EMOJI_SURF = '🏄🏻‍♂️';
+  const DEPORTES = Object.freeze({
+    running:[EMOJI_CARRERA,'Carrera'], trail_running:[EMOJI_MONTAÑA,'Carrera de montaña'],
+    track_running:['🏟️','Carrera en pista'], treadmill_running:[EMOJI_CARRERA,'Carrera en cinta'],
+    virtual_run:[EMOJI_CARRERA,'Carrera virtual'], walking:[EMOJI_CAMINAR,'Caminar'], hiking:['🥾','Senderismo'],
+    cycling:[EMOJI_CICLISMO,'Ciclismo'], road_biking:[EMOJI_CICLISMO,'Ciclismo'], mountain_biking:['🚵🏻‍♂️','Ciclismo de montaña'],
+    indoor_cycling:[EMOJI_CICLISMO,'Ciclismo interior'], pool_swimming:[EMOJI_NATACION,'Natación'],
+    lap_swimming:[EMOJI_NATACION,'Natación'], open_water_swimming:[EMOJI_NATACION,'Aguas abiertas'],
+    swimming:[EMOJI_NATACION,'Natación'], strength_training:[EMOJI_FUERZA,'Fuerza'], fitness_equipment:[EMOJI_FUERZA,'Gimnasio'],
+    yoga:[EMOJI_YOGA,'Yoga'], pilates:[EMOJI_YOGA,'Pilates'], cardio:['💪','Cardio'],
+    hiit:['⚡','HIIT'], soccer:['⚽','Fútbol'], football:['⚽','Fútbol'],
+    tennis:['🎾','Tenis'], padel:['🎾','Pádel'], paddleball:['🎾','Pádel'], paddelball:['🎾','Pádel'], other:['🏅','Actividad'],
+    indoor_running:[EMOJI_CARRERA,'Carrera interior'], cross_country_running:[EMOJI_CARRERA,'Campo a través'],
+    obstacle_course_racing:[EMOJI_CARRERA,'Carrera de obstáculos'], speed_walking:[EMOJI_CAMINAR,'Marcha'],
+    e_biking:[EMOJI_CICLISMO,'Bicicleta eléctrica'], gravel_cycling:[EMOJI_CICLISMO,'Gravel'],
+    virtual_ride:[EMOJI_CICLISMO,'Ciclismo virtual'], elliptical:[EMOJI_FUERZA,'Elíptica'],
+    stair_stepper:[EMOJI_FUERZA,'Escaladora'], indoor_rowing:[EMOJI_REMO,'Remo interior'],
+    rowing:[EMOJI_REMO,'Remo'], basketball:['🏀','Baloncesto'], volleyball:['🏐','Voleibol'],
+    squash:['🎾','Squash'], badminton:['🏸','Bádminton'], pickleball:['🏓','Pickleball'],
+    skiing:['⛷️','Esquí'], snowboarding:['🏂','Snowboard'], climbing:[EMOJI_ESCALADA,'Escalada'],
+    kayaking:['🛶','Piragüismo'], kayaking_v2:['🛶','Piragüismo'], stand_up_paddleboarding:[EMOJI_SURF,'Pádel surf']
+  });
+  const valido = (v, max=1e12) => typeof v === 'number' && Number.isFinite(v) && v>=0 && v<=max;
+  function fechaLocal(texto) {
+    if (typeof texto !== 'string') return null;
+    const m = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/.exec(texto);
+    if (!m) return null;
+    const [,y,mo,d,h,mi,s='00'] = m;
+    const fecha = new Date(Number(y),Number(mo)-1,Number(d),Number(h),Number(mi),Number(s));
+    if (!Number.isFinite(fecha.getTime()) || fecha.getFullYear()!==Number(y) ||
+        fecha.getMonth()!==Number(mo)-1 || fecha.getDate()!==Number(d)) return null;
+    return { fecha, texto: `${y}-${mo}-${d}T${h}:${mi}:${s}` };
+  }
+  function instante(a) {
+    const gmt = typeof a?.startTimeGMT === 'string' ? a.startTimeGMT : '';
+    const utc = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}/.test(gmt)
+      ? Date.parse(gmt.trim().replace(' ','T').replace(/Z?$/,'Z')) : NaN;
+    return Number.isFinite(utc) ? utc : fechaLocal(a?.startTimeLocal)?.fecha.getTime() ?? NaN;
+  }
+  function mejor(a, b) {
+    if (!b) return true;
+    const t1=instante(a), t2=instante(b);
+    if (Number.isFinite(t1) && Number.isFinite(t2)) return t1>t2;
+    const f1=fechaLocal(a.startTimeLocal)?.texto??'', f2=fechaLocal(b.startTimeLocal)?.texto??'';
+    return f1>f2;
+  }
+  async function ultimaActividad() {
+    await ATLASDB.abrir();
+    return new Promise((resolver,rechazar)=>{
+      const store=ATLASDB.almacen('readonly'), tx=store.transaction;
+      let ultima=null;
+      const req=store.openCursor(IDBKeyRange.bound(PREFIJO,PREFIJO+'\uffff'));
+      req.onsuccess=()=>{
+        const cursor=req.result;
+        if (!cursor) return;
+        const a=cursor.value?.datos?.bruto;
+        if (a && fechaLocal(a.startTimeLocal??a.startTimeGMT) &&
+            Number.isFinite(instante(a)) && instante(a)<=Date.now()+300000 && mejor(a,ultima)) ultima=a;
+        cursor.continue();
+      };
+      req.onerror=()=>rechazar(req.error||Error('actividades_no_legibles'));
+      tx.oncomplete=()=>resolver(ultima);
+      tx.onabort=()=>rechazar(tx.error||Error('lectura_actividades_interrumpida'));
+    });
+  }
+  function tiempo(seg) {
+    if (!valido(seg, 1e8)) return null;
+    const n=Math.round(seg), h=Math.floor(n/3600), m=Math.floor(n%3600/60), s=n%60;
+    return h>0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+      : `${m}:${String(s).padStart(2,'0')}`;
+  }
+  function distancia(m) {
+    if (!valido(m, 1e9)) return null;
+    const km=m/1000, entero=Math.abs(km-Math.round(km))<0.00001;
+    return (entero ? String(Math.round(km)) : km.toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:2}));
+  }
+  function deporte(a) {
+    const clave=String(a?.activityType?.typeKey??'').toLowerCase();
+    const datos=DEPORTES[clave];
+    const esCarrera=/(^|_)(running|run)(_|$)/.test(clave)||clave.includes('trail_run');
+    const desconocido = clave && clave !== 'other' ? 'Otro deporte · '+clave.replace(/_/g,' ') : 'Otro deporte';
+    return {emoji:datos?.[0]??(esCarrera?EMOJI_CARRERA:'🏅'),
+      nombre:datos?.[1]??(esCarrera?'Carrera':desconocido),esCarrera};
+  }
+  function dato(valor, unidad) {
+    const el=document.createElement('span');el.className='atlas-actividad-externa__dato';
+    const n=document.createElement('span');n.textContent=valor;el.append(n);
+    if (unidad) {const u=document.createElement('span');u.className='atlas-actividad-externa__unidad';u.textContent=unidad;el.append(u);}
+    return el;
+  }
+  function ajustarTitulo(el) {
+    if (!el?.parentElement?.clientWidth) return;
+    el.style.whiteSpace='nowrap';
+    el.style.overflowWrap='normal';
+    el.style.textOverflow='clip';
+    let size=17;
+    for (;size>=8;size-=.5) {
+      el.style.setProperty('--atlas-actividad-titulo',size+'px');
+      if (el.scrollWidth<=el.clientWidth+1) return;
+    }
+  }
+  function ajustarDatos(el) {
+    let size=13;
+    for (;size>=10;size-=.5) {
+      el.style.setProperty('--atlas-actividad-dato',size+'px');
+      if (el.scrollWidth<=el.clientWidth+1) return;
+    }
+  }
+  const actividadPorFicha = new WeakMap();
+  function crearFichaExterna(a) {
+    const loc=fechaLocal(a.startTimeLocal??a.startTimeGMT), t=loc.fecha, sp=deporte(a);
+    const ficha=document.createElement('article');ficha.className='atlas-actividad-externa';
+    actividadPorFicha.set(ficha,a);ficha.setAttribute('role','button');ficha.tabIndex=0;
+    ficha.setAttribute('aria-label','Ver actividad '+(a.activityName||sp.nombre));
+    const fecha=document.createElement('div');fecha.className='atlas-actividad-externa__fecha';
+    for (const [clase,texto] of [['diasemana',DIAS[t.getDay()]],['dia',String(t.getDate())],['mes',MESES[t.getMonth()]]]) {
+      const s=document.createElement('span');s.className='atlas-actividad-externa__fecha-'+clase;s.textContent=texto;fecha.append(s);
+    }
+    const contenido=document.createElement('div');contenido.className='atlas-actividad-externa__contenido';
+    const titulo=document.createElement('h4');titulo.className='atlas-actividad-externa__nombre';
+    const tituloGarmin=typeof a.activityName==='string'?a.activityName.trim():'';
+    titulo.textContent=sp.emoji+' '+(tituloGarmin || sp.nombre);
+    const resumen=document.createElement('div');resumen.className='atlas-actividad-externa__datos';
+    const km=distancia(a.distance), duracion=tiempo(a.duration);
+    const ritmo=sp.esCarrera && valido(a.averageSpeed,25) && a.averageSpeed>0
+      ? tiempo(1000/a.averageSpeed) : null;
+    if (km!==null && (sp.esCarrera || !['strength_training','yoga','pilates'].includes(String(a.activityType?.typeKey))))
+      resumen.append(dato(km,'km'));
+    if (duracion!==null) resumen.append(dato(duracion,''));
+    if (ritmo!==null) resumen.append(dato(ritmo,'min/km'));
+    if (!resumen.children.length) resumen.append(dato('Sin métricas',''));
+    contenido.append(titulo,resumen);ficha.append(fecha,contenido);
+    // La ficha completa se integra en Actividades (5.6); no crear una segunda incompatible.
+    requestAnimationFrame(()=>{ajustarTitulo(titulo);ajustarDatos(resumen);});
+    return ficha;
+  }
+  // Componente compartido: Actividades reutiliza la ficha aprobada de Hoy sin duplicarla.
+  window.ATLASFICHAEXTERNA = Object.freeze({crearFichaExterna, deporte, fechaLocal, instante, reajustarFichasExternas, actividadDeFicha:f=>actividadPorFicha.get(f)});
+  function mensaje(texto) {
+    const p=document.createElement('p');p.className='atlas-hoy-seccion__vacio';p.textContent=texto;
+    DESTINO.replaceChildren(p);
+  }
+  let lectura=0;
+  async function actualizar() {
+    const n=++lectura;
+    try {
+      const act=await ultimaActividad();
+      if (n!==lectura) return;
+      if (act) DESTINO.replaceChildren(crearFichaExterna(act));
+      else mensaje('No hay actividades guardadas en este dispositivo. Actualiza Garmin para buscarlas.');
+    } catch {if(n===lectura) mensaje('No se pudieron leer las actividades locales.');}
+  }
+  window.addEventListener('atlas:hoy:metricas-actualizadas', actualizar);
+  function reajustarFichasExternas(raiz=document) {
+    raiz.querySelectorAll('.atlas-actividad-externa__nombre').forEach(ajustarTitulo);
+    raiz.querySelectorAll('.atlas-actividad-externa__datos').forEach(ajustarDatos);
+  }
+  window.addEventListener('resize',()=>{ reajustarFichasExternas(document); });
+  actualizar();
+})();
+</script>
+
+<script id="atlas-actividades-historial">
+(() => {
+  'use strict';
+  // 5.6 · Incremento 1. Lectura exclusiva de IndexedDB: sin Worker ni escrituras.
+  const compartido = window.ATLASFICHAEXTERNA;
+  const pantalla = document.getElementById('atlas-actividades');
+  const deporteSelect = document.getElementById('atlas-actividades-deporte');
+  const anioSelect = document.getElementById('atlas-actividades-anio');
+  const buscar = document.getElementById('atlas-actividades-buscar');
+  const resultados = document.getElementById('atlas-actividades-resultados');
+  const estado = document.getElementById('atlas-actividades-estado');
+  const PREFIJO = 'historico:dato:oficial:actividades:id%3A';
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto',
+    'Septiembre','Octubre','Noviembre','Diciembre'];
+  let actividades = [];
+  let secuencia = 0;
+  let leido = false;
+
+  function claveDeporte(a) {
+    const tipo = a?.activityType?.typeKey;
+    return typeof tipo === 'string' && tipo.trim() ? tipo.trim().toLowerCase() : 'sin_identificar';
+  }
+  // Un único catálogo deportivo: el mismo título/emoji en Hoy y Actividades.
+  function tipoDeporte(a) { return compartido.deporte(a); }
+  function tituloActividad(a) {
+    return typeof a.activityName === 'string' && a.activityName.trim()
+      ? a.activityName.trim() : tipoDeporte(a).nombre;
+  }
+  function datosPresentables(a) {
+    const local = compartido.fechaLocal(a.startTimeLocal ?? a.startTimeGMT);
+    const t = compartido.instante(a);
+    return local && Number.isFinite(t) && t <= Date.now() + 300000 ? {
+      actividad:a, local:local.fecha, instante:t, deporte:claveDeporte(a),
+      nombre:tituloActividad(a), carrera:tipoDeporte(a).esCarrera
+    } : null;
+  }
+  async function leerLocales() {
+    await ATLASDB.abrir();
+    return new Promise((resolver,rechazar) => {
+      const almac = ATLASDB.almacen('readonly'), tx = almac.transaction;
+      const lista = [];
+      const req = almac.openCursor(IDBKeyRange.bound(PREFIJO,PREFIJO+'\uffff'));
+      req.onsuccess = () => {
+        const cursor=req.result;
+        if (!cursor) return;
+        const a=cursor.value?.datos?.bruto;
+        if (a && typeof a === 'object') {
+          const normalizada=datosPresentables(a);
+          if (normalizada) lista.push(normalizada);
+        }
+        cursor.continue();
+      };
+      req.onerror=()=>rechazar(req.error||Error('lectura_actividades_fallida'));
+      tx.oncomplete=()=>resolver(lista.sort((a,b)=>b.instante-a.instante ||
+        String(b.actividad.activityId??'').localeCompare(String(a.actividad.activityId??''))));
+      tx.onabort=()=>rechazar(tx.error||Error('lectura_actividades_interrumpida'));
+    });
+  }
+  function recargarOpciones() {
+    const anteriorDeporte = deporteSelect.value, anteriorAnio = anioSelect.value;
+    const porDeporte = new Map();
+    const anios = new Set();
+    for (const fila of actividades) {
+      if (!porDeporte.has(fila.deporte)) porDeporte.set(fila.deporte,tipoDeporte(fila.actividad));
+      anios.add(fila.local.getFullYear());
+    }
+    const deportes = [...porDeporte].sort((a,b)=>a[1].nombre.localeCompare(b[1].nombre,'es') ||
+      a[0].localeCompare(b[0]));
+    deporteSelect.replaceChildren(new Option('🏅 Todos los deportes',''),
+      ...deportes.map(([clave,d])=>new Option(d.emoji+' '+d.nombre,clave)));
+    anioSelect.replaceChildren(new Option('Todo',''),
+      ...[...anios].sort((a,b)=>b-a).map(a=>new Option(String(a),String(a))));
+    deporteSelect.value = porDeporte.has(anteriorDeporte) ? anteriorDeporte : '';
+    anioSelect.value = anios.has(Number(anteriorAnio)) && anteriorAnio ? anteriorAnio : '';
+  }
+  function kmsTexto(km) {
+    return km.toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:2});
+  }
+  function representar() {
+    if (!leido) return;
+    const dep=deporteSelect.value, anio=anioSelect.value;
+    const busqueda=buscar.value.trim().toLocaleLowerCase('es');
+    const visibles=actividades.filter(fila=>(!dep || fila.deporte===dep) &&
+      (!anio || String(fila.local.getFullYear())===anio) &&
+      (!busqueda || fila.nombre.toLocaleLowerCase('es').includes(busqueda)));
+    if (!visibles.length) {
+      resultados.replaceChildren();
+      estado.textContent = actividades.length
+        ? 'No hay actividades que coincidan con los filtros.'
+        : 'No hay actividades guardadas en este dispositivo.';
+      return;
+    }
+    const porMes=new Map();
+    for (const fila of visibles) {
+      const clave=String(fila.local.getFullYear())+'-'+String(fila.local.getMonth()+1).padStart(2,'0');
+      if (!porMes.has(clave)) porMes.set(clave,[]);
+      porMes.get(clave).push(fila);
+    }
+    const fragmento=document.createDocumentFragment();
+    for (const [mes,filas] of porMes) {
+      const sec=document.createElement('section');sec.className='atlas-actividades__mes';
+      const cabecera=document.createElement('div');cabecera.className='atlas-actividades__mes-cabecera';
+      const titulo=document.createElement('h3');titulo.className='atlas-hoy-seccion__titulo';
+      const anyo=filas[0].local.getFullYear(), numeroMes=filas[0].local.getMonth();
+      titulo.textContent=meses[numeroMes]+' de '+anyo;
+      const cont=document.createElement('span');cont.className='atlas-actividades__contador';
+      const km=filas.reduce((total,fila) => total +
+        (fila.carrera && typeof fila.actividad.distance==='number' &&
+        Number.isFinite(fila.actividad.distance) && fila.actividad.distance>=0
+          ? fila.actividad.distance/1000 : 0),0);
+      cont.textContent=filas.length+' act. · '+kmsTexto(km)+' km';
+      cont.setAttribute('aria-label',filas.length+' actividades; '+kmsTexto(km)+' kilómetros corridos');
+      cabecera.append(titulo,cont);
+      const listado=document.createElement('div');listado.className='atlas-actividades__lista';
+      for (const fila of filas) listado.append(compartido.crearFichaExterna(fila.actividad));
+      sec.append(cabecera,listado);fragmento.append(sec);
+    }
+    resultados.replaceChildren(fragmento);
+    compartido.reajustarFichasExternas?.(resultados);
+    estado.textContent='';
+  }
+  async function actualizar() {
+    const n=++secuencia;
+    if (!leido) estado.textContent='Consultando actividades guardadas…';
+    try {
+      const lista=await leerLocales();
+      if (n!==secuencia) return;
+      actividades=lista;
+      leido=true;
+      recargarOpciones();
+      representar();
+    } catch (_) {
+      if (n===secuencia) estado.textContent='No se pudieron leer las actividades locales.';
+    }
+  }
+  deporteSelect.addEventListener('change',representar);
+  anioSelect.addEventListener('change',representar);
+  buscar.addEventListener('input',representar);
+  window.addEventListener('atlas:pestana:abierta',e=>{
+    if (e.detail?.nombre==='actividades') actualizar();
+  });
+  window.addEventListener('atlas:hoy:metricas-actualizadas',()=>{
+    if (!pantalla.hidden) actualizar();
+    else leido=false;
+  });
+})();
+</script>
+
+<script id="atlas-actividad-interior-controlador">
+(() => {
+  'use strict';
+  // Subfase 5.6, incremento 2. Una única vista desde Hoy y Actividades.
+  // Los servicios GPS/vueltas son los ya verificados en 5.4, sin importación masiva.
+  const el = id => document.getElementById(id);
+  const marco = document.querySelector('.atlas-frame');
+  const pagina = el('atlas-actividad-interior');
+  const barra = el('atlas-tabs');
+  const titulo = el('atlas-actividad-interior-titulo');
+  const contexto = el('atlas-actividad-contexto');
+  const contextoDatos = el('atlas-actividad-contexto-datos');
+  const mapa = el('atlas-actividad-mapa');
+  const teselas = el('atlas-actividad-teselas');
+  const ruta = el('atlas-actividad-ruta');
+  const mapaEstado = el('atlas-actividad-mapa-estado');
+  const estado = el('atlas-actividad-estado');
+  const metricas = el('atlas-actividad-metricas');
+  const zapatillas = el('atlas-actividad-zapatillas');
+  const notaVo2 = el('atlas-actividad-nota-vo2');
+  const complementosEstado = el('atlas-actividad-complementos-estado');
+  const etapasEl = el('atlas-actividad-etapas');
+  const vueltasSeccion = el('atlas-actividad-vueltas');
+  const vueltasEstado = el('atlas-actividad-vueltas-estado');
+  const vueltasGrafico = el('atlas-actividad-vueltas-grafico');
+  const vueltasCuerpo = el('atlas-actividad-vueltas-cuerpo');
+  const vueltasTabla = el('atlas-actividad-vueltas-tabla');
+  const compartido = window.ATLASFICHAEXTERNA;
+  let origenScroll = 0;
+  let activo = false;
+  let ticket = 0;
+  let gpsMostrado = null;
+  let mapaVista = null;
+  let rutaPuntos = [];
+  let mapaAnimacion = 0;
+  let animacionZoom = 0;
+  let mapaTeselaNivel = null;
+  const mapaPunteros = new Map();
+  let gestoPellizco = null;
+  let vueltasMostradas = [];
+  let vueltaSeleccionada = -1;
+  const teselasActivas = new Map();
+  const complementoPendiente = new Map();
+  // Se reutiliza la misma clave; el contrato 2 obliga a refrescar registros incompletos anteriores.
+  const CLAVE_COMPLEMENTO = id => 'historico:dato:garmin:complementos_actividad:id%3A'+id;
+  let fasesActuales=[];
+  const fechaFormateada = f => String(f.getDate())+' '+
+    ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'][f.getMonth()]+ ' '+String(f.getFullYear()).slice(-2);
+  const numero = x => typeof x==='number' && Number.isFinite(x) ? x : null;
+  const primerNumero = (...xs) => xs.map(numero).find(x=>x!==null)??null;
+  function datosContexto(a,fecha,complemento=null) {
+    const raw = a?.summaryDTO ?? a;
+    const det = complemento?.detalle ?? {}; 
+    const temp = primerNumero(det.temperatura_c, raw?.avgTemperature, raw?.averageTemperature, raw?.avgTemperatureCelsius,
+      a?.avgTemperature,a?.averageTemperature,a?.avgTemperatureCelsius);
+    // Escala 1-10: Garmin puede guardar directWorkoutRpe multiplicado por diez.
+    const rpeRaw = primerNumero(raw?.directWorkoutRpe,a?.directWorkoutRpe);
+    const rpe = rpeRaw!==null && rpeRaw>=10 && rpeRaw<=100 && rpeRaw%10===0
+      ? rpeRaw/10 : primerNumero(rpeRaw,raw?.rpe,raw?.perceivedEffort,a?.rpe,a?.perceivedEffort);
+    const rpeReal = Number.isInteger(det.rpe) && det.rpe>=1 && det.rpe<=10 ? det.rpe : rpe;
+    const rpeValido = Number.isInteger(rpeReal) && rpeReal>=1 && rpeReal<=10;
+    const feel = primerNumero(det.sensacion,raw?.directWorkoutFeel,a?.directWorkoutFeel);
+    const sensaciones = {0:['😫','Muy débil'],25:['😟','Débil'],50:['😐','Normal'],
+      75:['🙂','Fuerte'],100:['😄','Muy fuerte']};
+    const sensacion = sensaciones[feel]??['😶','—'];
+    return [
+      '🗓️ '+fechaFormateada(fecha)+' · '+fecha.getHours()+':'+String(fecha.getMinutes()).padStart(2,'0'),
+      '🌡️ '+(temp!==null && temp>=-60 && temp<=65
+        ? temp.toLocaleString('es-ES',{minimumFractionDigits:1,maximumFractionDigits:1})+' ºC' : '—'),
+      '💪 '+(rpeValido ? rpeReal+' / 10' : '—'),
+      sensacion[0]+' '+sensacion[1]
+    ];
+  }
+  function ajustarDatosContexto() {
+    if(!activo || !contextoDatos.clientWidth)return;
+    for(let px=15;px>=8;px-=.25){
+      contextoDatos.style.setProperty('--atlas-interior-dato',px+'px');
+      if(contextoDatos.scrollWidth<=contextoDatos.clientWidth+1)break;
+    }
+    if (gpsMostrado) programarMapa();
+  }
+  function ajustarTitulo() {
+    if (!activo || !titulo.clientWidth) return;
+    for (let px=29;px>=9;px-=.5) {
+      titulo.style.setProperty('--atlas-interior-titulo',px+'px');
+      if (titulo.scrollWidth<=titulo.clientWidth+1) break;
+    }
+  }
+
+  // Métricas individuales del resumen de Garmin. No usar el VO₂ global como si fuera
+  // una medición de esta carrera. Los campos inexistentes se muestran con raya.
+  function formatearDecimal(n,decimales=0) {
+    return n.toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:decimales});
+  }
+  function formatearTiempo(segundos) {
+    if(segundos===null || segundos<0)return '—';
+    const n=Math.round(segundos), h=Math.floor(n/3600),m=Math.floor((n%3600)/60),s=n%60;
+    return h? h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'):
+      m+':'+String(s).padStart(2,'0');
+  }
+  function formatearRitmo(segundos) {
+    if(segundos===null||segundos<=0)return '—';
+    return formatearTiempo(segundos);
+  }
+  function metrica(emoji,rotulo,valor,unidad='') {
+    const caja=document.createElement('div');caja.className='atlas-actividad-interior__metrica';
+    if(rotulo==='Ritmo')caja.dataset.metrica='ritmo';
+    const e=document.createElement('span');e.className='atlas-actividad-interior__metrica-emoji';e.textContent=emoji;
+    const t=document.createElement('span');t.className='atlas-actividad-interior__metrica-titulo';t.textContent=rotulo;
+    const v=document.createElement('span');v.className='atlas-actividad-interior__metrica-valor';
+    v.append(document.createTextNode(valor));
+    if(unidad&&valor!=='—') {
+      const u=document.createElement('span');u.className='atlas-actividad-interior__metrica-unidad';
+      u.textContent=' '+unidad;v.append(u);
+    }
+    caja.append(e,t,v);return caja;
+  }
+  function ajustarMetricas() {
+    if(!activo||!metricas.clientWidth)return;
+    const anchoTexto=n=>{
+      const rango=document.createRange();rango.selectNodeContents(n);
+      return rango.getBoundingClientRect().width;
+    };
+    for(let px=12;px>=9;px-=.25){
+      metricas.style.setProperty('--atlas-detalle-rotulo',px+'px');
+      if([...metricas.querySelectorAll('.atlas-actividad-interior__metrica-titulo')]
+        .every(n=>anchoTexto(n)<=n.parentElement.clientWidth-8))break;
+    }
+    // Tamaño ATLAS máximo común. La unidad de Ritmo está debajo, nunca pegada a los divisores.
+    for(let px=18;px>=11;px-=.25){
+      metricas.style.setProperty('--atlas-detalle-valor',px+'px');
+      if([...metricas.querySelectorAll('.atlas-actividad-interior__metrica-valor')]
+        .every(n=>anchoTexto(n)<=n.parentElement.clientWidth-10))break;
+    }
+  }
+  function mostrarMetricas(a,complemento=null) {
+    const raw=a?.summaryDTO??a;
+    const positivo=(...v)=>{const n=primerNumero(...v);return n!==null&&n>=0?n:null;};
+    const d=positivo(raw.distance,a.distance), t=positivo(raw.duration,a.duration);
+    const v=positivo(raw.averageSpeed,a.averageSpeed);
+    const pace=v>0?1000/v:null;
+    const vo2Actividad=positivo(complemento?.detalle?.vo2_actividad,
+      raw.vo2MaxPreciseValue,raw.vO2MaxPreciseValue,
+      a.vo2MaxPreciseValue,a.vO2MaxPreciseValue,raw.vo2MaxValue,raw.vO2MaxValue,
+      a.vo2MaxValue,a.vO2MaxValue);
+    const vo2Dia=positivo(complemento?.vo2_dia?.valor);
+    const vo2=vo2Actividad??vo2Dia;
+    notaVo2.hidden=vo2Actividad!==null || vo2Dia===null;
+    notaVo2.textContent=notaVo2.hidden?'':
+      (complemento?.vo2_dia?.alcance==='ultimo_anterior'
+        ? 'VO₂ máx. de Garmin del '+complemento.vo2_dia.fecha+' (último valor anterior o igual a la actividad); no específico de la carrera.'
+        : 'VO₂ máx. de Garmin del día; no medido exclusivamente en esta actividad.');
+    const datos=[
+      ['🏁','Distancia',d===null?'—':formatearDecimal(d/1000,2),'km'],
+      ['⏱️','Tiempo',formatearTiempo(t)],
+      ['🏃🏻‍♂️','Ritmo',formatearRitmo(pace),'min/km'],
+      ['❤️','FC media',positivo(raw.averageHR,a.averageHR)!==null?formatearDecimal(positivo(raw.averageHR,a.averageHR)):'—','ppm'],
+      ['❤️','FC máx.',positivo(raw.maxHR,a.maxHR)!==null?formatearDecimal(positivo(raw.maxHR,a.maxHR)):'—','ppm'],
+      ['🔥','Calorías',positivo(raw.calories,a.calories)!==null?formatearDecimal(positivo(raw.calories,a.calories)):'—','kcal'],
+      ['⚡','Potencia',positivo(raw.avgPower,a.avgPower)!==null?formatearDecimal(positivo(raw.avgPower,a.avgPower)):'—','W'],
+      ['👟','Cadencia',positivo(raw.averageRunningCadenceInStepsPerMinute,a.averageRunningCadenceInStepsPerMinute)!==null?
+        formatearDecimal(positivo(raw.averageRunningCadenceInStepsPerMinute,a.averageRunningCadenceInStepsPerMinute)):'—','ppm'],
+      ['⛰️','Desnivel',positivo(raw.elevationGain,a.elevationGain)!==null?formatearDecimal(positivo(raw.elevationGain,a.elevationGain)):'—','m'],
+      ['🫁','VO₂ máx.',vo2!==null&&vo2>0&&vo2<100?formatearDecimal(vo2,2):'—']
+    ];
+    metricas.replaceChildren(...datos.map(x=>metrica(...x)));
+    requestAnimationFrame(ajustarMetricas);
+    // Solo se muestran elementos vinculados explícitamente a ESTA actividad.
+    const materiales=Array.isArray(complemento?.material)?complemento.material.filter(x=>
+      x && typeof x.nombre==='string' && x.nombre.length>0):[];
+    zapatillas.hidden=!materiales.length;
+    zapatillas.replaceChildren();
+    if(materiales.length){
+      const n=document.createElement('span');n.textContent='👟 '+materiales.map(x=>x.nombre).join(' · ');
+      n.title=materiales.map(x=>x.nombre).join(' · ');
+      zapatillas.append(n);
+      if(materiales.length===1 && typeof materiales[0].distancia_km==='number' &&
+          Number.isFinite(materiales[0].distancia_km)){
+        const km=document.createElement('strong');
+        km.textContent=materiales[0].distancia_km.toLocaleString('es-ES',
+          {minimumFractionDigits:0,maximumFractionDigits:2})+' km';
+        zapatillas.append(km);
+      }
+    }
+  }
+  // Escala cromática absoluta y fija: 3:30 oscuro; 7:00 claro.
+  function azulRitmo(s) {
+    const p=Math.min(420,Math.max(210,s));
+    return 'hsl(211 100% '+(14+(p-210)/210*72).toFixed(1)+'%)';
+  }
+  function seleccionarVuelta(indice) {
+    vueltaSeleccionada=vueltaSeleccionada===indice?-1:indice;
+    vueltasGrafico.querySelectorAll('.atlas-vueltas__barra').forEach(n=>{
+      n.setAttribute('aria-pressed',String(Number(n.dataset.indice)===vueltaSeleccionada));
+    });
+    vueltasCuerpo.querySelectorAll('tr').forEach(n=>{
+      n.setAttribute('aria-selected',String(Number(n.dataset.indice)===vueltaSeleccionada));
+    });
+  }
+  function ajustarTabla() {
+    if(!activo||!vueltasTabla.clientWidth)return;
+    const cabeceras=[...vueltasTabla.querySelectorAll('th')];
+    const primera=cabeceras[0];
+    if(primera)primera.textContent='Vuelta';
+    // Cabecera y datos independientes: no sacrificar legibilidad numérica por rótulos.
+    const cabe=()=>cabeceras.every(n=>{
+      const rango=document.createRange();rango.selectNodeContents(n);
+      return rango.getBoundingClientRect().width<=n.clientWidth-2;
+    });
+    let cabeBien=false;
+    const maxCabecera=vueltasTabla.clientWidth<=300?10:11;
+    for(let px=maxCabecera;px>=9;px-=.25){
+      vueltasTabla.style.setProperty('--atlas-vuelta-cabecera',px+'px');
+      if(cabe()){cabeBien=true;break;}
+    }
+    if(!cabeBien && primera){
+      primera.textContent='';
+      for(let px=maxCabecera;px>=9;px-=.25){
+        vueltasTabla.style.setProperty('--atlas-vuelta-cabecera',px+'px');
+        if(cabe())break;
+      }
+    }
+    for(let px=12;px>=9;px-=.25){
+      vueltasTabla.style.setProperty('--atlas-vuelta-letra',px+'px');
+      if([...vueltasTabla.querySelectorAll('tbody td')].every(n=>n.scrollWidth<=n.clientWidth+1))break;
+    }
+  }
+  function celda(tr,texto,unidad='',clase='') {
+    const td=document.createElement('td');
+    if(clase)td.className=clase;
+    td.append(document.createTextNode(texto));
+    if(unidad&&texto!=='—'){
+      const u=document.createElement('span');u.className='atlas-vueltas__unidad';u.textContent=' '+unidad;td.append(u);
+    }
+    tr.append(td);
+  }
+  function distanciaVuelta(km) {
+    return km<1 ? [formatearDecimal(km*1000,0),'m'] : [formatearDecimal(km,2),'km'];
+  }
+  // Pasos reales del entrenamiento: sólo asociar a barras con correspondencia verificable.
+  function asociarFases(vueltas,pasos){
+    if(!Array.isArray(pasos)||pasos.length!==vueltas.length)return [];
+    const categorias=['calentamiento','principal','enfriamiento'];
+    if(pasos.some(p=>!categorias.includes(p.fase)))return [];
+    let verificaciones=0,fallos=0;
+    for(let i=0;i<vueltas.length;i++){
+      const paso=pasos[i],v=vueltas[i];
+      if(Number.isFinite(paso.distancia_m)&&paso.distancia_m>0){
+        verificaciones++;if(Math.abs(v.distancia_km*1000-paso.distancia_m)>Math.max(150,paso.distancia_m*.2))fallos++;
+      }else if(Number.isFinite(paso.tiempo_s)&&paso.tiempo_s>0){
+        verificaciones++;if(Math.abs(v.duracion_s-paso.tiempo_s)>Math.max(15,paso.tiempo_s*.2))fallos++;
+      }
+    }
+    // Igual número de vueltas no demuestra que sean los mismos pasos.
+    return verificaciones>=2&&fallos===0?pasos.map(p=>p.fase):[];
+  }
+  function mostrarEtapas(vueltas){
+    etapasEl.replaceChildren();etapasEl.hidden=true;
+    vueltasGrafico.querySelectorAll('.atlas-vueltas__barra').forEach(b=>b.classList.remove('atlas-vueltas__barra--fase'));
+    const asignadas=asociarFases(vueltas,fasesActuales);
+    if(!asignadas.length){
+      if(fasesActuales.length)vueltasEstado.textContent='Garmin identifica etapas del entrenamiento, pero no permite asignarlas con seguridad a estas vueltas.';
+      return;
+    }
+    vueltasEstado.textContent='';
+    const nombres={calentamiento:'Calentamiento',principal:'Bloque principal',enfriamiento:'Enfriamiento'};
+    const fases=[];
+    for(let i=0;i<asignadas.length;i++){
+      if(!fases.length||fases.at(-1).fase!==asignadas[i])fases.push({fase:asignadas[i],desde:i,hasta:i+1});
+      else fases.at(-1).hasta=i+1;
+    }
+    if(fases.length<2)return;
+    const total=vueltas.reduce((sum,v)=>sum+v.distancia_km,0);
+    for(const grupo of fases){
+      const n=document.createElement('span');n.className='atlas-vueltas__etapa';
+      n.textContent=nombres[grupo.fase];n.title=nombres[grupo.fase];
+      // Etiquetas legibles; las fronteras proporcionales se marcan en las barras.
+      etapasEl.append(n);
+      if(grupo.desde>0)vueltasGrafico.querySelectorAll('.atlas-vueltas__barra')[grupo.desde]?.classList.add('atlas-vueltas__barra--fase');
+    }
+    etapasEl.hidden=false;
+  }
+  function mostrarVueltas(lista) {
+    // Suprimir sólo residuos muy cortos al final, sin alterar la numeración de Garmin.
+    const limpias=lista.slice();
+    while(limpias.length>1 && Number.isFinite(limpias.at(-1)?.distancia_km)
+      && limpias.at(-1).distancia_km<=.02001 && limpias.at(-2).distancia_km>=.1)limpias.pop();
+    vueltasMostradas=limpias;vueltaSeleccionada=-1;
+    vueltasSeccion.hidden=false;vueltasEstado.textContent='';
+    const validos=limpias.map(x=>x.ritmo_s_km).filter(x=>Number.isFinite(x)&&x>0);
+    const rapido=validos.length?Math.max(180,Math.floor(Math.min(...validos)/10)*10-20):240;
+    const lento=validos.length?Math.min(450,Math.max(rapido+40,Math.ceil(Math.max(...validos.map(x=>Math.min(x,450)))/10)*10+20)):450;
+    const techo=Math.min(lento-10,rapido);
+    const marcas=document.createElement('div');marcas.className='atlas-vueltas__eje';
+    for(let i=0;i<5;i++){
+      const s=document.createElement('span');
+      s.textContent=formatearRitmo(Math.round((techo+(lento-techo)*i/4)/10)*10);
+      marcas.append(s);
+    }
+    const scroll=document.createElement('div');scroll.className='atlas-vueltas__grafico-scroll';
+    const rejilla=document.createElement('div');rejilla.className='atlas-vueltas__rejilla';
+    for(let i=0;i<5;i++){
+      const linea=document.createElement('span');linea.style.top=(i*25)+'%';
+      rejilla.append(linea);
+    }
+    const barras=document.createElement('div');barras.className='atlas-vueltas__barras';
+    limpias.forEach((lap,i)=>{
+      const b=document.createElement('button');b.type='button';b.className='atlas-vueltas__barra';
+      const ritmo=Number.isFinite(lap.ritmo_s_km)&&lap.ritmo_s_km>0?Math.min(450,lap.ritmo_s_km):null;
+      const fraccion=ritmo===null?.06:Math.max(.06,Math.min(1,(lento-ritmo)/(lento-techo)));
+      b.style.setProperty('--atlas-barra-alto',(100*fraccion)+'%');
+      b.style.setProperty('--atlas-barra-color',ritmo!==null?azulRitmo(ritmo):'#383844');
+      b.style.flexGrow=String(Math.max(.000001,lap.distancia_km));
+      b.dataset.vuelta=String(lap.numero);b.dataset.indice=String(i);
+      b.setAttribute('aria-label','Vuelta '+lap.numero+', ritmo '+formatearRitmo(lap.ritmo_s_km)+' min/km');
+      b.setAttribute('aria-pressed','false');
+      b.addEventListener('click',()=>seleccionarVuelta(i));
+      barras.append(b);
+    });
+    scroll.append(rejilla,barras);vueltasGrafico.replaceChildren(marcas,scroll);
+    // Zoom fluido hasta 8x, vista inicial siempre sin desplazamiento horizontal.
+    let zoom=1,gesto=null;
+    const ajustarZoom=(z,ancla=null,centro=null)=>{
+      zoom=Math.max(1,Math.min(8,z));
+      const vista=scroll.clientWidth;
+      barras.style.width=(vista*zoom)+'px';
+      scroll.classList.toggle('con-zoom',zoom>1.002);
+      const disponible=Math.max(0,scroll.scrollWidth-vista);
+      scroll.scrollLeft=zoom<=1.002?0:ancla===null?Math.min(disponible,scroll.scrollLeft):
+        Math.max(0,Math.min(disponible,ancla*vista*zoom-(centro??vista/2)));
+      // Si son estrechas, ocultar sólo las etiquetas numéricas, nunca la barra.
+      for(const b of barras.children){
+        b.style.setProperty('--atlas-vuelta-etiqueta',b.getBoundingClientRect().width>=15?'visible':'hidden');
+      }
+    };
+    scroll.addEventListener('touchstart',e=>{
+      if(e.touches.length!==2)return;
+      if(e.cancelable)e.preventDefault();
+      const [a,b]=e.touches,centro=(a.clientX+b.clientX)/2-scroll.getBoundingClientRect().left;
+      gesto={dist:Math.max(1,Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)),
+        zoom,ancla:(scroll.scrollLeft+centro)/(scroll.clientWidth*zoom)};
+    },{passive:false});
+    scroll.addEventListener('touchmove',e=>{
+      if(e.touches.length!==2||!gesto)return;
+      if(e.cancelable)e.preventDefault();
+      const [a,b]=e.touches,centro=(a.clientX+b.clientX)/2-scroll.getBoundingClientRect().left;
+      ajustarZoom(gesto.zoom*Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)/gesto.dist,
+        gesto.ancla,centro);
+    },{passive:false});
+    const fin=()=>{gesto=null;};
+    scroll.addEventListener('touchend',fin);scroll.addEventListener('touchcancel',fin);
+    scroll.addEventListener('wheel',e=>{
+      if(!e.ctrlKey&&!e.metaKey)return;
+      e.preventDefault();
+      const centro=e.clientX-scroll.getBoundingClientRect().left;
+      const ancla=(scroll.scrollLeft+centro)/(scroll.clientWidth*zoom);
+      ajustarZoom(zoom*(e.deltaY<0?1.12:1/1.12),ancla,centro);
+    },{passive:false});
+    scroll.addEventListener('dblclick',e=>{
+      e.preventDefault();const c=e.clientX-scroll.getBoundingClientRect().left;
+      const ancla=(scroll.scrollLeft+c)/(scroll.clientWidth*zoom);
+      ajustarZoom(zoom>1.002?1:2,ancla,c);
+    });
+    requestAnimationFrame(()=>ajustarZoom(1));
+    const filas=limpias.map((lap,i)=>{
+      const tr=document.createElement('tr');tr.tabIndex=0;tr.dataset.indice=String(i);
+      tr.setAttribute('aria-selected','false');
+      const desnivel=lap.desnivel_neto_m;
+      celda(tr,String(lap.numero));
+      celda(tr,...distanciaVuelta(lap.distancia_km));
+      celda(tr,formatearTiempo(lap.duracion_s));
+      celda(tr,formatearRitmo(lap.ritmo_s_km),'min/km');
+      celda(tr,lap.fc_media_ppm!==null?formatearDecimal(lap.fc_media_ppm):'—','ppm');
+      celda(tr,desnivel===null?'—':(desnivel>0?'+':'')+formatearDecimal(desnivel),
+        desnivel===null?'':'m',desnivel>0?'atlas-vueltas__desnivel-positivo':
+        desnivel<0?'atlas-vueltas__desnivel-negativo':'');
+      tr.addEventListener('click',()=>seleccionarVuelta(i));
+      tr.addEventListener('keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();seleccionarVuelta(i);}
+      });
+      return tr;
+    });
+    vueltasCuerpo.replaceChildren(...filas);
+    mostrarEtapas(limpias);
+    requestAnimationFrame(ajustarTabla);
+  }
+  function limpiarVueltas() {
+    vueltasMostradas=[];vueltaSeleccionada=-1;vueltasSeccion.hidden=true;
+    etapasEl.hidden=true;etapasEl.replaceChildren();
+    vueltasGrafico.replaceChildren();vueltasCuerpo.replaceChildren();vueltasEstado.textContent='';
+  }
+  function gpsAdmisible(a) {
+    if (a?.hasGPS === false) return false;
+    const tipo=String(a?.activityType?.typeKey??'').toLowerCase();
+    const interiores=['treadmill_running','indoor_running','indoor_cycling','pool_swimming',
+      'lap_swimming','strength_training','fitness_equipment','yoga','pilates','indoor_rowing',
+      'elliptical','stair_stepper','hiit','cardio','padel','paddleball','paddelball','soccer',
+      'football','basketball','tennis','volleyball','squash','badminton'];
+    if (interiores.includes(tipo)) return false;
+    return compartido.deporte(a).esCarrera ||
+      /walking|hiking|cycling|biking|skiing|kayak|paddling|rowing|swimming|climbing/.test(tipo) ||
+      a?.hasGPS === true || a?.hasPolyline === true;
+  }
+  // 5.6.3 — Mapa reconstruido. Misma proyección para teselas y ruta Canvas;
+  // el recorrido nunca depende de qué teselas estén cargadas.
+  function acotar(n,min,max){return Math.min(max,Math.max(min,n));}
+  function mercator(pt){
+    const lat=acotar(pt.lat,-85.05112878,85.05112878)*Math.PI/180;
+    return {x:(pt.lon+180)/360,y:(1-Math.log(Math.tan(lat)+1/Math.cos(lat))/Math.PI)/2};
+  }
+  function limpiarMapa(){
+    gpsMostrado=null;rutaPuntos=[];mapaVista=null;
+    if(mapaAnimacion)cancelAnimationFrame(mapaAnimacion);
+    if(animacionZoom)cancelAnimationFrame(animacionZoom);
+    mapaAnimacion=0;animacionZoom=0;mapaPunteros.clear();gestoPellizco=null;
+    mapa.classList.remove('ampliado');document.body.classList.remove('atlas-mapa-ampliado');
+    el('atlas-mapa-ampliar').textContent='⛶';
+    el('atlas-mapa-ampliar').setAttribute('aria-label','Ampliar mapa');
+    mapa.hidden=true;contexto.classList.remove('con-mapa');
+    teselasActivas.clear();teselas.replaceChildren();mapaEstado.textContent='';
+    const ctx=ruta.getContext('2d');if(ctx)ctx.clearRect(0,0,ruta.width,ruta.height);
+  }
+  function encuadrarRuta(puntos){
+    const ancho=mapa.clientWidth,alto=mapa.clientHeight;
+    if(!ancho||!alto||!puntos?.length)return;
+    rutaPuntos=puntos.map(mercator);
+    let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+    for(const p of rutaPuntos){
+      minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);
+      minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y);
+    }
+    // 16 % de aire en los bordes. Z máximo inicial 16 para rutas muy pequeñas.
+    const escala=Math.min((ancho*.83)/Math.max(.00000001,(maxX-minX)*256),
+      (alto*.83)/Math.max(.00000001,(maxY-minY)*256));
+    mapaVista={x:(minX+maxX)/2,y:(minY+maxY)/2,z:acotar(Math.log2(escala),2,16)};
+    programarMapa();
+  }
+  function programarMapa(){
+    if(!mapaVista||mapa.hidden||mapaAnimacion)return;
+    mapaAnimacion=requestAnimationFrame(()=>{mapaAnimacion=0;pintarMapa();});
+  }
+  function pintarRuta(ancho,alto,escala){
+    const densidad=Math.min(2.5,Math.max(1,window.devicePixelRatio||1));
+    const w=Math.round(ancho*densidad),h=Math.round(alto*densidad);
+    if(ruta.width!==w||ruta.height!==h){ruta.width=w;ruta.height=h;}
+    const ctx=ruta.getContext('2d');if(!ctx)return;
+    ctx.setTransform(densidad,0,0,densidad,0,0);ctx.clearRect(0,0,ancho,alto);
+    if(!rutaPuntos.length)return;
+    const proyectar=p=>({x:ancho/2+(p.x-mapaVista.x)*escala,
+      y:alto/2+(p.y-mapaVista.y)*escala});
+    ctx.beginPath();
+    for(let i=0;i<rutaPuntos.length;i++){
+      const p=proyectar(rutaPuntos[i]);
+      if(i===0)ctx.moveTo(p.x,p.y);else ctx.lineTo(p.x,p.y);
+    }
+    ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.strokeStyle='rgba(255,255,255,.9)';ctx.lineWidth=6;ctx.stroke();
+    ctx.strokeStyle='#0a84ff';ctx.lineWidth=3.8;ctx.stroke();
+    for(const [p,color] of [[rutaPuntos[0],'#30d158'],[rutaPuntos.at(-1),'#ff453a']]){
+      const v=proyectar(p);
+      ctx.beginPath();ctx.arc(v.x,v.y,5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+      ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+    }
+  }
+  function pintarTeselas(ancho,alto,escala){
+    // Teselas de más definición en pantallas retina, sin pedir zooms ajenos a la vista.
+    const retina=window.devicePixelRatio>=1.5?.65:0;
+    const nivel=acotar(Math.ceil(mapaVista.z+retina),0,19);
+    const n=2**nivel, lado=escala/n;
+    const centroX=mapaVista.x*n,centroY=mapaVista.y*n;
+    const xmin=Math.floor(centroX-ancho/(2*lado));
+    const xmax=Math.floor(centroX+ancho/(2*lado));
+    const ymin=Math.max(0,Math.floor(centroY-alto/(2*lado)));
+    const ymax=Math.min(n-1,Math.floor(centroY+alto/(2*lado)));
+    const deseadas=new Set();
+    for(let xx=xmin;xx<=xmax;xx++)for(let yy=ymin;yy<=ymax;yy++){
+      const key=nivel+'/'+xx+'/'+yy;
+      deseadas.add(key);
+      let meta=teselasActivas.get(key);
+      if(!meta){
+        const img=document.createElement('img');
+        img.alt='';img.draggable=false;img.decoding='async';img.loading='eager';
+        meta={img,z:nivel,x:xx,y:yy,cargada:false,error:false};
+        teselasActivas.set(key,meta);teselas.append(img);
+        img.onload=()=>{meta.cargada=true;img.classList.add('atlas-tesela-cargada');
+          programarMapa();};
+        img.onerror=()=>{meta.error=true;img.style.display='none';programarMapa();};
+        img.src='https://tile.openstreetmap.org/'+nivel+'/'+((xx%n+n)%n)+'/'+yy+'.png';
+      }
+    }
+    const espera=[...deseadas].some(k=>{
+      const m=teselasActivas.get(k);return m&&!m.cargada&&!m.error;
+    });
+    // Mantener las teselas anteriores mientras entran las nuevas; re-proyectarlas
+    // a la misma escala evita que el mapa se vacíe en cada gesto.
+    for(const [key,m] of teselasActivas){
+      const esActual=deseadas.has(key);
+      const tolerable=Math.abs(m.z-nivel)<=2;
+      if(!esActual && (!espera || !tolerable)){
+        m.img.remove();teselasActivas.delete(key);continue;
+      }
+      const ladoViejo=escala/2**m.z;
+      const px=ancho/2+(m.x/(2**m.z)-mapaVista.x)*escala;
+      const py=alto/2+(m.y/(2**m.z)-mapaVista.y)*escala;
+      const dentro=px+ladoViejo>=0 && px<=ancho && py+ladoViejo>=0 && py<=alto;
+      if(!dentro && !esActual){m.img.remove();teselasActivas.delete(key);continue;}
+      m.img.style.left=px+'px';m.img.style.top=py+'px';
+      m.img.style.width=(ladoViejo+.7)+'px';m.img.style.height=(ladoViejo+.7)+'px';
+      m.img.style.zIndex=esActual?'2':'1';
+    }
+    mapaTeselaNivel=nivel;
+  }
+  function pintarMapa(){
+    if(!mapaVista||mapa.hidden)return;
+    const ancho=mapa.clientWidth,alto=mapa.clientHeight;
+    if(!ancho||!alto)return;
+    const escala=256*2**mapaVista.z;
+    pintarTeselas(ancho,alto,escala);
+    pintarRuta(ancho,alto,escala);
+  }
+  function mostrarMapa(puntos){
+    gpsMostrado=puntos;
+    mapa.hidden=false;contexto.classList.add('con-mapa');
+    requestAnimationFrame(()=>encuadrarRuta(puntos));
+  }
+  function coordPuntero(e){
+    const r=mapa.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};
+  }
+  function cancelarZoomAnimado(){
+    if(animacionZoom)cancelAnimationFrame(animacionZoom);
+    animacionZoom=0;
+  }
+  function cambiarZoom(delta,localX,localY){
+    if(!mapaVista)return;
+    cancelarZoomAnimado();
+    const w=mapa.clientWidth,h=mapa.clientHeight;
+    const px=localX??w/2,py=localY??h/2;
+    const inicio={...mapaVista};
+    const fin=acotar(inicio.z+delta,2,19);
+    const anclaX=inicio.x+(px-w/2)/(256*2**inicio.z);
+    const anclaY=inicio.y+(py-h/2)/(256*2**inicio.z);
+    const t0=performance.now(),duracion=290;
+    function avanzar(t){
+      if(!mapaVista)return;
+      const a=acotar((t-t0)/duracion,0,1),suave=a*a*(3-2*a);
+      mapaVista.z=inicio.z+(fin-inicio.z)*suave;
+      const escala=256*2**mapaVista.z;
+      mapaVista.x=anclaX-(px-w/2)/escala;
+      mapaVista.y=acotar(anclaY-(py-h/2)/escala,0,1);
+      programarMapa();
+      if(a<1)animacionZoom=requestAnimationFrame(avanzar);else animacionZoom=0;
+    }
+    animacionZoom=requestAnimationFrame(avanzar);
+  }
+  function iniciarPellizco(){
+    if(mapaPunteros.size!==2||!mapaVista)return;
+    cancelarZoomAnimado();
+    const [a,b]=[...mapaPunteros.values()];
+    const medio={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+    gestoPellizco={d:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),z:mapaVista.z,
+      x:mapaVista.x+(medio.x-mapa.clientWidth/2)/(256*2**mapaVista.z),
+      y:mapaVista.y+(medio.y-mapa.clientHeight/2)/(256*2**mapaVista.z)};
+  }
+  mapa.addEventListener('pointerdown',e=>{
+    if(e.target.closest('button,a')||!mapaVista)return;
+    cancelarZoomAnimado();
+    mapa.setPointerCapture(e.pointerId);
+    mapaPunteros.set(e.pointerId,coordPuntero(e));
+    if(mapaPunteros.size===2)iniciarPellizco();
+  });
+  mapa.addEventListener('pointermove',e=>{
+    if(!mapaVista||!mapaPunteros.has(e.pointerId))return;
+    const anterior=mapaPunteros.get(e.pointerId),actual=coordPuntero(e);
+    mapaPunteros.set(e.pointerId,actual);
+    if(mapaPunteros.size===1){
+      const esc=256*2**mapaVista.z;
+      mapaVista.x-=(actual.x-anterior.x)/esc;
+      mapaVista.y=acotar(mapaVista.y-(actual.y-anterior.y)/esc,0,1);
+    }else if(mapaPunteros.size===2&&gestoPellizco){
+      const [a,b]=[...mapaPunteros.values()];
+      const medio={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+      const dist=Math.max(1,Math.hypot(a.x-b.x,a.y-b.y));
+      mapaVista.z=acotar(gestoPellizco.z+Math.log2(dist/gestoPellizco.d),2,19);
+      const esc=256*2**mapaVista.z;
+      mapaVista.x=gestoPellizco.x-(medio.x-mapa.clientWidth/2)/esc;
+      mapaVista.y=acotar(gestoPellizco.y-(medio.y-mapa.clientHeight/2)/esc,0,1);
+    }
+    programarMapa();
+  });
+  function terminarPuntero(e){
+    mapaPunteros.delete(e.pointerId);
+    if(mapaPunteros.size===2)iniciarPellizco();else gestoPellizco=null;
+  }
+  mapa.addEventListener('pointerup',terminarPuntero);
+  mapa.addEventListener('pointercancel',terminarPuntero);
+  mapa.addEventListener('lostpointercapture',terminarPuntero);
+  mapa.addEventListener('wheel',e=>{
+    if(!mapaVista)return;
+    e.preventDefault();const p=coordPuntero(e);
+    cambiarZoom(e.deltaY<0?.45:-.45,p.x,p.y);
+  },{passive:false});
+  mapa.addEventListener('dblclick',e=>{
+    if(!mapaVista||e.target.closest('button'))return;
+    e.preventDefault();const p=coordPuntero(e);cambiarZoom(1,p.x,p.y);
+  });
+  el('atlas-mapa-acercar').addEventListener('click',()=>cambiarZoom(1));
+  el('atlas-mapa-alejar').addEventListener('click',()=>cambiarZoom(-1));
+  function alternarAmpliado(){
+    if(!mapaVista)return;
+    const abierto=mapa.classList.toggle('ampliado');
+    document.body.classList.toggle('atlas-mapa-ampliado',abierto);
+    const boton=el('atlas-mapa-ampliar');
+    boton.textContent=abierto?'✕':'⛶';
+    boton.setAttribute('aria-label',abierto?'Cerrar mapa ampliado':'Ampliar mapa');
+    requestAnimationFrame(programarMapa);
+  }
+  el('atlas-mapa-ampliar').addEventListener('click',alternarAmpliado);
+
+  function mensajeGPS(resultado) {
+    const estados={sin_configurar:'GPS pendiente: configura Garmin en Ajustes.',
+      actividad_no_guardada:'No se encontró la actividad guardada.',
+      gps_no_interpretable:'Garmin respondió, pero no pudo interpretarse el GPS.',
+      cache_no_interpretable:'El GPS local no pudo interpretarse.',
+      worker_no_actualizado:'El Worker no ofrece todavía el servicio GPS.',
+      limite:'Límite de Garmin; puedes reintentar abriendo otra vez esta actividad.'};
+    return estados[resultado?.estado]||'Recorrido GPS no disponible en esta actividad.';
+  }
+  // Consulta bajo demanda y caché limitada: detalle, GPS y vueltas se resuelven
+  // independientemente. La ausencia de un dato no bloquea a los demás.
+  function refrescarContextoActividad(a,comp=null){
+    const fecha=compartido.fechaLocal(a.startTimeLocal??a.startTimeGMT)?.fecha;
+    if(!fecha)return;
+    contextoDatos.replaceChildren();
+    for(const [i,valor] of datosContexto(a,fecha,comp).entries()){
+      const linea=document.createElement('span');linea.textContent=valor;
+      if(i===0)linea.className='atlas-interior-fecha-hora';
+      contextoDatos.append(linea);
+    }
+    mostrarMetricas(a,comp);
+    requestAnimationFrame(ajustarDatosContexto);
+  }
+  async function complementoLocal(id){
+    const r=await ATLASDB.leer(CLAVE_COMPLEMENTO(id));
+    const datos=r?.datos;
+    if(datos?.bruto?.estado!=='ok'||datos.bruto.id!==id||datos.bruto.contrato!==2)return null;
+    return {dato:datos.bruto,consultado:datos.consultado||0};
+  }
+  function mostrarDiagnosticoComp(datos){
+    const d=datos?.diagnostico??{};
+    const faltan=[];
+    if(datos?.detalle?.temperatura_c==null)faltan.push('temperatura');
+    if(datos?.detalle?.rpe==null)faltan.push('RPE');
+    if(datos?.detalle?.sensacion==null)faltan.push('sensaciones');
+    if(datos?.detalle?.vo2_actividad==null&&datos?.vo2_dia==null)faltan.push('VO₂');
+    if(!datos?.material?.length)faltan.push('zapatillas');
+    if(!faltan.length){complementosEstado.hidden=true;complementosEstado.textContent='';return;}
+    const fuentes=[['oficial',d.oficial],['privada',d.privada],['material',d.material],['VO₂',d.vo2]]
+      .filter(x=>typeof x[1]==='string'&&x[1]!=='ok').map(x=>x[0]+' '+x[1]);
+    complementosEstado.hidden=false;
+    complementosEstado.textContent='Garmin no ha proporcionado: '+faltan.join(', ')+'.'+
+      (fuentes.length?' Diagnóstico: '+fuentes.join(' · ')+'.':'')+
+      ' Comprueba que el Worker sea v0.53 y que ambas fuentes estén autorizadas.';
+  }
+  async function cargarComplementos(a,id,token){
+    let local=null;
+    try{local=await complementoLocal(id);}catch{}
+    if(token!==ticket)return;
+    if(local){
+      refrescarContextoActividad(a,local.dato);
+      fasesActuales=local.dato.etapas??[];
+      if(vueltasMostradas.length)mostrarEtapas(vueltasMostradas);
+      mostrarDiagnosticoComp(local.dato);
+    }
+    // Solo datos completos pueden reutilizar caché larga. Una lectura incompleta se
+    // reintenta al abrir, con un mínimo de 5 minutos para no castigar Garmin.
+    const completo=local?.dato?.detalle?.temperatura_c!=null&&local.dato.detalle.rpe!=null&&
+      local.dato.detalle.sensacion!=null&&
+      (local.dato.detalle.vo2_actividad!=null||local.dato.vo2_dia!=null)&&
+      local.dato.material?.length>0;
+    if(local&&Date.now()-local.consultado<(completo?86400000:300000))return;
+    if(complementoPendiente.has(id)){
+      const anterior=await complementoPendiente.get(id);
+      if(token===ticket&&anterior?.estado==='ok'){
+        refrescarContextoActividad(a,anterior);
+        fasesActuales=anterior.etapas??[];
+        if(vueltasMostradas.length)mostrarEtapas(vueltasMostradas);
+        mostrarDiagnosticoComp(anterior);
+      }
+      return;
+    }
+    const dia=(a.startTimeLocal??a.startTimeGMT??'').slice(0,10);
+    complementosEstado.hidden=false;
+    complementosEstado.textContent='Consultando temperatura, esfuerzo, sensaciones, VO₂ y material…';
+    const tarea=ATLASACCESO.consultarComplementosActividad(id,dia);
+    complementoPendiente.set(id,tarea);
+    let datos;
+    try{datos=await tarea;}catch{datos={estado:'error_conexion'};}
+    finally{complementoPendiente.delete(id);}
+    if(datos?.estado==='ok'&&datos?.id===id&&datos?.contrato===2){
+      try{
+        const anterior=await ATLASDB.leer(CLAVE_COMPLEMENTO(id));
+        const registro={clave:CLAVE_COMPLEMENTO(id),tipo:'historico:dato',origen:'Garmin',
+          datos:{bruto:datos,consultado:Date.now()}};
+        if(anterior)await ATLASDB.actualizar(registro);else await ATLASDB.crear(registro);
+      }catch{}
+      if(token===ticket){
+        refrescarContextoActividad(a,datos);
+        fasesActuales=datos.etapas??[];
+        if(vueltasMostradas.length)mostrarEtapas(vueltasMostradas);
+        mostrarDiagnosticoComp(datos);
+      }
+    }else if(token===ticket){
+      complementosEstado.hidden=false;
+      complementosEstado.textContent='No se pudieron consultar los datos complementarios ('+
+        (datos?.estado||'respuesta_invalida')+'). Comprueba el Worker v0.53, la clave de acceso y la conexión Garmin.';
+    }
+  }
+  async function completar(a,token){
+    const id=Number(a.activityId);
+    if(!Number.isSafeInteger(id)||id<1){estado.textContent='Identificador Garmin no válido.';return;}
+    const tareas=[];
+    if(gpsAdmisible(a)){
+      tareas.push((async()=>{
+        let cache;
+        try {cache=await ATLASGPS.leer(id);}catch{cache={estado:'error_local'};}
+        if(token!==ticket)return;
+        if(cache.estado==='disponible'){mostrarMapa(cache.puntos);return;}
+        estado.textContent='Preparando recorrido GPS…';
+        try {
+          const res=await ATLASGPS.cargar(id);
+          if(token!==ticket)return;
+          if(res.estado==='disponible'){
+            mostrarMapa(res.puntos);estado.textContent='';
+          }else estado.textContent=mensajeGPS(res);
+        }catch{if(token===ticket)estado.textContent='No se pudo obtener el GPS.';}
+      })());
+    }
+    if(compartido.deporte(a).esCarrera){
+      vueltasSeccion.hidden=false;vueltasEstado.textContent='Consultando vueltas…';
+      tareas.push((async()=>{
+        let cache;
+        try {cache=await ATLASVUELTAS.leer(id);}catch{cache={estado:'error_local'};}
+        if(token!==ticket)return;
+        if(cache.estado==='disponible'){mostrarVueltas(cache.vueltas);return;}
+        try {
+          const res=await ATLASVUELTAS.cargar(id);
+          if(token!==ticket)return;
+          if(res.estado==='disponible')mostrarVueltas(res.vueltas);
+          else vueltasEstado.textContent='Vueltas no disponibles ('+res.estado+').';
+        }catch{if(token===ticket)vueltasEstado.textContent='No se pudieron recuperar las vueltas.';}
+      })());
+    }
+    tareas.push(cargarComplementos(a,id,token));
+    await Promise.allSettled(tareas);
+  }
+
+  function abrir(a) {
+    if(activo || !a || !compartido.fechaLocal(a.startTimeLocal??a.startTimeGMT))return;
+    activo=true;ticket++;
+    origenScroll=window.scrollY;
+    const tipo=compartido.deporte(a);
+    const fecha=compartido.fechaLocal(a.startTimeLocal??a.startTimeGMT).fecha;
+    titulo.textContent=tipo.emoji+' '+(typeof a.activityName==='string'&&a.activityName.trim()?a.activityName.trim():tipo.nombre);
+    titulo.style.removeProperty('--atlas-interior-titulo');
+    contextoDatos.replaceChildren();limpiarMapa();limpiarVueltas();fasesActuales=[];
+    complementosEstado.hidden=true;complementosEstado.textContent='';mostrarMetricas(a);
+    for(const [i,valor] of datosContexto(a,fecha).entries()){
+      const linea=document.createElement('span');linea.textContent=valor;
+      if(i===0)linea.className='atlas-interior-fecha-hora';
+      contextoDatos.append(linea);
+    }
+    estado.textContent='';
+    pagina.hidden=false;marco.classList.add('atlas-actividad-abierta');barra.hidden=true;
+    window.scrollTo(0,0);requestAnimationFrame(()=>{ajustarTitulo();ajustarDatosContexto();});
+    void completar(a,ticket);
+  }
+  function cerrar() {
+    if(!activo)return;
+    ++ticket;activo=false;
+    limpiarMapa();limpiarVueltas();pagina.hidden=true;marco.classList.remove('atlas-actividad-abierta');
+    barra.hidden=false;
+    window.dispatchEvent(new Event('resize'));
+    requestAnimationFrame(()=>window.scrollTo({top:origenScroll,left:0,behavior:'instant'}));
+  }
+  document.addEventListener('click',ev=>{
+    const ficha=ev.target.closest?.('.atlas-actividad-externa[role="button"]');
+    if(!ficha || activo)return;
+    const a=compartido.actividadDeFicha(ficha);
+    if(a)abrir(a);
+  });
+  document.addEventListener('keydown',ev=>{
+    if(ev.key!=='Enter'&&ev.key!==' ')return;
+    const ficha=ev.target.closest?.('.atlas-actividad-externa[role="button"]');
+    if(!ficha||activo)return;
+    ev.preventDefault();const a=compartido.actividadDeFicha(ficha);if(a)abrir(a);
+  });
+  el('atlas-actividad-volver').addEventListener('click',cerrar);
+  el('atlas-actividad-volver-abajo').addEventListener('click',cerrar);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&mapa.classList.contains('ampliado')){
+      e.preventDefault();alternarAmpliado();
+    }
+  });
+  window.addEventListener('resize',()=>{
+    if(!activo)return;
+    ajustarTitulo();ajustarDatosContexto();ajustarMetricas();ajustarTabla();if(gpsMostrado)programarMapa();
+  });
+})();
 </script>
 </body></html>
