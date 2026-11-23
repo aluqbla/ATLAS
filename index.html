@@ -363,13 +363,9 @@
   .atlas-actividad-interior__metrica-valor {font-size:var(--atlas-detalle-valor,17px);
     font-weight:740;line-height:1.15;white-space:nowrap;max-width:calc(100% - 7px);letter-spacing:-.025em;}
   .atlas-actividad-interior__metrica-unidad {font-size:.49em;font-weight:550;color:#9999a6;letter-spacing:-.055em;}
-  /* Ritmo conserva min/km, pero respeta una distancia real a ambos divisores. */
+  /* Ritmo: solo el valor; unidad implícita min/km. */
   .atlas-actividad-interior__metrica[data-metrica="ritmo"] .atlas-actividad-interior__metrica-valor {
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    font-size:var(--atlas-detalle-valor,17px);max-width:calc(100% - 10px);letter-spacing:-.03em;
-  }
-  .atlas-actividad-interior__metrica[data-metrica="ritmo"] .atlas-actividad-interior__metrica-unidad {
-    display:block;font-size:9px;line-height:1.1;margin-top:1px;
+    max-width:calc(100% - 12px);
   }
   .atlas-actividad-interior__nota {margin:-12px 0 17px;color:#9b9caa;font-size:11px;line-height:1.35;}
   .atlas-actividad-interior__nota[hidden] {display:none;}
@@ -659,7 +655,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.59 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.60 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1320,8 +1316,13 @@
             d > 0 && t > 0 ? t * 1000 / d : null;
           const ascenso = elevacion(lap, ["elevationGain", "totalAscent"]);
           const descenso = elevacion(lap, ["elevationLoss", "totalDescent"]);
+          const intensidad=String(lap.intensity??lap.lapIntensity??lap.intensityType??
+            lap.intensityDTO?.intensityKey??'').toLowerCase();
+          const faseGarmin=/warm.?up/.test(intensidad)?'calentamiento':
+            /cool.?down/.test(intensidad)?'enfriamiento':
+            /active|recovery|rest|interval/.test(intensidad)?'principal':null;
           vueltas.push({ numero: i + 1, distancia_km: d / 1000, duracion_s: t,
-            ritmo_s_km: ritmo, fc_media_ppm: medida(lap.averageHR),
+            ritmo_s_km: ritmo, fc_media_ppm: medida(lap.averageHR), faseGarmin,
             ascenso_m: ascenso, descenso_m: descenso,
             desnivel_neto_m: ascenso !== null && descenso !== null ? ascenso - descenso : null });
         }
@@ -3999,7 +4000,7 @@
   let vueltaSeleccionada = -1;
   const teselasActivas = new Map();
   const complementoPendiente = new Map();
-  // Se reutiliza la misma clave; el contrato 2 obliga a refrescar registros incompletos anteriores.
+  // Contrato 3: no reutilizar resultados de v0.59 con errores de lectura.
   const CLAVE_COMPLEMENTO = id => 'historico:dato:garmin:complementos_actividad:id%3A'+id;
   let fasesActuales=[];
   const fechaFormateada = f => String(f.getDate())+' '+
@@ -4084,7 +4085,7 @@
       if([...metricas.querySelectorAll('.atlas-actividad-interior__metrica-titulo')]
         .every(n=>anchoTexto(n)<=n.parentElement.clientWidth-8))break;
     }
-    // Tamaño ATLAS máximo común. La unidad de Ritmo está debajo, nunca pegada a los divisores.
+    // Tamaño ATLAS máximo común. Ritmo sólo muestra el valor; conserva márgenes.
     for(let px=18;px>=11;px-=.25){
       metricas.style.setProperty('--atlas-detalle-valor',px+'px');
       if([...metricas.querySelectorAll('.atlas-actividad-interior__metrica-valor')]
@@ -4111,7 +4112,7 @@
     const datos=[
       ['🏁','Distancia',d===null?'—':formatearDecimal(d/1000,2),'km'],
       ['⏱️','Tiempo',formatearTiempo(t)],
-      ['🏃🏻‍♂️','Ritmo',formatearRitmo(pace),'min/km'],
+      ['🏃🏻‍♂️','Ritmo',formatearRitmo(pace)],
       ['❤️','FC media',positivo(raw.averageHR,a.averageHR)!==null?formatearDecimal(positivo(raw.averageHR,a.averageHR)):'—','ppm'],
       ['❤️','FC máx.',positivo(raw.maxHR,a.maxHR)!==null?formatearDecimal(positivo(raw.maxHR,a.maxHR)):'—','ppm'],
       ['🔥','Calorías',positivo(raw.calories,a.calories)!==null?formatearDecimal(positivo(raw.calories,a.calories)):'—','kcal'],
@@ -4197,20 +4198,49 @@
   }
   // Pasos reales del entrenamiento: sólo asociar a barras con correspondencia verificable.
   function asociarFases(vueltas,pasos){
-    if(!Array.isArray(pasos)||pasos.length!==vueltas.length)return [];
-    const categorias=['calentamiento','principal','enfriamiento'];
-    if(pasos.some(p=>!categorias.includes(p.fase)))return [];
-    let verificaciones=0,fallos=0;
-    for(let i=0;i<vueltas.length;i++){
-      const paso=pasos[i],v=vueltas[i];
-      if(Number.isFinite(paso.distancia_m)&&paso.distancia_m>0){
-        verificaciones++;if(Math.abs(v.distancia_km*1000-paso.distancia_m)>Math.max(150,paso.distancia_m*.2))fallos++;
-      }else if(Number.isFinite(paso.tiempo_s)&&paso.tiempo_s>0){
-        verificaciones++;if(Math.abs(v.duracion_s-paso.tiempo_s)>Math.max(15,paso.tiempo_s*.2))fallos++;
+    // Prioridad: categoría Garmin explícita de cada vuelta (si el origen la conserva).
+    const directas=vueltas.map(v=>v.faseGarmin);
+    if(directas.every(x=>x&&['calentamiento','principal','enfriamiento'].includes(x))&&
+        directas.some(x=>x!=='principal'))return directas;
+    if(!Array.isArray(pasos)||!pasos.length)return [];
+    if(pasos.length===vueltas.length){
+      let verificaciones=0,fallos=0;
+      for(let i=0;i<vueltas.length;i++){
+        const p=pasos[i],v=vueltas[i];
+        if(Number.isFinite(p.distancia_m)&&p.distancia_m>0){
+          verificaciones++;if(Math.abs(v.distancia_km*1000-p.distancia_m)>Math.max(100,p.distancia_m*.12))fallos++;
+        }else if(Number.isFinite(p.tiempo_s)&&p.tiempo_s>0){
+          verificaciones++;if(Math.abs(v.duracion_s-p.tiempo_s)>Math.max(12,p.tiempo_s*.12))fallos++;
+        }
       }
+      if(verificaciones>=2&&fallos===0)return pasos.map(x=>x.fase);
     }
-    // Igual número de vueltas no demuestra que sean los mismos pasos.
-    return verificaciones>=2&&fallos===0?pasos.map(p=>p.fase):[];
+    // Entrenamientos por bloques: acumular distancias de pasos, cruzando sus límites
+    // con vueltas. Sólo si TODOS los pasos son por distancia y cubren la actividad.
+    if(pasos.some(p=>!Number.isFinite(p.distancia_m)||p.distancia_m<=0))return [];
+    const totalPasos=pasos.reduce((s,p)=>s+p.distancia_m,0);
+    const totalVueltas=vueltas.reduce((s,v)=>s+v.distancia_km*1000,0);
+    if(Math.abs(totalPasos-totalVueltas)>Math.max(180,totalPasos*.025))return [];
+    const fronteras=[];let metros=0;
+    for(let i=0;i<pasos.length;i++){
+      metros+=pasos[i].distancia_m;
+      if(i<pasos.length-1&&pasos[i].fase!==pasos[i+1].fase)fronteras.push(metros);
+    }
+    let acumulado=0;const salidas=[];
+    for(const vuelta of vueltas){
+      const desde=acumulado,hasta=acumulado+vuelta.distancia_km*1000;
+      const medio=(desde+hasta)/2;acumulado=hasta;
+      // No atribuir fases a vueltas que crucen una frontera real de etapa.
+      if(fronteras.some(f=>f>desde+80&&f<hasta-80))return [];
+      let longitud=0,fase=null;
+      for(const p of pasos){
+        if(medio>=longitud-5&&medio<longitud+p.distancia_m+5){fase=p.fase;break;}
+        longitud+=p.distancia_m;
+      }
+      if(!fase)return [];
+      salidas.push(fase);
+    }
+    return salidas.some(x=>x!=='principal')?salidas:[];
   }
   function mostrarEtapas(vueltas){
     etapasEl.replaceChildren();etapasEl.hidden=true;
@@ -4600,7 +4630,7 @@
   async function complementoLocal(id){
     const r=await ATLASDB.leer(CLAVE_COMPLEMENTO(id));
     const datos=r?.datos;
-    if(datos?.bruto?.estado!=='ok'||datos.bruto.id!==id||datos.bruto.contrato!==2)return null;
+    if(datos?.bruto?.estado!=='ok'||datos.bruto.id!==id||datos.bruto.contrato!==3)return null;
     return {dato:datos.bruto,consultado:datos.consultado||0};
   }
   function mostrarDiagnosticoComp(datos){
@@ -4635,7 +4665,7 @@
       local.dato.detalle.sensacion!=null&&
       (local.dato.detalle.vo2_actividad!=null||local.dato.vo2_dia!=null)&&
       local.dato.material?.length>0;
-    if(local&&Date.now()-local.consultado<(completo?86400000:300000))return;
+    if(local&&Date.now()-local.consultado<(completo?86400000:30000))return;
     if(complementoPendiente.has(id)){
       const anterior=await complementoPendiente.get(id);
       if(token===ticket&&anterior?.estado==='ok'){
@@ -4654,7 +4684,7 @@
     let datos;
     try{datos=await tarea;}catch{datos={estado:'error_conexion'};}
     finally{complementoPendiente.delete(id);}
-    if(datos?.estado==='ok'&&datos?.id===id&&datos?.contrato===2){
+    if(datos?.estado==='ok'&&datos?.id===id&&datos?.contrato===3){
       try{
         const anterior=await ATLASDB.leer(CLAVE_COMPLEMENTO(id));
         const registro={clave:CLAVE_COMPLEMENTO(id),tipo:'historico:dato',origen:'Garmin',
@@ -4670,7 +4700,7 @@
     }else if(token===ticket){
       complementosEstado.hidden=false;
       complementosEstado.textContent='No se pudieron consultar los datos complementarios ('+
-        (datos?.estado||'respuesta_invalida')+'). Comprueba el Worker v0.53, la clave de acceso y la conexión Garmin.';
+        (datos?.estado||'respuesta_invalida')+'). Comprueba el Worker v0.54, la clave de acceso y la conexión Garmin.';
     }
   }
   async function completar(a,token){
