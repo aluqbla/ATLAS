@@ -408,16 +408,17 @@
   .atlas-vueltas__barra[aria-pressed="true"]::after {color:#fff;font-weight:750;}
   .atlas-vueltas__barra:focus-visible {outline:2px solid var(--atlas-blue);}
   .atlas-vueltas__tabla {width:100%;border-collapse:collapse;table-layout:fixed;
-    font-size:var(--atlas-vuelta-letra,11px);font-variant-numeric:tabular-nums;}
-  .atlas-vueltas__tabla th {color:#9e9fa9;font-weight:650;font-size:var(--atlas-vuelta-cabecera,11px);
-    border-bottom:2px solid #373740;
-    padding:6px 1px;text-align:center;white-space:nowrap;}
-  .atlas-vueltas__tabla td {padding:8px 1px;text-align:center;white-space:nowrap;
-    border-bottom:2px solid #24242a;font-weight:640;}
+    font-size:var(--atlas-vuelta-letra,13px);font-variant-numeric:tabular-nums;}
+  .atlas-vueltas__tabla th {color:#a9aab5;font-weight:700;font-size:var(--atlas-vuelta-cabecera,13px);
+    border:0;padding:8px 1px;text-align:center;white-space:nowrap;letter-spacing:-.025em;}
+  /* 5.6.3 — Cada vuelta tiene una línea SOBRE sus datos: también la primera y
+     la última. Nunca debajo de la última. Se aplica igual en cada bloque. */
+  .atlas-vueltas__tabla td {padding:10px 1px;text-align:center;white-space:nowrap;
+    border:0;border-top:2px solid #32323b;font-weight:670;}
   .atlas-vueltas__tabla tbody tr {cursor:pointer;}
   .atlas-vueltas__tabla tbody tr[aria-selected="true"] {background:rgba(10,132,255,.22);}
   .atlas-vueltas__tabla tbody tr:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:-2px;}
-  .atlas-vueltas__unidad {color:#9898a4;font-size:.70em;font-weight:520;letter-spacing:-.045em;}
+  .atlas-vueltas__unidad {color:#a5a5af;font-size:.73em;font-weight:520;letter-spacing:-.045em;}
   /* 5.6 — Tres grupos en tabla, con cabeceras repetidas y selector solo del principal. */
   .atlas-vueltas__tabla tr[hidden],.atlas-vueltas__tabla thead[hidden] {display:none!important;}
   .atlas-vueltas__tabla tbody tr.atlas-vueltas__bloque,
@@ -439,9 +440,9 @@
     background-position:calc(100% - 13px) calc(50% - 2px),calc(100% - 8px) calc(50% - 2px);
     background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
   .atlas-vueltas__filtro:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:1px;}
-  .atlas-vueltas__tabla tbody tr.atlas-vueltas__cabecera th {border-top:2px solid #373740;
-    border-bottom:2px solid #373740;padding:6px 1px;color:#9e9fa9;text-align:center;
-    font-size:var(--atlas-vuelta-cabecera,11px);font-weight:650;white-space:nowrap;}
+  .atlas-vueltas__tabla tbody tr.atlas-vueltas__cabecera th {border:0;
+    padding:8px 1px;color:#a9aab5;text-align:center;
+    font-size:var(--atlas-vuelta-cabecera,13px);font-weight:700;white-space:nowrap;letter-spacing:-.025em;}
   .atlas-vueltas__desnivel-positivo {color:#ff6257;}
   .atlas-vueltas__desnivel-negativo {color:#30d158;}
   .atlas-vueltas__estado {min-height:18px;color:#a7a8b2;font-size:12px;margin:0 0 10px;}
@@ -679,7 +680,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.63 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.66 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1178,6 +1179,32 @@
         } finally { clearTimeout(limite); }
       }
 
+      // 5.6 — VO2 decimal del FIT original de UNA actividad (lectura privada protegida).
+      async function consultarVo2Fit(id) {
+        if (!Number.isSafeInteger(id) || id < 1) return { estado: 'id_invalido' };
+        const acceso = await registroLocal();
+        if (!acceso) return { estado: 'sin_configurar' };
+        const control = new AbortController();
+        const reloj = setTimeout(() => control.abort(), 65000);
+        try {
+          const respuesta = await fetch(acceso.worker + '/api/actividad/vo2-fit', {
+            method: 'POST', mode: 'cors', credentials: 'omit', cache: 'no-store',
+            redirect: 'error', referrerPolicy: 'no-referrer', signal: control.signal,
+            headers: { Authorization: 'Bearer ' + encodeURIComponent(acceso.clave),
+              'Content-Type': 'application/json' }, body: JSON.stringify({ id })
+          });
+          if (respuesta.status === 404) return { estado: 'worker_no_actualizado' };
+          if (respuesta.status === 401) return { estado: 'no_autorizado' };
+          if (respuesta.status === 403) return { estado: 'origen_no_autorizado' };
+          let datos;
+          try { datos = await respuesta.json(); }
+          catch { return { estado: 'respuesta_invalida' }; }
+          if (respuesta.status !== 200) return { estado: datos?.estado || 'error_servidor' };
+          return { estado: 'recibido', datos };
+        } catch { return { estado: control.signal.aborted ? 'tiempo_agotado' : 'error_red_o_cors' }; }
+        finally { clearTimeout(reloj); }
+      }
+
       // 5.6 — Datos adicionales de UNA actividad. No descarga históricos masivos.
       async function consultarComplementosActividad(id, dia) {
         if (!Number.isSafeInteger(id) || id < 1 ||
@@ -1309,7 +1336,7 @@
         finally { clearTimeout(limite); }
       }
       return Object.freeze({ configurar, estado, verificar, solicitarSiguiente, solicitarResumenRapido,
-        consultarVueltas, consultarGPS, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
+        consultarVueltas, consultarGPS, consultarVo2Fit, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
     })();
 
     // 5.4 — Servicio de vueltas por actividad. Listo para invocarse automáticamente al abrir
@@ -1429,7 +1456,9 @@
         if (!guardado) return { estado: "pendiente" };
         const puntos = validar(id, guardado.datos?.bruto);
         if (!puntos) return { estado: "cache_no_interpretable" };
-        return { estado: "disponible", origen: "local", puntos };
+        const fit = guardado.datos?.bruto?.vo2_fit;
+        return { estado: "disponible", origen: "local", puntos,
+          vo2_fit: typeof fit === 'number' && Number.isFinite(fit) && fit >= 15 && fit <= 95 ? fit : null };
       }
       async function cargar(id) {
         if (!Number.isSafeInteger(id) || id < 1) return { estado: "id_invalido" };
@@ -1449,6 +1478,9 @@
             actual => Boolean(validar(id, actual?.datos?.bruto)));
           if (guardado === "conservado") return leer(id);
           return { estado: "disponible", origen: "garmin", puntos,
+            vo2_fit: typeof obtenido.datos.vo2_fit === 'number' &&
+              Number.isFinite(obtenido.datos.vo2_fit) && obtenido.datos.vo2_fit >= 15 &&
+              obtenido.datos.vo2_fit <= 95 ? obtenido.datos.vo2_fit : null,
             bytes: obtenido.datos.bytes_origen ?? null };
         })();
         pendientes.set(id, tarea);
@@ -4030,6 +4062,9 @@
   const complementoPendiente = new Map();
   // Contrato 3: no reutilizar resultados de v0.59 con errores de lectura.
   const CLAVE_COMPLEMENTO = id => 'historico:dato:garmin:complementos_actividad:id%3A'+id;
+  const CLAVE_VO2_FIT = id => 'historico:dato:privada:vo2_fit:id%3A'+id;
+  let vo2FitActual = null;
+  const vo2FitValido = v => typeof v === 'number' && Number.isFinite(v) && v >= 15 && v <= 95;
   let fasesActuales=[];
   let actividadActual=null;
   let filtroBloquePrincipal='todo';
@@ -4140,7 +4175,9 @@
       a.vo2MaxPreciseValue,a.vO2MaxPreciseValue,raw.vo2MaxValue,raw.vO2MaxValue,
       a.vo2MaxValue,a.vO2MaxValue);
     const vo2Dia=positivo(complemento?.vo2_dia?.valor);
-    const vo2=vo2Actividad??vo2Dia;
+    const vo2Fit=vo2FitActual?.id===Number(a.activityId)&&vo2FitValido(vo2FitActual.valor)
+      ? vo2FitActual.valor : null;
+    const vo2=vo2Fit??vo2Actividad??vo2Dia;
     // La procedencia se conserva en datos locales, sin notas en la ficha deportiva.
     notaVo2.hidden=true;notaVo2.textContent='';
     const datos=[
@@ -4154,7 +4191,9 @@
       ['👟','Cadencia',positivo(raw.averageRunningCadenceInStepsPerMinute,a.averageRunningCadenceInStepsPerMinute)!==null?
         formatearDecimal(positivo(raw.averageRunningCadenceInStepsPerMinute,a.averageRunningCadenceInStepsPerMinute)):'—','ppm'],
       ['⛰️','Desnivel',positivo(raw.elevationGain,a.elevationGain)!==null?formatearDecimal(positivo(raw.elevationGain,a.elevationGain)):'—','m'],
-      ['🫁','VO₂ máx.',vo2!==null&&vo2>0&&vo2<100?formatearDecimal(vo2,2):'—']
+      ['🫁','VO₂ máx.',vo2!==null&&vo2>0&&vo2<100
+        ? vo2Fit!==null ? vo2.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})
+          : formatearDecimal(vo2,2) : '—']
     ];
     metricas.replaceChildren(...datos.map(x=>metrica(...x)));
     requestAnimationFrame(ajustarMetricas);
@@ -4202,7 +4241,7 @@
   }
   function ajustarTabla() {
     if(!activo||!vueltasTabla.clientWidth)return;
-    const cabeceras=[...vueltasTabla.querySelectorAll('thead th, tbody tr.atlas-vueltas__cabecera th')];
+    const cabeceras=[...vueltasTabla.querySelectorAll('thead:not([hidden]) th, tbody tr.atlas-vueltas__cabecera th')];
     const primeras=cabeceras.filter(n=>n.dataset.columna==='vuelta');
     for(const primera of primeras)primera.textContent='Vuelta';
     // Cabecera y datos independientes: no sacrificar legibilidad numérica por rótulos.
@@ -4211,19 +4250,20 @@
       return rango.getBoundingClientRect().width<=n.clientWidth-2;
     });
     let cabeBien=false;
-    const maxCabecera=vueltasTabla.clientWidth<=300?10:11;
-    for(let px=maxCabecera;px>=9;px-=.25){
+    const maxCabecera=13.5;
+    for(let px=maxCabecera;px>=10;px-=.25){
       vueltasTabla.style.setProperty('--atlas-vuelta-cabecera',px+'px');
       if(cabe()){cabeBien=true;break;}
     }
     if(!cabeBien && primeras.length){
+      // El rótulo de la columna de número es el único prescindible, no los datos.
       for(const primera of primeras)primera.textContent='';
-      for(let px=maxCabecera;px>=9;px-=.25){
+      for(let px=maxCabecera;px>=10;px-=.25){
         vueltasTabla.style.setProperty('--atlas-vuelta-cabecera',px+'px');
         if(cabe())break;
       }
     }
-    for(let px=12;px>=9;px-=.25){
+    for(let px=14;px>=10;px-=.25){
       vueltasTabla.style.setProperty('--atlas-vuelta-letra',px+'px');
       if([...vueltasTabla.querySelectorAll('tbody td')].every(n=>n.scrollWidth<=n.clientWidth+1))break;
     }
@@ -4905,7 +4945,8 @@
     if(datos?.detalle?.temperatura_c==null)faltan.push('temperatura');
     if(datos?.detalle?.rpe==null)faltan.push('RPE');
     if(datos?.detalle?.sensacion==null)faltan.push('sensaciones');
-    if(datos?.detalle?.vo2_actividad==null&&datos?.vo2_dia==null)faltan.push('VO₂');
+    if(datos?.detalle?.vo2_actividad==null&&datos?.vo2_dia==null&&
+      !(vo2FitActual?.id===datos?.id&&vo2FitValido(vo2FitActual.valor)))faltan.push('VO₂');
     if(!datos?.material?.length)faltan.push('zapatillas');
     if(!faltan.length){complementosEstado.hidden=true;complementosEstado.textContent='';return;}
     const fuentes=[['oficial',d.oficial],['privada',d.privada],['material',d.material],['VO₂',d.vo2]]
@@ -4915,6 +4956,48 @@
       (fuentes.length?' Diagnóstico: '+fuentes.join(' · ')+'.':'')+
       ' Comprueba los permisos Garmin y que el Worker sea v0.55.';
   }
+  // Preferir el VO2 preciso del FIT de esta actividad. IndexedDB evita redescargas;
+  // cuando el GPS ya está descargándose, aprovechar el mismo FIT y no duplicar peticiones.
+  function pintarVo2Fit(a,id,token,valor){
+    if(token!==ticket || !vo2FitValido(valor))return;
+    vo2FitActual={id,valor};
+    const complementos=complementosEnMemoria.get(id)??null;
+    mostrarMetricas(a,complementos);
+    if(complementos)mostrarDiagnosticoComp(complementos);
+  }
+  async function cargarVo2Fit(a,id,token,tareaGPS){
+    try {
+      const guardado=await ATLASDB.leer(CLAVE_VO2_FIT(id));
+      if(vo2FitValido(guardado?.datos?.valor)){
+        pintarVo2Fit(a,id,token,guardado.datos.valor);
+        return;
+      }
+    } catch {}
+    let valor=null;
+    if(tareaGPS){
+      try {
+        const gps=await tareaGPS;
+        if(vo2FitValido(gps?.vo2_fit))valor=gps.vo2_fit;
+      } catch {}
+    }
+    if(token!==ticket)return;
+    if(valor===null){
+      const respuesta=await ATLASACCESO.consultarVo2Fit(id);
+      if(respuesta?.estado==='recibido' && respuesta.datos?.estado==='ok' &&
+          respuesta.datos?.id===id && respuesta.datos?.fuente==='fit_actividad' &&
+          vo2FitValido(respuesta.datos.vo2_fit))valor=respuesta.datos.vo2_fit;
+    }
+    if(valor===null || token!==ticket)return;
+    // Primero actualizar la ficha; después, guardar para las próximas aperturas.
+    pintarVo2Fit(a,id,token,valor);
+    try {
+      const registro={clave:CLAVE_VO2_FIT(id),tipo:'historico:dato',origen:'privada',
+        datos:{id,valor,fuente:'fit_actividad',consultado:Date.now()}};
+      const anterior=await ATLASDB.leer(CLAVE_VO2_FIT(id));
+      if(anterior)await ATLASDB.actualizar(registro);else await ATLASDB.crear(registro);
+    }catch{}
+  }
+
   async function cargarComplementos(a,id,token){
     let local=null;
     try{local=await complementoLocal(id);}catch{}
@@ -4969,19 +5052,20 @@
     }else if(token===ticket){
       complementosEstado.hidden=false;
       complementosEstado.textContent='No se pudieron consultar los datos complementarios ('+
-        (datos?.estado||'respuesta_invalida')+'). Comprueba el Worker v0.55, la clave de acceso y la conexión Garmin.';
+        (datos?.estado||'respuesta_invalida')+'). Comprueba el Worker v0.56, la clave de acceso y la conexión Garmin.';
     }
   }
   async function completar(a,token){
     const id=Number(a.activityId);
     if(!Number.isSafeInteger(id)||id<1){estado.textContent='Identificador Garmin no válido.';return;}
     const tareas=[];
+    let tareaGPS=null;
     if(gpsAdmisible(a)){
-      tareas.push((async()=>{
+      tareaGPS=(async()=>{
         let cache;
         try {cache=await ATLASGPS.leer(id);}catch{cache={estado:'error_local'};}
         if(token!==ticket)return;
-        if(cache.estado==='disponible'){mostrarMapa(cache.puntos);return;}
+        if(cache.estado==='disponible'){mostrarMapa(cache.puntos);return cache;}
         estado.textContent='Preparando recorrido GPS…';
         try {
           const res=await ATLASGPS.cargar(id);
@@ -4989,10 +5073,13 @@
           if(res.estado==='disponible'){
             mostrarMapa(res.puntos);estado.textContent='';
           }else estado.textContent=mensajeGPS(res);
+          return res;
         }catch{if(token===ticket)estado.textContent='No se pudo obtener el GPS.';}
-      })());
+      })();
+      tareas.push(tareaGPS);
     }
     if(compartido.deporte(a).esCarrera){
+      tareas.push(cargarVo2Fit(a,id,token,tareaGPS));
       vueltasSeccion.hidden=false;vueltasEstado.textContent='Consultando vueltas…';
       tareas.push((async()=>{
         let cache;
@@ -5021,6 +5108,7 @@
     titulo.textContent=tipo.emoji+' '+(typeof a.activityName==='string'&&a.activityName.trim()?a.activityName.trim():tipo.nombre);
     titulo.style.removeProperty('--atlas-interior-titulo');
     contextoDatos.replaceChildren();limpiarMapa();limpiarVueltas();fasesActuales=[];
+    vo2FitActual=null;
     complementosEstado.hidden=true;complementosEstado.textContent='';mostrarMetricas(a);
     for(const [i,valor] of datosContexto(a,fecha).entries()){
       const linea=document.createElement('span');linea.textContent=valor;
