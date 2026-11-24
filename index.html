@@ -207,6 +207,9 @@
   .atlas-ficha-metrica__navegar button:disabled {opacity:.25;cursor:default;}
   .atlas-ficha-metrica__grafica {width:100%;min-height:272px;display:grid;grid-template-columns:42px minmax(0,1fr);gap:0;}
   .atlas-ficha-metrica__eje {position:relative;height:259px;color:#9a9aa7;font-size:10px;}
+  .atlas-ficha-metrica__grafica.is-dual {grid-template-columns:42px minmax(0,1fr) 36px;}
+  .atlas-ficha-metrica__eje--derecho[hidden] {display:none;}
+  .atlas-ficha-metrica__eje--derecho span {left:5px;right:auto!important;}
   .atlas-ficha-metrica__eje span {position:absolute;right:5px;transform:translateY(-50%);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-ficha-metrica__scroll {width:100%;overflow-x:auto;overflow-y:hidden;min-width:0;scrollbar-width:thin;scrollbar-color:#35353d transparent;
     overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
@@ -217,6 +220,15 @@
   .atlas-ficha-metrica__nota {color:#92929f;font-size:11px;line-height:1.42;text-align:center;margin:4px 0 23px;}
   .atlas-ficha-metrica__descripcion {margin:4px 0 0;font-size:13px;line-height:1.55;color:#bfc0cb;text-align:justify;}
   .atlas-ficha-metrica__pie {margin-top:36px;}
+  .atlas-pronosticos-leyenda {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 15px;}
+  .atlas-pronosticos-leyenda button {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:52px;padding:5px 1px;border:0;border-bottom:2px solid var(--serie);border-radius:0;background:transparent;color:var(--serie);font:inherit;cursor:pointer;}
+  .atlas-pronosticos-leyenda button span {font-size:clamp(9px,2.7vw,12px);white-space:nowrap;}
+  .atlas-pronosticos-leyenda button strong {font-size:clamp(11px,3.5vw,16px);font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .atlas-pronosticos-leyenda button[aria-pressed="false"] {opacity:.42;border-bottom-color:transparent;}
+  .atlas-pronosticos-leyenda button:focus-visible {outline:2px solid white;outline-offset:2px;}
+  #atlas-pronosticos-grafica .atlas-ficha-metrica__grafica {grid-template-columns:48px minmax(0,1fr);}
+  #atlas-pronosticos-grafica .atlas-ficha-metrica__seleccion {min-height:22px;}
+
   @media(max-width:360px) {.atlas-ficha-metrica {padding-left:16px;padding-right:16px;}
     .atlas-ficha-metrica__titulo {font-size:27px;}.atlas-ficha-metrica__periodos button {font-size:12px;}}
 
@@ -520,6 +532,7 @@
 <section id="atlas-ficha-metrica" class="atlas-ficha-metrica atlas-pagina-sin-cabecera" aria-label="Detalle de métrica" hidden>
   <button class="atlas-control-icon atlas-atras-superior" id="atlas-ficha-volver" type="button" aria-label="Volver a Hoy" title="Volver"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 4-8 8 8 8"/></svg></button>
   <h2 class="atlas-ficha-metrica__titulo" id="atlas-ficha-titulo"></h2>
+  <div id="atlas-ficha-grafica-comun">
   <div class="atlas-ficha-metrica__periodos" id="atlas-ficha-periodos" aria-label="Periodo histórico">
     <button type="button" data-periodo="7d" aria-pressed="true">7 días</button>
     <button type="button" data-periodo="1m" aria-pressed="false">1 mes</button>
@@ -534,9 +547,11 @@
   <div class="atlas-ficha-metrica__grafica" role="group" aria-label="Gráfica histórica interactiva">
     <div id="atlas-ficha-eje" class="atlas-ficha-metrica__eje" aria-hidden="true"></div>
     <div id="atlas-ficha-scroll" class="atlas-ficha-metrica__scroll"><canvas id="atlas-ficha-canvas" class="atlas-ficha-metrica__canvas" role="img" aria-label="Gráfica histórica interactiva"></canvas></div>
+    <div id="atlas-ficha-eje-derecho" class="atlas-ficha-metrica__eje atlas-ficha-metrica__eje--derecho" aria-hidden="true" hidden></div>
   </div>
   <p id="atlas-ficha-seleccion" class="atlas-ficha-metrica__seleccion" aria-live="polite"></p>
   <p id="atlas-ficha-nota" class="atlas-ficha-metrica__nota"></p>
+  </div>
   <p id="atlas-ficha-descripcion" class="atlas-ficha-metrica__descripcion"></p>
   <button class="atlas-atras-inferior atlas-ficha-metrica__pie" id="atlas-ficha-volver-abajo" type="button">Atrás</button>
 </section>
@@ -589,7 +604,27 @@
   <button id="atlas-actividad-volver-abajo" class="atlas-atras-inferior atlas-actividad-interior__pie" type="button">Atrás</button>
 </section>
 <main class="atlas-view" aria-label="Pestaña Plan, vacía" data-tab="plan" hidden><h2 class="atlas-visually-hidden">Plan</h2></main>
-<main class="atlas-view" aria-label="Pestaña Evolución, vacía" data-tab="evolucion" hidden><h2 class="atlas-visually-hidden">Evolución</h2></main>
+<main class="atlas-view atlas-hoy" aria-label="Pestaña Evolución" data-tab="evolucion" hidden>
+  <div class="atlas-hoy__cabecera"><h2>Evolución</h2></div>
+  <section id="atlas-evolucion-metricas" class="atlas-hoy-metricas atlas-divisiones-cortas" aria-label="Métricas de rendimiento">
+    <button type="button" class="atlas-hoy-metrica" data-metrica="volumen"><span class="atlas-hoy-metrica__emoji" aria-hidden="true">📊</span><span class="atlas-hoy-metrica__rotulo">Volumen</span><span class="atlas-hoy-metrica__dato" id="atlas-evolucion-volumen">—</span><span class="atlas-hoy-metrica__info">7 días</span></button>
+    <button type="button" class="atlas-hoy-metrica" data-metrica="vo2"><span class="atlas-hoy-metrica__emoji" aria-hidden="true">🫁</span><span class="atlas-hoy-metrica__rotulo">VO₂ máx.</span><span class="atlas-hoy-metrica__dato" id="atlas-evolucion-vo2">—</span><span class="atlas-hoy-metrica__info">ml/kg/min</span></button>
+    <button type="button" class="atlas-hoy-metrica" data-metrica="umbral-ritmo" aria-label="Umbral min/km"><span class="atlas-hoy-metrica__emoji" aria-hidden="true">🏃🏻‍♂️</span><span class="atlas-hoy-metrica__rotulo">Umbral</span><span class="atlas-hoy-metrica__dato" id="atlas-evolucion-umbral-ritmo">—</span><span class="atlas-hoy-metrica__info">min/km</span></button>
+    <button type="button" class="atlas-hoy-metrica" data-metrica="umbral-fc" aria-label="Umbral ppm"><span class="atlas-hoy-metrica__emoji" aria-hidden="true">❤️</span><span class="atlas-hoy-metrica__rotulo">Umbral</span><span class="atlas-hoy-metrica__dato" id="atlas-evolucion-umbral-fc">—</span><span class="atlas-hoy-metrica__info">ppm</span></button>
+    <button type="button" class="atlas-hoy-metrica" data-metrica="eficiencia" aria-label="Eficiencia m/latido"><span class="atlas-hoy-metrica__emoji" aria-hidden="true">💨</span><span class="atlas-hoy-metrica__rotulo">Eficiencia</span><span class="atlas-hoy-metrica__dato" id="atlas-evolucion-eficiencia">—</span><span class="atlas-hoy-metrica__info">m/latido</span></button>
+  </section>
+  <p id="atlas-evolucion-estado" class="atlas-hoy-seccion__vacio" role="status" aria-live="polite" hidden></p>
+  <section class="atlas-hoy-seccion" aria-labelledby="atlas-pronosticos-titulo">
+    <h3 class="atlas-hoy-seccion__titulo" id="atlas-pronosticos-titulo">Pronósticos de carrera</h3>
+    <div id="atlas-pronosticos-leyenda" class="atlas-pronosticos-leyenda" aria-label="Distancias visibles">
+      <button type="button" data-pronostico="time5K" aria-pressed="true" style="--serie:#0a84ff"><span>5 km</span><strong>—</strong></button>
+      <button type="button" data-pronostico="time10K" aria-pressed="true" style="--serie:#30d158"><span>10 km</span><strong>—</strong></button>
+      <button type="button" data-pronostico="timeHalfMarathon" aria-pressed="true" style="--serie:#ff9f0a"><span>Media maratón</span><strong>—</strong></button>
+      <button type="button" data-pronostico="timeMarathon" aria-pressed="true" style="--serie:#bf5af2"><span>Maratón</span><strong>—</strong></button>
+    </div>
+    <div id="atlas-pronosticos-grafica"></div>
+  </section>
+</main>
 <main class="atlas-view" aria-label="Pestaña Perfil" data-tab="perfil" hidden>
   <div class="atlas-profile-toolbar"><h2>Perfil</h2>
     <button type="button" id="atlas-abrir-ajustes" class="atlas-control-icon" aria-label="Abrir Ajustes" title="Ajustes"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M9.8 2.7 9.3 5l-2.2 1.2-2.2-.8-2 3.4 1.8 1.6v2.5l-1.8 1.6 2 3.4 2.2-.8L9.3 19l.5 2.3h4.4l.5-2.3 2.2-1.2 2.2.8 2-3.4-1.8-1.6v-2.5l1.8-1.6-2-3.4-2.2.8L14.7 5l-.5-2.3Z"/></svg></button>
@@ -646,11 +681,14 @@
 <summary>Importación detallada anterior (solo para pruebas)</summary>
 <button id="atlas-salud-piloto" type="button">Probar siete días reales</button>
 <button class="secondary" id="atlas-salud-total" type="button">Importar intervalo histórico</button>
+<button class="secondary" id="atlas-salud-vo2" type="button">Importar histórico de VO₂ máx.</button>
+<button class="secondary" id="atlas-salud-umbral" type="button">Importar histórico de umbral</button>
+<button class="secondary" id="atlas-salud-pronosticos" type="button">Importar histórico de pronósticos</button>
 <button class="secondary" disabled="" id="atlas-salud-parar" type="button">Detener tras el lote actual</button>
 <div aria-live="polite" class="estado" id="atlas-salud-estado" role="status">Pendiente de iniciar.</div>
 <div aria-live="polite" class="subestado" id="atlas-salud-resumen">Importación detallada tradicional.</div>
 </details>
-<small>Primero muestra los datos recientes y continúa hacia el pasado mientras ATLAS permanece abierta. No borra ninguna actividad ni respuesta Garmin anterior. El detalle intradía y VO₂ máximo histórico permanecen en la importación anterior hasta definir su uso.</small>
+<small>Primero muestra los datos recientes y continúa hacia el pasado mientras ATLAS permanece abierta. No borra ninguna actividad ni respuesta Garmin anterior. El detalle intradía y el histórico de VO₂ máximo se importan desde el apartado anterior.</small>
 </section>
 
 
@@ -689,7 +727,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.67 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.75 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1634,6 +1672,9 @@
       const hastaEl = document.getElementById("atlas-salud-hasta");
       const pruebaEl = document.getElementById("atlas-salud-piloto");
       const totalEl = document.getElementById("atlas-salud-total");
+      const vo2El = document.getElementById("atlas-salud-vo2");
+      const umbralEl = document.getElementById("atlas-salud-umbral");
+      const pronosticosEl = document.getElementById("atlas-salud-pronosticos");
       const pararEl = document.getElementById("atlas-salud-parar");
       const estadoEl = document.getElementById("atlas-salud-estado");
       const resumenEl = document.getElementById("atlas-salud-resumen");
@@ -1671,28 +1712,36 @@
         hastaEl.disabled = valor;
         pruebaEl.disabled = valor;
         totalEl.disabled = valor;
+        vo2El.disabled = valor;
+        umbralEl.disabled = valor;
+        pronosticosEl.disabled = valor;
         pararEl.disabled = !valor;
       }
-      function intervalos(inicio, fin) {
+      function intervalos(inicio, fin, dias=365) {
         // Cada trabajo respeta el límite de 366 días inclusivos del Worker v0.44.
         const trozos = [];
         let ultimo = fin;
         while (ultimo >= inicio) {
-          const primero = sumarDias(ultimo, -364);
+          const primero = sumarDias(ultimo, 1-dias);
           trozos.push([primero > inicio ? primero : inicio, ultimo]);
           ultimo = sumarDias(trozos[trozos.length - 1][0], -1);
         }
         return trozos;
       }
-      function construirTrabajos(desde, hasta, piloto) {
+      function construirTrabajos(desde, hasta, piloto, soloVO2 = false, soloUmbral = false, soloPronosticos = false) {
         const inicio = piloto ? [desde, sumarDias(hasta, -6)].sort().at(-1) : desde;
         const trabajos = [];
+        if (soloPronosticos) return intervalos(inicio,hasta,28).map(([a,b])=>({ etiqueta: "Pronósticos de carrera", trabajo: { fuente: "privada", familia: "pronosticos_carrera", desde: a, hasta:b } }));
+        if (soloUmbral) return intervalos(inicio,hasta).flatMap(([a,b]) => [["umbral_ritmo_diario", "Ritmo umbral"], ["umbral_fc_diario", "FC umbral"]]
+          .map(([familia, etiqueta]) => ({ etiqueta, trabajo: { fuente: "privada", familia, desde: a, hasta:b } })));
         // Del presente al pasado; los resúmenes de 7 días se extienden a todo el intervalo.
         for (const [a, b] of intervalos(inicio, hasta)) {
           for (const [fuente, familia, etiqueta] of RANGOS) {
+            if (soloVO2 && familia !== "vo2_max") continue;
             trabajos.push({ etiqueta, trabajo: { fuente, familia, desde: a, hasta: b } });
           }
         }
+        if (soloVO2) return trabajos;
         // 90 días recientes como máximo para las series detalladas.
         const inicioDetalle = [inicio, sumarDias(hasta, -89)].sort().at(-1);
         for (const [a, b] of intervalos(inicioDetalle, hasta)) {
@@ -1765,12 +1814,15 @@
           await new Promise(resolve => setTimeout(resolve, 350));
         }
       }
-      async function iniciar(piloto) {
+      async function iniciar(piloto, soloVO2 = false, soloUmbral = false, soloPronosticos = false) {
         if (ocupado) return;
+        if ((soloUmbral || soloPronosticos) && ["atlas-detener", "atlas-sinc-parar", "atlas-inc-detener"].some(id => !document.getElementById(id).disabled)) {
+          mensaje("Finaliza primero la importación que está en marcha."); return;
+        }
         let lista;
         try {
           const { desde, hasta } = consultarRango();
-          lista = construirTrabajos(desde, hasta, piloto);
+          lista = construirTrabajos(desde, hasta, piloto, soloVO2, soloUmbral, soloPronosticos);
         } catch (error) { mensaje(error.message); return; }
         bloquear(true); detener = false;
         const resultado = { lotes: 0, nuevos: 0, existentes: 0, errores: [], completas: 0 };
@@ -1800,12 +1852,20 @@
               " trabajos completados. Incidencias: " + resultado.errores.join("; ") +
               ". Los datos guardados se conservan.");
           } else {
-            mensaje((piloto ? "Prueba real" : "Intervalo histórico") + " completada. " +
+            mensaje((soloPronosticos ? "Importación de pronósticos" : soloUmbral ? "Importación de umbral" : soloVO2 ? "Importación de VO₂ máx." : piloto ? "Prueba real" : "Importación del intervalo histórico") + " completada. " +
               resultado.completas + " trabajos; " + resultado.nuevos +
               " bloques nuevos. Los datos anteriores se conservan.");
           }
           resumenEl.textContent = "Lotes: " + resultado.lotes + "; bloques nuevos: " + resultado.nuevos +
             "; ya existentes: " + resultado.existentes + "; incidencias: " + resultado.errores.length + ".";
+          if (soloPronosticos && window.ATLASresumenPronosticos) {
+            try { resumenEl.textContent += " " + await window.ATLASresumenPronosticos(); }
+            catch { resumenEl.textContent += " No se pudo comprobar la cobertura local."; }
+          }
+          if (soloUmbral && window.ATLASresumenUmbral) {
+            try { resumenEl.textContent += " " + await window.ATLASresumenUmbral(); }
+            catch { resumenEl.textContent += " No se pudo comprobar la cobertura local."; }
+          }
         } catch (error) {
           mensaje("Importación pausada por error: " + String(error?.message || "desconocido").slice(0, 100) +
             ". Los lotes confirmados se conservan.");
@@ -1813,6 +1873,9 @@
       }
       pruebaEl.addEventListener("click", () => iniciar(true));
       totalEl.addEventListener("click", () => iniciar(false));
+      vo2El.addEventListener("click", () => iniciar(false, true));
+      umbralEl.addEventListener("click", () => iniciar(false, false, true));
+      pronosticosEl.addEventListener("click", () => iniciar(false, false, false, true));
       pararEl.addEventListener("click", () => {
         detener = true;
         pararEl.disabled = true;
@@ -2357,7 +2420,7 @@
           return { estado: "otra_operacion" };
         }
         ocupado = true; cancelar = false; boton.disabled = true; detener.disabled = false;
-        const bloqueados = ["atlas-importar", "atlas-sinc-rapida", "atlas-salud-piloto", "atlas-salud-total"]
+        const bloqueados = ["atlas-importar", "atlas-sinc-rapida", "atlas-salud-piloto", "atlas-salud-total", "atlas-salud-umbral", "atlas-salud-pronosticos"]
           .map(id => document.getElementById(id));
         const previos = bloqueados.map(el => el.disabled);
         bloqueados.forEach(el => { el.disabled = true; });
@@ -2413,6 +2476,11 @@
         vfc_resumen: "Resumen de VFC",
         body_battery: "Body Battery",
         vo2_max: "VO₂ máximo",
+        umbral_ritmo: "Ritmo umbral",
+        umbral_fc: "FC umbral",
+        umbral_ritmo_diario: "Ritmo umbral",
+        umbral_fc_diario: "FC umbral",
+        pronosticos_carrera: "Pronósticos de carrera",
         sueno: "Sueño detallado",
         vfc: "VFC detallada",
         pulso_diario: "Frecuencia cardíaca"
@@ -2507,6 +2575,17 @@
         return campo.split(".").reduce((valor, parte) => valor && typeof valor === "object" ? valor[parte] : undefined, obj);
       }
       function camposDisponibles(obj, familia) {
+        if (familia === "pronosticos_carrera") return [["5 km","time5K"],["10 km","time10K"],["Media maratón","timeHalfMarathon"],["Maratón","timeMarathon"]].flatMap(([label,k])=>{
+          const n=obj?.[k];if(typeof n!=="number"||!Number.isFinite(n)||n<=0)return [];
+          const t=Math.round(n),h=Math.floor(t/3600),m=Math.floor(t%3600/60),sec=String(t%60).padStart(2,"0");
+          return [[label,(h?h+":"+String(m).padStart(2,"0"):String(m))+":"+sec]];
+        });
+        if (familia.startsWith("umbral_")) {
+          const raw=obj?.value;if(typeof raw!=="number"||!Number.isFinite(raw)||raw<=0)return [];
+          if(familia.startsWith("umbral_fc"))return raw>=30&&raw<=240?[["FC umbral",Math.round(raw)+" ppm"]]:[];
+          const pace=100/raw;if(pace<120||pace>900)return [];const sec=Math.round(pace);
+          return [["Ritmo umbral",Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0")+" min/km"]];
+        }
         // Garmin puede envolver una respuesta de un día en data/dailySleepDTO.
         const candidatos = [obj];
         if (obj && typeof obj === "object" && !Array.isArray(obj)) {
@@ -2599,7 +2678,8 @@
           if (!antiguo || entrada.meta.dia && !antiguo.meta.dia) seleccion.set(familia, entrada);
         }
         for (const { meta, bruto } of seleccion.values()) {
-          const muestras = meta.dia ? [bruto] : extraerDia(bruto, dia);
+          const esUmbral = meta.familia.startsWith("umbral_");
+          const muestras = esUmbral ? (Array.isArray(bruto)?bruto:[]).filter(x=>String(x?.series).toLowerCase()==="running"&&x.updatedDate===dia) : meta.dia ? [bruto] : extraerDia(bruto, dia);
           if (muestras.length) identificados++;
           else sinIdentificar++;
           const seccion = crear("div", "atlas-ver-familia");
@@ -2624,9 +2704,16 @@
             detalles.appendChild(crear("summary", "", "Ver dato Garmin original de este día"));
             const contenido = JSON.stringify(muestras.length === 1 ? muestras[0] : muestras, null, 2) ?? "null";
             detalles.appendChild(crear("pre", "", contenido.length > 50000 ? contenido.slice(0, 50000) + "\n… (vista recortada)" : contenido));
-            seccion.appendChild(detalles);
+            if (!esUmbral) seccion.appendChild(detalles);
           } else {
             seccion.appendChild(crear("p", "atlas-ver-nota", "Existe una respuesta para este intervalo, pero no se puede atribuir con certeza un valor a la fecha seleccionada."));
+          }
+          if (esUmbral) {
+            const detalles = crear("details", "atlas-ver-detalles");
+            detalles.appendChild(crear("summary", "", "Ver respuesta Garmin de la ventana"));
+            const texto = JSON.stringify(bruto, null, 2) ?? "null";
+            detalles.appendChild(crear("pre", "", texto.length > 50000 ? texto.slice(0, 50000) + "\n… (vista recortada)" : texto));
+            seccion.appendChild(detalles);
           }
           salida.appendChild(seccion);
         }
@@ -2961,20 +3048,22 @@
     return {texto:"Malo", color:"#ff453a"};
   }
   // Un solo tamaño ATLAS por fila, medido contra los cinco datos reales.
-  function ajustarTamanoMetricas() {
-    if (!CONTENEDOR_METRICAS || !CONTENEDOR_METRICAS.clientWidth) return;
+  function ajustarFilaMetricas(contenedor) {
+    if (!contenedor || !contenedor.clientWidth) return;
     let dato=19, rotulo=12, info=10.5;
     for (let i=0; i<26; i++) {
-      CONTENEDOR_METRICAS.style.setProperty("--atlas-metrica-dato", dato.toFixed(1)+"px");
-      CONTENEDOR_METRICAS.style.setProperty("--atlas-metrica-rotulo",rotulo.toFixed(1)+"px");
-      CONTENEDOR_METRICAS.style.setProperty("--atlas-metrica-info",info.toFixed(1)+"px");
-      const desborde = [...CONTENEDOR_METRICAS.querySelectorAll(
+      contenedor.style.setProperty("--atlas-metrica-dato", dato.toFixed(1)+"px");
+      contenedor.style.setProperty("--atlas-metrica-rotulo",rotulo.toFixed(1)+"px");
+      contenedor.style.setProperty("--atlas-metrica-info",info.toFixed(1)+"px");
+      const desborde = [...contenedor.querySelectorAll(
         ".atlas-hoy-metrica__rotulo,.atlas-hoy-metrica__dato,.atlas-hoy-metrica__info")]
         .some(el=>el.scrollWidth > el.clientWidth);
       if (!desborde) break;
       dato=Math.max(10,dato-.4);rotulo=Math.max(9,rotulo-.2);info=Math.max(8,info-.15);
     }
   }
+  function ajustarTamanoMetricas() { ajustarFilaMetricas(CONTENEDOR_METRICAS); }
+  window.ATLASajustarFilaMetricas = ajustarFilaMetricas;
   async function leerMetricaLocal(dia) {
     const reg = await ATLASDB.leer("historico:resumen:dia:" + dia);
     return reg?.datos?.dia === dia ? reg.datos : null;
@@ -3385,7 +3474,12 @@
     vfc: { title:'🫀 VFC', kind:'line', unit:'ms' },
     reposo: { title:'❤️ FC en reposo', kind:'line', unit:'ppm' },
     carga: { title:'⚡ Carga de entrenamiento', kind:'line', unit:'' },
-    spo2: { title:'🩸 Oxígeno en sangre', kind:'bar', unit:'%' }
+    spo2: { title:'🩸 Oxígeno en sangre', kind:'bar', unit:'%' },
+    volumen: { title:'📊 Volumen', kind:'bar', unit:'km' },
+    vo2: { title:'🫁 VO₂ máx.', kind:'line', unit:'ml/kg/min' },
+    umbral: { title:'🏃🏻‍♂️ Umbral de lactato', kind:'line', unit:'min/km' },
+    eficiencia: { title:'💨 Eficiencia aeróbica', kind:'line', unit:'m/latido' },
+    pronosticos: { title:'Pronósticos de carrera', kind:'line', unit:'s' }
   });
   const COLOR = { blue:'#0a84ff',green:'#30d158',yellow:'#ffd60a',red:'#ff453a',orange:'#ff9f0a',gray:'#86868f' };
   const MONTH = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
@@ -3396,6 +3490,18 @@
   const CHART_H = 262, BOTTOM = 220;
   let metric = null, period = '7d', endDate = null, oldScroll = 0;
   let health = new Map(), load = new Map(), series = [], selected = null, chart = null;
+  let volume = new Map(), vo2 = new Map(), thresholdPace=new Map(), thresholdHR=new Map(), efficiency=new Map();
+  const PRED = [['time5K','5 km','#0a84ff'],['time10K','10 km','#30d158'],['timeHalfMarathon','Media maratón','#ff9f0a'],['timeMarathon','Maratón','#bf5af2']];
+  let predictions=new Map(PRED.map(([key])=>[key,new Map()]));
+  const predictionEnabled=new Set(PRED.map(([key])=>key));
+  const predictionHost=$('atlas-pronosticos-grafica'), commonChart=$('atlas-ficha-grafica-comun'), predictionLegend=$('atlas-pronosticos-leyenda');
+  const evolutionTab=predictionHost.closest('.atlas-view');
+  const inlineActive=()=>metric==='pronosticos'&&page.hidden&&!evolutionTab.hidden&&commonChart.parentElement===predictionHost;
+  const chartVisible=()=>!page.hidden||inlineActive();
+  const timeText=n=>{const t=Math.round(n),h=Math.floor(t/3600),m=Math.floor(t%3600/60),sec=String(t%60).padStart(2,'0');return (h?h+':'+String(m).padStart(2,'0'):String(m))+':'+sec;};
+  let evolutionRead = 0, evolutionStatus = '';
+  const evolutionPeriods = new Map();
+  const isEvolution = name => ['volumen','vo2','umbral','eficiencia','pronosticos'].includes(name);
   let zoom = 1, pinch = null, pointerDrag = false, opening = false, requestVersion = 0;
   let loadStatus = '', raf = 0;
 
@@ -3405,7 +3511,11 @@
   const number = (n,max=100000) => typeof n === 'number' && Number.isFinite(n) && n>=0 && n<=max ? n : null;
   const average = a => a.length ? a.reduce((s,x)=>s+x,0)/a.length : null;
   const duration = n => { if(n===null)return 'Sin datos';const m=Math.round(n*60);return `${Math.floor(m/60)} h ${m%60} min`; };
-  const fmt = n => metric==='sueno'?duration(n):n===null?'Sin datos':`${metric==='spo2'?Number(n.toFixed(1)):Math.round(n)}${CFG[metric].unit?' '+CFG[metric].unit:''}`;
+  const decimal = n => n.toLocaleString('es-ES',{maximumFractionDigits:20,useGrouping:false});
+  const formatVO2 = n => n.toLocaleString('es-ES',{maximumFractionDigits:2,useGrouping:false});
+  const paceText=n=>{const t=Math.round(n);return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;};
+  const efficiencyText=n=>n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false});
+  const fmt = n => isEvolution(metric)?(n===null?'Sin datos':`${metric==='vo2'?formatVO2(n):metric==='umbral'?paceText(n):metric==='eficiencia'?efficiencyText(n):decimal(Math.round(n*100)/100)} ${CFG[metric].unit}`):metric==='sueno'?duration(n):n===null?'Sin datos':`${metric==='spo2'?Number(n.toFixed(1)):Math.round(n)}${CFG[metric].unit?' '+CFG[metric].unit:''}`;
   const labelDate = s => s.length===4?s:s.length===7?`${MONTH[+s.slice(5)-1]} ${s.slice(0,4)}`:`${+s.slice(8)} ${MONTH[+s.slice(5,7)-1]} ${s.slice(2,4)}`;
   const axisDate = s => s.length===4?s:s.length===7?MONTH[+s.slice(5)-1]:period==='1y'||period==='todo'?`${MONTH[+s.slice(5,7)-1]} ${s.slice(2,4)}`:String(+s.slice(8));
   const shortDate = s => `${+s.slice(8)} ${MONTH[+s.slice(5,7)-1]} ${s.slice(2,4)}`;
@@ -3424,9 +3534,13 @@
     if(type==='reposo')value=number(h.fcReposo,240);
     if(type==='carga'){value=number(c.aguda);lo=number(c.rangoInferior);hi=number(c.rangoSuperior);}
     if(type==='spo2')value=number(h.spo2Media,100);
-    return {value,score,lo,hi};
+    if(type==='volumen')value=volume.get(day)??null;
+    if(type==='vo2')value=vo2.get(day)??null;
+    if(type==='eficiencia')value=efficiency.get(day)??null;
+    if(type==='umbral')value=thresholdPace.get(day)??null;
+    return {value,score,lo,hi,secondary:type==='umbral'?thresholdHR.get(day)??null:null};
   }
-  function available() {return [...(metric==='carga'?load:health).keys()].filter(d=>validDate(d)&&d<=dayNow()&&rowAt(metric,d).value!==null).sort();}
+  function available() {if(metric==='pronosticos')return [...new Set([...predictions.values()].flatMap(m=>[...m.keys()]))].sort();return [...(metric==='volumen'?volume:metric==='vo2'?vo2:metric==='eficiencia'?efficiency:metric==='umbral'?new Map([...thresholdPace,...thresholdHR]):metric==='carga'?load:health).keys()].filter(d=>validDate(d)&&d<=dayNow()&&(rowAt(metric,d).value!==null||rowAt(metric,d).secondary!==null)).sort();}
   function dates() {
     const all=available(),today=dayNow();
     if(period==='todo') {
@@ -3437,11 +3551,11 @@
     const end=endDate&&endDate<today?endDate:today;
     return {start:stepDay(end,1-(period==='7d'?7:period==='1m'?30:365)),end};
   }
-  const grouping=()=>['sueno','spo2'].includes(metric)&&period==='1y'?'month':['sueno','spo2'].includes(metric)&&period==='todo'?'year':'day';
+  const grouping=()=>['sueno','spo2','volumen'].includes(metric)&&period==='1y'?'month':['sueno','spo2','volumen'].includes(metric)&&period==='todo'?'year':'day';
   function buildSeries({start,end}) {
     const result=[],mode=grouping();
-    const add=(key,days)=>{const rows=days.map(d=>rowAt(metric,d));const good=rows.filter(r=>r.value!==null),bounds=rows.filter(r=>r.lo!==null&&r.hi!==null&&r.lo<=r.hi);
-      result.push({key,value:average(good.map(r=>r.value)),score:average(good.map(r=>r.score).filter(x=>x!==null)),lo:average(bounds.map(r=>r.lo)),hi:average(bounds.map(r=>r.hi)),count:good.length});};
+    const add=(key,days)=>{if(metric==='pronosticos'){result.push({key,value:null,secondary:null,score:null,lo:null,hi:null,count:0,...Object.fromEntries(PRED.map(([k])=>[k,predictions.get(k).get(key)??null]))});return;}const rows=days.map(d=>rowAt(metric,d));const good=rows.filter(r=>r.value!==null),bounds=rows.filter(r=>r.lo!==null&&r.hi!==null&&r.lo<=r.hi);
+      result.push({key,value:metric==='volumen'?(good.length?good.reduce((sum,r)=>sum+r.value,0):null):average(good.map(r=>r.value)),score:average(good.map(r=>r.score).filter(x=>x!==null)),lo:average(bounds.map(r=>r.lo)),hi:average(bounds.map(r=>r.hi)),count:good.length,secondary:average(rows.map(r=>r.secondary).filter(v=>v!==null))});};
     if(mode==='day')for(let d=start;d<=end;d=stepDay(d,1))add(d,[d]);
     if(mode==='month')for(let month=start.slice(0,7);month<=end.slice(0,7);){const [y,m]=month.split('-').map(Number),next=new Date(Date.UTC(y,m,1)).toISOString().slice(0,10);const days=[];
       for(let d=month+'-01';d<next&&d<=end;d=stepDay(d,1))if(d>=start)days.push(d);
@@ -3452,25 +3566,49 @@
     return result;
   }
   function barColor(p) {
+    if(metric==='volumen')return COLOR.blue;
     if(metric==='spo2')return p.value===null?COLOR.gray:p.value>=95?COLOR.gray:p.value>=92?COLOR.yellow:p.value>=90?COLOR.orange:COLOR.red;
     return p.score===null?COLOR.gray:p.score>=90?COLOR.blue:p.score>=80?COLOR.green:p.score>=60?COLOR.yellow:COLOR.red;
   }
+  // Recortar el trazado al intervalo visible sin convertir la interpolación en observación.
+  function linePoints(field) {
+    const points=series.map((p,i)=>({v:p[field],i})).filter(({v})=>v!==null);
+    const source=metric==='vo2'&&field==='value'?vo2:metric==='umbral'?(field==='value'?thresholdPace:thresholdHR):metric==='pronosticos'?predictions.get(field):null;
+    if(!source||!series.length||points[0]?.i===0)return points;
+    const start=series[0].key,end=series.at(-1).key;
+    const observed=[...source].sort(([a],[b])=>a.localeCompare(b));
+    const prev=observed.filter(([d])=>d<start).at(-1),next=observed.find(([d])=>d>=start);
+    if(!prev)return points;
+    const at=day=>next?prev[1]+(next[1]-prev[1])*(Date.parse(day)-Date.parse(prev[0]))/(Date.parse(next[0])-Date.parse(prev[0])):prev[1];
+    points.unshift({i:0,v:at(start),boundary:true});
+    if(points.length===1&&series.length>1)points.push({i:series.length-1,v:at(end),boundary:true});
+    return points;
+  }
   function plotSetup() {
     const bars=CFG[metric].kind==='bar',top=18;
-    const values=series.flatMap(p=>bars?[p.value]:[p.value,p.lo,p.hi]).filter(x=>x!==null);
+    const values=metric==='pronosticos'?PRED.filter(([k])=>predictionEnabled.has(k)).flatMap(([k])=>linePoints(k).map(p=>p.v)):metric==='vo2'||metric==='umbral'?linePoints('value').map(p=>p.v):series.flatMap(p=>bars?[p.value]:[p.value,p.lo,p.hi]).filter(x=>x!==null);
     const mn=values.length?Math.min(...values):0,mx=values.length?Math.max(...values):100;
     let low=bars?0:Math.max(0,Math.floor((mn-(mx-mn||10)*.25)/5)*5);
     let high=Math.ceil((mx+(mx-mn||10)*.25)/5)*5;
     if(metric==='spo2'){low=0;high=100;} if(high<=low)high=low+10;
-    chart={bars,top,low,high,height:BOTTOM-top};
+    const dual=metric==='umbral',right=$('atlas-ficha-eje-derecho');
+    const niceBounds=(values,step,fallback)=>{if(!values.length)return fallback;const min=Math.min(...values),max=Math.max(...values);const tick=Math.max(step,Math.ceil((max-min)/4/step)*step);const lo=Math.floor((min-(tick*4-(max-min))/2)/tick)*tick;return [lo,lo+tick*4<max?lo+tick*5:lo+tick*4];};
+    if(metric==='pronosticos'){[low,high]=niceBounds(values,60,[0,14400]);low=Math.max(0,low);if(high<=low)high=low+240;}
+    if(dual)[low,high]=niceBounds(linePoints('value').map(p=>p.v),5,[240,280]);
+    if(metric==='eficiencia'){[low,high]=niceBounds(values,.05,[1,1.2]);low=Math.max(0,low);}
+    const [hrLow,hrHigh]=dual?niceBounds(linePoints('secondary').map(p=>p.v),5,[150,190]):[0,100];
+    chart={bars,top,low,high,height:BOTTOM-top,dual,hrLow,hrHigh};
+    axis.parentElement.classList.toggle('is-dual',dual);right.hidden=!dual;right.replaceChildren();right.style.height=CHART_H+'px';axis.style.color=dual?COLOR.red:'';right.style.color=COLOR.blue;
+    if(dual)for(let i=0;i<=4;i++){const label=document.createElement('span');label.textContent=Math.round(hrHigh-(hrHigh-hrLow)*i/4);label.style.top=(top+chart.height*i/4)+'px';right.append(label);}
     axis.replaceChildren();axis.style.height=CHART_H+'px';
     for(let i=0;i<=4;i++){const value=high-(high-low)*i/4,py=top+chart.height*i/4;
-      const label=document.createElement('span');label.textContent=metric==='sueno'?Number(value.toFixed(1)):Math.round(value);label.style.top=py+'px';axis.append(label);}
+      const label=document.createElement('span');label.textContent=metric==='pronosticos'?timeText(value):metric==='umbral'?paceText(low+(high-low)*i/4):metric==='eficiencia'?efficiencyText(value):metric==='vo2'?formatVO2(value):metric==='sueno'?Number(value.toFixed(1)):Math.round(value);label.style.top=py+'px';axis.append(label);}
   }
   function xAt(index,width) { const n=series.length;return chart.bars?width*(index+.5)/n:n>1?2+(width-4)*index/(n-1):width/2; }
-  const yAt=value=>BOTTOM-(value-chart.low)/(chart.high-chart.low)*chart.height;
+  const yAt=value=>chart.dual?chart.top+(value-chart.low)/(chart.high-chart.low)*chart.height:BOTTOM-(value-chart.low)/(chart.high-chart.low)*chart.height;
+  const yHR=value=>BOTTOM-(value-chart.hrLow)/(chart.hrHigh-chart.hrLow)*chart.height;
   function paint() {
-    if(!metric||!chart||page.hidden)return;
+    if(!metric||!chart||!chartVisible())return;
     const view=Math.max(1,scroll.clientWidth),width=Math.max(view,view*zoom),ratio=Math.min(window.devicePixelRatio||1,2.5);
     canvas.style.width=width+'px';canvas.style.height=CHART_H+'px';
     const pixelsW=Math.max(1,Math.round(width*ratio)),pixelsH=Math.round(CHART_H*ratio);
@@ -3494,9 +3632,17 @@
         if(first===last){const x=xAt(first,width),y=yAt(series[first].value);ctx.moveTo(x-1,y);ctx.lineTo(x+1,y);}
         else for(let i=first;i<=last;i++){const x=xAt(i,width),y=yAt(series[i].value);if(i===first)ctx.moveTo(x,y);else ctx.lineTo(x,y);}
         ctx.strokeStyle=COLOR.red;ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();};
-      first=-1;
-      for(let i=0;i<=series.length;i++){const valid=series[i]?.value!==null&&series[i]?.value!==undefined;
-        if(valid&&first===-1)first=i;if(!valid&&first!==-1){drawLine(first,i-1);first=-1;}}
+      if(isEvolution(metric)){
+        // Unir observaciones reales y recortar la línea en el límite inicial del filtro.
+        const line=(field,yOf,color)=>{const points=linePoints(field);
+          if(points.length===1){const {v,i}=points[0];ctx.beginPath();ctx.arc(xAt(i,width),yOf(v),2.5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();}
+          else if(points.length>1){ctx.beginPath();points.forEach(({v,i},j)=>{const x=xAt(i,width),y=yOf(v);if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.strokeStyle=color;ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();}};
+        if(metric==='pronosticos'){for(const [k,,color] of PRED)if(predictionEnabled.has(k))line(k,yAt,color);}else{line('value',yAt,COLOR.red);if(chart.dual)line('secondary',yHR,COLOR.blue);}
+      }else{
+        first=-1;
+        for(let i=0;i<=series.length;i++){const valid=series[i]?.value!==null&&series[i]?.value!==undefined;
+          if(valid&&first===-1)first=i;if(!valid&&first!==-1){drawLine(first,i-1);first=-1;}}
+      }
     } else {
       for(let i=0;i<series.length;i++){const p=series[i];if(p.value===null)continue;
         const cx=xAt(i,width),py=Math.max(chart.top,Math.min(BOTTOM,yAt(p.value))),barW=Math.max(1,Math.min(cell*.74,39*zoom));
@@ -3511,10 +3657,11 @@
       const text=axisDate(series[i].key),half=ctx.measureText(text).width/2;
       ctx.fillText(text,Math.min(width-half-2,Math.max(half+2,xAt(i,width))),251);
     }
-    if(selected!==null&&series[selected]?.value!==null&&!chart.bars){
-      const x=xAt(selected,width),y=yAt(series[selected].value);
+    if(selected!==null&&series[selected]&&!chart.bars&&(metric==='pronosticos'?PRED.some(([k])=>predictionEnabled.has(k)&&series[selected][k]!==null):(series[selected].value!==null||series[selected].secondary!==null))){
+      const x=xAt(selected,width);
       ctx.beginPath();ctx.setLineDash([3,4]);ctx.moveTo(x,chart.top);ctx.lineTo(x,BOTTOM);ctx.strokeStyle='#8e8e93';ctx.lineWidth=1;ctx.stroke();ctx.setLineDash([]);
-      ctx.beginPath();ctx.arc(x,y,4.5,0,Math.PI*2);ctx.fillStyle=COLOR.red;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.4;ctx.stroke();
+      const marker=(v,yOf,color)=>{if(v===null)return;ctx.beginPath();ctx.arc(x,yOf(v),4.5,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.4;ctx.stroke();};
+      if(metric==='pronosticos'){for(const [k,,color] of PRED)if(predictionEnabled.has(k))marker(series[selected][k],yAt,color);}else{marker(series[selected].value,yAt,COLOR.red);if(chart.dual)marker(series[selected].secondary,yHR,COLOR.blue);}
     }
   }
   function schedulePaint(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;paint();});}
@@ -3543,14 +3690,22 @@
   function showSelected(){const output=$('atlas-ficha-seleccion');output.replaceChildren();
     if(selected===null||!series[selected]){schedulePaint();return;}
     const p=series[selected],title=document.createElement('strong');title.textContent=labelDate(p.key);
-    output.append(title,document.createTextNode(' · '+fmt(p.value)+(p.count>1?` · media de ${p.count} días`:'')));
+    if(metric==='pronosticos'){output.append(title);const visible=PRED.filter(([k])=>predictionEnabled.has(k)&&p[k]!==null);for(const [k,label,color] of visible){const span=document.createElement('span');span.style.color=color;span.textContent=' · '+label+' '+timeText(p[k]);output.append(span);}if(!visible.length)output.append(document.createTextNode(' · Sin datos'));schedulePaint();return;}
+    if(metric==='umbral'){output.append(title,document.createTextNode(' · '+fmt(p.value)+' · '+(p.secondary===null?'Sin FC':Math.round(p.secondary)+' ppm')));schedulePaint();return;}
+    output.append(title,document.createTextNode(' · '+fmt(p.value)+(p.count>1?` · ${metric==='volumen'?'suma':'media'} de ${p.count} días`:'')));
     if(metric==='sueno'&&p.score!==null)output.append(document.createTextNode(` · calidad ${Math.round(p.score)}/100`));
     if(metric==='vfc'&&p.lo!==null&&p.hi!==null)output.append(document.createTextNode(` · referencia ${Math.round(p.lo)}–${Math.round(p.hi)} ms`));
     if(metric==='carga'&&p.lo!==null&&p.hi!==null)output.append(document.createTextNode(` · óptimo ${Math.round(p.lo)}–${Math.round(p.hi)}`));
     schedulePaint();
   }
   function selectIndex(i,toggle){if(!series.length)return;const n=Math.max(0,Math.min(series.length-1,i));selected=toggle&&selected===n?null:n;showSelected();}
-  function narrative(){const recent=available().at(-1),r=recent?rowAt(metric,recent):null;
+  function narrative(){if(metric==='pronosticos')return;const recent=available().at(-1),r=recent?rowAt(metric,recent):null;
+    if(isEvolution(metric)){
+      $('atlas-ficha-descripcion').textContent=metric==='volumen'
+        ?'El volumen de entrenamiento es la distancia total recorrida en carrera, expresada en kilómetros. Aumentarlo progresivamente favorece la resistencia y la adaptación aeróbica. Por ejemplo, pasar de 30 a 35 km semanales aumenta el estímulo, siempre que se asimile bien la carga.'
+        :metric==='umbral'?'El umbral de lactato es la intensidad a partir de la cual el lactato tiende a acumularse más rápidamente. Garmin estima el ritmo (min/km, rojo, eje izquierdo) y la frecuencia cardiaca (ppm, azul, eje derecho) correspondientes. Correr a un ritmo más rápido con una FC umbral similar suele indicar una mejora del rendimiento.':metric==='eficiencia'?'La eficiencia aeróbica expresa los metros recorridos por latido. A 5:00 min/km y 150 ppm se recorren 1,33 m por latido. Una cifra mayor en rodajes comparables suele indicar una mejor respuesta cardiovascular; el calor, la fatiga y el terreno también influyen.':'El VO₂ máximo es la cantidad máxima de oxígeno que el organismo puede utilizar durante un esfuerzo intenso, expresada en ml/kg/min. Garmin lo estima a partir de datos de carrera, como ritmo y frecuencia cardiaca. Un valor mayor suele indicar una mayor capacidad aeróbica, aunque el rendimiento también depende del umbral y la economía de carrera.';
+      return;
+    }
     const observation=!r?'No hay registros locales suficientes para interpretar tu evolución.':
       metric==='sueno'?`Último descanso: ${duration(r.value)}${r.score===null?'':` y ${Math.round(r.score)}/100 de calidad`}. Interesa especialmente la regularidad y cómo respondes a la carga de entrenamiento.`:
       metric==='vfc'?`Última noche: ${Math.round(r.value)} ms${r.lo===null||r.hi===null?'':`, referencia personal ${Math.round(r.lo)}–${Math.round(r.hi)} ms`}. Valora la tendencia, no una sola noche.`:
@@ -3568,7 +3723,7 @@
   function updateLabels(){const dateRange=dates();$('atlas-ficha-rango').textContent=rangeLabel(dateRange.start,dateRange.end);
     $('atlas-ficha-next').disabled=period==='todo'||dateRange.end>=dayNow();$('atlas-ficha-prev').disabled=period==='todo';
     $('atlas-ficha-periodos').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.periodo===period)));
-    const note=$('atlas-ficha-nota');note.textContent=metric==='carga'?loadStatus:metric==='spo2'?'Clasificación de SpO₂ orientativa, pendiente de aprobación; no constituye un diagnóstico médico.':'';note.hidden=!note.textContent;
+    const note=$('atlas-ficha-nota');note.textContent=metric==='pronosticos'?'':isEvolution(metric)?(metric==='vo2'||evolutionStatus.startsWith('No se pudo')?evolutionStatus:''):metric==='carga'?loadStatus:metric==='spo2'?'Clasificación de SpO₂ orientativa, pendiente de aprobación; no constituye un diagnóstico médico.':'';note.hidden=!note.textContent;
   }
   function refresh(resetZoom=true){series=buildSeries(dates());selected=null;chart=null;plotSetup();updateLabels();
     if(resetZoom)zoom=1;pinch=null;scroll.scrollLeft=0;setZoom(zoom);showSelected();narrative();}
@@ -3582,6 +3737,146 @@
       tx.oncomplete=done;tx.onabort=()=>fail(tx.error||Error('transacción abortada'));});
     health=h;load=l;
   }
+  // 5.7.2 — Evolución: lectura local de las familias acreditadas, sin consultas ni escrituras.
+  async function readEvolution(){
+    const ticket=++evolutionRead, distances=new Map(), observations=new Map(), ids=new Set();
+    const runs=new Map(), fitValues=new Map(), complements=new Map(), paceObservations=new Map(), hrObservations=new Map(), dailyEfficiency=new Map();
+    const predictionObservations=new Map(PRED.map(([k])=>[k,new Map()]));
+    const today=dayNow(), validDay=d=>typeof d==='string'&&validDate(d)&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d&&d<=today;
+    const shared=window.ATLASFICHAEXTERNA;
+    const putVO2=(node)=>{
+      if(!node||typeof node!=='object')return;
+      if(Array.isArray(node)){node.forEach(putVO2);return;}
+      if(node.calendarDate!==undefined){
+        if(!validDay(node.calendarDate)||node.sport!=='RUNNING')return;
+        const precise=number(node.vo2MaxPreciseValue,150), fallback=number(node.vo2MaxValue,150);
+        const value=precise>0?precise:fallback>0?fallback:null;
+        if(value===null)return;
+        const priority=precise>0?2:1, old=observations.get(node.calendarDate);
+        if(!old||priority>old.priority)observations.set(node.calendarDate,{priority,values:new Set([value])});
+        else if(priority===old.priority)old.values.add(value);
+        return;
+      }
+      Object.values(node).forEach(putVO2);
+    };
+    const putThreshold=(node,target,isPace,priority)=>{
+      if(!node||typeof node!=='object')return;
+      if(Array.isArray(node)){node.forEach(n=>putThreshold(n,target,isPace,priority));return;}
+      if('updatedDate' in node||'series' in node){
+        const day=node.updatedDate;
+        // updatedDate identifica la observación; from/until pueden delimitar la agregación.
+        if(String(node.series).toLowerCase()!=='running'||!validDay(day))return;
+        const raw=number(node.value,250),value=raw===null||raw<=0?null:isPace?100/raw:raw;
+        if(value===null||(isPace?(value<120||value>900):(value<30||value>240)))return;
+        const old=target.get(day);
+        if(!old||priority>old.priority)target.set(day,{priority,values:new Set([value])});
+        else if(priority===old.priority)old.values.add(value);return;
+      }
+      Object.values(node).forEach(n=>putThreshold(n,target,isPace,priority));
+    };
+    const putPrediction=(node)=>{
+      if(!node||typeof node!=='object')return;
+      if(Array.isArray(node)){node.forEach(putPrediction);return;}
+      if('calendarDate' in node){
+        const day=node.calendarDate;if(!validDay(day))return;
+        for(const [key] of PRED){const value=number(node[key],86400);if(!(value>0))continue;
+          const target=predictionObservations.get(key),old=target.get(day);
+          if(old)old.values.add(value);else target.set(day,{values:new Set([value])});}
+        return;
+      }
+      Object.values(node).forEach(putPrediction);
+    };
+    const eligibleRun=a=>{
+      if(a.activityType?.typeKey!=='running')return null;
+      const get=k=>shared.datoResumen(a,k),distance=get('distance'),seconds=get('duration'),hr=get('averageHR'),ascent=get('elevationGain'),ana=get('anaerobicTrainingEffect');
+      if(!(distance>0&&seconds>=1800&&hr>0&&hr<=240&&ascent!==null&&ascent<=distance/100&&ana!==null&&ana<1))return null;
+      return {distance,beats:seconds/60*hr};
+    };
+    await ATLASDB.abrir();
+    await new Promise((done,fail)=>{
+      const store=ATLASDB.almacen('readonly'),tx=store.transaction;
+      const scan=(prefix,consume)=>{const req=store.openCursor(IDBKeyRange.bound(prefix,prefix+'\uffff'));
+        req.onsuccess=()=>{const cur=req.result;if(!cur)return;consume(cur.value?.datos?.bruto,cur.value?.datos,String(cur.key));cur.continue();};
+        req.onerror=()=>fail(req.error||Error('lectura_evolucion'));};
+      scan('historico:dato:oficial:actividades:id%3A',a=>{
+        if(!a||a.activityId==null)return;
+        const id=String(a.activityId),local=shared.fechaLocal(a.startTimeLocal),day=local?.texto.slice(0,10);
+        if(ids.has(id)||!validDay(day)||!Number.isFinite(shared.instante(a))||shared.instante(a)>Date.now()+300000)return;
+        if(!shared.deporte(a).esCarrera&&a.activityType?.typeKey!=='obstacle_course_racing')return;
+        ids.add(id);
+        if(shared.deporte(a).esCarrera)runs.set(id,{a,day,time:shared.instante(a)});
+        const distance=shared.datoResumen(a,'distance');if(distance===null||distance<=0)return;
+        distances.set(day,(distances.get(day)||0)+distance/1000);
+        const eligible=eligibleRun(a);if(eligible){const old=dailyEfficiency.get(day)||{distance:0,beats:0};dailyEfficiency.set(day,{distance:old.distance+eligible.distance,beats:old.beats+eligible.beats});}
+      });
+      scan('historico:dato:privada:vo2_max:',putVO2);
+      scan('historico:dato:privada:pronosticos_carrera:',putPrediction);
+      scan('historico:dato:privada:umbral_ritmo:',raw=>putThreshold(raw,paceObservations,true,1));
+      scan('historico:dato:privada:umbral_fc:',raw=>putThreshold(raw,hrObservations,false,1));
+      scan('historico:dato:privada:umbral_ritmo_diario:',raw=>putThreshold(raw,paceObservations,true,2));
+      scan('historico:dato:privada:umbral_fc_diario:',raw=>putThreshold(raw,hrObservations,false,2));
+      scan('historico:dato:privada:vo2_fit:id%3A',(_raw,data,key)=>{
+        const id=key.slice('historico:dato:privada:vo2_fit:id%3A'.length),v=data?.valor;
+        if(String(data?.id)===id&&data.fuente==='fit_actividad'&&number(v,95)!==null&&v>=15)fitValues.set(id,v);
+      });
+      scan('historico:dato:garmin:complementos_actividad:id%3A',(raw,_data,key)=>{
+        const id=key.slice('historico:dato:garmin:complementos_actividad:id%3A'.length);
+        if(raw?.estado==='ok'&&String(raw.id)===id&&[3,4].includes(raw.contrato))complements.set(id,raw);
+      });
+      tx.oncomplete=done;tx.onabort=()=>fail(tx.error||Error('lectura_evolucion_interrumpida'));
+    });
+    if(ticket!==evolutionRead)return false;
+    // Prioridad de la ficha de actividad: FIT, VO₂ propio de la actividad y, como
+    // respaldo, histórico diario Garmin. No tratar el VO₂ diario como dato del FIT.
+    const activityDays=new Map();
+    for(const [id,{a,day,time}] of runs){
+      const raw=a.summaryDTO??a,comp=complements.get(id);
+      const first=[comp?.detalle?.vo2_actividad,raw.vo2MaxPreciseValue,raw.vO2MaxPreciseValue,
+        a.vo2MaxPreciseValue,a.vO2MaxPreciseValue,raw.vo2MaxValue,raw.vO2MaxValue,
+        a.vo2MaxValue,a.vO2MaxValue].find(v=>number(v,150)!==null);
+      const value=fitValues.get(id)??first;
+      if(!(value>0&&value<100))continue;
+      const old=activityDays.get(day);
+      if(!old||time>old.time||(time===old.time&&id>old.id))activityDays.set(day,{id,time,value});
+    }
+    const unique=map=>new Map([...map].filter(([,v])=>v.values.size===1).map(([day,v])=>[day,[...v.values][0]]));
+    predictions=new Map([...predictionObservations].map(([key,observations])=>[key,unique(observations)]));
+    thresholdPace=unique(paceObservations);thresholdHR=unique(hrObservations);efficiency=new Map([...dailyEfficiency].map(([day,v])=>[day,v.distance/v.beats]));
+    volume=distances;vo2=new Map([...observations].filter(([,o])=>o.values.size===1).map(([day,o])=>[day,[...o.values][0]]));
+    for(const [day,o] of activityDays)vo2.set(day,o.value);
+    evolutionStatus=[...observations].some(([day,o])=>o.values.size>1&&!activityDays.has(day))?'Hay fechas con valores de VO₂ contradictorios; se omiten hasta verificar su procedencia.':'';
+    return true;
+  }
+  window.ATLASresumenPronosticos=async()=>{await readEvolution();const days=[...new Set([...predictions.values()].flatMap(m=>[...m.keys()]))].sort();return 'Pronósticos: '+days.length+' fechas'+(days.length?' ('+days[0]+' a '+days.at(-1)+')':'')+'.';};
+  window.ATLASresumenUmbral=async()=>{
+    await readEvolution();
+    const describe=(label,map)=>{const days=[...map.keys()].sort();return label+': '+days.length+' fechas'+(days.length?' ('+days[0]+' a '+days.at(-1)+')':'');};
+    return describe('Ritmo',thresholdPace)+'; '+describe('FC',thresholdHR)+'.';
+  };
+  const evolutionRow=$('atlas-evolucion-metricas');
+  function renderEvolution(){
+    const today=dayNow(),first=stepDay(today,-6),values=[...volume].filter(([day])=>day>=first&&day<=today).map(([,v])=>v);
+    const value=$('atlas-evolucion-volumen');value.replaceChildren();
+    if(values.length){value.textContent=decimal(Math.round(values.reduce((a,b)=>a+b,0)*100)/100);const unit=document.createElement('span');unit.className='unidad';unit.textContent=' km';value.append(unit);}
+    else value.textContent='—';
+    const latest=[...vo2.keys()].sort().at(-1);$('atlas-evolucion-vo2').textContent=latest?formatVO2(vo2.get(latest)):'—';
+    $('atlas-evolucion-vo2').title=latest?'Último registro de carrera: '+latest:'';
+    for(const [id,map,format] of [['umbral-ritmo',thresholdPace,paceText],['umbral-fc',thresholdHR,n=>String(Math.round(n))],['eficiencia',efficiency,efficiencyText]]){const day=[...map.keys()].sort().at(-1),el=$('atlas-evolucion-'+id);el.textContent=day?format(map.get(day)):'—';el.title=day?'Último registro: '+day:'';}
+    $('atlas-evolucion-estado').textContent=evolutionStatus;
+    $('atlas-evolucion-estado').hidden=!evolutionStatus;
+    for(const button of predictionLegend.querySelectorAll('button')){const m=predictions.get(button.dataset.pronostico),day=[...m.keys()].sort().at(-1);button.querySelector('strong').textContent=day?timeText(m.get(day)):'—';button.title=day?'Último registro: '+day:'';}
+    window.ATLASajustarFilaMetricas(evolutionRow);
+  }
+  function showPredictions(){
+    if(!page.hidden||evolutionTab.hidden)return;
+    if(inlineActive())return;metric='pronosticos';const saved=evolutionPeriods.get(metric);period=saved?.period||'todo';endDate=saved?.endDate||dayNow();
+    commonChart.remove();predictionHost.append(commonChart);refresh();
+  }
+  function savePredictions(){if(metric==='pronosticos')evolutionPeriods.set(metric,{period,endDate});}
+  predictionLegend.addEventListener('click',e=>{const b=e.target.closest('button[data-pronostico]');if(!b||!inlineActive())return;const key=b.dataset.pronostico;if(predictionEnabled.has(key))predictionEnabled.delete(key);else predictionEnabled.add(key);b.setAttribute('aria-pressed',String(predictionEnabled.has(key)));plotSetup();showSelected();});
+  async function updateEvolution(){try{if(await readEvolution()){renderEvolution();if(page.hidden&&!evolutionTab.hidden){if(inlineActive())refresh(false);else showPredictions();}}}catch{$('atlas-evolucion-estado').textContent='No se pudieron leer los datos locales.';$('atlas-evolucion-estado').hidden=false;}}
+  window.addEventListener('atlas:pestana:abierta',e=>{if(e.detail.nombre==='evolucion'){showPredictions();void updateEvolution();}else if(metric==='pronosticos'){savePredictions();metric=null;}});
+  window.addEventListener('resize',()=>window.ATLASajustarFilaMetricas(evolutionRow));
   // Carga: ventanas mensuales pequeñas, consultadas solo cuando el usuario abre su ficha.
   const ym=(y,m)=>`${y}-${String(m).padStart(2,'0')}`;
   function monthsBetween(start,end){const result=[];let y=+start.slice(0,4),m=+start.slice(5,7),lastY=+end.slice(0,4),lastM=+end.slice(5,7);
@@ -3633,23 +3928,26 @@
     }catch(e){if(ticket!==requestVersion)return;loadStatus='No se pudo completar la consulta histórica de Carga. Se conservan los datos disponibles.';updateLabels();}
   }
   async function openMetric(name){if(!CFG[name]||opening)return;opening=true;requestVersion++;
-    metric=name;period='7d';endDate=dayNow();zoom=1;selected=null;loadStatus='';oldScroll=window.scrollY;
+    savePredictions();$('atlas-ficha-descripcion').before(commonChart);
+    metric=name;period=name==='umbral'?'todo':'7d';endDate=dayNow();zoom=1;selected=null;loadStatus='';oldScroll=window.scrollY;
+    if(isEvolution(name)&&evolutionPeriods.has(name)){const saved=evolutionPeriods.get(name);period=saved.period;endDate=saved.endDate;}
     $('atlas-ficha-titulo').textContent=CFG[name].title;
+    $('atlas-ficha-volver').setAttribute('aria-label',isEvolution(name)?'Volver a Evolución':'Volver a Hoy');
     page.hidden=false;frame.classList.add('atlas-metrica-abierta');tabs.hidden=true;window.scrollTo(0,0);
-    try{await readStore();refresh();}catch{health=new Map();load=new Map();refresh();loadStatus='No se pudo leer el histórico local.';updateLabels();}
+    try{if(isEvolution(name)){await readEvolution();renderEvolution();}else await readStore();if(!page.hidden)refresh();}catch{if(isEvolution(name)){volume=new Map();vo2=new Map();thresholdPace=new Map();thresholdHR=new Map();efficiency=new Map();evolutionStatus='No se pudo leer el histórico local.';}else{health=new Map();load=new Map();loadStatus='No se pudo leer el histórico local.';}if(!page.hidden)refresh();}
     finally{opening=false;}
     if(name==='carga')void fetchLoad();
   }
-  function closeMetric(){requestVersion++;page.hidden=true;frame.classList.remove('atlas-metrica-abierta');tabs.hidden=false;window.scrollTo(0,oldScroll);}
+  function closeMetric(){requestVersion++;if(isEvolution(metric))evolutionPeriods.set(metric,{period,endDate});page.hidden=true;frame.classList.remove('atlas-metrica-abierta');tabs.hidden=false;if(isEvolution(metric))window.ATLASajustarFilaMetricas(evolutionRow);if(!evolutionTab.hidden)showPredictions();window.scrollTo(0,oldScroll);}
   function movePeriod(direction){if(period==='todo')return;const step=period==='7d'?7:period==='1m'?30:365;
     endDate=stepDay(dates().end,direction*step);if(endDate>dayNow())endDate=dayNow();requestVersion++;refresh();if(metric==='carga')void fetchLoad();}
-  document.querySelectorAll('#atlas-hoy-metricas [data-metrica]').forEach(b=>b.addEventListener('click',()=>openMetric(b.dataset.metrica)));
+  document.querySelectorAll('#atlas-hoy-metricas [data-metrica], #atlas-evolucion-metricas [data-metrica]:not(:disabled)').forEach(b=>b.addEventListener('click',()=>openMetric(b.dataset.metrica.startsWith('umbral-')?'umbral':b.dataset.metrica)));
   $('atlas-ficha-volver').addEventListener('click',closeMetric);$('atlas-ficha-volver-abajo').addEventListener('click',closeMetric);
   $('atlas-ficha-prev').addEventListener('click',()=>movePeriod(-1));$('atlas-ficha-next').addEventListener('click',()=>movePeriod(1));
   $('atlas-ficha-periodos').addEventListener('click',e=>{const p=e.target.closest('button')?.dataset.periodo;if(!p||p===period)return;
     period=p;endDate=dayNow();requestVersion++;refresh();if(metric==='carga')void fetchLoad();});
-  window.addEventListener('resize',()=>{if(page.hidden||!metric)return;const old=zoom;setZoom(old);});
-  window.addEventListener('atlas:hoy:metricas-actualizadas',()=>{if(page.hidden)return;readStore().then(()=>refresh(false)).catch(()=>{});});
+  window.addEventListener('resize',()=>{if(!chartVisible()||!metric)return;const old=zoom;setZoom(old);});
+  window.addEventListener('atlas:hoy:metricas-actualizadas',()=>{if(page.hidden){if(!evolutionRow.closest('.atlas-view').hidden)void updateEvolution();return;}if(isEvolution(metric)){readEvolution().then(ok=>{if(ok&&!page.hidden&&isEvolution(metric)){renderEvolution();refresh(false);}}).catch(()=>{});return;}readStore().then(()=>refresh(false)).catch(()=>{});});
   // Ratón y lápiz: pulsación alterna seleccionar/deseleccionar, arrastre recorre valores.
   canvas.addEventListener('pointerdown',e=>{if(e.pointerType==='touch'||pinch||!series.length||e.button>0||!e.isPrimary)return;
     pointerDrag=true;selectIndex(indexAt(e.clientX),true);});
