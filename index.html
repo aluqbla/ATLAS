@@ -358,6 +358,15 @@
   .atlas-actividad-interior__metricas::before {content:none;}
   .atlas-actividad-interior__metrica:nth-child(n+6)::after {content:"";position:absolute;
     left:-4px;right:-4px;top:-9px;height:2px;background:#303039;pointer-events:none;}
+  /* 5.6.4 — Misma ficha y tamaños ATLAS; hasta cinco métricas por fila. */
+  .atlas-otras-metricas {grid-template-columns:repeat(60,minmax(0,1fr));}
+  .atlas-otras-metricas > .atlas-actividad-interior__metrica::before,
+  .atlas-otras-metricas > .atlas-actividad-interior__metrica::after {content:none;}
+  .atlas-otras-metricas > .atlas-actividad-interior__metrica:not(.primera)::before {content:"";position:absolute;
+    left:0;top:10%;bottom:10%;width:2px;background:#303039;}
+  .atlas-otras-metricas > .atlas-actividad-interior__metrica.fila-siguiente::after {content:"";position:absolute;
+    left:0;right:0;top:-9px;height:2px;background:#303039;pointer-events:none;}
+  .atlas-otras-metricas .atlas-actividad-interior__metrica[data-metrica="ritmo"] .atlas-actividad-interior__metrica-valor {max-width:calc(100% - 7px);}
   .atlas-actividad-interior__metrica-emoji {font-size:21px;line-height:1.15;}
   .atlas-actividad-interior__metrica-titulo {font-size:var(--atlas-detalle-rotulo,12px);
     font-weight:650;line-height:1.2;white-space:nowrap;max-width:100%;}
@@ -680,7 +689,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.66 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.67 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -3792,6 +3801,24 @@
     return {emoji:datos?.[0]??(esCarrera?EMOJI_CARRERA:'🏅'),
       nombre:datos?.[1]??(esCarrera?'Carrera':desconocido),esCarrera};
   }
+  // 5.6.4 — Las modalidades no se presentan como carreras. Contrato del resumen 3.6.
+  function perfilDeportivo(a) {
+    if(deporte(a).esCarrera)return 'carrera';
+    const tipo=String(a?.activityType?.typeKey??'').toLowerCase();
+    if(/swimming|swim/.test(tipo))return 'natacion';
+    if(/cycling|biking|virtual_ride/.test(tipo))return 'ciclismo';
+    if(/walking|hiking/.test(tipo))return 'marcha';
+    if(/kayak|paddleboarding|rowing|skiing|snowboarding/.test(tipo))return 'desplazamiento';
+    if(/strength_training|fitness_equipment/.test(tipo))return 'fuerza';
+    if(/soccer|football|padel|paddelball|paddleball|tennis|basketball|volleyball|squash|badminton|pickleball/.test(tipo))return 'pista';
+    return 'general';
+  }
+  function datoResumen(a,campo) {
+    for(const valor of [a?.summaryDTO?.[campo],a?.[campo]]){
+      if(typeof valor==='number'&&Number.isFinite(valor)&&valor>=0)return valor;
+    }
+    return null;
+  }
   function dato(valor, unidad) {
     const el=document.createElement('span');el.className='atlas-actividad-externa__dato';
     const n=document.createElement('span');n.textContent=valor;el.append(n);
@@ -3834,10 +3861,28 @@
     const km=distancia(a.distance), duracion=tiempo(a.duration);
     const ritmo=sp.esCarrera && valido(a.averageSpeed,25) && a.averageSpeed>0
       ? tiempo(1000/a.averageSpeed) : null;
-    if (km!==null && (sp.esCarrera || !['strength_training','yoga','pilates'].includes(String(a.activityType?.typeKey))))
-      resumen.append(dato(km,'km'));
-    if (duracion!==null) resumen.append(dato(duracion,''));
-    if (ritmo!==null) resumen.append(dato(ritmo,'min/km'));
+    if(sp.esCarrera){
+      if(km!==null)resumen.append(dato(km,'km'));
+      if(duracion!==null)resumen.append(dato(duracion,''));
+      if(ritmo!==null)resumen.append(dato(ritmo,'min/km'));
+    }else{
+      const perfil=perfilDeportivo(a), d=datoResumen(a,'distance'), t=datoResumen(a,'duration');
+      const v=datoResumen(a,'averageSpeed'), hr=datoResumen(a,'averageHR'), kcal=datoResumen(a,'calories');
+      const desplazamiento=['natacion','ciclismo','marcha','desplazamiento'].includes(perfil);
+      if((desplazamiento||perfil==='pista')&&d>0){
+        if(perfil==='natacion')resumen.append(dato(Math.round(d).toLocaleString('es-ES'),'m'));
+        else resumen.append(dato(distancia(d),'km'));
+      }
+      if(t!==null)resumen.append(dato(tiempo(t),''));
+      if(desplazamiento&&d>0&&v>0){
+        if(perfil==='natacion')resumen.append(dato(tiempo(100/v),'min/100 m'));
+        else if(perfil==='marcha')resumen.append(dato(tiempo(1000/v),'min/km'));
+        else resumen.append(dato((v*3.6).toLocaleString('es-ES',{maximumFractionDigits:1}),'km/h'));
+      }else{
+        if(hr>0)resumen.append(dato(String(Math.round(hr)),'ppm'));
+        if(kcal!==null&&resumen.children.length<3)resumen.append(dato(String(Math.round(kcal)),'kcal'));
+      }
+    }
     if (!resumen.children.length) resumen.append(dato('Sin métricas',''));
     contenido.append(titulo,resumen);ficha.append(fecha,contenido);
     // La ficha completa se integra en Actividades (5.6); no crear una segunda incompatible.
@@ -3845,7 +3890,7 @@
     return ficha;
   }
   // Componente compartido: Actividades reutiliza la ficha aprobada de Hoy sin duplicarla.
-  window.ATLASFICHAEXTERNA = Object.freeze({crearFichaExterna, deporte, fechaLocal, instante, reajustarFichasExternas, actividadDeFicha:f=>actividadPorFicha.get(f)});
+  window.ATLASFICHAEXTERNA = Object.freeze({crearFichaExterna, deporte, fechaLocal, instante, reajustarFichasExternas, actividadDeFicha:f=>actividadPorFicha.get(f),perfilDeportivo,datoResumen});
   function mensaje(texto) {
     const p=document.createElement('p');p.className='atlas-hoy-seccion__vacio';p.textContent=texto;
     DESTINO.replaceChildren(p);
@@ -4164,6 +4209,35 @@
         .every(n=>anchoTexto(n)<=n.parentElement.clientWidth-10))break;
     }
   }
+  function metricasOtrosDeportes(a) {
+    const perfil=compartido.perfilDeportivo(a), n=k=>compartido.datoResumen(a,k);
+    const datos=[];
+    const agregar=(emoji,rotulo,valor,unidad='',dec=0)=>{
+      if(valor!==null)datos.push([emoji,rotulo,formatearDecimal(valor,dec),unidad]);
+    };
+    const d=n('distance'), v=n('averageSpeed'), t=n('duration');
+    const desplazamiento=['natacion','ciclismo','marcha','desplazamiento'].includes(perfil);
+    if((desplazamiento||perfil==='pista')&&d>0)agregar('🏁','Distancia',perfil==='natacion'?d:d/1000,perfil==='natacion'?'m':'km',perfil==='natacion'?0:2);
+    datos.push(['⏱️','Tiempo',formatearTiempo(t)]);
+    if(desplazamiento&&d>0&&v>0){
+      if(perfil==='natacion')datos.push(['🏊🏻‍♂️','Ritmo',formatearRitmo(100/v),'min/100 m']);
+      else if(perfil==='marcha')datos.push(['🚶🏻‍♂️','Ritmo',formatearRitmo(1000/v),'min/km']);
+      else agregar('💨','Velocidad',v*3.6,'km/h',1);
+    }
+    agregar('❤️','FC media',n('averageHR')>0?n('averageHR'):null,'ppm');
+    agregar('❤️','FC máx.',n('maxHR')>0?n('maxHR'):null,'ppm');
+    agregar('🔥','Calorías',n('calories'),'kcal');
+    if(perfil==='marcha'||perfil==='ciclismo'||perfil==='desplazamiento'){
+      agregar('⛰️','Desnivel',n('elevationGain'),'m');
+    }
+    if(perfil==='ciclismo')agregar('⚡','Potencia',n('avgPower')>0?n('avgPower'):null,'W');
+    agregar('📊','Carga',n('activityTrainingLoad'),'',1);
+    // Los índices de efecto están catalogados; no inferir repeticiones, brazadas ni series.
+    const aer=n('aerobicTrainingEffect'), ana=n('anaerobicTrainingEffect');
+    if(aer!==null&&aer<=5)agregar('🫁','Aeróbico',aer,'',1);
+    if(ana!==null&&ana<=5)agregar('⚡','Anaeróbico',ana,'',1);
+    return datos;
+  }
   function mostrarMetricas(a,complemento=null) {
     const raw=a?.summaryDTO??a;
     const positivo=(...v)=>{const n=primerNumero(...v);return n!==null&&n>=0?n:null;};
@@ -4195,7 +4269,25 @@
         ? vo2Fit!==null ? vo2.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})
           : formatearDecimal(vo2,2) : '—']
     ];
-    metricas.replaceChildren(...datos.map(x=>metrica(...x)));
+    const carrera=compartido.deporte(a).esCarrera;
+    const visibles=carrera?datos:metricasOtrosDeportes(a);
+    metricas.classList.toggle('atlas-otras-metricas',!carrera);
+    const celdas=visibles.map(x=>metrica(...x));
+    if(!carrera){
+      // Filas equilibradas sin huecos, manteniendo los separadores canónicos.
+      // Una cuadrícula de 60 pistas permite repartir exactamente 1–5 métricas.
+      const filas=Math.ceil(celdas.length/5), base=Math.floor(celdas.length/filas);
+      let pos=0;
+      for(let fila=0;fila<filas;fila++){
+        const cantidad=base+(fila<celdas.length%filas?1:0);
+        for(let i=0;i<cantidad;i++){
+          const celda=celdas[pos++];celda.style.gridColumn='span '+(60/cantidad);
+          celda.classList.toggle('primera',i===0);
+          celda.classList.toggle('fila-siguiente',fila>0);
+        }
+      }
+    }
+    metricas.replaceChildren(...celdas);
     requestAnimationFrame(ajustarMetricas);
     // Solo se muestran elementos vinculados explícitamente a ESTA actividad.
     const materiales=Array.isArray(complemento?.material)?complemento.material.filter(x=>
@@ -4204,7 +4296,7 @@
     zapatillas.replaceChildren();
     if(materiales.length){
       const rotulo=document.createElement('div');rotulo.className='atlas-zapatillas__rotulo';
-      const emoji=document.createElement('span');emoji.className='atlas-zapatillas__emoji';emoji.textContent='👟';
+      const emoji=document.createElement('span');emoji.className='atlas-zapatillas__emoji';emoji.textContent=carrera?'👟':compartido.perfilDeportivo(a)==='ciclismo'?'🚲':'🎒';
       const nombre=document.createElement('span');nombre.className='atlas-zapatillas__nombre';
       nombre.textContent=materiales.map(x=>x.nombre).join(' · ');nombre.title=nombre.textContent;
       rotulo.append(emoji,nombre);zapatillas.append(rotulo);
@@ -4688,10 +4780,14 @@
       'lap_swimming','strength_training','fitness_equipment','yoga','pilates','indoor_rowing',
       'elliptical','stair_stepper','hiit','cardio','padel','paddleball','paddelball','soccer',
       'football','basketball','tennis','volleyball','squash','badminton'];
-    if (interiores.includes(tipo)) return false;
-    return compartido.deporte(a).esCarrera ||
-      /walking|hiking|cycling|biking|skiing|kayak|paddling|rowing|swimming|climbing/.test(tipo) ||
-      a?.hasGPS === true || a?.hasPolyline === true;
+    if(compartido.deporte(a).esCarrera)return !interiores.includes(tipo);
+    const sinGPS=['treadmill_running','indoor_running','virtual_run','virtual_ride','indoor_cycling',
+      'pool_swimming','lap_swimming','strength_training','fitness_equipment','yoga','pilates',
+      'indoor_rowing','elliptical','stair_stepper'];
+    if(sinGPS.includes(tipo))return false;
+    if(a?.hasGPS===true||a?.hasPolyline===true)return true;
+    if(interiores.includes(tipo))return false;
+    return /walking|hiking|cycling|biking|skiing|snowboarding|kayak|paddleboarding|rowing|open_water_swimming|climbing/.test(tipo);
   }
   // 5.6.3 — Mapa reconstruido. Misma proyección para teselas y ruta Canvas;
   // el recorrido nunca depende de qué teselas estén cargadas.
@@ -5011,10 +5107,13 @@
     }
     // Solo datos completos pueden reutilizar caché larga. Una lectura incompleta se
     // reintenta al abrir, con un mínimo de 5 minutos para no castigar Garmin.
-    const completo=local?.dato?.detalle?.temperatura_c!=null&&local.dato.detalle.rpe!=null&&
+    const carrera=compartido.deporte(a).esCarrera;
+    const completo=carrera?local?.dato?.detalle?.temperatura_c!=null&&local.dato.detalle.rpe!=null&&
       local.dato.detalle.sensacion!=null&&
       (local.dato.detalle.vo2_actividad!=null||local.dato.vo2_dia!=null)&&
-      local.dato.material?.length>0;
+      local.dato.material?.length>0:
+      local?.dato?.estado==='ok'&&!local.dato.sin_datos&&
+      [local.dato.diagnostico?.oficial,local.dato.diagnostico?.privada].includes('ok');
     if(local&&!local.etapasAntiguas&&Date.now()-local.consultado<(completo?86400000:30000))return;
     if(complementoPendiente.has(id)){
       const anterior=await complementoPendiente.get(id);
