@@ -221,8 +221,12 @@
   .atlas-ficha-metrica__descripcion {margin:4px 0 0;font-size:13px;line-height:1.55;color:#bfc0cb;text-align:justify;}
   .atlas-ficha-metrica__pie {margin-top:36px;}
   .atlas-pronosticos-leyenda {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 15px;}
-  .atlas-pronosticos-leyenda button {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:52px;padding:5px 1px;border:0;border-bottom:2px solid var(--serie);border-radius:0;background:transparent;color:var(--serie);font:inherit;cursor:pointer;}
-  .atlas-pronosticos-leyenda button span {font-size:clamp(9px,2.7vw,12px);white-space:nowrap;}
+  .atlas-pronosticos-leyenda button {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:68px;padding:5px 1px;border:0;border-bottom:2px solid var(--serie);border-radius:0;background:transparent;color:#fff;font:inherit;cursor:pointer;}
+  .atlas-pronosticos-leyenda button .atlas-pronosticos-distancia {font-size:clamp(8px,2.5vw,12px);font-weight:700;white-space:nowrap;}
+  .atlas-pronosticos-leyenda button .atlas-pronosticos-ritmo {font-size:clamp(9px,2.6vw,12px);}
+  .atlas-pronosticos-ritmo {color:#fff;font-weight:740;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .atlas-pronosticos-ritmo .unidad {font-size:.62em;color:#91919d;font-weight:560;letter-spacing:-.025em;}
+  #atlas-pronosticos-grafica .atlas-pronosticos-detalle {display:inline-block;border-left:2px solid var(--serie);padding-left:5px;margin-left:6px;white-space:nowrap;}
   .atlas-pronosticos-leyenda button strong {font-size:clamp(11px,3.5vw,16px);font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-pronosticos-leyenda button[aria-pressed="false"] {opacity:.42;border-bottom-color:transparent;}
   .atlas-pronosticos-leyenda button:focus-visible {outline:2px solid white;outline-offset:2px;}
@@ -617,10 +621,10 @@
   <section class="atlas-hoy-seccion" aria-labelledby="atlas-pronosticos-titulo">
     <h3 class="atlas-hoy-seccion__titulo" id="atlas-pronosticos-titulo">Pronósticos de carrera</h3>
     <div id="atlas-pronosticos-leyenda" class="atlas-pronosticos-leyenda" aria-label="Distancias visibles">
-      <button type="button" data-pronostico="time5K" aria-pressed="true" style="--serie:#0a84ff"><span>5 km</span><strong>—</strong></button>
-      <button type="button" data-pronostico="time10K" aria-pressed="true" style="--serie:#30d158"><span>10 km</span><strong>—</strong></button>
-      <button type="button" data-pronostico="timeHalfMarathon" aria-pressed="true" style="--serie:#ff9f0a"><span>Media maratón</span><strong>—</strong></button>
-      <button type="button" data-pronostico="timeMarathon" aria-pressed="true" style="--serie:#bf5af2"><span>Maratón</span><strong>—</strong></button>
+      <button type="button" data-pronostico="time5K" aria-pressed="true" style="--serie:#0a84ff"><span class="atlas-pronosticos-distancia">5 km</span><strong>—</strong><span class="atlas-pronosticos-ritmo">—</span></button>
+      <button type="button" data-pronostico="time10K" aria-pressed="true" style="--serie:#30d158"><span class="atlas-pronosticos-distancia">10 km</span><strong>—</strong><span class="atlas-pronosticos-ritmo">—</span></button>
+      <button type="button" data-pronostico="timeHalfMarathon" aria-pressed="true" style="--serie:#ff9f0a"><span class="atlas-pronosticos-distancia">Media maratón</span><strong>—</strong><span class="atlas-pronosticos-ritmo">—</span></button>
+      <button type="button" data-pronostico="timeMarathon" aria-pressed="true" style="--serie:#bf5af2"><span class="atlas-pronosticos-distancia">Maratón</span><strong>—</strong><span class="atlas-pronosticos-ritmo">—</span></button>
     </div>
     <div id="atlas-pronosticos-grafica"></div>
   </section>
@@ -727,7 +731,14 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.75 · Worker según configuración guardada</div>
+  <section class="panel" aria-labelledby="atlas-perfil-diag-titulo">
+    <h2 id="atlas-perfil-diag-titulo">🔍 Diagnóstico temporal de Perfil</h2>
+    <p>Consulta de solo lectura. No importa ni guarda datos. Descarga un informe sin credenciales ni nombre o foto personales.</p>
+    <button id="atlas-perfil-diag" type="button">Verificar datos de Perfil</button>
+    <div id="atlas-perfil-diag-estado" class="estado" role="status" aria-live="polite">Pendiente de comprobar.</div>
+    <button id="atlas-perfil-diag-exportar" type="button" class="secondary" disabled>Descargar informe JSON</button>
+  </section>
+  <div class="atlas-ajustes__version">ATLAS v0.0.78-DIAG · Worker v0.60-DIAG requerido</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1382,7 +1393,23 @@
         } catch { return { estado: control.signal.aborted ? "tiempo_agotado" : "error_red_o_cors" }; }
         finally { clearTimeout(limite); }
       }
-      return Object.freeze({ configurar, estado, verificar, solicitarSiguiente, solicitarResumenRapido,
+      async function consultarPerfilDiag(){
+        const acceso=await registroLocal();
+        if(!acceso)return {estado:'sin_configurar'};
+        const hoy=new Date();
+        const dia=[hoy.getFullYear(),String(hoy.getMonth()+1).padStart(2,'0'),String(hoy.getDate()).padStart(2,'0')].join('-');
+        const control=new AbortController();const reloj=setTimeout(()=>control.abort(),180000);
+        try{
+          const r=await fetch(acceso.worker+'/api/diagnostico/perfil-5.8',{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',signal:control.signal,headers:{Authorization:'Bearer '+encodeURIComponent(acceso.clave),'Content-Type':'application/json'},body:JSON.stringify({dia})});
+          if(r.status===404)return {estado:'worker_no_actualizado'};
+          if(r.status===401)return {estado:'no_autorizado'};
+          if(!r.ok)return {estado:'error_http_'+r.status};
+          const b=await r.json();
+          return b?.formato==='ATLAS.Perfil.Diagnostico.1'&&b?.estado==='ok'?b:{estado:'respuesta_invalida'};
+        }catch{return {estado:control.signal.aborted?'tiempo_agotado':'error_red_o_cors'};}
+        finally{clearTimeout(reloj);}
+      }
+      return Object.freeze({ consultarPerfilDiag, configurar, estado, verificar, solicitarSiguiente, solicitarResumenRapido,
         consultarVueltas, consultarGPS, consultarVo2Fit, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
     })();
 
@@ -3491,7 +3518,7 @@
   let metric = null, period = '7d', endDate = null, oldScroll = 0;
   let health = new Map(), load = new Map(), series = [], selected = null, chart = null;
   let volume = new Map(), vo2 = new Map(), thresholdPace=new Map(), thresholdHR=new Map(), efficiency=new Map();
-  const PRED = [['time5K','5 km','#0a84ff'],['time10K','10 km','#30d158'],['timeHalfMarathon','Media maratón','#ff9f0a'],['timeMarathon','Maratón','#bf5af2']];
+  const PRED = [['time5K','5 km','#0a84ff',5],['time10K','10 km','#30d158',10],['timeHalfMarathon','Media maratón','#ff9f0a',21.0975],['timeMarathon','Maratón','#bf5af2',42.195]];
   let predictions=new Map(PRED.map(([key])=>[key,new Map()]));
   const predictionEnabled=new Set(PRED.map(([key])=>key));
   const predictionHost=$('atlas-pronosticos-grafica'), commonChart=$('atlas-ficha-grafica-comun'), predictionLegend=$('atlas-pronosticos-leyenda');
@@ -3514,6 +3541,11 @@
   const decimal = n => n.toLocaleString('es-ES',{maximumFractionDigits:20,useGrouping:false});
   const formatVO2 = n => n.toLocaleString('es-ES',{maximumFractionDigits:2,useGrouping:false});
   const paceText=n=>{const t=Math.round(n);return `${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;};
+  function renderPredictionPace(el,key,seconds){
+    el.textContent=Number.isFinite(seconds)&&seconds>0?paceText(seconds/PRED.find(([k])=>k===key)[3]):'—';
+    if(el.textContent==='—')return;
+    const unit=document.createElement('span');unit.className='unidad';unit.textContent=' min/km';el.append(unit);
+  }
   const efficiencyText=n=>n.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:false});
   const fmt = n => isEvolution(metric)?(n===null?'Sin datos':`${metric==='vo2'?formatVO2(n):metric==='umbral'?paceText(n):metric==='eficiencia'?efficiencyText(n):decimal(Math.round(n*100)/100)} ${CFG[metric].unit}`):metric==='sueno'?duration(n):n===null?'Sin datos':`${metric==='spo2'?Number(n.toFixed(1)):Math.round(n)}${CFG[metric].unit?' '+CFG[metric].unit:''}`;
   const labelDate = s => s.length===4?s:s.length===7?`${MONTH[+s.slice(5)-1]} ${s.slice(0,4)}`:`${+s.slice(8)} ${MONTH[+s.slice(5,7)-1]} ${s.slice(2,4)}`;
@@ -3690,7 +3722,7 @@
   function showSelected(){const output=$('atlas-ficha-seleccion');output.replaceChildren();
     if(selected===null||!series[selected]){schedulePaint();return;}
     const p=series[selected],title=document.createElement('strong');title.textContent=labelDate(p.key);
-    if(metric==='pronosticos'){output.append(title);const visible=PRED.filter(([k])=>predictionEnabled.has(k)&&p[k]!==null);for(const [k,label,color] of visible){const span=document.createElement('span');span.style.color=color;span.textContent=' · '+label+' '+timeText(p[k]);output.append(span);}if(!visible.length)output.append(document.createTextNode(' · Sin datos'));schedulePaint();return;}
+    if(metric==='pronosticos'){output.append(title);const visible=PRED.filter(([k])=>predictionEnabled.has(k)&&p[k]!==null);for(const [k,label,color] of visible){const span=document.createElement('span');span.className='atlas-pronosticos-detalle';span.style.setProperty('--serie',color);const value=document.createElement('strong');value.textContent=label+' '+timeText(p[k]);const pace=document.createElement('span');pace.className='atlas-pronosticos-ritmo';renderPredictionPace(pace,k,p[k]);span.append(value,document.createTextNode(' · '),pace);output.append(span);}if(!visible.length)output.append(document.createTextNode(' · Sin datos'));schedulePaint();return;}
     if(metric==='umbral'){output.append(title,document.createTextNode(' · '+fmt(p.value)+' · '+(p.secondary===null?'Sin FC':Math.round(p.secondary)+' ppm')));schedulePaint();return;}
     output.append(title,document.createTextNode(' · '+fmt(p.value)+(p.count>1?` · ${metric==='volumen'?'suma':'media'} de ${p.count} días`:'')));
     if(metric==='sueno'&&p.score!==null)output.append(document.createTextNode(` · calidad ${Math.round(p.score)}/100`));
@@ -3864,7 +3896,7 @@
     for(const [id,map,format] of [['umbral-ritmo',thresholdPace,paceText],['umbral-fc',thresholdHR,n=>String(Math.round(n))],['eficiencia',efficiency,efficiencyText]]){const day=[...map.keys()].sort().at(-1),el=$('atlas-evolucion-'+id);el.textContent=day?format(map.get(day)):'—';el.title=day?'Último registro: '+day:'';}
     $('atlas-evolucion-estado').textContent=evolutionStatus;
     $('atlas-evolucion-estado').hidden=!evolutionStatus;
-    for(const button of predictionLegend.querySelectorAll('button')){const m=predictions.get(button.dataset.pronostico),day=[...m.keys()].sort().at(-1);button.querySelector('strong').textContent=day?timeText(m.get(day)):'—';button.title=day?'Último registro: '+day:'';}
+    for(const button of predictionLegend.querySelectorAll('button')){const m=predictions.get(button.dataset.pronostico),day=[...m.keys()].sort().at(-1);button.querySelector('strong').textContent=day?timeText(m.get(day)):'—';renderPredictionPace(button.querySelector('.atlas-pronosticos-ritmo'),button.dataset.pronostico,day?m.get(day):null);button.title=day?'Último registro: '+day:'';}
     window.ATLASajustarFilaMetricas(evolutionRow);
   }
   function showPredictions(){
@@ -5552,6 +5584,30 @@
   window.addEventListener('resize',()=>{
     if(!activo)return;
     ajustarTitulo();ajustarDatosContexto();ajustarMetricas();ajustarTabla();if(gpsMostrado)programarMapa();
+  });
+})();
+</script>
+<script id="atlas-perfil-diagnostico-temporal">
+(()=>{
+  const boton=document.getElementById('atlas-perfil-diag'),exportar=document.getElementById('atlas-perfil-diag-exportar'),estado=document.getElementById('atlas-perfil-diag-estado');
+  let informe=null;
+  boton.addEventListener('click',async()=>{
+    boton.disabled=true;exportar.disabled=true;informe=null;
+    estado.textContent='Consultando Garmin. No cierres ATLAS durante la comprobación.';
+    try{
+      const r=await ATLASACCESO.consultarPerfilDiag();
+      if(r.estado!=='ok'){estado.textContent='No se completó: '+r.estado+'.';return;}
+      informe=r;exportar.disabled=false;
+      const filas=Object.values(r.resultados??{}),ok=filas.filter(x=>x.estado==='ok').length;
+      estado.textContent='Informe listo: '+ok+' de '+filas.length+' consultas con respuesta. Descarga el JSON aunque haya resultados parciales.';
+    }catch{estado.textContent='No se pudo completar la comprobación.';}
+    finally{boton.disabled=false;}
+  });
+  exportar.addEventListener('click',()=>{
+    if(!informe)return;
+    const url=URL.createObjectURL(new Blob([JSON.stringify(informe,null,2)],{type:'application/json'}));
+    const a=document.createElement('a');a.href=url;a.download='ATLAS_Perfil_Diagnostico_'+informe.dia+'.json';
+    document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);
   });
 })();
 </script>
