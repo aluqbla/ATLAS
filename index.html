@@ -796,7 +796,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.81 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.82 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -3032,6 +3032,7 @@
     // Recalcular solo la fuente cuando la barra vuelve a ser visible.
     window.dispatchEvent(new Event('resize'));
     window.scrollTo(0, scrollPrevio);
+    window.dispatchEvent(new Event('atlas:perfil:ajustes-cerrados'));
   }
   volver.forEach(b => b.addEventListener('click', cerrar));
 
@@ -3828,12 +3829,45 @@
       tx.oncomplete=done;tx.onabort=()=>fail(tx.error||Error('transacción abortada'));});
     health=h;load=l;
   }
+  // Lectura común del umbral Garmin (Evolución y Perfil).
+  const diaUmbralValido=(d,today)=>typeof d==='string'&&validDate(d)&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d&&d<=today;
+  function putThreshold(node,target,isPace,priority,validDay){
+    if(!node||typeof node!=='object')return;
+    if(Array.isArray(node)){node.forEach(n=>putThreshold(n,target,isPace,priority,validDay));return;}
+    if('updatedDate' in node||'series' in node){
+      const day=node.updatedDate;
+      // updatedDate identifica la observación; from/until pueden delimitar la agregación.
+      if(String(node.series).toLowerCase()!=='running'||!validDay(day))return;
+      const raw=number(node.value,250),value=raw===null||raw<=0?null:isPace?100/raw:raw;
+      if(value===null||(isPace?(value<120||value>900):(value<30||value>240)))return;
+      const old=target.get(day);
+      if(!old||priority>old.priority)target.set(day,{priority,values:new Set([value])});
+      else if(priority===old.priority)old.values.add(value);return;
+    }
+    Object.values(node).forEach(n=>putThreshold(n,target,isPace,priority,validDay));
+  }
+  // Solo las dos familias de ritmo umbral, sin abrir las demás series ni consultar Garmin.
+  window.ATLASultimoUmbralRitmoLocal=async()=>{
+    const observaciones=new Map(),today=dayNow(),validDay=d=>diaUmbralValido(d,today);
+    await ATLASDB.abrir();
+    await new Promise((done,fail)=>{
+      const store=ATLASDB.almacen('readonly'),tx=store.transaction;
+      for(const [prefijo,prioridad] of [['historico:dato:privada:umbral_ritmo:',1],['historico:dato:privada:umbral_ritmo_diario:',2]]){
+        const req=store.openCursor(IDBKeyRange.bound(prefijo,prefijo+'\uffff'));
+        req.onsuccess=()=>{const c=req.result;if(!c)return;putThreshold(c.value?.datos?.bruto,observaciones,true,prioridad,validDay);c.continue();};
+        req.onerror=()=>fail(req.error||Error('lectura_umbral'));
+      }
+      tx.oncomplete=done;tx.onabort=()=>fail(tx.error||Error('lectura_umbral_interrumpida'));
+    });
+    const fecha=[...observaciones.keys()].filter(d=>observaciones.get(d).values.size===1).sort().at(-1);
+    return fecha?{estado:'ok',segundos_km:[...observaciones.get(fecha).values][0],fecha}:null;
+  };
   // 5.7.2 — Evolución: lectura local de las familias acreditadas, sin consultas ni escrituras.
   async function readEvolution(){
     const ticket=++evolutionRead, distances=new Map(), observations=new Map(), ids=new Set();
     const runs=new Map(), fitValues=new Map(), complements=new Map(), paceObservations=new Map(), hrObservations=new Map(), dailyEfficiency=new Map();
     const predictionObservations=new Map(PRED.map(([k])=>[k,new Map()]));
-    const today=dayNow(), validDay=d=>typeof d==='string'&&validDate(d)&&new Date(d+'T00:00:00Z').toISOString().slice(0,10)===d&&d<=today;
+    const today=dayNow(), validDay=d=>diaUmbralValido(d,today);
     const shared=window.ATLASFICHAEXTERNA;
     const putVO2=(node)=>{
       if(!node||typeof node!=='object')return;
@@ -3849,21 +3883,6 @@
         return;
       }
       Object.values(node).forEach(putVO2);
-    };
-    const putThreshold=(node,target,isPace,priority)=>{
-      if(!node||typeof node!=='object')return;
-      if(Array.isArray(node)){node.forEach(n=>putThreshold(n,target,isPace,priority));return;}
-      if('updatedDate' in node||'series' in node){
-        const day=node.updatedDate;
-        // updatedDate identifica la observación; from/until pueden delimitar la agregación.
-        if(String(node.series).toLowerCase()!=='running'||!validDay(day))return;
-        const raw=number(node.value,250),value=raw===null||raw<=0?null:isPace?100/raw:raw;
-        if(value===null||(isPace?(value<120||value>900):(value<30||value>240)))return;
-        const old=target.get(day);
-        if(!old||priority>old.priority)target.set(day,{priority,values:new Set([value])});
-        else if(priority===old.priority)old.values.add(value);return;
-      }
-      Object.values(node).forEach(n=>putThreshold(n,target,isPace,priority));
     };
     const putPrediction=(node)=>{
       if(!node||typeof node!=='object')return;
@@ -3902,10 +3921,10 @@
       });
       scan('historico:dato:privada:vo2_max:',putVO2);
       scan('historico:dato:privada:pronosticos_carrera:',putPrediction);
-      scan('historico:dato:privada:umbral_ritmo:',raw=>putThreshold(raw,paceObservations,true,1));
-      scan('historico:dato:privada:umbral_fc:',raw=>putThreshold(raw,hrObservations,false,1));
-      scan('historico:dato:privada:umbral_ritmo_diario:',raw=>putThreshold(raw,paceObservations,true,2));
-      scan('historico:dato:privada:umbral_fc_diario:',raw=>putThreshold(raw,hrObservations,false,2));
+      scan('historico:dato:privada:umbral_ritmo:',raw=>putThreshold(raw,paceObservations,true,1,validDay));
+      scan('historico:dato:privada:umbral_fc:',raw=>putThreshold(raw,hrObservations,false,1,validDay));
+      scan('historico:dato:privada:umbral_ritmo_diario:',raw=>putThreshold(raw,paceObservations,true,2,validDay));
+      scan('historico:dato:privada:umbral_fc_diario:',raw=>putThreshold(raw,hrObservations,false,2,validDay));
       scan('historico:dato:privada:vo2_fit:id%3A',(_raw,data,key)=>{
         const id=key.slice('historico:dato:privada:vo2_fit:id%3A'.length),v=data?.valor;
         if(String(data?.id)===id&&data.fuente==='fit_actividad'&&number(v,95)!==null&&v>=15)fitValues.set(id,v);
@@ -5655,7 +5674,7 @@
   const ampliar=el('atlas-perfil-ampliar'),dialogo=el('atlas-perfil-foto-dialogo'),grande=el('atlas-perfil-foto-grande');
   const estado=el('atlas-perfil-estado'),lista=el('atlas-perfil-zapatillas');
   const formato=new Intl.NumberFormat('es-ES',{maximumFractionDigits:1});
-  let datos=null,pendiente=null,lecturaLocal=null,intentoInicial=false;
+  let datos=null,pendiente=null,lecturaLocal=null,lecturaUmbral=null,umbralHistorico=null,intentoInicial=false;
   const valido=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
   const fechaTexto=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v.split('-').reverse().join('/'):null;
   function textoNodo(tag,texto,clase){
@@ -5665,6 +5684,11 @@
   // Cortes en segundos/km (129, 114, 106 y 99 % del umbral).
   // https://www.trainingpeaks.com/learn/articles/joe-friel-s-quick-guide-to-setting-zones/
   const umbralValido=u=>u?.estado==='ok'&&valido(u.segundos_km)&&u.segundos_km>=120&&u.segundos_km<=900;
+  // Preferencia por la observación más reciente; en igualdad, la serie acreditada de Evolución.
+  function elegirUmbral(...candidatos){
+    return candidatos.filter(umbralValido).sort((a,b)=>(b.fecha??'').localeCompare(a.fecha??''))[0]??null;
+  }
+  const umbralPerfil=()=>elegirUmbral(umbralHistorico,datos?.umbral_ritmo);
   function textoRitmo(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
   function zonasRitmo(u){
     if(!umbralValido(u))return null;
@@ -5679,7 +5703,7 @@
     tabla.setAttribute('aria-label','Zonas de entrenamiento de carrera');
     for(const titulo of ['Zona','FC (ppm)','Ritmo (min/km)']){const th=textoNodo('th',titulo);th.scope='col';head.append(th);}
     const pisos=z?.estado==='ok'&&Array.isArray(z.pisos)&&z.pisos.length===5?z.pisos:null;
-    const ritmo=zonasRitmo(datos?.umbral_ritmo),colores=['⚪','🔵','🟢','🟠','🔴'];
+    const u=umbralPerfil(),ritmo=zonasRitmo(u),colores=['⚪','🔵','🟢','🟠','🔴'];
     for(let i=0;i<5;i++){
       const tr=body.insertRow(),th=textoNodo('th','');th.scope='row';
       const etiqueta=textoNodo('span','','atlas-perfil-zonas__etiqueta');
@@ -5691,7 +5715,6 @@
     cont.append(tabla);
     if(pisos&&valido(z.umbral))cont.append(textoNodo('p','FC umbral configurada · '+z.umbral+' ppm','atlas-perfil-metrica-nota'));
     if(!pisos)cont.append(textoNodo('p','Zonas de FC de carrera no disponibles.','atlas-perfil-metrica-nota'));
-    const u=datos?.umbral_ritmo;
     if(ritmo){
       const fecha=fechaTexto(u.fecha);
       cont.append(textoNodo('p','Ritmo umbral Garmin · '+textoRitmo(Math.round(u.segundos_km))+' min/km'+(fecha?' · '+fecha:''),'atlas-perfil-metrica-nota'));
@@ -5767,9 +5790,16 @@
   el('atlas-perfil-foto-cerrar').addEventListener('click',()=>dialogo.close());
   dialogo.addEventListener('click',e=>{if(e.target===dialogo){const r=dialogo.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialogo.close();}});
   dialogo.addEventListener('close',()=>grande.removeAttribute('src'));
+  async function leerUmbralLocal(){
+    if(!lecturaUmbral)lecturaUmbral=window.ATLASultimoUmbralRitmoLocal()
+      .then(u=>{umbralHistorico=u;}).catch(()=>{}).finally(()=>{lecturaUmbral=null;});
+    await lecturaUmbral;
+  }
   async function local(){
-    if(!lecturaLocal)lecturaLocal=ATLASDB.leer(clave).then(r=>{datos=r?.datos??null;mostrar();}).catch(()=>{estado.textContent='No se pudieron leer los datos locales de Perfil.';});
-    await lecturaLocal;
+    const primera=!lecturaLocal;
+    if(primera)lecturaLocal=ATLASDB.leer(clave).then(r=>{datos=r?.datos??null;}).catch(()=>{estado.textContent='No se pudieron leer los datos locales de Perfil.';});
+    await Promise.all([lecturaLocal,leerUmbralLocal()]);
+    if(primera)mostrar();else mostrarZonas();
   }
   async function guardar(nuevo){
     await ATLASDB.abrir();
@@ -5787,7 +5817,7 @@
           dispositivo:nuevo.dispositivo?.estado!=='no_disponible'?nuevo.dispositivo:anterior.dispositivo??null,
           zapatillas:filas!==null?{estado:'ok',filas}:anterior.zapatillas??null,
           zonas_fc:nuevo.zonas_fc?.estado==='ok'?nuevo.zonas_fc:anterior.zonas_fc??null,
-          umbral_ritmo:umbralValido(nuevo.umbral_ritmo)?nuevo.umbral_ritmo:anterior.umbral_ritmo??null,
+          umbral_ritmo:elegirUmbral(nuevo.umbral_ritmo,anterior.umbral_ritmo),
           foco_carga:nuevo.foco_carga?.estado==='ok'?nuevo.foco_carga:anterior.foco_carga??null};
         store.put({clave,tipo:'vista:perfil',origen:'privada',datos});
       };
@@ -5806,7 +5836,7 @@
         await guardar(r);mostrar();
         const parcial=r.identidad?.estado!=='ok'||!r.identidad.nombre||!r.identidad.foto||r.dispositivo?.estado!=='ok'||
           r.zapatillas?.estado!=='ok'||r.zapatillas.filas.some(z=>z.uso_estado!=='ok'||!z.nombre||!valido(z.max_km))||
-          r.zonas_fc?.estado!=='ok'||!umbralValido(r.umbral_ritmo)||r.foco_carga?.estado!=='ok';
+          r.zonas_fc?.estado!=='ok'||!umbralValido(umbralPerfil())||r.foco_carga?.estado!=='ok';
         estado.textContent=parcial?'Algunos datos no se han actualizado o confirmado. Se conservan los valores locales disponibles.':'';
         return !parcial;
       }catch{estado.textContent='No se pudo actualizar Perfil. Se conservan los datos locales.';return false;}
@@ -5816,8 +5846,9 @@
   // Solo la vista actual; no desencadena histórico. Las actualizaciones posteriores se hacen desde Hoy.
   window.addEventListener('atlas:pestana:abierta',async e=>{
     if(e.detail.nombre!=='perfil')return;
-    await local();if(!intentoInicial&&(!datos||!datos.zonas_fc||!umbralValido(datos.umbral_ritmo)||!datos.foco_carga)){intentoInicial=true;void actualizar();}
+    await local();if(!intentoInicial&&(!datos||!datos.zonas_fc||!umbralValido(umbralPerfil())||!datos.foco_carga)){intentoInicial=true;void actualizar();}
   });
+  window.addEventListener('atlas:perfil:ajustes-cerrados',()=>{void local();});
   window.ATLASactualizarPerfil=actualizar;
 })();
 </script>
