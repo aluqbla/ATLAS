@@ -47,7 +47,50 @@
   /* Controles de fases 1–4 conservados intactos solo como núcleo interno no visible.
      No exponer este contenedor hasta definir Ajustes / sincronización en fase 5. */
 
-  /* 5.3: Perfil solo incorpora el acceso canónico a Ajustes. */
+  /* Cabecera de Perfil. */
+  /* 5.8.2 — Perfil: identidad y acordeón reutilizable sobre OLED. */
+  .atlas-perfil {padding:19px 22px 34px;min-width:0;}
+  .atlas-perfil .atlas-profile-toolbar {margin:0;}
+  .atlas-perfil__identidad {display:flex;align-items:center;gap:10px;min-height:112px;padding:5px 0;}
+  .atlas-perfil__avatar {padding:0;border:0;color:inherit;cursor:zoom-in;flex:0 0 92px;width:92px;height:92px;border-radius:50%;overflow:hidden;background:#26262d;display:grid;place-items:center;}
+  .atlas-perfil__avatar img {width:100%;height:100%;object-fit:cover;}
+  .atlas-perfil__avatar [hidden] {display:none!important;}
+  .atlas-perfil__avatar span {font-size:40px;}
+  .atlas-perfil__avatar:disabled {cursor:default;opacity:1;}
+  .atlas-perfil__avatar:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:3px;}
+  .atlas-perfil-foto-dialogo {border:0;padding:12px;background:#000;color:#fff;width:min(94vw,720px);max-height:90dvh;max-width:none;border-radius:18px;}
+  .atlas-perfil-foto-dialogo::backdrop {background:rgba(0,0,0,.88);}
+  .atlas-perfil-foto-dialogo .atlas-control-icon {margin-left:auto;}
+  .atlas-perfil-foto-dialogo img {display:block;width:100%;max-height:calc(90dvh - 70px);object-fit:contain;border-radius:12px;}
+  .atlas-perfil__nombre {font-size:25px;font-weight:750;letter-spacing:-.027em;line-height:1.12;overflow-wrap:anywhere;}
+  .atlas-perfil__dispositivo {font-size:14px;color:#a0a0aa;font-weight:600;overflow-wrap:anywhere;}
+  .atlas-perfil__estado {font-size:12px;color:#a8a8b4;margin:0 0 8px;line-height:1.4;}
+  .atlas-perfil__estado:empty {display:none;}
+  .atlas-acordeon {margin:14px 0 0;min-width:0;}
+  .atlas-acordeon summary {display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;min-height:44px;}
+  .atlas-acordeon summary::-webkit-details-marker {display:none;}
+  .atlas-acordeon summary .atlas-hoy-seccion__titulo {margin:0;}
+  .atlas-acordeon summary .atlas-control-icon {pointer-events:none;}
+  .atlas-acordeon[open] summary .atlas-icon {transform:rotate(180deg);}
+  .atlas-acordeon summary:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:2px;}
+  .atlas-perfil-zapatillas {padding:4px 0 8px;}
+  .atlas-perfil-zapatilla {padding:10px 0;}
+  .atlas-perfil-zapatilla__cabecera {display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 9px;}
+  .atlas-perfil-zapatilla__cabecera strong {min-width:0;font-size:15px;font-weight:650;overflow-wrap:anywhere;}
+  .atlas-perfil-zapatilla__km {white-space:nowrap;font-size:12px;color:#bfc0c9;font-variant-numeric:tabular-nums;}
+  .atlas-perfil-zonas,.atlas-perfil-foco {padding:4px 0 8px;}
+  .atlas-perfil-zonas table {width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;font-variant-numeric:tabular-nums;text-align:center;}
+  .atlas-perfil-zonas th,.atlas-perfil-zonas td {padding:10px 3px;}
+  .atlas-perfil-zonas thead th {font-size:12px;color:#a0a0aa;font-weight:600;}
+  .atlas-perfil-zonas tbody th {font-weight:650;}
+  .atlas-perfil-zonas tbody tr {border-top:1px solid #29292f;}
+  .atlas-perfil-metrica-nota {margin:7px 0 0;color:#a0a0aa;font-size:12px;line-height:1.4;}
+  .atlas-perfil-foco .atlas-hoy-factor__barra {position:relative;height:14px;overflow:visible;}
+  .atlas-perfil-foco__rango {position:absolute;top:-3px;bottom:-3px;border:1px dashed #a0a0aa;border-radius:4px;box-sizing:border-box;pointer-events:none;}
+  .atlas-perfil-foco .atlas-perfil-zapatilla__nota {text-align:right;}
+  .atlas-perfil-zapatilla__nota {display:block;margin-top:6px;color:#a0a0aa;font-size:11px;}
+  @media(max-width:365px){.atlas-perfil {padding-left:16px;padding-right:16px;}.atlas-perfil__avatar{flex-basis:82px;width:82px;height:82px;}.atlas-perfil__nombre{font-size:22px;}}
+
   .atlas-profile-toolbar { display:flex;align-items:center;justify-content:space-between;
     margin:19px 22px 0; min-height:46px; }
   .atlas-profile-toolbar h2 {margin:0;font-size:32px;line-height:1.15;font-weight:750;letter-spacing:-.035em;}
@@ -223,7 +266,7 @@
   .atlas-pronosticos-leyenda {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 15px;}
   .atlas-pronosticos-leyenda button {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:68px;padding:5px 1px;border:0;border-bottom:2px solid var(--serie);border-radius:0;background:transparent;color:#fff;font:inherit;cursor:pointer;}
   .atlas-pronosticos-leyenda button .atlas-pronosticos-distancia {font-size:clamp(8px,2.5vw,12px);font-weight:700;white-space:nowrap;}
-  .atlas-pronosticos-leyenda button .atlas-pronosticos-ritmo {font-size:clamp(9px,2.6vw,12px);}
+  .atlas-pronosticos-leyenda button .atlas-pronosticos-ritmo {font-size:clamp(10px,3vw,14px);}
   .atlas-pronosticos-ritmo {color:#fff;font-weight:740;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-pronosticos-ritmo .unidad {font-size:.62em;color:#91919d;font-weight:560;letter-spacing:-.025em;}
   #atlas-pronosticos-grafica .atlas-pronosticos-detalle {display:inline-block;border-left:2px solid var(--serie);padding-left:5px;margin-left:6px;white-space:nowrap;}
@@ -244,10 +287,9 @@
     letter-spacing:-.025em;font-weight:730;}
   .atlas-hoy-seccion__vacio {margin:0;color:#a8a8b4;font-size:13px;line-height:1.5;}
   .atlas-actividad-externa {position:relative;display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;
-    align-items:center;min-width:0;padding:4px 0;}
-  .atlas-actividad-externa + .atlas-actividad-externa {margin-top:8px;padding-top:10px;}
+    align-items:center;min-width:0;padding:9px 0;}
   .atlas-actividad-externa + .atlas-actividad-externa::after {
-    content:"";position:absolute;left:0;width:100%;height:2px;top:-2px;
+    content:"";position:absolute;left:0;width:100%;height:2px;top:-1px;
     background:#2f3038;pointer-events:none;}
   .atlas-actividad-externa__fecha {display:flex;flex-direction:column;align-items:center;
     justify-content:center;line-height:1.04;gap:0;white-space:nowrap;}
@@ -255,8 +297,8 @@
     font-size:10px;font-weight:720;color:#a5a6b0;letter-spacing:.01em;}
   .atlas-actividad-externa__fecha-dia {font-size:27px;font-weight:770;letter-spacing:-.04em;color:white;}
   .atlas-actividad-externa__contenido {min-width:0;padding-left:10px;}
-  .atlas-actividad-externa::before {content:"";position:absolute;left:53px;
-    top:calc(10% + 4px);bottom:calc(10% - 4px);width:2px;
+  .atlas-actividad-externa::before {content:"";position:absolute;left:57px;
+    top:10%;bottom:10%;width:2px;
     background:#303039;pointer-events:none;}
   .atlas-actividad-externa__nombre {display:block;margin:0 0 7px;font-size:var(--atlas-actividad-titulo,17px);
     font-weight:690;line-height:1.15;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:clip;}
@@ -272,7 +314,7 @@
   @media(max-width:360px) {
     .atlas-hoy-seccion__titulo {font-size:20px;}
     .atlas-actividad-externa {grid-template-columns:44px minmax(0,1fr);gap:8px;}
-    .atlas-actividad-externa::before {left:48px;}
+    .atlas-actividad-externa::before {left:51px;}
     .atlas-actividad-externa__contenido {padding-left:8px;}
     .atlas-actividad-externa__dato {padding-left:6px;padding-right:6px;}
   }
@@ -629,10 +671,31 @@
     <div id="atlas-pronosticos-grafica"></div>
   </section>
 </main>
-<main class="atlas-view" aria-label="Pestaña Perfil" data-tab="perfil" hidden>
+<main class="atlas-view atlas-perfil" aria-label="Pestaña Perfil" data-tab="perfil" hidden>
   <div class="atlas-profile-toolbar"><h2>Perfil</h2>
     <button type="button" id="atlas-abrir-ajustes" class="atlas-control-icon" aria-label="Abrir Ajustes" title="Ajustes"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="M9.8 2.7 9.3 5l-2.2 1.2-2.2-.8-2 3.4 1.8 1.6v2.5l-1.8 1.6 2 3.4 2.2-.8L9.3 19l.5 2.3h4.4l.5-2.3 2.2-1.2 2.2.8 2-3.4-1.8-1.6v-2.5l1.8-1.6-2-3.4-2.2.8L14.7 5l-.5-2.3Z"/></svg></button>
   </div>
+  <section class="atlas-perfil__identidad" aria-label="Identidad Garmin">
+    <button type="button" id="atlas-perfil-ampliar" class="atlas-perfil__avatar" aria-label="Ampliar foto de perfil" aria-haspopup="dialog" disabled><span id="atlas-perfil-silueta" aria-hidden="true">👤</span><img id="atlas-perfil-foto" alt="Foto de perfil Garmin" referrerpolicy="no-referrer" hidden></button>
+    <div class="atlas-hoy__estado-texto"><strong class="atlas-perfil__nombre" id="atlas-perfil-nombre">—</strong><span class="atlas-perfil__dispositivo" id="atlas-perfil-dispositivo">⌚ —</span></div>
+  </section>
+  <p class="atlas-perfil__estado" id="atlas-perfil-estado" role="status" aria-live="polite"></p>
+  <details class="atlas-acordeon">
+    <summary><span class="atlas-hoy-seccion__titulo">👟 Zapatillas</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div id="atlas-perfil-zapatillas" class="atlas-perfil-zapatillas"></div>
+  </details>
+  <details class="atlas-acordeon">
+    <summary><span class="atlas-hoy-seccion__titulo">🏃 Zonas de entrenamiento</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div id="atlas-perfil-zonas" class="atlas-perfil-zonas"></div>
+  </details>
+  <details class="atlas-acordeon">
+    <summary><span class="atlas-hoy-seccion__titulo">⚡ Foco de carga</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div id="atlas-perfil-foco" class="atlas-perfil-foco"></div>
+  </details>
+  <dialog id="atlas-perfil-foto-dialogo" class="atlas-perfil-foto-dialogo" aria-label="Foto de perfil ampliada">
+    <button type="button" id="atlas-perfil-foto-cerrar" class="atlas-control-icon" aria-label="Cerrar foto" autofocus><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    <img id="atlas-perfil-foto-grande" alt="Foto de perfil Garmin ampliada" referrerpolicy="no-referrer">
+  </dialog>
 </main>
 <section id="atlas-ajustes" class="atlas-ajustes atlas-pagina-sin-cabecera" aria-labelledby="atlas-ajustes-titulo" hidden>
   <div class="atlas-ajustes__cabecera">
@@ -731,14 +794,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <section class="panel" aria-labelledby="atlas-perfil-diag-titulo">
-    <h2 id="atlas-perfil-diag-titulo">🔍 Diagnóstico temporal de Perfil</h2>
-    <p>Consulta de solo lectura. No importa ni guarda datos. Descarga un informe sin credenciales ni nombre o foto personales.</p>
-    <button id="atlas-perfil-diag" type="button">Verificar datos de Perfil</button>
-    <div id="atlas-perfil-diag-estado" class="estado" role="status" aria-live="polite">Pendiente de comprobar.</div>
-    <button id="atlas-perfil-diag-exportar" type="button" class="secondary" disabled>Descargar informe JSON</button>
-  </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.78-DIAG · Worker v0.60-DIAG requerido</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.80 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1393,23 +1449,23 @@
         } catch { return { estado: control.signal.aborted ? "tiempo_agotado" : "error_red_o_cors" }; }
         finally { clearTimeout(limite); }
       }
-      async function consultarPerfilDiag(){
+      // 5.8.2 — Lectura protegida del Perfil actual, sin históricos.
+      async function consultarPerfil() {
         const acceso=await registroLocal();
         if(!acceso)return {estado:'sin_configurar'};
-        const hoy=new Date();
-        const dia=[hoy.getFullYear(),String(hoy.getMonth()+1).padStart(2,'0'),String(hoy.getDate()).padStart(2,'0')].join('-');
-        const control=new AbortController();const reloj=setTimeout(()=>control.abort(),180000);
+        const control=new AbortController(),reloj=setTimeout(()=>control.abort(),65000);
+        const d=new Date(),dia=[d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
         try{
-          const r=await fetch(acceso.worker+'/api/diagnostico/perfil-5.8',{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',signal:control.signal,headers:{Authorization:'Bearer '+encodeURIComponent(acceso.clave),'Content-Type':'application/json'},body:JSON.stringify({dia})});
+          const r=await fetch(acceso.worker+'/api/perfil',{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',signal:control.signal,
+            headers:{Authorization:'Bearer '+encodeURIComponent(acceso.clave),'Content-Type':'application/json'},body:JSON.stringify({dia})});
           if(r.status===404)return {estado:'worker_no_actualizado'};
-          if(r.status===401)return {estado:'no_autorizado'};
-          if(!r.ok)return {estado:'error_http_'+r.status};
-          const b=await r.json();
-          return b?.formato==='ATLAS.Perfil.Diagnostico.1'&&b?.estado==='ok'?b:{estado:'respuesta_invalida'};
+          if(r.status!==200)return {estado:'error_servidor'};
+          const datos=await r.json();
+          return datos?.estado==='ok'&&datos.identidad&&datos.dispositivo&&datos.zapatillas?datos:{estado:'respuesta_invalida'};
         }catch{return {estado:control.signal.aborted?'tiempo_agotado':'error_red_o_cors'};}
         finally{clearTimeout(reloj);}
       }
-      return Object.freeze({ consultarPerfilDiag, configurar, estado, verificar, solicitarSiguiente, solicitarResumenRapido,
+      return Object.freeze({ configurar, estado, verificar, solicitarSiguiente, solicitarResumenRapido, consultarPerfil,
         consultarVueltas, consultarGPS, consultarVo2Fit, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
     })();
 
@@ -3446,7 +3502,8 @@
       try { estadoCarga = await actualizarCarga(dia); }
       catch { estadoCarga = "error_local"; }
       await cargarMetricas();
-      const sinIncidencias = resultado?.estado === "completado";
+      const perfilActualizado = resultado?.estado !== "detenido" && await window.ATLASactualizarPerfil();
+      const sinIncidencias = resultado?.estado === "completado" && perfilActualizado;
       if (datoMostrado) {
         const detalle = datoMostrado.puntuacion + "/100" + horaLectura(datoMostrado);
           const incluyeRango = respuesta.fuentes?.reciente === "recibido";
@@ -5587,28 +5644,157 @@
   });
 })();
 </script>
-<script id="atlas-perfil-diagnostico-temporal">
-(()=>{
-  const boton=document.getElementById('atlas-perfil-diag'),exportar=document.getElementById('atlas-perfil-diag-exportar'),estado=document.getElementById('atlas-perfil-diag-estado');
-  let informe=null;
-  boton.addEventListener('click',async()=>{
-    boton.disabled=true;exportar.disabled=true;informe=null;
-    estado.textContent='Consultando Garmin. No cierres ATLAS durante la comprobación.';
-    try{
-      const r=await ATLASACCESO.consultarPerfilDiag();
-      if(r.estado!=='ok'){estado.textContent='No se completó: '+r.estado+'.';return;}
-      informe=r;exportar.disabled=false;
-      const filas=Object.values(r.resultados??{}),ok=filas.filter(x=>x.estado==='ok').length;
-      estado.textContent='Informe listo: '+ok+' de '+filas.length+' consultas con respuesta. Descarga el JSON aunque haya resultados parciales.';
-    }catch{estado.textContent='No se pudo completar la comprobación.';}
-    finally{boton.disabled=false;}
+<script id="atlas-perfil-controlador">
+(() => {
+  'use strict';
+  const clave='vista:perfil:actual';
+  const el=id=>document.getElementById(id);
+  const foto=el('atlas-perfil-foto'),silueta=el('atlas-perfil-silueta');
+  const ampliar=el('atlas-perfil-ampliar'),dialogo=el('atlas-perfil-foto-dialogo'),grande=el('atlas-perfil-foto-grande');
+  const estado=el('atlas-perfil-estado'),lista=el('atlas-perfil-zapatillas');
+  const formato=new Intl.NumberFormat('es-ES',{maximumFractionDigits:1});
+  let datos=null,pendiente=null,lecturaLocal=null,intentoInicial=false;
+  const valido=n=>typeof n==='number'&&Number.isFinite(n)&&n>=0;
+  const fechaTexto=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)?v.split('-').reverse().join('/'):null;
+  function textoNodo(tag,texto,clase){
+    const n=document.createElement(tag);n.textContent=texto;if(clase)n.className=clase;return n;
+  }
+  function mostrarZonas(){
+    const cont=el('atlas-perfil-zonas'),z=datos?.zonas_fc;cont.replaceChildren();
+    const tabla=document.createElement('table'),head=tabla.createTHead().insertRow(),body=tabla.createTBody();
+    tabla.setAttribute('aria-label','Zonas de entrenamiento de carrera');
+    for(const titulo of ['Zona','FC (ppm)','Ritmo (min/km)']){const th=textoNodo('th',titulo);th.scope='col';head.append(th);}
+    const pisos=z?.estado==='ok'&&Array.isArray(z.pisos)&&z.pisos.length===5?z.pisos:null;
+    for(let i=0;i<5;i++){
+      const tr=body.insertRow(),th=textoNodo('th','Z'+(i+1));th.scope='row';tr.append(th);
+      const fc=pisos?i<4?pisos[i]+'–'+(pisos[i+1]-1):valido(z.max)?pisos[i]+'–'+z.max:'≥ '+pisos[i]:'—';
+      tr.insertCell().textContent=fc;tr.insertCell().textContent='—';
+    }
+    cont.append(tabla);
+    if(pisos&&valido(z.umbral))cont.append(textoNodo('p','FC umbral configurada · '+z.umbral+' ppm','atlas-perfil-metrica-nota'));
+    if(!pisos)cont.append(textoNodo('p','Zonas de FC de carrera no disponibles.','atlas-perfil-metrica-nota'));
+    cont.append(textoNodo('p','Zonas de ritmo no disponibles en la fuente verificada.','atlas-perfil-metrica-nota'));
+  }
+  function mostrarFoco(){
+    const cont=el('atlas-perfil-foco'),f=datos?.foco_carga;cont.replaceChildren();
+    const filas=f?.estado==='ok'?f.filas:null;
+    if(!Array.isArray(filas)||filas.length!==3||!filas.every(x=>[x?.valor,x?.min,x?.max].every(valido)&&x.max>=x.min&&x.max>0)){
+      cont.append(textoNodo('p','Foco de carga no disponible.','atlas-hoy-seccion__vacio'));return;
+    }
+    const escala=Math.max(...filas.flatMap(x=>[x.valor,x.max]))*1.06;
+    const nombres=['Anaeróbica','Aeróbica alta','Aeróbica baja'],colores=['#bf5af2','#ff9f0a','#0a84ff'];
+    filas.forEach((x,i)=>{
+      const item=textoNodo('div','','atlas-perfil-zapatilla'),cab=textoNodo('div','','atlas-perfil-zapatilla__cabecera');
+      cab.append(textoNodo('strong',nombres[i]),textoNodo('span',formato.format(Math.round(x.valor)),'atlas-perfil-zapatilla__km'));
+      const barra=textoNodo('div','','atlas-hoy-factor__barra'),relleno=textoNodo('div','','atlas-hoy-factor__relleno'),rango=textoNodo('div','','atlas-perfil-foco__rango');
+      barra.setAttribute('role','img');barra.setAttribute('aria-label',nombres[i]+': '+formato.format(Math.round(x.valor))+', intervalo óptimo '+x.min+' a '+x.max);
+      relleno.style.width=(x.valor/escala*100)+'%';relleno.style.background=colores[i];
+      rango.style.left=(x.min/escala*100)+'%';rango.style.width=((x.max-x.min)/escala*100)+'%';
+      barra.append(relleno,rango);item.append(cab,barra,textoNodo('small','Óptimo: '+formato.format(x.min)+'–'+formato.format(x.max),'atlas-perfil-zapatilla__nota'));cont.append(item);
+    });
+    if(fechaTexto(f.fecha))cont.append(textoNodo('p','Datos del '+fechaTexto(f.fecha),'atlas-perfil-metrica-nota'));
+  }
+  function mostrar(){
+    mostrarZonas();mostrarFoco();
+    el('atlas-perfil-nombre').textContent=datos?.identidad?.nombre??'Nombre no disponible';
+    const d=datos?.dispositivo;
+    el('atlas-perfil-dispositivo').textContent='⌚ '+(d?.nombre??(d?.estado==='ambiguo'?'Principal sin confirmar':'Dispositivo no disponible'));
+    const url=datos?.identidad?.foto;
+    if(!url){ampliar.disabled=true;foto.hidden=true;silueta.hidden=false;foto.removeAttribute('src');}
+    else if(foto.getAttribute('src')!==url){ampliar.disabled=true;foto.hidden=true;silueta.hidden=false;foto.src=url;}
+    lista.replaceChildren();
+    const filas=datos?.zapatillas?.filas;
+    if(!Array.isArray(filas)||!filas.length){
+      const p=document.createElement('p');p.className='atlas-hoy-seccion__vacio';
+      p.textContent=Array.isArray(filas)?'No hay zapatillas registradas.':'Zapatillas no disponibles.';lista.append(p);return;
+    }
+    for(const z of [...filas].sort((a,b)=>Number(b.estado==='active')-Number(a.estado==='active'))){
+      const item=document.createElement('div');item.className='atlas-perfil-zapatilla';
+      const cabecera=document.createElement('div');cabecera.className='atlas-perfil-zapatilla__cabecera';
+      const titulo=document.createElement('strong');titulo.textContent=z.nombre??'Zapatilla sin nombre';
+      const km=document.createElement('span');km.className='atlas-perfil-zapatilla__km';
+      km.textContent=(valido(z.uso_km)?formato.format(z.uso_km):'—')+' / '+(valido(z.max_km)?formato.format(z.max_km):'—')+' km';
+      cabecera.append(titulo,km);item.append(cabecera);
+      const barra=document.createElement('div');barra.className='atlas-hoy-factor__barra';
+      const relleno=document.createElement('div');relleno.className='atlas-hoy-factor__relleno';
+      barra.setAttribute('role','progressbar');barra.setAttribute('aria-label',titulo.textContent);
+      if(valido(z.uso_km)&&valido(z.max_km)&&z.max_km>0){
+        const p=z.uso_km/z.max_km*100;
+        relleno.style.width=Math.min(100,p)+'%';
+        relleno.style.backgroundColor=p>=100?'#ff453a':p>=80?'#ff9f0a':'var(--atlas-blue)';
+        barra.setAttribute('aria-valuemin','0');barra.setAttribute('aria-valuemax','100');barra.setAttribute('aria-valuenow',String(Math.min(100,p)));
+        barra.setAttribute('aria-valuetext',formato.format(p)+' % de vida útil');
+      }else barra.setAttribute('aria-valuetext','Progreso no disponible');
+      barra.append(relleno);item.append(barra);
+      const inicio=fechaTexto(z.fecha_inicio),fin=fechaTexto(z.fecha_fin);
+      const nota=document.createElement('small');nota.className='atlas-perfil-zapatilla__nota';
+      nota.textContent=['Primer uso: '+(inicio??'—'),z.estado==='retired'?'Retirada: '+(fin??'—'):null,z.uso_estado!=='ok'?(valido(z.uso_km)?'Kilometraje anterior':'Kilometraje no disponible'):null].filter(Boolean).join(' · ');
+      item.append(nota);
+      lista.append(item);
+    }
+  }
+  foto.addEventListener('load',()=>{foto.hidden=false;silueta.hidden=true;ampliar.disabled=false;});
+  foto.addEventListener('error',()=>{foto.hidden=true;silueta.hidden=false;ampliar.disabled=true;});
+  ampliar.addEventListener('click',()=>{
+    if(ampliar.disabled||dialogo.open)return;
+    grande.src=datos?.identidad?.foto_ampliada??foto.src;
+    dialogo.showModal();
   });
-  exportar.addEventListener('click',()=>{
-    if(!informe)return;
-    const url=URL.createObjectURL(new Blob([JSON.stringify(informe,null,2)],{type:'application/json'}));
-    const a=document.createElement('a');a.href=url;a.download='ATLAS_Perfil_Diagnostico_'+informe.dia+'.json';
-    document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),12000);
+  grande.addEventListener('error',()=>{if(dialogo.open&&grande.src!==foto.src)grande.src=foto.src;});
+  el('atlas-perfil-foto-cerrar').addEventListener('click',()=>dialogo.close());
+  dialogo.addEventListener('click',e=>{if(e.target===dialogo){const r=dialogo.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialogo.close();}});
+  dialogo.addEventListener('close',()=>grande.removeAttribute('src'));
+  async function local(){
+    if(!lecturaLocal)lecturaLocal=ATLASDB.leer(clave).then(r=>{datos=r?.datos??null;mostrar();}).catch(()=>{estado.textContent='No se pudieron leer los datos locales de Perfil.';});
+    await lecturaLocal;
+  }
+  async function guardar(nuevo){
+    await ATLASDB.abrir();
+    await new Promise((ok,fallo)=>{
+      const store=ATLASDB.almacen('readwrite'),tx=store.transaction;
+      tx.oncomplete=ok;tx.onabort=()=>fallo(tx.error??Error('guardado_perfil'));
+      const r=store.get(clave);
+      r.onsuccess=()=>{
+        const anterior=r.result?.datos??{};
+        const filas=nuevo.zapatillas?.estado==='ok'&&Array.isArray(nuevo.zapatillas.filas)?nuevo.zapatillas.filas.map(z=>{
+          const previo=anterior.zapatillas?.filas?.find(x=>x.id===z.id);
+          return z.uso_estado!=='ok'&&valido(previo?.uso_km)?{...z,uso_km:previo.uso_km}:z;
+        }):null;
+        datos={identidad:nuevo.identidad?.estado==='ok'?nuevo.identidad:anterior.identidad??null,
+          dispositivo:nuevo.dispositivo?.estado!=='no_disponible'?nuevo.dispositivo:anterior.dispositivo??null,
+          zapatillas:filas!==null?{estado:'ok',filas}:anterior.zapatillas??null,
+          zonas_fc:nuevo.zonas_fc?.estado==='ok'?nuevo.zonas_fc:anterior.zonas_fc??null,
+          foco_carga:nuevo.foco_carga?.estado==='ok'?nuevo.foco_carga:anterior.foco_carga??null};
+        store.put({clave,tipo:'vista:perfil',origen:'privada',datos});
+      };
+    });
+  }
+  async function actualizar(){
+    if(pendiente)return pendiente;
+    pendiente=(async()=>{
+      await local();estado.textContent='Actualizando Perfil…';
+      try{
+        const r=await ATLASACCESO.consultarPerfil();
+        if(r.estado!=='ok'){
+          estado.textContent=r.estado==='sin_configurar'?'Configura la conexión en Ajustes.':
+            'No se pudo actualizar Perfil. '+(datos?'Se conservan los datos locales.':'Inténtalo desde Hoy.');return false;
+        }
+        await guardar(r);mostrar();
+        const parcial=r.identidad?.estado!=='ok'||!r.identidad.nombre||!r.identidad.foto||r.dispositivo?.estado!=='ok'||
+          r.zapatillas?.estado!=='ok'||r.zapatillas.filas.some(z=>z.uso_estado!=='ok'||!z.nombre||!valido(z.max_km))||
+          r.zonas_fc?.estado!=='ok'||r.foco_carga?.estado!=='ok';
+        estado.textContent=parcial?'Algunos datos no se han actualizado o confirmado. Se conservan los valores locales disponibles.':'';
+        return !parcial;
+      }catch{estado.textContent='No se pudo actualizar Perfil. Se conservan los datos locales.';return false;}
+    })().finally(()=>{pendiente=null;});
+    return pendiente;
+  }
+  // Solo la vista actual; no desencadena histórico. Las actualizaciones posteriores se hacen desde Hoy.
+  window.addEventListener('atlas:pestana:abierta',async e=>{
+    if(e.detail.nombre!=='perfil')return;
+    await local();if(!intentoInicial&&(!datos||!datos.zonas_fc||!datos.foco_carga)){intentoInicial=true;void actualizar();}
   });
+  window.ATLASactualizarPerfil=actualizar;
 })();
 </script>
 </body></html>
