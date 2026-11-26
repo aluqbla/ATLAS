@@ -6,7 +6,7 @@
   <title>ATLAS</title>
   <style>
   :root { color-scheme: dark; --atlas-bg:#000000; --atlas-blue:#0a84ff;
-    --atlas-text:#ffffff; --atlas-glass:rgba(32,32,40,.78);
+    --atlas-text:#ffffff; --atlas-glass:rgba(32,32,40,.78); --atlas-progreso-grosor:9px;
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif; }
   *,*::before,*::after { box-sizing:border-box; }
   html,body { margin:0; min-width:0; min-height:100%; background:var(--atlas-bg); color:var(--atlas-text); }
@@ -82,11 +82,13 @@
   .atlas-perfil-zonas table {width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;font-variant-numeric:tabular-nums;text-align:center;}
   .atlas-perfil-zonas th,.atlas-perfil-zonas td {padding:10px 3px;}
   .atlas-perfil-zonas thead th {font-size:12px;color:#a0a0aa;font-weight:600;}
-  .atlas-perfil-zonas tbody th {font-weight:650;}
+  .atlas-perfil-zonas tbody th {font-weight:650;white-space:nowrap;}
+  .atlas-perfil-zonas__etiqueta {display:inline-flex;align-items:center;gap:6px;}
+  .atlas-perfil-zonas__emoji {font-size:13px;line-height:1;}
   .atlas-perfil-zonas tbody tr {border-top:1px solid #29292f;}
   .atlas-perfil-metrica-nota {margin:7px 0 0;color:#a0a0aa;font-size:12px;line-height:1.4;}
-  .atlas-perfil-foco .atlas-hoy-factor__barra {position:relative;height:14px;overflow:visible;}
-  .atlas-perfil-foco__rango {position:absolute;top:-3px;bottom:-3px;border:1px dashed #a0a0aa;border-radius:4px;box-sizing:border-box;pointer-events:none;}
+  .atlas-perfil-foco .atlas-hoy-factor__barra {position:relative;overflow:visible;}
+  .atlas-perfil-foco__rango {position:absolute;top:-2px;bottom:-2px;border:1px dashed #a0a0aa;border-radius:4px;box-sizing:border-box;pointer-events:none;}
   .atlas-perfil-foco .atlas-perfil-zapatilla__nota {text-align:right;}
   .atlas-perfil-zapatilla__nota {display:block;margin-top:6px;color:#a0a0aa;font-size:11px;}
   @media(max-width:365px){.atlas-perfil {padding-left:16px;padding-right:16px;}.atlas-perfil__avatar{flex-basis:82px;width:82px;height:82px;}.atlas-perfil__nombre{font-size:22px;}}
@@ -181,7 +183,7 @@
   .atlas-hoy-factor {min-width:0;}
   .atlas-hoy-factor__titulo {margin:0 0 9px;font-size:14px;line-height:1.27;font-weight:690;}
   .atlas-hoy-factor__valor {font-size:24px;font-weight:700;letter-spacing:-.025em;line-height:1.15;margin:0 0 8px;}
-  .atlas-hoy-factor__barra {height:5px;border-radius:6px;background:#29292f;overflow:hidden;}
+  .atlas-hoy-factor__barra {height:var(--atlas-progreso-grosor);border-radius:calc(var(--atlas-progreso-grosor) / 2);background:#29292f;overflow:hidden;}
   .atlas-hoy-factor__relleno {height:100%;background:var(--atlas-blue);width:0;border-radius:inherit;}
   .atlas-hoy-factor__comentario {margin:9px 0 0;color:#aeb0bc;font-size:12.25px;line-height:1.42;}
   .atlas-hoy-detalle__analisis {margin:0 0 27px;}
@@ -794,7 +796,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.80 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.81 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -5659,21 +5661,42 @@
   function textoNodo(tag,texto,clase){
     const n=document.createElement(tag);n.textContent=texto;if(clase)n.className=clase;return n;
   }
+  // Referencia de ritmo: Joe Friel (TrainingPeaks), con Z5a–c agrupadas.
+  // Cortes en segundos/km (129, 114, 106 y 99 % del umbral).
+  // https://www.trainingpeaks.com/learn/articles/joe-friel-s-quick-guide-to-setting-zones/
+  const umbralValido=u=>u?.estado==='ok'&&valido(u.segundos_km)&&u.segundos_km>=120&&u.segundos_km<=900;
+  function textoRitmo(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+  function zonasRitmo(u){
+    if(!umbralValido(u))return null;
+    // Redondear los cortes una sola vez; intervalos contiguos de segundos enteros.
+    const [a,b,c,d]=[1.29,1.14,1.06,.99].map(f=>Math.round(u.segundos_km*f));
+    return ['> '+textoRitmo(a),textoRitmo(b)+'–'+textoRitmo(a),
+      textoRitmo(c)+'–'+textoRitmo(b-1),textoRitmo(d)+'–'+textoRitmo(c-1),'< '+textoRitmo(d)];
+  }
   function mostrarZonas(){
     const cont=el('atlas-perfil-zonas'),z=datos?.zonas_fc;cont.replaceChildren();
     const tabla=document.createElement('table'),head=tabla.createTHead().insertRow(),body=tabla.createTBody();
     tabla.setAttribute('aria-label','Zonas de entrenamiento de carrera');
     for(const titulo of ['Zona','FC (ppm)','Ritmo (min/km)']){const th=textoNodo('th',titulo);th.scope='col';head.append(th);}
     const pisos=z?.estado==='ok'&&Array.isArray(z.pisos)&&z.pisos.length===5?z.pisos:null;
+    const ritmo=zonasRitmo(datos?.umbral_ritmo),colores=['⚪','🔵','🟢','🟠','🔴'];
     for(let i=0;i<5;i++){
-      const tr=body.insertRow(),th=textoNodo('th','Z'+(i+1));th.scope='row';tr.append(th);
+      const tr=body.insertRow(),th=textoNodo('th','');th.scope='row';
+      const etiqueta=textoNodo('span','','atlas-perfil-zonas__etiqueta');
+      const emoji=textoNodo('span',colores[i],'atlas-perfil-zonas__emoji');emoji.setAttribute('aria-hidden','true');
+      etiqueta.append(emoji,textoNodo('span','Z'+(i+1)));th.append(etiqueta);tr.append(th);
       const fc=pisos?i<4?pisos[i]+'–'+(pisos[i+1]-1):valido(z.max)?pisos[i]+'–'+z.max:'≥ '+pisos[i]:'—';
-      tr.insertCell().textContent=fc;tr.insertCell().textContent='—';
+      tr.insertCell().textContent=fc;tr.insertCell().textContent=ritmo?.[i]??'—';
     }
     cont.append(tabla);
     if(pisos&&valido(z.umbral))cont.append(textoNodo('p','FC umbral configurada · '+z.umbral+' ppm','atlas-perfil-metrica-nota'));
     if(!pisos)cont.append(textoNodo('p','Zonas de FC de carrera no disponibles.','atlas-perfil-metrica-nota'));
-    cont.append(textoNodo('p','Zonas de ritmo no disponibles en la fuente verificada.','atlas-perfil-metrica-nota'));
+    const u=datos?.umbral_ritmo;
+    if(ritmo){
+      const fecha=fechaTexto(u.fecha);
+      cont.append(textoNodo('p','Ritmo umbral Garmin · '+textoRitmo(Math.round(u.segundos_km))+' min/km'+(fecha?' · '+fecha:''),'atlas-perfil-metrica-nota'));
+      cont.append(textoNodo('p','Ritmos orientativos ATLAS · Friel (Z5 agrupada).','atlas-perfil-metrica-nota'));
+    }else cont.append(textoNodo('p','Ritmos pendientes: umbral Garmin no disponible.','atlas-perfil-metrica-nota'));
   }
   function mostrarFoco(){
     const cont=el('atlas-perfil-foco'),f=datos?.foco_carga;cont.replaceChildren();
@@ -5764,6 +5787,7 @@
           dispositivo:nuevo.dispositivo?.estado!=='no_disponible'?nuevo.dispositivo:anterior.dispositivo??null,
           zapatillas:filas!==null?{estado:'ok',filas}:anterior.zapatillas??null,
           zonas_fc:nuevo.zonas_fc?.estado==='ok'?nuevo.zonas_fc:anterior.zonas_fc??null,
+          umbral_ritmo:umbralValido(nuevo.umbral_ritmo)?nuevo.umbral_ritmo:anterior.umbral_ritmo??null,
           foco_carga:nuevo.foco_carga?.estado==='ok'?nuevo.foco_carga:anterior.foco_carga??null};
         store.put({clave,tipo:'vista:perfil',origen:'privada',datos});
       };
@@ -5782,7 +5806,7 @@
         await guardar(r);mostrar();
         const parcial=r.identidad?.estado!=='ok'||!r.identidad.nombre||!r.identidad.foto||r.dispositivo?.estado!=='ok'||
           r.zapatillas?.estado!=='ok'||r.zapatillas.filas.some(z=>z.uso_estado!=='ok'||!z.nombre||!valido(z.max_km))||
-          r.zonas_fc?.estado!=='ok'||r.foco_carga?.estado!=='ok';
+          r.zonas_fc?.estado!=='ok'||!umbralValido(r.umbral_ritmo)||r.foco_carga?.estado!=='ok';
         estado.textContent=parcial?'Algunos datos no se han actualizado o confirmado. Se conservan los valores locales disponibles.':'';
         return !parcial;
       }catch{estado.textContent='No se pudo actualizar Perfil. Se conservan los datos locales.';return false;}
@@ -5792,7 +5816,7 @@
   // Solo la vista actual; no desencadena histórico. Las actualizaciones posteriores se hacen desde Hoy.
   window.addEventListener('atlas:pestana:abierta',async e=>{
     if(e.detail.nombre!=='perfil')return;
-    await local();if(!intentoInicial&&(!datos||!datos.zonas_fc||!datos.foco_carga)){intentoInicial=true;void actualizar();}
+    await local();if(!intentoInicial&&(!datos||!datos.zonas_fc||!umbralValido(datos.umbral_ritmo)||!datos.foco_carga)){intentoInicial=true;void actualizar();}
   });
   window.ATLASactualizarPerfil=actualizar;
 })();
