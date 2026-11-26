@@ -85,7 +85,12 @@
   .atlas-perfil-marcas thead th:first-child {width:25%;}
   .atlas-perfil-marcas tbody tr {border-top:1px solid #29292f;}
   .atlas-perfil-marcas tbody th {text-align:left;font-size:13px;font-weight:650;line-height:1.25;overflow-wrap:anywhere;}
-  .atlas-perfil-marcas td {font-weight:700;white-space:nowrap;}
+  .atlas-perfil-marcas td {font-weight:700;white-space:nowrap;padding:0 2px;}
+  .atlas-perfil-marcas td:has(> .atlas-marca-enlace) {padding:0;}
+  .atlas-perfil-marcas .atlas-marca-enlace {appearance:none;display:block;width:100%;min-height:44px;padding:10px 2px;margin:0;border:0;border-radius:0;background:transparent;color:inherit;text-align:center;font:inherit;cursor:pointer;}
+  .atlas-perfil-marcas .atlas-marca-enlace:active {background:#172634;}
+  .atlas-perfil-marcas .atlas-marca-enlace:focus-visible {outline:2px solid #1689ff;outline-offset:-2px;border-radius:5px;}
+  .atlas-perfil-marcas .atlas-marca-enlace:disabled {opacity:.7;cursor:wait;}
   .atlas-perfil-marcas td small {display:block;font-size:11px;font-weight:500;color:#a0a0aa;margin-top:3px;}
   @media(max-width:350px){.atlas-perfil-marcas table {font-size:12px;}.atlas-perfil-marcas tbody th {font-size:12px;}.atlas-perfil-marcas td small {font-size:10px;}}
   .atlas-perfil-zonas table {width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;font-variant-numeric:tabular-nums;text-align:center;}
@@ -817,7 +822,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.83 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.84 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1124,7 +1129,15 @@
                 const consulta = almacen.get(registro.clave);
                 consulta.onsuccess = () => {
                   if (consulta.result === undefined) { almacen.add(registro); nuevos++; }
-                  else existentes++; // Nunca sustituir silenciosamente datos existentes.
+                  else {
+                    // Un resumen mínimo leído por ID desde una marca no impide
+                    // completar el registro por el listado histórico oficial.
+                    const previo=consulta.result;
+                    if(t.fuente==='oficial'&&t.familia==='actividades'&&previo.datos?.calidad==='resumen_actividad_por_id'){
+                      almacen.put({...registro,datos:{...registro.datos,bruto:{...previo.datos.bruto,...registro.datos.bruto}}});
+                    }
+                    existentes++; // No sustituir otros registros válidos.
+                  }
                   if (--pendientes === 0) guardarProgreso();
                 };
               }
@@ -1385,6 +1398,23 @@
         } catch {return {estado:controller.signal.aborted?'tiempo_agotado':'error_red_o_cors'};}
         finally {clearTimeout(reloj);}
       }
+      // 5.8.4 — Solo si se pulsa una marca de una actividad aún no guardada.
+      async function consultarActividadMarca(id){
+        if(!Number.isSafeInteger(id)||id<1)return {estado:'id_invalido'};
+        const acceso=await registroLocal();if(!acceso)return {estado:'sin_configurar'};
+        const control=new AbortController(),reloj=setTimeout(()=>control.abort(),45000);
+        try{
+          const r=await fetch(acceso.worker+'/api/historico/lote',{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',signal:control.signal,
+            headers:{Authorization:'Bearer '+encodeURIComponent(acceso.clave),'Content-Type':'application/json'},
+            body:JSON.stringify({fuente:'oficial',familia:'detalle_actividad',id,cursor:{ventana:0,dia:0,pagina:0}})});
+          if(r.status!==200)return {estado:'error_servidor'};
+          const b=await r.json();
+          if(b?.estado!=='ok'||b.fuente!=='oficial'||b.familia!=='detalle_actividad'||b.modo!=='id'||b.id!==id||b.siguienteCursor!==null)
+            return {estado:'respuesta_no_confirmable'};
+          return {estado:'ok',datos:b.datos};
+        }catch{return {estado:control.signal.aborted?'tiempo_agotado':'error_red_o_cors'};}
+        finally{clearTimeout(reloj);}
+      }
       // 5.4 — Lectura de una única página reciente; no utiliza el progreso histórico completado.
       async function consultarActividadesRecientes(desde, hasta, cursor) {
         const datos = await registroLocal();
@@ -1507,7 +1537,7 @@
         finally{clearTimeout(reloj);}
       }
       return Object.freeze({ configurar, estado, verificar, solicitarSiguiente, solicitarResumenRapido, consultarPerfil,
-        consultarVueltas, consultarGPS, consultarVo2Fit, consultarMarcasFit, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
+        consultarVueltas, consultarGPS, consultarVo2Fit, consultarMarcasFit, consultarActividadMarca, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
     })();
 
     // 5.4 — Servicio de vueltas por actividad. Listo para invocarse automáticamente al abrir
@@ -1607,20 +1637,36 @@
       const idValido=id=>Number.isSafeInteger(id)&&id>0;
       const positivo=(n,max=1000000)=>typeof n==='number'&&Number.isFinite(n)&&n>0&&n<=max;
       function validarFit(m){
-        if(m?.estado==='no_disponible')return {estado:'no_disponible',tramos:[],completo:false};
+        if(m?.estado==='no_disponible')return {estado:'no_disponible',contrato:m.contrato===2?2:1,tramos:[],completo:false};
         if(m?.estado!=='ok'||!positivo(m.metros)||typeof m.completo!=='boolean'||!Array.isArray(m.tramos)||
           m.tramos.length>5||new Set(m.tramos.map(x=>x?.metros)).size!==m.tramos.length||
           !m.tramos.every(x=>distancias.slice(0,5).includes(x?.metros)&&x.metros<=m.metros+10&&positivo(x.segundos,604800)&&x.segundos>=x.metros/13))return null;
-        return {estado:'ok',metros:m.metros,segundos:positivo(m.segundos,604800)?m.segundos:null,completo:m.completo,
+        return {estado:'ok',contrato:m.contrato===2?2:1,metros:m.metros,segundos:positivo(m.segundos,604800)?m.segundos:null,completo:m.completo,
           tramos:m.tramos.map(x=>({metros:x.metros,segundos:x.segundos}))};
       }
       async function guardar(id,m){
-        const fit=validarFit(m);
+        let fit=validarFit(m);
         if(!idValido(id)||!fit)return false;
-        const registro={clave:prefijo+id,tipo:'historico:dato',origen:'privada',datos:{id,fuente:'fit_actividad',...fit}};
-        await ATLASDB.guardarSiInvalido(registro,anterior=>{
-          const f=validarFit(anterior?.datos);return anterior?.datos?.id===id&&Boolean(f)&&
-            (f.completo||(f.estado==='ok'&&!fit.completo)||(f.estado==='no_disponible'&&fit.estado==='no_disponible'));
+        const clave= prefijo+id,anterior=await ATLASDB.leer(clave);
+        const previo=anterior?.datos?.id===id?validarFit(anterior.datos):null;
+        // La revisión de FIT antiguos parciales no destruye parciales válidos.
+        if(previo?.estado==='ok'&&!previo.completo&&fit.contrato===2){
+          if(fit.estado==='no_disponible')fit={...previo,contrato:2};
+          else if(Math.abs(previo.metros-fit.metros)<=1){
+            const tramos=new Map(previo.tramos.map(t=>[t.metros,t]));
+            for(const t of fit.tramos)if(!tramos.has(t.metros)||t.segundos<tramos.get(t.metros).segundos)tramos.set(t.metros,t);
+            fit={...fit,tramos:[...tramos.values()]};
+          }
+        }
+        const registro={clave,tipo:'historico:dato',origen:'privada',datos:{id,fuente:'fit_actividad',...fit}};
+        await ATLASDB.guardarSiInvalido(registro,actual=>{
+          const f=validarFit(actual?.datos);
+          if(actual?.datos?.id!==id||!f)return false;
+          if(f.completo)return true;
+          if(fit.contrato<f.contrato)return true;
+          if(fit.completo||fit.contrato>f.contrato)return false;
+          if(f.estado==='no_disponible')return fit.estado==='no_disponible';
+          return fit.estado!=='ok'||fit.tramos.every(t=>f.tramos.some(x=>x.metros===t.metros&&x.segundos<=t.segundos));
         });
         return true;
       }
@@ -1664,16 +1710,28 @@
           const m=filas.get(c.distancia),a=m.get(c.id);
           if(!a||(c.distancia?c.segundos<a.segundos:c.metros>a.metros))m.set(c.id,c);
         }
-        let total=0,revisadas=0,completas=0;const pendientes=[];
-        for(const a of actividades.values()){
+        const carreras=new Map(actividades);
+        for(const c of filas.get(0).values())if(!carreras.has(c.id))
+          carreras.set(c.id,{id:c.id,metros:c.metros,segundos:c.segundos,fecha:c.fecha??'',soloRecord:true});
+        // A PR of a known distance also proves the activity reached at least that distance.
+        // Its real total distance is only accepted from FIT or the actual activity summary.
+        for(const d of distancias.slice(0,5))for(const c of filas.get(d).values())if(!carreras.has(c.id)||carreras.get(c.id).soloMinimo&&c.metros>carreras.get(c.id).metros)
+          carreras.set(c.id,{id:c.id,metros:c.metros,segundos:null,fecha:c.fecha??'',soloMinimo:true});
+        let total=0,revisadas=0,completas=0;const pendientes=[],prioritarias=[];
+        for(const a of carreras.values()){
           const largos=filas.get(0),previo=largos.get(a.id);
-          largos.set(a.id,{...a,distancia:0,segundos:a.segundos??(previo&&Math.abs(previo.metros-a.metros)<=Math.max(1,a.metros*.001)?previo.segundos:null),fuente:'actividad'});
+          if(!a.soloRecord&&!a.soloMinimo)largos.set(a.id,{...a,distancia:0,segundos:a.segundos??(previo&&Math.abs(previo.metros-a.metros)<=Math.max(1,a.metros*.001)?previo.segundos:null),fuente:'actividad'});
           if(a.metros<1000)continue;
           total++;
           const f=fits.get(a.id);
-          if(!f){pendientes.push(a);continue;}
+          const coincide=f?.estado==='ok'&&(a.soloMinimo?f.metros+1>=a.metros:Math.abs(f.metros-a.metros)<=Math.max(10,a.metros*.01));
+          const requiere=!f||f.contrato<2&&!f.completo||f.estado==='ok'&&!coincide&&f.contrato<2;
+          if(requiere){pendientes.push(a);if(a.metros>=42195)prioritarias.push(a);}
+          if(!f)continue;
           revisadas++;
-          if(f.estado!=='ok'||Math.abs(f.metros-a.metros)>Math.max(10,a.metros*.01))continue;
+          if(!coincide)continue;
+          if(a.soloMinimo&&!previo)largos.set(a.id,{id:a.id,metros:f.metros,segundos:f.segundos,distancia:0,fecha:a.fecha,fuente:'fit_actividad'});
+          else if(a.soloRecord&&previo?.segundos===null&&f.segundos&&Math.abs(f.metros-a.metros)<=Math.max(1,a.metros*.001))largos.set(a.id,{...previo,segundos:f.segundos});
           if(f.completo)completas++;
           for(const t of f.tramos){
             const m=filas.get(t.metros),p=m.get(a.id);
@@ -1684,26 +1742,56 @@
         }
         const podios=distancias.map(d=>[...filas.get(d).values()].sort((a,b)=>
           d?a.segundos-b.segundos||a.id-b.id:b.metros-a.metros||(a.segundos??Infinity)-(b.segundos??Infinity)||a.id-b.id).slice(0,3));
-        pendientes.sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.id-a.id);
-        return {podios,total,revisadas,completas,pendientes:pendientes.map(a=>a.id)};
+        const orden=(a,b)=>b.metros-a.metros||String(b.fecha).localeCompare(String(a.fecha))||b.id-a.id;
+        pendientes.sort(orden);prioritarias.sort(orden);
+        return {podios,total,revisadas,completas,pendientes:pendientes.map(a=>a.id),prioritarias:prioritarias.map(a=>a.id)};
       }
       async function ranking(garmin){const i=await inventario();return clasificar(i.actividades,i.fits,garmin);}
       let enCurso=false;
       const boton=document.getElementById('atlas-marcas-completar'),parar=document.getElementById('atlas-marcas-parar'),estado=document.getElementById('atlas-marcas-estado');
+      const solicitadas=new Set();
+      const ocupado=()=>['atlas-detener','atlas-sinc-parar','atlas-salud-parar','atlas-inc-detener'].some(id=>!document.getElementById(id).disabled);
+      const bloquear=()=>{
+        const nodos=['atlas-guardar','atlas-comprobar','atlas-importar','atlas-inc-actualizar','atlas-sinc-rapida','atlas-salud-piloto','atlas-salud-total','atlas-salud-vo2','atlas-salud-umbral','atlas-salud-pronosticos']
+          .map(id=>document.getElementById(id)).filter(Boolean),previos=nodos.map(x=>x.disabled);
+        nodos.forEach(x=>x.disabled=true);
+        return ()=>nodos.forEach((x,i)=>x.disabled=previos[i]);
+      };
+      // Solo al desplegar Mejores marcas: hasta tres carreras de maratón o más
+      // por ejecución de ATLAS. El recorrido histórico permanece voluntario.
+      function analizarPrioritarias(r){
+        if(enCurso||ocupado()||solicitadas.size>=3)return false;
+        const ids=r.prioritarias.filter(id=>!solicitadas.has(id)).slice(0,3-solicitadas.size);
+        if(!ids.length)return false;
+        ids.forEach(id=>solicitadas.add(id));
+        enCurso=true;boton.disabled=true;const liberar=bloquear();
+        void (async()=>{
+          try{
+            const respuesta=await ATLASACCESO.consultarMarcasFit(ids);
+            if(respuesta.estado==='ok')for(const f of respuesta.filas){
+              if(f.estado==='ok')await guardar(f.id,f.marcas_fit);
+              else if(f.estado==='sin_archivo_fit')await guardar(f.id,{estado:'no_disponible',contrato:2});
+            }
+          }catch{}finally{
+            enCurso=false;boton.disabled=false;liberar();
+            window.dispatchEvent(new Event('atlas:marcas:actualizadas'));
+          }
+        })();
+        return true;
+      }
       let cancelar=false;
       parar.addEventListener('click',()=>{cancelar=true;parar.disabled=true;});
       boton.addEventListener('click',async()=>{
         if(enCurso)return;
-        if(['atlas-detener','atlas-sinc-parar','atlas-salud-parar','atlas-inc-detener'].some(id=>!document.getElementById(id).disabled)){
+        if(ocupado()){
           estado.textContent='Finaliza primero la importación en marcha.';return;
         }
         enCurso=true;cancelar=false;boton.disabled=true;parar.disabled=false;
-        const bloqueados=['atlas-guardar','atlas-comprobar','atlas-importar','atlas-inc-actualizar','atlas-sinc-rapida','atlas-salud-piloto','atlas-salud-total','atlas-salud-vo2','atlas-salud-umbral','atlas-salud-pronosticos']
-          .map(id=>document.getElementById(id)).filter(Boolean),previos=bloqueados.map(x=>x.disabled);
-        bloqueados.forEach(x=>x.disabled=true);
+        const liberar=bloquear();
         try{
-          const inicial=await ranking(null),ids=inicial.pendientes;
-          if(!ids.length){estado.textContent='No hay carreras locales pendientes de analizar. '+inicial.completas+'/'+inicial.total+' con FIT completo.';return;}
+          const perfil=await ATLASDB.leer('vista:perfil:actual');
+          const inicial=await ranking(perfil?.datos?.marcas_garmin),ids=inicial.pendientes;
+          if(!ids.length){estado.textContent='No hay carreras conocidas pendientes de analizar. '+inicial.completas+'/'+inicial.total+' con FIT completo.';return;}
           let hechas=0,fallos=0;
           for(let i=0;i<ids.length&&!cancelar;i+=3){
             const lote=ids.slice(i,i+3);
@@ -1713,7 +1801,7 @@
             let interrumpir=false;
             for(const f of r.filas){
               if(f.estado==='ok'&&await guardar(f.id,f.marcas_fit))hechas++;
-              else if(f.estado==='sin_archivo_fit'){await guardar(f.id,{estado:'no_disponible'});hechas++;}
+              else if(f.estado==='sin_archivo_fit'){await guardar(f.id,{estado:'no_disponible',contrato:2});hechas++;}
               else {fallos++;if(!['fit_demasiado_grande','fit_crc_invalido','fit_estructura_invalida','fit_invalido','archivo_no_fit','zip_sin_fit','archivo_sin_contenido'].includes(f.estado))interrumpir=true;}
             }
             if(interrumpir){estado.textContent='Importación pausada. Se conservaron '+hechas+' resultados; reanuda más tarde.';return;}
@@ -1722,11 +1810,11 @@
           estado.textContent=(cancelar?'Importación detenida. ':'Análisis finalizado. ')+hechas+'/'+ids.length+' carreras revisadas'+(fallos?' · '+fallos+' sin confirmar':'')+'.';
         }catch{estado.textContent='No se pudo completar el análisis. Se conservan los resultados confirmados.';}
         finally{
-          enCurso=false;boton.disabled=false;parar.disabled=true;bloqueados.forEach((x,i)=>x.disabled=previos[i]);
+          enCurso=false;boton.disabled=false;parar.disabled=true;liberar();
           window.dispatchEvent(new Event('atlas:marcas:actualizadas'));
         }
       });
-      return Object.freeze({guardar,ranking,enCurso:()=>enCurso});
+      return Object.freeze({guardar,ranking,analizarPrioritarias,enCurso:()=>enCurso});
     })();
 
     const ATLASGPS = (() => {
@@ -5804,6 +5892,38 @@
     window.scrollTo(0,0);requestAnimationFrame(()=>{ajustarTitulo();ajustarDatosContexto();});
     void completar(a,ticket);
   }
+  let aperturaMarca=false;
+  async function abrirPorId(id){
+    if(activo||aperturaMarca||!Number.isSafeInteger(id)||id<1)return false;
+    aperturaMarca=true;
+    const clave='historico:dato:oficial:actividades:id%3A'+id;
+    const valida=a=>a&&Number(a.activityId)===id&&compartido.fechaLocal(a.startTimeLocal??a.startTimeGMT)&&Number.isFinite(compartido.instante(a));
+    try{
+      let a=(await ATLASDB.leer(clave))?.datos?.bruto;
+      if(!valida(a)){
+        const r=await ATLASACCESO.consultarActividadMarca(id);
+        const dato=r.datos,s=dato?.summaryDTO??dato;
+        if(r.estado!=='ok'||Number(dato?.activityId)!==id||!s)return false;
+        const tipo=dato.activityType??dato.activityTypeDTO;
+        if(typeof tipo?.typeKey!=='string')return false;
+        a={activityId:id,activityName:dato.activityName??s.activityName??null,
+          activityType:{typeKey:tipo.typeKey},startTimeLocal:s.startTimeLocal??dato.startTimeLocal,
+          startTimeGMT:s.startTimeGMT??dato.startTimeGMT};
+        const campos=['distance','duration','elapsedDuration','movingDuration','averageSpeed','maxSpeed','averageHR','maxHR','calories','avgPower','maxPower',
+          'averageRunningCadenceInStepsPerMinute','maxRunningCadenceInStepsPerMinute','elevationGain','elevationLoss','activityTrainingLoad','aerobicTrainingEffect','anaerobicTrainingEffect','avgTemperature',
+          'averageTemperature','averageTemperatureCelsius','directWorkoutRpe','directWorkoutFeel','rpe','perceivedEffort','vo2MaxValue','vO2MaxValue','vo2MaxPreciseValue','vO2MaxPreciseValue','avgGroundContactTime','avgStrideLength','avgVerticalOscillation','avgVerticalRatio','lapCount'];
+        for(const k of campos){const v=primerNumero(s[k],dato[k]);if(v!==null)a[k]=v;}
+        for(const k of ['hasGPS','hasPolyline'])if(typeof dato[k]==='boolean')a[k]=dato[k];
+        if(!valida(a)||!compartido.deporte(a).esCarrera)return false;
+        await ATLASDB.guardarSiInvalido({clave,tipo:'historico:dato',origen:'oficial',datos:{bruto:a,calidad:'resumen_actividad_por_id'}},x=>Boolean(valida(x?.datos?.bruto)));
+        a=(await ATLASDB.leer(clave))?.datos?.bruto??a;
+      }
+      if(activo||!valida(a)||document.querySelector('.atlas-view[data-tab="perfil"]')?.hidden||
+        marco.classList.contains('atlas-ajustes-abiertos'))return false;
+      abrir(a);return activo;
+    }catch{return false;}finally{aperturaMarca=false;}
+  }
+  window.ATLASabrirActividadMarca=abrirPorId;
   function cerrar() {
     if(!activo)return;
     ++ticket;activo=false;actividadActual=null;
@@ -5940,14 +6060,28 @@
         const larga=i===5;
         const principal=larga?(x.metros/1000).toLocaleString('es-ES',{maximumFractionDigits:2})+' km':tiempoMarca(x.segundos);
         const segundo=larga?tiempoMarca(x.segundos):tiempoMarca(x.segundos/(x.metros/1000))+' /km';
-        celda.append(textoNodo('span',principal),textoNodo('small',segundo));
+        const enlace=document.createElement('button');enlace.type='button';enlace.className='atlas-marca-enlace';
+        enlace.append(textoNodo('span',principal),textoNodo('small',segundo));
+        celda.append(enlace);
         const fuentes={garmin_actual:'Récord Garmin actual',garmin_archivado:'Récord Garmin anterior',fit_actividad:'Tramo FIT · tiempo transcurrido',actividad:'Resumen de actividad Garmin'};
-        celda.title=fuentes[x.fuente]+(fechaTexto(x.fecha)?' · '+fechaTexto(x.fecha):'');
-        celda.setAttribute('aria-label',principal+' · '+segundo+' · '+celda.title);
+        enlace.title=fuentes[x.fuente]+(fechaTexto(x.fecha)?' · '+fechaTexto(x.fecha):'');
+        enlace.setAttribute('aria-label','Abrir actividad · '+titulos[i]+' · '+principal+' · '+segundo+' · '+enlace.title);
+        enlace.addEventListener('click',async()=>{
+          if(enlace.disabled)return;
+          enlace.disabled=true;
+          try{
+            const ok=await window.ATLASabrirActividadMarca(x.id);
+            if(!ok)estado.textContent='No se pudo abrir la actividad. Comprueba la conexión a Garmin.';
+          }catch{estado.textContent='No se pudo abrir la actividad.';}
+          finally{enlace.disabled=false;}
+        });
       }
     });
-    cont.replaceChildren(tabla,textoNodo('p','Mejores marcas disponibles · FIT completos '+r.completas+'/'+r.total+' carreras locales.','atlas-perfil-metrica-nota'));
-    cont.append(textoNodo('p','Récords Garmin y tramos FIT (extremos interpolados). Histórico no necesariamente completo; consulta Ajustes.','atlas-perfil-metrica-nota'));
+    cont.replaceChildren(tabla,textoNodo('p','Mejores marcas disponibles · FIT completos '+r.completas+'/'+r.total+' carreras conocidas.','atlas-perfil-metrica-nota'));
+    const visible=!document.querySelector('.atlas-view[data-tab="perfil"]')?.hidden&&!document.querySelector('.atlas-frame')?.classList.contains('atlas-ajustes-abiertos');
+    const comprobando=visible&&ATLASMARCAS.analizarPrioritarias(r);
+    cont.append(textoNodo('p',(comprobando||ATLASMARCAS.enCurso())?'Comprobando las mejores marcas…':
+      'Récords Garmin y tramos FIT. Histórico no necesariamente completo; consulta Ajustes.','atlas-perfil-metrica-nota'));
   }
   acordeonMarcas.addEventListener('toggle',()=>{if(acordeonMarcas.open)void mostrarMarcas();});
   window.addEventListener('atlas:marcas:actualizadas',()=>{void mostrarMarcas();});
