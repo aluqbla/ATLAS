@@ -78,7 +78,16 @@
   .atlas-perfil-zapatilla__cabecera {display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 9px;}
   .atlas-perfil-zapatilla__cabecera strong {min-width:0;font-size:15px;font-weight:650;overflow-wrap:anywhere;}
   .atlas-perfil-zapatilla__km {white-space:nowrap;font-size:12px;color:#bfc0c9;font-variant-numeric:tabular-nums;}
-  .atlas-perfil-zonas,.atlas-perfil-foco {padding:4px 0 8px;}
+  .atlas-perfil-zonas,.atlas-perfil-foco,.atlas-perfil-marcas {padding:4px 0 8px;}
+  .atlas-perfil-marcas table {width:100%;table-layout:fixed;border-collapse:collapse;text-align:center;font-variant-numeric:tabular-nums;font-size:14px;}
+  .atlas-perfil-marcas th,.atlas-perfil-marcas td {padding:10px 2px;vertical-align:middle;}
+  .atlas-perfil-marcas thead th {font-size:20px;font-weight:600;}
+  .atlas-perfil-marcas thead th:first-child {width:25%;}
+  .atlas-perfil-marcas tbody tr {border-top:1px solid #29292f;}
+  .atlas-perfil-marcas tbody th {text-align:left;font-size:13px;font-weight:650;line-height:1.25;overflow-wrap:anywhere;}
+  .atlas-perfil-marcas td {font-weight:700;white-space:nowrap;}
+  .atlas-perfil-marcas td small {display:block;font-size:11px;font-weight:500;color:#a0a0aa;margin-top:3px;}
+  @media(max-width:350px){.atlas-perfil-marcas table {font-size:12px;}.atlas-perfil-marcas tbody th {font-size:12px;}.atlas-perfil-marcas td small {font-size:10px;}}
   .atlas-perfil-zonas table {width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;font-variant-numeric:tabular-nums;text-align:center;}
   .atlas-perfil-zonas th,.atlas-perfil-zonas td {padding:10px 3px;}
   .atlas-perfil-zonas thead th {font-size:12px;color:#a0a0aa;font-weight:600;}
@@ -694,6 +703,10 @@
     <summary><span class="atlas-hoy-seccion__titulo">⚡ Foco de carga</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
     <div id="atlas-perfil-foco" class="atlas-perfil-foco"></div>
   </details>
+  <details class="atlas-acordeon" id="atlas-perfil-marcas-detalle">
+    <summary><span class="atlas-hoy-seccion__titulo">🏅 Mejores marcas</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div id="atlas-perfil-marcas" class="atlas-perfil-marcas"></div>
+  </details>
   <dialog id="atlas-perfil-foto-dialogo" class="atlas-perfil-foto-dialogo" aria-label="Foto de perfil ampliada">
     <button type="button" id="atlas-perfil-foto-cerrar" class="atlas-control-icon" aria-label="Cerrar foto" autofocus><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
     <img id="atlas-perfil-foto-grande" alt="Foto de perfil Garmin ampliada" referrerpolicy="no-referrer">
@@ -761,6 +774,14 @@
 </section>
 
 
+<section aria-labelledby="atlas-marcas-titulo" class="panel">
+<h2 id="atlas-marcas-titulo">Mejores marcas</h2>
+<p>Completa las marcas de las carreras ya importadas, incluidos los tramos dentro de actividades más largas. Solo se guardan los resultados necesarios.</p>
+<button id="atlas-marcas-completar" type="button">Completar mejores marcas</button>
+<button id="atlas-marcas-parar" type="button" class="secondary" disabled>Detener tras el lote actual</button>
+<div class="estado" id="atlas-marcas-estado" role="status" aria-live="polite">Pendiente de analizar las carreras.</div>
+<small>La lectura de los FIT históricos puede requerir tiempo. Puedes detener y reanudar sin perder los resultados confirmados.</small>
+</section>
 <section aria-labelledby="titulo-verificador" class="panel">
 <h2 id="titulo-verificador">Comprobar datos históricos</h2>
 <p>Selecciona un día y compara sus valores con Garmin Connect. Lectura local, sin nuevas consultas ni cambios en los datos.</p>
@@ -796,7 +817,7 @@
     <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
     <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.82 · Worker según configuración guardada</div>
+  <div class="atlas-ajustes__version">ATLAS v0.0.83 · Worker según configuración guardada</div>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1288,7 +1309,7 @@
           let datosRemotos;
           try { datosRemotos = await respuesta.json(); }
           catch { return { estado: "respuesta_invalida" }; }
-          if (respuesta.status !== 200) return { estado: datosRemotos?.estado || "error_servidor" };
+          if (respuesta.status !== 200) return { estado: datosRemotos?.estado || "error_servidor", ...(datosRemotos?.id===id&&datosRemotos?.marcas_fit?{datos:{id,marcas_fit:datosRemotos.marcas_fit}}:{}) };
           return { estado: "recibido", datos: datosRemotos };
         } catch {
           return { estado: control.signal.aborted ? "tiempo_agotado" : "error_red_o_cors" };
@@ -1315,10 +1336,28 @@
           let datos;
           try { datos = await respuesta.json(); }
           catch { return { estado: 'respuesta_invalida' }; }
-          if (respuesta.status !== 200) return { estado: datos?.estado || 'error_servidor' };
+          if (respuesta.status !== 200) return { estado: datos?.estado || 'error_servidor', ...(datos?.id===id&&datos?.marcas_fit?{datos:{id,marcas_fit:datos.marcas_fit}}:{}) };
           return { estado: 'recibido', datos };
         } catch { return { estado: control.signal.aborted ? 'tiempo_agotado' : 'error_red_o_cors' }; }
         finally { clearTimeout(reloj); }
+      }
+
+      // 5.8.4 — Proyección de mejores esfuerzos de hasta tres FIT por petición.
+      async function consultarMarcasFit(ids) {
+        if(!Array.isArray(ids)||ids.length<1||ids.length>3||!ids.every(id=>Number.isSafeInteger(id)&&id>0)||new Set(ids).size!==ids.length)
+          return {estado:'solicitud_invalida'};
+        const acceso=await registroLocal();if(!acceso)return {estado:'sin_configurar'};
+        const control=new AbortController(),reloj=setTimeout(()=>control.abort(),65000);
+        try{
+          const r=await fetch(acceso.worker+'/api/actividad/marcas-fit',{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',signal:control.signal,
+            headers:{Authorization:'Bearer '+encodeURIComponent(acceso.clave),'Content-Type':'application/json'},body:JSON.stringify({ids})});
+          if(r.status===404)return {estado:'worker_no_actualizado'};
+          const b=await r.json();
+          if(r.status!==200||b?.estado!=='ok')return {estado:b?.estado||'error_servidor'};
+          if(!Array.isArray(b.filas)||b.filas.length!==ids.length||new Set(b.filas.map(x=>x?.id)).size!==ids.length||!b.filas.every(x=>ids.includes(x?.id)))return {estado:'respuesta_invalida'};
+          return b;
+        }catch{return {estado:control.signal.aborted?'tiempo_agotado':'error_red_o_cors'};}
+        finally{clearTimeout(reloj);}
       }
 
       // 5.6 — Datos adicionales de UNA actividad. No descarga históricos masivos.
@@ -1468,7 +1507,7 @@
         finally{clearTimeout(reloj);}
       }
       return Object.freeze({ configurar, estado, verificar, solicitarSiguiente, solicitarResumenRapido, consultarPerfil,
-        consultarVueltas, consultarGPS, consultarVo2Fit, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
+        consultarVueltas, consultarGPS, consultarVo2Fit, consultarMarcasFit, consultarComplementosActividad, consultarActividadesRecientes, consultarPredisposicion, consultarCarga, borrar });
     })();
 
     // 5.4 — Servicio de vueltas por actividad. Listo para invocarse automáticamente al abrir
@@ -1561,6 +1600,135 @@
 
     // 5.4 — Recorrido GPS por actividad: lectura, comprobación y caché local.
     // Su carga automática se invocará desde la ficha canónica de 5.6.
+    // 5.8.4 — Resumen mínimo por actividad, sin guardar la serie FIT ni duplicarla en GPS.
+    const ATLASMARCAS=(()=>{
+      const distancias=Object.freeze([1000,5000,10000,21097.5,42195,0]);
+      const prefijo='historico:dato:privada:marcas_fit:id%3A',resumen='historico:dato:oficial:actividades:id%3A';
+      const idValido=id=>Number.isSafeInteger(id)&&id>0;
+      const positivo=(n,max=1000000)=>typeof n==='number'&&Number.isFinite(n)&&n>0&&n<=max;
+      function validarFit(m){
+        if(m?.estado==='no_disponible')return {estado:'no_disponible',tramos:[],completo:false};
+        if(m?.estado!=='ok'||!positivo(m.metros)||typeof m.completo!=='boolean'||!Array.isArray(m.tramos)||
+          m.tramos.length>5||new Set(m.tramos.map(x=>x?.metros)).size!==m.tramos.length||
+          !m.tramos.every(x=>distancias.slice(0,5).includes(x?.metros)&&x.metros<=m.metros+10&&positivo(x.segundos,604800)&&x.segundos>=x.metros/13))return null;
+        return {estado:'ok',metros:m.metros,segundos:positivo(m.segundos,604800)?m.segundos:null,completo:m.completo,
+          tramos:m.tramos.map(x=>({metros:x.metros,segundos:x.segundos}))};
+      }
+      async function guardar(id,m){
+        const fit=validarFit(m);
+        if(!idValido(id)||!fit)return false;
+        const registro={clave:prefijo+id,tipo:'historico:dato',origen:'privada',datos:{id,fuente:'fit_actividad',...fit}};
+        await ATLASDB.guardarSiInvalido(registro,anterior=>{
+          const f=validarFit(anterior?.datos);return anterior?.datos?.id===id&&Boolean(f)&&
+            (f.completo||(f.estado==='ok'&&!fit.completo)||(f.estado==='no_disponible'&&fit.estado==='no_disponible'));
+        });
+        return true;
+      }
+      function candidatoGarmin(x){
+        if(!idValido(x?.id)||!distancias.includes(x.distancia)||!positivo(x.metros)||
+          !['garmin_actual','garmin_archivado'].includes(x.fuente)||
+          (x.distancia&&(x.metros!==x.distancia||!positivo(x.segundos,604800)||x.segundos<x.metros/13)))return null;
+        return {id:x.id,distancia:x.distancia,metros:x.metros,segundos:positivo(x.segundos,604800)?x.segundos:null,fuente:x.fuente,fecha:x.fecha??null};
+      }
+      async function inventario(){
+        const actividades=new Map(),fits=new Map(),compartido=window.ATLASFICHAEXTERNA;
+        await ATLASDB.abrir();
+        await new Promise((ok,fallo)=>{
+          const store=ATLASDB.almacen('readonly'),tx=store.transaction;
+          const scan=(p,fn)=>{
+            const q=store.openCursor(IDBKeyRange.bound(p,p+'\uffff'));
+            q.onsuccess=()=>{const c=q.result;if(!c)return;fn(c.value,String(c.key));c.continue();};
+            q.onerror=()=>fallo(q.error||Error('lectura_marcas'));
+          };
+          scan(resumen,(r,k)=>{
+            const a=r?.datos?.bruto,id=Number(a?.activityId);
+            if(!idValido(id)||k!==resumen+id||!compartido.deporte(a).esCarrera)return;
+            const fecha=compartido.fechaLocal(a.startTimeLocal??a.startTimeGMT)?.texto?.slice(0,10);
+            if(!fecha||!Number.isFinite(compartido.instante(a))||compartido.instante(a)>Date.now()+300000)return;
+            const metros=compartido.datoResumen(a,'distance'),s=compartido.datoResumen(a,'duration');
+            if(!positivo(metros))return;
+            actividades.set(id,{id,metros,segundos:positivo(s,604800)?s:null,fecha});
+          });
+          scan(prefijo,(r,k)=>{
+            const id=r?.datos?.id,f=validarFit(r?.datos);
+            if(idValido(id)&&k===prefijo+id&&f)fits.set(id,f);
+          });
+          tx.oncomplete=ok;tx.onabort=()=>fallo(tx.error||Error('lectura_marcas_interrumpida'));
+        });
+        return {actividades,fits};
+      }
+      function clasificar(actividades,fits,garmin){
+        const filas=new Map(distancias.map(d=>[d,new Map()]));
+        for(const x of Array.isArray(garmin?.filas)?garmin.filas:[]){
+          const c=candidatoGarmin(x);if(!c)continue;
+          const m=filas.get(c.distancia),a=m.get(c.id);
+          if(!a||(c.distancia?c.segundos<a.segundos:c.metros>a.metros))m.set(c.id,c);
+        }
+        let total=0,revisadas=0,completas=0;const pendientes=[];
+        for(const a of actividades.values()){
+          const largos=filas.get(0),previo=largos.get(a.id);
+          largos.set(a.id,{...a,distancia:0,segundos:a.segundos??(previo&&Math.abs(previo.metros-a.metros)<=Math.max(1,a.metros*.001)?previo.segundos:null),fuente:'actividad'});
+          if(a.metros<1000)continue;
+          total++;
+          const f=fits.get(a.id);
+          if(!f){pendientes.push(a);continue;}
+          revisadas++;
+          if(f.estado!=='ok'||Math.abs(f.metros-a.metros)>Math.max(10,a.metros*.01))continue;
+          if(f.completo)completas++;
+          for(const t of f.tramos){
+            const m=filas.get(t.metros),p=m.get(a.id);
+            // Conservar el mejor candidato acreditado de cada actividad y distancia.
+            // En empate, conservar la procedencia del récord Garmin.
+            if(!p||t.segundos<p.segundos)m.set(a.id,{id:a.id,distancia:t.metros,metros:t.metros,segundos:t.segundos,fecha:a.fecha,fuente:'fit_actividad'});
+          }
+        }
+        const podios=distancias.map(d=>[...filas.get(d).values()].sort((a,b)=>
+          d?a.segundos-b.segundos||a.id-b.id:b.metros-a.metros||(a.segundos??Infinity)-(b.segundos??Infinity)||a.id-b.id).slice(0,3));
+        pendientes.sort((a,b)=>b.fecha.localeCompare(a.fecha)||b.id-a.id);
+        return {podios,total,revisadas,completas,pendientes:pendientes.map(a=>a.id)};
+      }
+      async function ranking(garmin){const i=await inventario();return clasificar(i.actividades,i.fits,garmin);}
+      let enCurso=false;
+      const boton=document.getElementById('atlas-marcas-completar'),parar=document.getElementById('atlas-marcas-parar'),estado=document.getElementById('atlas-marcas-estado');
+      let cancelar=false;
+      parar.addEventListener('click',()=>{cancelar=true;parar.disabled=true;});
+      boton.addEventListener('click',async()=>{
+        if(enCurso)return;
+        if(['atlas-detener','atlas-sinc-parar','atlas-salud-parar','atlas-inc-detener'].some(id=>!document.getElementById(id).disabled)){
+          estado.textContent='Finaliza primero la importación en marcha.';return;
+        }
+        enCurso=true;cancelar=false;boton.disabled=true;parar.disabled=false;
+        const bloqueados=['atlas-guardar','atlas-comprobar','atlas-importar','atlas-inc-actualizar','atlas-sinc-rapida','atlas-salud-piloto','atlas-salud-total','atlas-salud-vo2','atlas-salud-umbral','atlas-salud-pronosticos']
+          .map(id=>document.getElementById(id)).filter(Boolean),previos=bloqueados.map(x=>x.disabled);
+        bloqueados.forEach(x=>x.disabled=true);
+        try{
+          const inicial=await ranking(null),ids=inicial.pendientes;
+          if(!ids.length){estado.textContent='No hay carreras locales pendientes de analizar. '+inicial.completas+'/'+inicial.total+' con FIT completo.';return;}
+          let hechas=0,fallos=0;
+          for(let i=0;i<ids.length&&!cancelar;i+=3){
+            const lote=ids.slice(i,i+3);
+            estado.textContent='Analizando mejores marcas · '+hechas+'/'+ids.length+' carreras…';
+            const r=await ATLASACCESO.consultarMarcasFit(lote);
+            if(r.estado!=='ok'){estado.textContent='Importación pausada ('+r.estado+'). Se conservan los resultados.';return;}
+            let interrumpir=false;
+            for(const f of r.filas){
+              if(f.estado==='ok'&&await guardar(f.id,f.marcas_fit))hechas++;
+              else if(f.estado==='sin_archivo_fit'){await guardar(f.id,{estado:'no_disponible'});hechas++;}
+              else {fallos++;if(!['fit_demasiado_grande','fit_crc_invalido','fit_estructura_invalida','fit_invalido','archivo_no_fit','zip_sin_fit','archivo_sin_contenido'].includes(f.estado))interrumpir=true;}
+            }
+            if(interrumpir){estado.textContent='Importación pausada. Se conservaron '+hechas+' resultados; reanuda más tarde.';return;}
+            if(i+3<ids.length&&!cancelar)await new Promise(ok=>setTimeout(ok,350));
+          }
+          estado.textContent=(cancelar?'Importación detenida. ':'Análisis finalizado. ')+hechas+'/'+ids.length+' carreras revisadas'+(fallos?' · '+fallos+' sin confirmar':'')+'.';
+        }catch{estado.textContent='No se pudo completar el análisis. Se conservan los resultados confirmados.';}
+        finally{
+          enCurso=false;boton.disabled=false;parar.disabled=true;bloqueados.forEach((x,i)=>x.disabled=previos[i]);
+          window.dispatchEvent(new Event('atlas:marcas:actualizadas'));
+        }
+      });
+      return Object.freeze({guardar,ranking,enCurso:()=>enCurso});
+    })();
+
     const ATLASGPS = (() => {
       const pendientes = new Map();
       function clave(id) { return "historico:dato:privada:gps:id%3A" + id; }
@@ -1601,11 +1769,13 @@
           const actividad = await ATLASDB.leer("historico:dato:oficial:actividades:id%3A" + id);
           if (!actividad) return { estado: "actividad_no_guardada" };
           const obtenido = await ATLASACCESO.consultarGPS(id);
+          try{if(obtenido.datos?.id===id&&obtenido.datos.marcas_fit?.estado==='ok')await ATLASMARCAS.guardar(id,obtenido.datos.marcas_fit);}catch{}
           if (obtenido.estado !== "recibido") return obtenido;
           const puntos = validar(id, obtenido.datos);
           if (!puntos) return { estado: "gps_no_interpretable" };
+          const {marcas_fit,...gps}=obtenido.datos;
           const registro = { clave: clave(id), tipo: "historico:dato", origen: "privada",
-            datos: { bruto: obtenido.datos, calidad: "gps_fit_validado" } };
+            datos: { bruto: gps, calidad: "gps_fit_validado" } };
           const guardado = await ATLASDB.guardarSiInvalido(registro,
             actual => Boolean(validar(id, actual?.datos?.bruto)));
           if (guardado === "conservado") return leer(id);
@@ -2498,6 +2668,7 @@
       function duracion(t0) { return ((performance.now() - t0) / 1000).toFixed(1).replace(".", ",") + " s"; }
       async function ejecutar() {
         if (ocupado) return { estado: "ocupado" };
+        if (ATLASMARCAS.enCurso())return {estado:"otra_operacion"};
         // No ejecutar dos mecanismos de importación a la vez en esta pestaña.
         if (["atlas-detener", "atlas-sinc-parar", "atlas-salud-parar"]
             .some(id => !document.getElementById(id).disabled)) {
@@ -2505,7 +2676,7 @@
           return { estado: "otra_operacion" };
         }
         ocupado = true; cancelar = false; boton.disabled = true; detener.disabled = false;
-        const bloqueados = ["atlas-importar", "atlas-sinc-rapida", "atlas-salud-piloto", "atlas-salud-total", "atlas-salud-umbral", "atlas-salud-pronosticos"]
+        const bloqueados = ["atlas-importar", "atlas-sinc-rapida", "atlas-salud-piloto", "atlas-salud-total", "atlas-salud-umbral", "atlas-salud-pronosticos", "atlas-marcas-completar"]
           .map(id => document.getElementById(id));
         const previos = bloqueados.map(el => el.disabled);
         bloqueados.forEach(el => { el.disabled = true; });
@@ -5487,6 +5658,7 @@
     if(token!==ticket)return;
     if(valor===null){
       const respuesta=await ATLASACCESO.consultarVo2Fit(id);
+      try{if(respuesta?.datos?.id===id&&respuesta.datos.marcas_fit?.estado==='ok')await ATLASMARCAS.guardar(id,respuesta.datos.marcas_fit);}catch{}
       if(respuesta?.estado==='recibido' && respuesta.datos?.estado==='ok' &&
           respuesta.datos?.id===id && respuesta.datos?.fuente==='fit_actividad' &&
           vo2FitValido(respuesta.datos.vo2_fit))valor=respuesta.datos.vo2_fit;
@@ -5740,8 +5912,47 @@
     });
     if(fechaTexto(f.fecha))cont.append(textoNodo('p','Datos del '+fechaTexto(f.fecha),'atlas-perfil-metrica-nota'));
   }
+  let lecturaMarcas=0;
+  const acordeonMarcas=el('atlas-perfil-marcas-detalle');
+  function tiempoMarca(s){
+    if(!valido(s)||s<=0)return '—';
+    const n=Math.round(s),h=Math.floor(n/3600),m=Math.floor(n%3600/60),seg=String(n%60).padStart(2,'0');
+    return h?h+':'+String(m).padStart(2,'0')+':'+seg:m+':'+seg;
+  }
+  async function mostrarMarcas(){
+    if(!acordeonMarcas.open)return;
+    const cont=el('atlas-perfil-marcas'),ticket=++lecturaMarcas;
+    let r;try{r=await ATLASMARCAS.ranking(datos?.marcas_garmin);}catch{
+      if(ticket===lecturaMarcas)cont.replaceChildren(textoNodo('p','No se pudieron leer las marcas locales.','atlas-perfil-metrica-nota'));return;
+    }
+    if(ticket!==lecturaMarcas||!acordeonMarcas.open)return;
+    const tabla=document.createElement('table'),head=tabla.createTHead().insertRow(),body=tabla.createTBody();
+    tabla.setAttribute('aria-label','Tres mejores marcas disponibles de carrera');
+    for(const [emoji,label] of [['','Distancia'],['🥇','Primera'],['🥈','Segunda'],['🥉','Tercera']]){
+      const th=textoNodo('th',emoji);th.scope='col';th.setAttribute('aria-label',label);head.append(th);
+    }
+    const titulos=['1 km','5 km','10 km','Media maratón','Maratón','Distancia máxima'];
+    r.podios.forEach((podio,i)=>{
+      const tr=body.insertRow(),th=textoNodo('th',titulos[i]);th.scope='row';tr.append(th);
+      for(let j=0;j<3;j++){
+        const celda=tr.insertCell(),x=podio[j];
+        if(!x){celda.textContent='—';continue;}
+        const larga=i===5;
+        const principal=larga?(x.metros/1000).toLocaleString('es-ES',{maximumFractionDigits:2})+' km':tiempoMarca(x.segundos);
+        const segundo=larga?tiempoMarca(x.segundos):tiempoMarca(x.segundos/(x.metros/1000))+' /km';
+        celda.append(textoNodo('span',principal),textoNodo('small',segundo));
+        const fuentes={garmin_actual:'Récord Garmin actual',garmin_archivado:'Récord Garmin anterior',fit_actividad:'Tramo FIT · tiempo transcurrido',actividad:'Resumen de actividad Garmin'};
+        celda.title=fuentes[x.fuente]+(fechaTexto(x.fecha)?' · '+fechaTexto(x.fecha):'');
+        celda.setAttribute('aria-label',principal+' · '+segundo+' · '+celda.title);
+      }
+    });
+    cont.replaceChildren(tabla,textoNodo('p','Mejores marcas disponibles · FIT completos '+r.completas+'/'+r.total+' carreras locales.','atlas-perfil-metrica-nota'));
+    cont.append(textoNodo('p','Récords Garmin y tramos FIT (extremos interpolados). Histórico no necesariamente completo; consulta Ajustes.','atlas-perfil-metrica-nota'));
+  }
+  acordeonMarcas.addEventListener('toggle',()=>{if(acordeonMarcas.open)void mostrarMarcas();});
+  window.addEventListener('atlas:marcas:actualizadas',()=>{void mostrarMarcas();});
   function mostrar(){
-    mostrarZonas();mostrarFoco();
+    mostrarZonas();mostrarFoco();void mostrarMarcas();
     el('atlas-perfil-nombre').textContent=datos?.identidad?.nombre??'Nombre no disponible';
     const d=datos?.dispositivo;
     el('atlas-perfil-dispositivo').textContent='⌚ '+(d?.nombre??(d?.estado==='ambiguo'?'Principal sin confirmar':'Dispositivo no disponible'));
@@ -5799,7 +6010,7 @@
     const primera=!lecturaLocal;
     if(primera)lecturaLocal=ATLASDB.leer(clave).then(r=>{datos=r?.datos??null;}).catch(()=>{estado.textContent='No se pudieron leer los datos locales de Perfil.';});
     await Promise.all([lecturaLocal,leerUmbralLocal()]);
-    if(primera)mostrar();else mostrarZonas();
+    if(primera)mostrar();else {mostrarZonas();void mostrarMarcas();}
   }
   async function guardar(nuevo){
     await ATLASDB.abrir();
@@ -5818,7 +6029,8 @@
           zapatillas:filas!==null?{estado:'ok',filas}:anterior.zapatillas??null,
           zonas_fc:nuevo.zonas_fc?.estado==='ok'?nuevo.zonas_fc:anterior.zonas_fc??null,
           umbral_ritmo:elegirUmbral(nuevo.umbral_ritmo,anterior.umbral_ritmo),
-          foco_carga:nuevo.foco_carga?.estado==='ok'?nuevo.foco_carga:anterior.foco_carga??null};
+          foco_carga:nuevo.foco_carga?.estado==='ok'?nuevo.foco_carga:anterior.foco_carga??null,
+          marcas_garmin:nuevo.marcas_garmin?.estado==='ok'&&Array.isArray(nuevo.marcas_garmin.filas)?nuevo.marcas_garmin:anterior.marcas_garmin??null};
         store.put({clave,tipo:'vista:perfil',origen:'privada',datos});
       };
     });
@@ -5836,7 +6048,7 @@
         await guardar(r);mostrar();
         const parcial=r.identidad?.estado!=='ok'||!r.identidad.nombre||!r.identidad.foto||r.dispositivo?.estado!=='ok'||
           r.zapatillas?.estado!=='ok'||r.zapatillas.filas.some(z=>z.uso_estado!=='ok'||!z.nombre||!valido(z.max_km))||
-          r.zonas_fc?.estado!=='ok'||!umbralValido(umbralPerfil())||r.foco_carga?.estado!=='ok';
+          r.zonas_fc?.estado!=='ok'||!umbralValido(umbralPerfil())||r.foco_carga?.estado!=='ok'||r.marcas_garmin?.estado!=='ok';
         estado.textContent=parcial?'Algunos datos no se han actualizado o confirmado. Se conservan los valores locales disponibles.':'';
         return !parcial;
       }catch{estado.textContent='No se pudo actualizar Perfil. Se conservan los datos locales.';return false;}
@@ -5846,7 +6058,7 @@
   // Solo la vista actual; no desencadena histórico. Las actualizaciones posteriores se hacen desde Hoy.
   window.addEventListener('atlas:pestana:abierta',async e=>{
     if(e.detail.nombre!=='perfil')return;
-    await local();if(!intentoInicial&&(!datos||!datos.zonas_fc||!umbralValido(umbralPerfil())||!datos.foco_carga)){intentoInicial=true;void actualizar();}
+    await local();if(!intentoInicial&&(!datos||!datos.zonas_fc||!umbralValido(umbralPerfil())||!datos.foco_carga||!datos.marcas_garmin)){intentoInicial=true;void actualizar();}
   });
   window.addEventListener('atlas:perfil:ajustes-cerrados',()=>{void local();});
   window.ATLASactualizarPerfil=actualizar;
