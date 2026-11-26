@@ -118,7 +118,6 @@
   .atlas-ajustes {width:100%;min-width:0;padding: max(68px,calc(env(safe-area-inset-top,0px) + 18px)) 16px 30px;}
   .atlas-ajustes__cabecera {display:flex;align-items:center;gap:16px;min-height:44px;margin:0 0 16px;}
   .atlas-ajustes__cabecera h2 {font-size:31px;letter-spacing:-.035em;margin:0;font-weight:750;}
-  .atlas-ajustes__intro {margin:0 4px 22px;color:#a6a6b0;font-size:14px;line-height:1.4;}
   .atlas-ajustes .panel {margin:0 0 16px;background:#121216;border:1px solid rgba(255,255,255,.11);
     border-radius:20px;padding:18px 16px 16px;min-width:0;overflow-wrap:anywhere;}
   .atlas-ajustes .panel h2 {font-size:19px;margin:0 0 12px;font-weight:700;line-height:1.25;}
@@ -138,11 +137,25 @@
   .atlas-ajustes .panel .estado {font-size:13px;color:#e7e7ee;margin:13px 0 7px;line-height:1.45;}
   .atlas-ajustes .panel .subestado,.atlas-ajustes .panel small {display:block;
     color:#a1a1ae;font-size:12px;line-height:1.5;margin:8px 0;}
-  .atlas-ajustes .panel details {margin:14px 0 0;border-top:2px solid #303038;padding-top:12px;}
-  .atlas-ajustes .panel summary {font-size:14px;cursor:pointer;color:#b9d9ff;}
-  .atlas-ajustes .panel [id="atlas-ver-resultado"] {font-size:13px;line-height:1.45;min-width:0;}
-  .atlas-ajustes .panel [id="atlas-ver-resultado"] pre {max-width:100%;overflow:auto;white-space:pre-wrap;}
-  .atlas-ajustes__version {color:#858590;text-align:center;font-size:11px;margin:20px 0 0;}
+  .atlas-ajustes .panel [hidden] {display:none!important;}
+  .atlas-ajustes .panel .estado:empty,.atlas-ajustes .panel .subestado:empty,.atlas-ajustes .panel small:empty {display:none;}
+  .atlas-ajustes .panel .atlas-ajustes__fila {display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;font-size:13px;line-height:1.4;color:#b7b7c2;}
+  .atlas-ajustes__fila strong {color:#fff;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .atlas-ajustes__fila span {min-width:0;}
+  .atlas-ajustes__inventario .atlas-hoy-factor__barra {margin:3px 0 8px;}
+  .atlas-ajustes .panel .atlas-ajustes__dato {font-size:13px;margin:0 0 12px;}
+  .atlas-ajustes .panel details {margin:14px 0 0;border-top:2px solid #303038;padding-top:5px;}
+  .atlas-ajustes .panel summary {display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;min-height:44px;font-size:15px;font-weight:650;cursor:pointer;}
+  .atlas-ajustes .panel summary::-webkit-details-marker {display:none;}
+  .atlas-ajustes__chevron {color:var(--atlas-blue);font-size:24px;line-height:1;transition:transform .15s;}
+  .atlas-ajustes__detalle[open] .atlas-ajustes__chevron {transform:rotate(180deg);}
+  .atlas-ajustes__subtitulo {font-size:14px;margin:20px 0 4px;font-weight:650;}
+  .atlas-ajustes__fechas {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
+  .atlas-ajustes__fechas input {min-width:0;width:100%;font-size:14px!important;padding:8px!important;}
+  .atlas-ajustes__avance {margin:3px 0 12px;}
+  .atlas-ajustes__avance.indeterminado .atlas-hoy-factor__relleno {width:30%!important;animation:atlas-ajustes-avance 1.4s ease-in-out infinite alternate;}
+  @keyframes atlas-ajustes-avance {from{transform:translateX(0)}to{transform:translateX(233%)}}
+  @media(prefers-reduced-motion:reduce){.atlas-ajustes__avance.indeterminado .atlas-hoy-factor__relleno{animation:none;transform:none;}}
 
 
   /* Controles canónicos de navegación y acciones: peso, tamaño y área táctil comunes. */
@@ -722,107 +735,81 @@
     <button id="atlas-ajustes-atras" class="atlas-control-icon atlas-atras-superior" type="button" aria-label="Volver a Perfil" title="Volver"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 4-8 8 8 8"/></svg></button>
     <h2 id="atlas-ajustes-titulo">Ajustes</h2>
   </div>
-  <p class="atlas-ajustes__intro">Conexión, datos y configuración de ATLAS.</p>
-<section aria-labelledby="titulo-acceso" class="panel">
-<h2 id="titulo-acceso">Conectar ATLAS con Garmin</h2>
-<p>Configuración personal. La contraseña se guarda solamente en este dispositivo. La importación nunca se inicia sola.</p>
-<form autocomplete="off" id="atlas-configuracion">
-<label for="atlas-worker">URL del Worker</label>
-<input autocapitalize="off" id="atlas-worker" inputmode="url" placeholder="https://atlas.tucuenta.workers.dev" required="" spellcheck="false" type="url"/>
-<label for="atlas-clave">Contraseña de ATLAS</label>
-<input autocomplete="off" id="atlas-clave" placeholder="Solo la primera vez" type="password"/>
-<button id="atlas-guardar" type="submit">Guardar y comprobar acceso</button>
-</form>
-<button class="secondary" id="atlas-comprobar" type="button">Comprobar conexión guardada</button>
-<button disabled="" id="atlas-importar" type="button">Importar todo el histórico de actividades</button>
-<button class="secondary" disabled="" id="atlas-detener" type="button">Detener al finalizar el lote</button>
-<div aria-live="polite" class="estado" id="atlas-estado" role="status">Sin conexión comprobada.</div>
-<div aria-live="polite" class="subestado" id="atlas-resumen">Histórico pendiente de consultar.</div>
-<small>Una solicitud por página (máximo 50 actividades). Se guarda cada lote antes de continuar. Puedes interrumpir y reanudar; no modifica Garmin. Esta primera pasada importa listados y métricas resumidas, no el detalle ni los datos diarios de salud.</small>
-</section>
-
-
-<section aria-labelledby="atlas-incremental-titulo" class="panel">
-<h2 id="atlas-incremental-titulo">Actualizar datos de Garmin</h2>
-<p>Busca actividades nuevas y renueva salud, sueño y VFC recientes, sin volver a importar el histórico. No descarga GPS ni vueltas de todas las actividades.</p>
-<button id="atlas-inc-actualizar" type="button">Actualizar datos recientes</button>
-<button id="atlas-inc-detener" class="secondary" type="button" disabled>Detener tras la petición actual</button>
-<div class="estado" id="atlas-inc-estado" role="status" aria-live="polite">Pendiente de actualizar.</div>
-<div class="subestado" id="atlas-inc-resumen" aria-live="polite">Solo se consultarán fechas recientes; lo guardado permanece intacto.</div>
-</section>
-
-<section aria-labelledby="titulo-salud" class="panel">
-<h2 id="titulo-salud">Histórico de salud y rendimiento</h2>
-<p>Importación manual desde Garmin, sin modificar las 549 actividades anteriores. Empieza con una prueba real de siete días y amplía después el intervalo.</p>
-<label for="atlas-salud-desde">Desde (puedes elegir una fecha anterior)</label>
-<input id="atlas-salud-desde" required="" type="date"/>
-<label for="atlas-salud-hasta">Hasta</label>
-<input id="atlas-salud-hasta" required="" type="date"/>
-<button id="atlas-sinc-rapida" type="button">Sincronizar resúmenes con Garmin</button>
-<button class="secondary" disabled="" id="atlas-sinc-parar" type="button">Detener tras el periodo actual</button>
-<div aria-live="polite" class="estado" id="atlas-sinc-estado" role="status">Pendiente de sincronizar.</div>
-<div aria-live="polite" class="subestado" id="atlas-sinc-resumen">Salud diaria, sueño y VFC resumidos; sin series minuto a minuto. Aprovecha los datos que ya están guardados.</div>
-<button class="secondary" id="atlas-sinc-cobertura" type="button">Comprobar cobertura local</button>
-<div aria-live="polite" class="subestado" id="atlas-sinc-cobertura-estado" role="status">La cobertura indica cuántos días contienen valores, no solo cuántas ventanas fueron descargadas.</div>
-<details class="atlas-ver-detalles">
-<summary>Importación detallada anterior (solo para pruebas)</summary>
-<button id="atlas-salud-piloto" type="button">Probar siete días reales</button>
-<button class="secondary" id="atlas-salud-total" type="button">Importar intervalo histórico</button>
-<button class="secondary" id="atlas-salud-vo2" type="button">Importar histórico de VO₂ máx.</button>
-<button class="secondary" id="atlas-salud-umbral" type="button">Importar histórico de umbral</button>
-<button class="secondary" id="atlas-salud-pronosticos" type="button">Importar histórico de pronósticos</button>
-<button class="secondary" disabled="" id="atlas-salud-parar" type="button">Detener tras el lote actual</button>
-<div aria-live="polite" class="estado" id="atlas-salud-estado" role="status">Pendiente de iniciar.</div>
-<div aria-live="polite" class="subestado" id="atlas-salud-resumen">Importación detallada tradicional.</div>
-</details>
-<small>Primero muestra los datos recientes y continúa hacia el pasado mientras ATLAS permanece abierta. No borra ninguna actividad ni respuesta Garmin anterior. El detalle intradía y el histórico de VO₂ máximo se importan desde el apartado anterior.</small>
-</section>
-
-
-<section aria-labelledby="atlas-marcas-titulo" class="panel">
-<h2 id="atlas-marcas-titulo">Mejores marcas</h2>
-<p>Completa las marcas de las carreras ya importadas, incluidos los tramos dentro de actividades más largas. Solo se guardan los resultados necesarios.</p>
-<button id="atlas-marcas-completar" type="button">Completar mejores marcas</button>
-<button id="atlas-marcas-parar" type="button" class="secondary" disabled>Detener tras el lote actual</button>
-<div class="estado" id="atlas-marcas-estado" role="status" aria-live="polite">Pendiente de analizar las carreras.</div>
-<small>La lectura de los FIT históricos puede requerir tiempo. Puedes detener y reanudar sin perder los resultados confirmados.</small>
-</section>
-<section aria-labelledby="titulo-verificador" class="panel">
-<h2 id="titulo-verificador">Comprobar datos históricos</h2>
-<p>Selecciona un día y compara sus valores con Garmin Connect. Lectura local, sin nuevas consultas ni cambios en los datos.</p>
-<label for="atlas-ver-fecha">Fecha a comprobar</label>
-<input id="atlas-ver-fecha" required="" type="date"/>
-<button id="atlas-ver-cargar" type="button">Ver métricas guardadas</button>
-<div aria-live="polite" class="estado" id="atlas-ver-estado" role="status">Selecciona un día y pulsa el botón.</div>
-<div aria-live="polite" id="atlas-ver-resultado"></div>
-<small>Solo aparecen valores asociados inequívocamente a la fecha. Las respuestas por rangos pueden carecer de fecha individual; las verás identificadas, sin atribuirles cifras. Puedes desplegar el dato original para comprobar campos aún no traducidos.</small>
-</section>
-<section aria-labelledby="atlas-vueltas-titulo" class="panel">
-<h2 id="atlas-vueltas-titulo">Vueltas de actividad · prueba 5.4</h2>
-<p>Comprueba una actividad concreta y guarda sus vueltas solo si Garmin devuelve datos válidos. La ficha de Actividades las recuperará automáticamente cuando se construya.</p>
-<label for="atlas-vueltas-id">ID de actividad Garmin</label>
-<input id="atlas-vueltas-id" inputmode="numeric" pattern="[0-9]*" placeholder="Introduce el ID numérico" type="text" autocomplete="off"/>
-<button id="atlas-vueltas-probar" type="button">Comprobar y guardar vueltas</button>
-<div class="estado" id="atlas-vueltas-estado" aria-live="polite" role="status">Sin prueba iniciada.</div>
-<div class="subestado" id="atlas-vueltas-resumen" aria-live="polite"></div>
-</section>
-<section aria-labelledby="atlas-gps-titulo" class="panel">
-<h2 id="atlas-gps-titulo">GPS de actividad · prueba 5.4</h2>
-<p>Comprueba el recorrido de una actividad y guárdalo si Garmin devuelve un FIT válido. La futura ficha lo cargará automáticamente, sin botones.</p>
-<label for="atlas-gps-id">ID de actividad Garmin</label>
-<input id="atlas-gps-id" inputmode="numeric" pattern="[0-9]*" placeholder="Introduce el ID numérico" type="text" autocomplete="off"/>
-<button id="atlas-gps-probar" type="button">Comprobar y guardar GPS</button>
-<div class="estado" id="atlas-gps-estado" aria-live="polite" role="status">Sin prueba iniciada.</div>
-<div class="subestado" id="atlas-gps-resumen" aria-live="polite"></div>
-</section>
-  <section class="panel" aria-labelledby="atlas-exportar-titulo">
-    <h2 id="atlas-exportar-titulo">Base de datos</h2>
-    <p>Descarga una copia local de los registros deportivos en JSON. La contraseña de acceso queda excluida.</p>
-    <button id="atlas-exportar-json" type="button">Exportar datos en JSON</button>
-    <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite">Sin exportación iniciada.</div>
-    <small>El archivo puede contener información deportiva personal. Guárdalo en un lugar privado.</small>
+  <section class="panel" aria-labelledby="titulo-acceso">
+    <h2 id="titulo-acceso">🔐 Worker y acceso</h2>
+    <form autocomplete="off" id="atlas-configuracion">
+      <label for="atlas-worker">URL del Worker</label>
+      <input autocapitalize="off" id="atlas-worker" inputmode="url" placeholder="https://atlas.tucuenta.workers.dev" required spellcheck="false" type="url"/>
+      <label for="atlas-clave">Contraseña de ATLAS</label>
+      <input autocomplete="off" id="atlas-clave" placeholder="Solo para guardar o cambiar" type="password"/>
+      <button id="atlas-guardar" type="submit">Guardar y comprobar acceso</button>
+    </form>
+    <button class="secondary" id="atlas-comprobar" type="button">Comprobar conexión guardada</button>
+    <div class="estado" id="atlas-estado" aria-live="polite" role="status">Sin acceso configurado.</div>
+    <small>La contraseña se guarda únicamente en este dispositivo y no se incluye en la exportación.</small>
   </section>
-  <div class="atlas-ajustes__version">ATLAS v0.0.84 · Worker según configuración guardada</div>
+  <section class="panel" aria-labelledby="atlas-incremental-titulo">
+    <h2 id="atlas-incremental-titulo">🔄 Sincronización con Garmin</h2>
+    <p id="atlas-ultima-sync" class="atlas-ajustes__dato">Última actualización: —</p>
+    <button id="atlas-inc-actualizar" type="button">Actualizar datos recientes</button>
+    <button id="atlas-inc-detener" class="secondary" type="button" disabled hidden>Pausar tras la petición actual</button>
+    <div class="estado" id="atlas-inc-estado" role="status" aria-live="polite"></div>
+    <div class="subestado" id="atlas-inc-resumen" aria-live="polite"></div>
+    <small>Actualización ligera de actividades y salud recientes. No vuelve a descargar todo el histórico.</small>
+  </section>
+  <section class="panel" aria-labelledby="atlas-exportar-titulo">
+    <h2 id="atlas-exportar-titulo">🗄️ Base de datos</h2>
+    <div class="atlas-ajustes__inventario" aria-live="polite" id="atlas-base-inventario">
+      <div class="atlas-ajustes__fila"><span>Actividades guardadas</span><strong id="atlas-base-actividades">—</strong></div>
+      <div class="atlas-ajustes__fila"><span>Fichas preparadas</span><strong id="atlas-base-completas">—</strong></div>
+      <div class="atlas-ajustes__fila"><span>Fichas pendientes o parciales</span><strong id="atlas-base-pendientes">—</strong></div>
+      <div class="atlas-hoy-factor__barra" id="atlas-base-cobertura" role="progressbar" aria-label="Cobertura de las fichas locales" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Sin inventario"><div id="atlas-base-cobertura-relleno" class="atlas-hoy-factor__relleno"></div></div>
+      <div class="atlas-ajustes__fila"><span>Días con salud guardada</span><strong id="atlas-base-salud">—</strong></div>
+      <div class="atlas-ajustes__fila"><span>Registros locales</span><strong id="atlas-base-registros">—</strong></div>
+    </div>
+    <small id="atlas-base-periodo"></small>
+    <small id="atlas-base-ultima">Última importación: —</small>
+    <small id="atlas-base-nota">La cobertura se limita a los datos de este dispositivo.</small>
+    <details class="atlas-ajustes__detalle" id="atlas-base-importaciones">
+      <summary>📥 Completar datos de ATLAS <span aria-hidden="true" class="atlas-ajustes__chevron">⌄</span></summary>
+      <div id="atlas-base-trabajo" hidden aria-live="polite">
+        <div class="atlas-ajustes__fila"><span id="atlas-base-trabajo-titulo">Importando…</span><strong id="atlas-base-trabajo-cuenta"></strong></div>
+        <div id="atlas-base-trabajo-barra" class="atlas-hoy-factor__barra atlas-ajustes__avance" role="progressbar" aria-label="Progreso de la importación" aria-valuemin="0" aria-valuemax="100"><div id="atlas-base-trabajo-relleno" class="atlas-hoy-factor__relleno"></div></div>
+      </div>
+      <button id="atlas-importar" type="button" disabled>Importar histórico de actividades</button>
+      <button class="secondary" id="atlas-detener" type="button" disabled hidden>Pausar tras el lote actual</button>
+      <div class="estado" id="atlas-importar-estado" role="status" aria-live="polite"></div>
+      <div class="subestado" id="atlas-resumen" aria-live="polite"></div>
+      <h3 class="atlas-ajustes__subtitulo">Histórico de salud y rendimiento</h3>
+      <div class="atlas-ajustes__fechas">
+        <div><label for="atlas-salud-desde">Desde</label><input id="atlas-salud-desde" required type="date"/></div>
+        <div><label for="atlas-salud-hasta">Hasta</label><input id="atlas-salud-hasta" required type="date"/></div>
+      </div>
+      <button id="atlas-sinc-rapida" type="button">Importar resúmenes de salud</button>
+      <button class="secondary" id="atlas-sinc-parar" type="button" disabled hidden>Pausar tras el periodo actual</button>
+      <div class="estado" id="atlas-sinc-estado" role="status" aria-live="polite"></div>
+      <div class="subestado" id="atlas-sinc-resumen" aria-live="polite"></div>
+      <button class="secondary" id="atlas-salud-vo2" type="button">Importar histórico de VO₂ máx.</button>
+      <button class="secondary" id="atlas-salud-umbral" type="button">Importar histórico de umbral</button>
+      <button class="secondary" id="atlas-salud-pronosticos" type="button">Importar histórico de pronósticos</button>
+      <button class="secondary" id="atlas-salud-parar" type="button" disabled hidden>Pausar tras el lote actual</button>
+      <div class="estado" id="atlas-salud-estado" role="status" aria-live="polite"></div>
+      <div class="subestado" id="atlas-salud-resumen" aria-live="polite"></div>
+      <h3 class="atlas-ajustes__subtitulo">Mejores marcas</h3>
+      <button id="atlas-marcas-completar" type="button">Completar mejores marcas</button>
+      <button id="atlas-marcas-parar" type="button" class="secondary" disabled hidden>Pausar tras el lote actual</button>
+      <div class="estado" id="atlas-marcas-estado" role="status" aria-live="polite"></div>
+      <small>Estas importaciones completan listados, métricas y marcas. Puedes pausarlas y continuar sin perder los datos guardados.</small>
+    </details>
+    <button id="atlas-exportar-json" class="secondary" type="button">Exportar datos en JSON</button>
+    <div class="estado" id="atlas-exportar-estado" role="status" aria-live="polite"></div>
+    <small>La copia contiene datos deportivos y de salud personales. Guárdala en un lugar privado.</small>
+  </section>
+  <section class="panel" aria-labelledby="atlas-version-titulo">
+    <h2 id="atlas-version-titulo">ℹ️ Versión</h2>
+    <div class="atlas-ajustes__fila"><span>ATLAS</span><strong>v0.0.85</strong></div>
+    <div class="atlas-ajustes__fila"><span>Worker compatible</span><strong>v0.66</strong></div>
+  </section>
   <button id="atlas-ajustes-atras-abajo" class="atlas-atras-inferior" type="button">Atrás</button>
 </section>
 </div>
@@ -1625,7 +1612,37 @@
         try { return await tarea; }
         finally { pendientes.delete(id); }
       }
-      return Object.freeze({ leer, cargar });
+      return Object.freeze({ leer, cargar, validaRegistro:r=>Boolean(normalizar(r?.datos?.bruto)) });
+    })();
+
+    // 5.8.5 — Exclusión de operaciones manuales y metadatos locales de Ajustes.
+    const ATLASOPERACIONES=(()=>{
+      const ids=['atlas-guardar','atlas-comprobar','atlas-importar','atlas-inc-actualizar','atlas-sinc-rapida','atlas-salud-vo2','atlas-salud-umbral','atlas-salud-pronosticos','atlas-marcas-completar','atlas-hoy-actualizar','atlas-salud-desde','atlas-salud-hasta','atlas-worker','atlas-clave'];
+      let actual=null;
+      const avisar=detalle=>window.dispatchEvent(new CustomEvent('atlas:ajustes:operacion',{detail:detalle}));
+      async function fecha(tipo){
+        const clave='sistema:ajustes:ultima_'+tipo,ahora=Date.now();
+        try{await ATLASDB.guardarSiInvalido({clave,tipo:'sistema:sincronizacion',origen:'ATLAS',datos:{instante:ahora}},r=>Number.isFinite(r?.datos?.instante)&&r.datos.instante>=ahora);}catch{}
+      }
+      function iniciar(nombre,clase){
+        if(actual)return null;
+        actual={nombre,clase};
+        const nodos=ids.map(id=>document.getElementById(id)).filter(Boolean),previos=nodos.map(n=>n.disabled);
+        nodos.forEach(n=>n.disabled=true);
+        avisar({fase:'inicio',nombre,clase});
+        let cerrado=false;
+        return {
+          progreso(hechas,total=null){if(!cerrado)avisar({fase:'progreso',nombre,clase,hechas,total});},
+          async terminar(confirmado=false){
+            if(cerrado)return;cerrado=true;
+            if(confirmado&&clase==='importacion')await fecha('importacion');
+            if(confirmado&&clase==='sync')await fecha('sync');
+            actual=null;nodos.forEach((n,i)=>n.disabled=previos[i]);
+            avisar({fase:'fin',nombre,clase});
+          }
+        };
+      }
+      return Object.freeze({iniciar,enCurso:()=>!!actual});
     })();
 
     // 5.4 — Recorrido GPS por actividad: lectura, comprobación y caché local.
@@ -1750,30 +1767,25 @@
       let enCurso=false;
       const boton=document.getElementById('atlas-marcas-completar'),parar=document.getElementById('atlas-marcas-parar'),estado=document.getElementById('atlas-marcas-estado');
       const solicitadas=new Set();
-      const ocupado=()=>['atlas-detener','atlas-sinc-parar','atlas-salud-parar','atlas-inc-detener'].some(id=>!document.getElementById(id).disabled);
-      const bloquear=()=>{
-        const nodos=['atlas-guardar','atlas-comprobar','atlas-importar','atlas-inc-actualizar','atlas-sinc-rapida','atlas-salud-piloto','atlas-salud-total','atlas-salud-vo2','atlas-salud-umbral','atlas-salud-pronosticos']
-          .map(id=>document.getElementById(id)).filter(Boolean),previos=nodos.map(x=>x.disabled);
-        nodos.forEach(x=>x.disabled=true);
-        return ()=>nodos.forEach((x,i)=>x.disabled=previos[i]);
-      };
       // Solo al desplegar Mejores marcas: hasta tres carreras de maratón o más
       // por ejecución de ATLAS. El recorrido histórico permanece voluntario.
       function analizarPrioritarias(r){
-        if(enCurso||ocupado()||solicitadas.size>=3)return false;
+        if(enCurso||ATLASOPERACIONES.enCurso()||solicitadas.size>=3)return false;
         const ids=r.prioritarias.filter(id=>!solicitadas.has(id)).slice(0,3-solicitadas.size);
         if(!ids.length)return false;
+        const operacion=ATLASOPERACIONES.iniciar('Mejores marcas','importacion');if(!operacion)return false;
         ids.forEach(id=>solicitadas.add(id));
-        enCurso=true;boton.disabled=true;const liberar=bloquear();
+        enCurso=true;let confirmadas=0;
         void (async()=>{
           try{
             const respuesta=await ATLASACCESO.consultarMarcasFit(ids);
             if(respuesta.estado==='ok')for(const f of respuesta.filas){
-              if(f.estado==='ok')await guardar(f.id,f.marcas_fit);
-              else if(f.estado==='sin_archivo_fit')await guardar(f.id,{estado:'no_disponible',contrato:2});
+              if(f.estado==='ok'&&await guardar(f.id,f.marcas_fit))confirmadas++;
+              else if(f.estado==='sin_archivo_fit'&&await guardar(f.id,{estado:'no_disponible',contrato:2}))confirmadas++;
+              operacion.progreso(confirmadas,ids.length);
             }
           }catch{}finally{
-            enCurso=false;boton.disabled=false;liberar();
+            enCurso=false;await operacion.terminar(confirmadas>0);
             window.dispatchEvent(new Event('atlas:marcas:actualizadas'));
           }
         })();
@@ -1783,16 +1795,14 @@
       parar.addEventListener('click',()=>{cancelar=true;parar.disabled=true;});
       boton.addEventListener('click',async()=>{
         if(enCurso)return;
-        if(ocupado()){
-          estado.textContent='Finaliza primero la importación en marcha.';return;
-        }
-        enCurso=true;cancelar=false;boton.disabled=true;parar.disabled=false;
-        const liberar=bloquear();
+        const operacion=ATLASOPERACIONES.iniciar('Mejores marcas','importacion');
+        if(!operacion){estado.textContent='Finaliza primero la importación en marcha.';return;}
+        enCurso=true;cancelar=false;parar.disabled=false;parar.hidden=false;let confirmadas=0;
         try{
           const perfil=await ATLASDB.leer('vista:perfil:actual');
           const inicial=await ranking(perfil?.datos?.marcas_garmin),ids=inicial.pendientes;
           if(!ids.length){estado.textContent='No hay carreras conocidas pendientes de analizar. '+inicial.completas+'/'+inicial.total+' con FIT completo.';return;}
-          let hechas=0,fallos=0;
+          let hechas=0,fallos=0;operacion.progreso(0,ids.length);
           for(let i=0;i<ids.length&&!cancelar;i+=3){
             const lote=ids.slice(i,i+3);
             estado.textContent='Analizando mejores marcas · '+hechas+'/'+ids.length+' carreras…';
@@ -1804,13 +1814,14 @@
               else if(f.estado==='sin_archivo_fit'){await guardar(f.id,{estado:'no_disponible',contrato:2});hechas++;}
               else {fallos++;if(!['fit_demasiado_grande','fit_crc_invalido','fit_estructura_invalida','fit_invalido','archivo_no_fit','zip_sin_fit','archivo_sin_contenido'].includes(f.estado))interrumpir=true;}
             }
+            confirmadas=hechas;operacion.progreso(hechas,ids.length);
             if(interrumpir){estado.textContent='Importación pausada. Se conservaron '+hechas+' resultados; reanuda más tarde.';return;}
             if(i+3<ids.length&&!cancelar)await new Promise(ok=>setTimeout(ok,350));
           }
           estado.textContent=(cancelar?'Importación detenida. ':'Análisis finalizado. ')+hechas+'/'+ids.length+' carreras revisadas'+(fallos?' · '+fallos+' sin confirmar':'')+'.';
         }catch{estado.textContent='No se pudo completar el análisis. Se conservan los resultados confirmados.';}
         finally{
-          enCurso=false;boton.disabled=false;parar.disabled=true;liberar();
+          enCurso=false;parar.disabled=true;parar.hidden=true;await operacion.terminar(confirmadas>0);
           window.dispatchEvent(new Event('atlas:marcas:actualizadas'));
         }
       });
@@ -1877,135 +1888,81 @@
         try { return await tarea; }
         finally { pendientes.delete(id); }
       }
-      return Object.freeze({ leer, cargar });
+      return Object.freeze({ leer, cargar, validaRegistro:(id,r)=>Boolean(validar(id,r?.datos?.bruto)) });
     })();
 
 </script>
-<script id="atlas-adaptadores-ajustes">    // Panel provisional para la PRIMERA lectura real. Sin envíos automáticos.
-    const ATLASPANEL = (() => {
-      const formulario = document.getElementById("atlas-configuracion");
-      const campoWorker = document.getElementById("atlas-worker");
-      const campoClave = document.getElementById("atlas-clave");
-      const botonComprobar = document.getElementById("atlas-comprobar");
-      const botonImportar = document.getElementById("atlas-importar");
-      const botonDetener = document.getElementById("atlas-detener");
-      const resumen = document.getElementById("atlas-resumen");
-      const TODO = Object.freeze({ fuente: "oficial", familia: "actividades", desde: null, hasta: null });
-      let detener = false;
-      let acumuladasSesion = 0, existentesSesion = 0, lotesSesion = 0;
-      const estado = document.getElementById("atlas-estado");
-      let ocupado = false, autorizado = false, historialCompletado = false;
-      function mensaje(texto) { estado.textContent = texto; }
-      function bloqueo(valor) {
-        ocupado = valor;
-        formulario.querySelector("button").disabled = valor;
-        botonComprobar.disabled = valor;
-        botonImportar.disabled = valor || !autorizado || historialCompletado;
-        botonDetener.disabled = !valor;
+<script id="atlas-adaptadores-ajustes">
+    const ATLASPANEL=(()=>{
+      const el=id=>document.getElementById(id);
+      const formulario=el('atlas-configuracion'),campoWorker=el('atlas-worker'),campoClave=el('atlas-clave');
+      const botonImportar=el('atlas-importar'),botonDetener=el('atlas-detener'),resumen=el('atlas-resumen');
+      const estado=el('atlas-estado'),estadoImportar=el('atlas-importar-estado');
+      const TODO=Object.freeze({fuente:'oficial',familia:'actividades',desde:null,hasta:null});
+      let configurado=false,completado=false,detener=false;
+      function botones(){botonImportar.disabled=ATLASOPERACIONES.enCurso()||!configurado||completado;}
+      async function resumenTrabajo(){
+        const p=await ATLASIMPORT.leerProgreso(TODO);
+        completado=p.estado==='completado';
+        botonImportar.textContent=completado?'Histórico de actividades importado':p.estado==='pendiente'?'Importar histórico de actividades':'Continuar histórico de actividades';
+        resumen.textContent=completado?'Listado histórico confirmado.':p.estado==='pendiente'?'Importa los resúmenes de todas las actividades.': 'Importación pendiente de continuar.';
+        botones();return p;
       }
-      async function resumenTrabajo() {
-        const p = await ATLASIMPORT.leerProgreso(TODO);
-        const total = p.confirmados ?? 0;
-        const pagina = p.estado === "completado" ? "finalizada" : String(p.cursor?.pagina ?? 0);
-        resumen.textContent = "Actividades añadidas por esta importación: " + total +
-          "; paginación: " + pagina +
-          "; estado: " + p.estado + ". Los datos anteriores se conservan.";
-        botonImportar.textContent = p.estado === "completado"
-          ? "Histórico de actividades completado"
-          : p.estado === "pendiente" ? "Importar todo el histórico de actividades"
-            : "Continuar importación histórica";
-        historialCompletado = p.estado === "completado";
-        botonImportar.disabled = ocupado || !autorizado || historialCompletado;
-        return p;
+      async function comprobar(){
+        const r=await ATLASACCESO.verificar();
+        estado.textContent=r.estado==='autorizado'?'Acceso al Worker válido.':'No se pudo validar el acceso ('+r.estado+').';
+        return r.estado==='autorizado';
       }
-      async function comprobar() {
-        autorizado = false; bloqueo(true);
-        try {
-          const r = await ATLASACCESO.verificar();
-          autorizado = r.estado === "autorizado";
-          mensaje(autorizado ? "Conexión autorizada. Puedes iniciar o continuar el histórico."
-            : "Acceso no verificado: " + r.estado + ". Comprueba la URL y contraseña.");
-          if (autorizado) await resumenTrabajo();
-        } catch { mensaje("No se pudo comprobar el acceso o abrir IndexedDB."); }
-        finally { bloqueo(false); }
-      }
-      formulario.addEventListener("submit", async evento => {
-        evento.preventDefault();
-        if (ocupado) return;
-        bloqueo(true);
-        try {
-          const anterior = await ATLASACCESO.estado();
-          const clave = campoClave.value;
-          if (!clave && anterior.configurado && campoWorker.value.trim() === anterior.destino) {
-            mensaje("Comprobando la conexión previamente guardada...");
-          } else {
-            await ATLASACCESO.configurar(clave, campoWorker.value.trim());
-            campoClave.value = "";
+      formulario.addEventListener('submit',async e=>{
+        e.preventDefault();const op=ATLASOPERACIONES.iniciar('Conexión','acceso');if(!op)return;
+        try{
+          const anterior=await ATLASACCESO.estado();
+          if(campoClave.value||!anterior.configurado||campoWorker.value.trim()!==anterior.destino){
+            await ATLASACCESO.configurar(campoClave.value,campoWorker.value.trim());
+            campoClave.value='';configurado=true;
+          }else configurado=true;
+          await comprobar();await resumenTrabajo();
+        }catch(err){estado.textContent=err?.message==='clave_vacia'?'Introduce la contraseña para guardar un nuevo acceso.':'No se pudo guardar o comprobar el acceso.';}
+        finally{await op.terminar();botones();}
+      });
+      el('atlas-comprobar').addEventListener('click',async()=>{
+        const op=ATLASOPERACIONES.iniciar('Conexión','acceso');if(!op)return;
+        try{await comprobar();}catch{estado.textContent='No se pudo comprobar la conexión.';}
+        finally{await op.terminar();botones();}
+      });
+      botonDetener.addEventListener('click',()=>{detener=true;botonDetener.disabled=true;estadoImportar.textContent='Pausando después del lote actual…';});
+      botonImportar.addEventListener('click',async()=>{
+        if(!configurado||completado)return;
+        const op=ATLASOPERACIONES.iniciar('Actividades','importacion');if(!op)return;
+        detener=false;botonDetener.disabled=false;botonDetener.hidden=false;
+        let lotes=0,nuevas=0,cursorPrevio='',repeticiones=0;
+        try{
+          if(!await comprobar()){estadoImportar.textContent='Comprueba primero el acceso.';return;}
+          let p=await ATLASIMPORT.leerProgreso(TODO);
+          while(!detener&&p.estado!=='completado'){
+            const cursor=JSON.stringify(p.cursor);
+            if(!p.cursor||cursor===cursorPrevio&&++repeticiones>2)throw Error('cursor_estancado');
+            if(cursor!==cursorPrevio)repeticiones=0;cursorPrevio=cursor;
+            estadoImportar.textContent='Importando actividades…';
+            const r=await ATLASACCESO.solicitarSiguiente(TODO);
+            if(!['confirmado','completado','repetido'].includes(r.estado)){estadoImportar.textContent='Importación pausada ('+r.estado+'). Los datos se conservan.';return;}
+            lotes++;nuevas+=r.nuevos??0;op.progreso(lotes);
+            p=await ATLASIMPORT.leerProgreso(TODO);
+            resumen.textContent=nuevas+' actividades nuevas · '+lotes+' lotes confirmados.';
+            if(p.estado!=='completado'&&!detener)await new Promise(ok=>setTimeout(ok,350));
           }
-          bloqueo(false);
-          await comprobar();
-        } catch (error) {
-          autorizado = false;
-          mensaje(error?.message === "clave_vacia" ? "Introduce la contraseña para guardar un nuevo acceso."
-            : "No se pudo guardar la configuración: " + (error?.message ?? "error"));
-          bloqueo(false);
-        }
+          estadoImportar.textContent=detener?'Importación pausada. Puedes continuar.':'Histórico de actividades importado.';
+        }catch{estadoImportar.textContent='No se pudo terminar la importación. Los datos guardados se conservan.';}
+        finally{botonDetener.disabled=true;botonDetener.hidden=true;try{await resumenTrabajo();}catch{}await op.terminar(lotes>0);botones();}
       });
-      botonComprobar.addEventListener("click", async () => { if (!ocupado) await comprobar(); });
-      botonDetener.addEventListener("click", () => {
-        detener = true;
-        botonDetener.disabled = true;
-        mensaje("Deteniendo después del lote en curso... El progreso ya confirmado se conserva.");
-      });
-      botonImportar.addEventListener("click", async () => {
-        if (ocupado || !autorizado) return;
-        bloqueo(true);
-        detener = false;
-        acumuladasSesion = 0; existentesSesion = 0; lotesSesion = 0;
-        try {
-          let p = await ATLASIMPORT.leerProgreso(TODO);
-          while (!detener && p.estado !== "completado") {
-            mensaje("Descargando actividades de Garmin... página " + (p.cursor?.pagina ?? 0) +
-              ". Nuevas esta sesión: " + acumuladasSesion + ".");
-            const r = await ATLASACCESO.solicitarSiguiente(TODO);
-            if (!["confirmado", "completado", "repetido"].includes(r.estado)) {
-              mensaje("Importación detenida: " + r.estado + ". Los lotes anteriores permanecen guardados.");
-              break;
-            }
-            lotesSesion++;
-            acumuladasSesion += r.nuevos ?? 0;
-            existentesSesion += r.existentes ?? 0;
-            p = await ATLASIMPORT.leerProgreso(TODO);
-            resumen.textContent = "Esta sesión: " + acumuladasSesion + " nuevas, " +
-              existentesSesion + " ya existentes, " + lotesSesion + " lotes. " +
-              "Total nuevo del trabajo: " + (p.confirmados ?? 0) + ".";
-            if (p.estado === "completado") {
-              mensaje("Histórico de actividades completado. Añadidas: " + acumuladasSesion +
-                "; duplicadas evitadas: " + existentesSesion + " en esta sesión.");
-              break;
-            }
-            // Una única petición por vez, evitando solicitudes paralelas a Garmin.
-            await new Promise(resolve => setTimeout(resolve, 350));
-          }
-          if (detener) mensaje("Importación pausada. Puedes reanudarla desde el lote guardado.");
-        } catch (error) {
-          mensaje("Importación pausada por error: " + (error?.message ?? "desconocido") +
-            ". Los datos anteriores se conservan.");
-        } finally {
-          bloqueo(false);
-          try { await resumenTrabajo(); } catch (_) { /* Evitar ocultar el resultado principal */ }
-        }
-      });
-      ATLASACCESO.estado().then(r => {
-        if (r.configurado) {
-          campoWorker.value = r.destino;
-          mensaje("Configuración guardada en este dispositivo. Pulsa «Comprobar conexión guardada».");
-          resumenTrabajo().catch(() => {});
-        }
-      }).catch(() => mensaje("IndexedDB no está disponible aquí. Prueba GitHub Pages."));
+      ATLASACCESO.estado().then(async r=>{
+        configurado=r.configurado;
+        if(configurado){campoWorker.value=r.destino;estado.textContent='Acceso guardado en este dispositivo.';}
+        await resumenTrabajo();
+      }).catch(()=>{estado.textContent='No se pudo leer la configuración local.';});
+      window.addEventListener('atlas:ajustes:operacion',e=>{if(e.detail.fase==='fin')botones();});
       return Object.freeze({});
     })();
-
 
     // ATLAS 4 — Importación HISTÓRICA de salud/rendimiento.
     // Reutiliza el Worker v0.44 y los contratos ATLASIMPORT/ATLASACCESO ya aprobados.
@@ -2013,8 +1970,6 @@
     const ATLASSALUD = (() => {
       const desdeEl = document.getElementById("atlas-salud-desde");
       const hastaEl = document.getElementById("atlas-salud-hasta");
-      const pruebaEl = document.getElementById("atlas-salud-piloto");
-      const totalEl = document.getElementById("atlas-salud-total");
       const vo2El = document.getElementById("atlas-salud-vo2");
       const umbralEl = document.getElementById("atlas-salud-umbral");
       const pronosticosEl = document.getElementById("atlas-salud-pronosticos");
@@ -2023,18 +1978,6 @@
       const resumenEl = document.getElementById("atlas-salud-resumen");
       let ocupado = false;
       let detener = false;
-      const RANGOS = Object.freeze([
-        ["oficial", "resumen_ampliado_v2", "Salud diaria V2"],
-        ["oficial", "sueno_resumen", "Resumen de sueño"],
-        ["oficial", "vfc_resumen", "Resumen de VFC"],
-        ["oficial", "body_battery", "Body Battery"],
-        ["privada", "vo2_max", "VO₂ máximo"],
-      ]);
-      const DETALLES = Object.freeze([
-        ["oficial", "sueno", "Sueño detallado"],
-        ["oficial", "vfc", "VFC detallada"],
-        ["oficial", "pulso_diario", "Pulso detallado"],
-      ]);
       function fechaCorrecta(valor) {
         if (typeof valor !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(valor)) return false;
         const f = new Date(valor + "T00:00:00Z");
@@ -2053,12 +1996,10 @@
         ocupado = valor;
         desdeEl.disabled = valor;
         hastaEl.disabled = valor;
-        pruebaEl.disabled = valor;
-        totalEl.disabled = valor;
         vo2El.disabled = valor;
         umbralEl.disabled = valor;
         pronosticosEl.disabled = valor;
-        pararEl.disabled = !valor;
+        pararEl.disabled = !valor;pararEl.hidden=!valor;
       }
       function intervalos(inicio, fin, dias=365) {
         // Cada trabajo respeta el límite de 366 días inclusivos del Worker v0.44.
@@ -2071,28 +2012,10 @@
         }
         return trozos;
       }
-      function construirTrabajos(desde, hasta, piloto, soloVO2 = false, soloUmbral = false, soloPronosticos = false) {
-        const inicio = piloto ? [desde, sumarDias(hasta, -6)].sort().at(-1) : desde;
-        const trabajos = [];
-        if (soloPronosticos) return intervalos(inicio,hasta,28).map(([a,b])=>({ etiqueta: "Pronósticos de carrera", trabajo: { fuente: "privada", familia: "pronosticos_carrera", desde: a, hasta:b } }));
-        if (soloUmbral) return intervalos(inicio,hasta).flatMap(([a,b]) => [["umbral_ritmo_diario", "Ritmo umbral"], ["umbral_fc_diario", "FC umbral"]]
-          .map(([familia, etiqueta]) => ({ etiqueta, trabajo: { fuente: "privada", familia, desde: a, hasta:b } })));
-        // Del presente al pasado; los resúmenes de 7 días se extienden a todo el intervalo.
-        for (const [a, b] of intervalos(inicio, hasta)) {
-          for (const [fuente, familia, etiqueta] of RANGOS) {
-            if (soloVO2 && familia !== "vo2_max") continue;
-            trabajos.push({ etiqueta, trabajo: { fuente, familia, desde: a, hasta: b } });
-          }
-        }
-        if (soloVO2) return trabajos;
-        // 90 días recientes como máximo para las series detalladas.
-        const inicioDetalle = [inicio, sumarDias(hasta, -89)].sort().at(-1);
-        for (const [a, b] of intervalos(inicioDetalle, hasta)) {
-          for (const [fuente, familia, etiqueta] of DETALLES) {
-            trabajos.push({ etiqueta, trabajo: { fuente, familia, desde: a, hasta: b } });
-          }
-        }
-        return trabajos;
+      function construirTrabajos(desde,hasta,tipo) {
+        if(tipo==='pronosticos')return intervalos(desde,hasta,28).map(([a,b])=>({etiqueta:'Pronósticos de carrera',trabajo:{fuente:'privada',familia:'pronosticos_carrera',desde:a,hasta:b}}));
+        if(tipo==='umbral')return intervalos(desde,hasta).flatMap(([a,b])=>[['umbral_ritmo_diario','Ritmo umbral'],['umbral_fc_diario','FC umbral']].map(([familia,etiqueta])=>({etiqueta,trabajo:{fuente:'privada',familia,desde:a,hasta:b}})));
+        return intervalos(desde,hasta).map(([a,b])=>({etiqueta:'VO₂ máximo',trabajo:{fuente:'privada',familia:'vo2_max',desde:a,hasta:b}}));
       }
       function consultarRango() {
         const desde = desdeEl.value;
@@ -2101,32 +2024,6 @@
           throw new Error("Elige un intervalo válido, sin fechas futuras.");
         }
         return { desde, hasta };
-      }
-      // La fecha de la actividad más antigua ya importada es solo una sugerencia.
-      // IndexedDB no se modifica, ni se transmite ese dato durante la configuración.
-      async function sugerirInicioDesdeActividades() {
-        await ATLASDB.abrir();
-        return new Promise((resolver, rechazar) => {
-          const tx = ATLASDB.almacen("readonly").transaction;
-          const store = tx.objectStore("registros");
-          let minimo = null;
-          const prefijo = "historico:dato:oficial:actividades:id%3A";
-          const req = store.openCursor();
-          req.onsuccess = () => {
-            const cursor = req.result;
-            if (!cursor) return;
-            const dato = cursor.value;
-            if (typeof dato?.clave === "string" && dato.clave.startsWith(prefijo)) {
-              const bruto = dato.datos?.bruto;
-              const fecha = String(bruto?.startTimeLocal ?? bruto?.startTimeGMT ?? "").slice(0, 10);
-              if (fechaCorrecta(fecha) && (!minimo || fecha < minimo)) minimo = fecha;
-            }
-            cursor.continue();
-          };
-          req.onerror = () => rechazar(req.error || new Error("lectura_fallida"));
-          tx.oncomplete = () => resolver(minimo);
-          tx.onabort = () => rechazar(tx.error || new Error("lectura_interrumpida"));
-        });
       }
       async function ejecutarTrabajo(descripcion, trabajo, resumen) {
         let prevCursor = "";
@@ -2157,68 +2054,39 @@
           await new Promise(resolve => setTimeout(resolve, 350));
         }
       }
-      async function iniciar(piloto, soloVO2 = false, soloUmbral = false, soloPronosticos = false) {
-        if (ocupado) return;
-        if ((soloUmbral || soloPronosticos) && ["atlas-detener", "atlas-sinc-parar", "atlas-inc-detener"].some(id => !document.getElementById(id).disabled)) {
-          mensaje("Finaliza primero la importación que está en marcha."); return;
-        }
+      async function iniciar(tipo) {
+        if(ocupado)return;
         let lista;
-        try {
-          const { desde, hasta } = consultarRango();
-          lista = construirTrabajos(desde, hasta, piloto, soloVO2, soloUmbral, soloPronosticos);
-        } catch (error) { mensaje(error.message); return; }
-        bloquear(true); detener = false;
-        const resultado = { lotes: 0, nuevos: 0, existentes: 0, errores: [], completas: 0 };
-        try {
-          const acceso = await ATLASACCESO.verificar();
-          if (acceso.estado !== "autorizado") {
-            mensaje("Acceso no autorizado: " + acceso.estado + ". Comprueba primero la conexión de arriba.");
-            return;
-          }
-          for (const item of lista) {
-            if (detener) break;
-            try {
-              const estado = await ejecutarTrabajo(item.etiqueta, item.trabajo, resultado);
-              if (estado === "completado") resultado.completas++;
-            } catch (error) {
-              const codigo = String(error?.message || "error").slice(0, 60);
-              resultado.errores.push(item.etiqueta + ": " + codigo);
-              // Error de autenticación o de comunicación global: detener, no bombardear Garmin.
-              if (["no_autorizado", "error_red_o_cors", "acceso_denegado", "limite_garmin",
-                   "error_servidor", "servicio_no_disponible"].includes(codigo)) break;
+        try{const {desde,hasta}=consultarRango();lista=construirTrabajos(desde,hasta,tipo);}catch(error){mensaje(error.message);return;}
+        const op=ATLASOPERACIONES.iniciar(tipo==='umbral'?'Umbral':tipo==='pronosticos'?'Pronósticos':'VO₂ máx.','importacion');if(!op)return;
+        bloquear(true);detener=false;
+        const resultado={lotes:0,nuevos:0,existentes:0,errores:[],completas:0};
+        op.progreso(0,lista.length);
+        try{
+          const acceso=await ATLASACCESO.verificar();
+          if(acceso.estado!=='autorizado'){mensaje('Comprueba primero la conexión con Garmin.');return;}
+          for(const item of lista){
+            if(detener)break;
+            try{
+              const estado=await ejecutarTrabajo(item.etiqueta,item.trabajo,resultado);
+              if(estado==='completado')resultado.completas++;
+              op.progreso(resultado.completas,lista.length);
+            }catch(error){
+              const codigo=String(error?.message||'error').slice(0,60);
+              resultado.errores.push(item.etiqueta+': '+codigo);
+              if(['no_autorizado','error_red_o_cors','acceso_denegado','limite_garmin','error_servidor','servicio_no_disponible'].includes(codigo))break;
             }
           }
-          if (detener) {
-            mensaje("Importación pausada. Lotes guardados: " + resultado.lotes + ". Puedes reanudarla.");
-          } else if (resultado.errores.length) {
-            mensaje("Importación parcial. " + resultado.completas + "/" + lista.length +
-              " trabajos completados. Incidencias: " + resultado.errores.join("; ") +
-              ". Los datos guardados se conservan.");
-          } else {
-            mensaje((soloPronosticos ? "Importación de pronósticos" : soloUmbral ? "Importación de umbral" : soloVO2 ? "Importación de VO₂ máx." : piloto ? "Prueba real" : "Importación del intervalo histórico") + " completada. " +
-              resultado.completas + " trabajos; " + resultado.nuevos +
-              " bloques nuevos. Los datos anteriores se conservan.");
-          }
-          resumenEl.textContent = "Lotes: " + resultado.lotes + "; bloques nuevos: " + resultado.nuevos +
-            "; ya existentes: " + resultado.existentes + "; incidencias: " + resultado.errores.length + ".";
-          if (soloPronosticos && window.ATLASresumenPronosticos) {
-            try { resumenEl.textContent += " " + await window.ATLASresumenPronosticos(); }
-            catch { resumenEl.textContent += " No se pudo comprobar la cobertura local."; }
-          }
-          if (soloUmbral && window.ATLASresumenUmbral) {
-            try { resumenEl.textContent += " " + await window.ATLASresumenUmbral(); }
-            catch { resumenEl.textContent += " No se pudo comprobar la cobertura local."; }
-          }
-        } catch (error) {
-          mensaje("Importación pausada por error: " + String(error?.message || "desconocido").slice(0, 100) +
-            ". Los lotes confirmados se conservan.");
-        } finally { bloquear(false); }
+          mensaje(detener?'Importación pausada. Puedes continuar.':resultado.errores.length?'Importación parcial. Puedes reintentar los datos pendientes.':'Importación completada.');
+          resumenEl.textContent=resultado.completas+'/'+lista.length+' periodos confirmados · '+resultado.nuevos+' bloques nuevos'+(resultado.errores.length?' · '+resultado.errores.length+' incidencias':'')+'.';
+          if(tipo==='pronosticos'&&window.ATLASresumenPronosticos)try{resumenEl.textContent+=' '+await window.ATLASresumenPronosticos();}catch{}
+          if(tipo==='umbral'&&window.ATLASresumenUmbral)try{resumenEl.textContent+=' '+await window.ATLASresumenUmbral();}catch{}
+        }catch{mensaje('Importación pausada. Los datos confirmados se conservan.');}
+        finally{bloquear(false);await op.terminar(resultado.lotes>0);}
       }
-      pruebaEl.addEventListener("click", () => iniciar(true));
-      totalEl.addEventListener("click", () => iniciar(false));
-      vo2El.addEventListener("click", () => iniciar(false, true));
-      umbralEl.addEventListener("click", () => iniciar(false, false, true));
-      pronosticosEl.addEventListener("click", () => iniciar(false, false, false, true));
+      vo2El.addEventListener('click',()=>iniciar('vo2'));
+      umbralEl.addEventListener('click',()=>iniciar('umbral'));
+      pronosticosEl.addEventListener('click',()=>iniciar('pronosticos'));
       pararEl.addEventListener("click", () => {
         detener = true;
         pararEl.disabled = true;
@@ -2227,14 +2095,6 @@
       const hoy = fechaHoy();
       hastaEl.value = hoy;
       desdeEl.value = sumarDias(hoy, -89);
-      sugerirInicioDesdeActividades().then(inicio => {
-        if (inicio && !desdeEl.dataset.cambiado) {
-          // Solo sugerencia: jamás reemplazar fechas seleccionadas por el usuario.
-          resumenEl.textContent = "Actividad más antigua guardada: " + inicio +
-            ". El intervalo visible se mantiene hasta que lo cambies.";
-        }
-      }).catch(() => { /* Si no hay actividades locales, mantener los 90 días recientes. */ });
-      desdeEl.addEventListener("input", () => { desdeEl.dataset.cambiado = "si"; });
       return Object.freeze({});
     })();
 
@@ -2435,19 +2295,21 @@
       async function sincronizar() {
         if (enMarcha) return;
         const desde = inicioEl.value, hasta = finEl.value;
-        if (!diaValido(desde) || !diaValido(hasta) || desde > hasta || hasta > new Date().toISOString().slice(0, 10)) {
+        const d=new Date(),hoy=[d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-");
+        if (!diaValido(desde) || !diaValido(hasta) || desde > hasta || hasta > hoy) {
           estado.textContent = "Selecciona fechas válidas."; return;
         }
-        enMarcha = true; cancelar = false; boton.disabled = true; parar.disabled = false;
+        const op=ATLASOPERACIONES.iniciar('Salud diaria','importacion');if(!op)return;
+        enMarcha = true; cancelar = false; parar.disabled = false;parar.hidden=false;
         const t0 = performance.now(); let locales = 0, recuperados = 0, descargadas = 0, diasNuevos = 0, ampliados = 0;
         try {
           const acceso = await ATLASACCESO.verificar();
           if (acceso.estado !== "autorizado") throw Error("acceso_" + acceso.estado);
           estado.textContent = "Aprovechando los datos que ya están guardados…";
           const recuperacion = await recuperarAntiguos(desde, hasta);
-          recuperados += recuperacion.nuevos;
-          // Primera pantalla útil: resúmenes recientes. Después, actividades restantes y pasado.
-          let primero = true;
+          recuperados += recuperacion.nuevos+recuperacion.ampliados;
+          const total=Math.ceil((Date.parse(hasta+'T00:00:00Z')-Date.parse(desde+'T00:00:00Z')+86400000)/(7*86400000));
+          op.progreso(0,total);
           for (let cursor = hasta; cursor >= desde;) {
             if (cancelar) break;
             const a = sumar(cursor, -6) > desde ? sumar(cursor, -6) : desde, b = cursor;
@@ -2459,23 +2321,7 @@
               const guardado = await guardar(datos, [a, b]);
               diasNuevos += guardado.nuevos; ampliados += guardado.ampliados; descargadas++;
             }
-            if (primero) {
-              primero = false;
-              estado.textContent = "Datos recientes disponibles. Recuperando actividades y el resto del histórico…";
-              const actividad = { fuente: "oficial", familia: "actividades", desde: null, hasta: null };
-              // Ya completada en este dispositivo => coste cero. Nuevos dispositivos: 50 por página.
-              for (;;) {
-                if (cancelar) break;
-                const progreso = await ATLASIMPORT.leerProgreso(actividad);
-                if (progreso.estado === "completado") break;
-                const r = await ATLASACCESO.solicitarSiguiente(actividad);
-                if (!["confirmado", "completado", "repetido"].includes(r.estado)) throw Error("actividades_" + r.estado);
-                if (r.estado === "completado") break;
-                resumen.textContent = "Actividades añadidas: " + (Number(r.nuevos) || 0) +
-                  " en la última página. Los resúmenes recientes ya están disponibles.";
-              }
-
-            }
+            op.progreso(descargadas+locales,total);
             resumen.textContent = "Ventanas descargadas: " + descargadas + "; reutilizadas: " + locales +
               "; días recuperados de registros anteriores: " + recuperados +
               "; días nuevos: " + diasNuevos + "; ampliados: " + ampliados + "; tiempo: " + duracion(t0) + ".";
@@ -2486,7 +2332,7 @@
         } catch (error) {
           estado.textContent = "Sincronización interrumpida: " + String(error?.message || "desconocido").slice(0, 80) +
             ". Los datos confirmados se conservan.";
-        } finally { enMarcha = false; boton.disabled = false; parar.disabled = true; }
+        } finally { enMarcha = false; parar.disabled = true;parar.hidden=true;await op.terminar(descargadas>0||recuperados>0); }
       }
       // Refresco dirigido de siete días: ignora deliberadamente marcadores históricos
       // ya completados; no toca sus progresos ni elimina valores faltantes en Garmin.
@@ -2497,98 +2343,9 @@
         const r = await guardar(porDia, null, true);
         return { ...r, diasConDatos: porDia.size, desde, hasta };
       }
-      // Auditoría de cobertura: solo lectura IndexedDB, sin peticiones Garmin ni escrituras.
-      const auditarBtn = document.getElementById("atlas-sinc-cobertura");
-      const auditoriaEstado = document.getElementById("atlas-sinc-cobertura-estado");
-      async function auditarCobertura() {
-        const desde = inicioEl.value, hasta = finEl.value;
-        if (!diaValido(desde) || !diaValido(hasta) || desde > hasta) {
-          auditoriaEstado.textContent = "Selecciona fechas válidas para auditar."; return;
-        }
-        auditarBtn.disabled = true;
-        try {
-          await ATLASDB.abrir();
-          const recogidos = new Map(), tramos = new Set();
-          await new Promise((ok, fallo) => {
-            const tx = ATLASDB.almacen("readonly").transaction;
-            const store = tx.objectStore("registros");
-            const p = "historico:resumen:dia:";
-            const req = store.openCursor(IDBKeyRange.bound(p + desde, p + hasta));
-            req.onsuccess = () => {
-              const cursor = req.result;
-              if (!cursor) return;
-              recogidos.set(String(cursor.key).slice(p.length), cursor.value?.datos);
-              cursor.continue();
-            };
-            req.onerror = () => fallo(req.error || Error("auditoria_no_disponible"));
-            tx.oncomplete = ok;
-            tx.onabort = () => fallo(tx.error || Error("auditoria_interrumpida"));
-          });
-          // Los marcadores se crearon en importaciones de rangos distintos.
-          // Acreditar días cubiertos por cualquier ventana completada, sin exigir
-          // que sus extremos coincidan con los de esta auditoría global.
-          const diasConfirmados = new Set();
-          await new Promise((ok, fallo) => {
-            const tx = ATLASDB.almacen("readonly").transaction;
-            const prefijo = "historico:rapido:progreso:";
-            const req = tx.objectStore("registros").openCursor(
-              IDBKeyRange.bound(prefijo, prefijo + "\uffff"));
-            req.onsuccess = () => {
-              const cursor = req.result;
-              if (!cursor) return;
-              if (cursor.value?.datos?.estado === "completado") {
-                const [inicioGuardado, finGuardado] = String(cursor.key).slice(prefijo.length).split(":");
-                if (diaValido(inicioGuardado) && diaValido(finGuardado) && inicioGuardado <= finGuardado) {
-                  const a = inicioGuardado < desde ? desde : inicioGuardado;
-                  const b = finGuardado > hasta ? hasta : finGuardado;
-                  for (let d = a; d <= b; d = sumar(d, 1)) diasConfirmados.add(d);
-                }
-              }
-              cursor.continue();
-            };
-            req.onerror = () => fallo(req.error || Error("lectura_progreso_fallida"));
-            tx.oncomplete = ok;
-            tx.onabort = () => fallo(tx.error || Error("lectura_progreso_interrumpida"));
-          });
-          let ventanasTotales = 0, confirmadas = 0;
-          for (let fin = hasta; fin >= desde;) {
-            const ini = sumar(fin, -6) > desde ? sumar(fin, -6) : desde;
-            ventanasTotales++;
-            let cubierta = true;
-            for (let d = ini; d <= fin; d = sumar(d, 1)) {
-              if (!diasConfirmados.has(d)) { cubierta = false; break; }
-            }
-            if (cubierta) confirmadas++;
-            fin = sumar(ini, -1);
-          }
-          const conteos = { salud: 0, sueno: 0, vfc: 0 };
-          let diasConValor = 0, total = 0, sinValor = 0;
-          const primerasSinValor = [];
-          for (let dia = desde; dia <= hasta; dia = sumar(dia, 1)) {
-            total++;
-            const r = recogidos.get(dia);
-            let hayValor = false;
-            for (const familia of Object.keys(conteos)) {
-              if (r?.[familia] && Object.keys(r[familia]).length) { conteos[familia]++; hayValor = true; }
-            }
-            if (hayValor) diasConValor++;
-            else { sinValor++; if (primerasSinValor.length < 8) primerasSinValor.push(dia); }
-          }
-          auditoriaEstado.textContent = "Cobertura " + desde + " — " + hasta + ": " +
-            diasConValor + "/" + total + " días con alguna métrica; salud " + conteos.salud +
-            ", sueño " + conteos.sueno + ", VFC " + conteos.vfc + ". " +
-            "Ventanas cubiertas por importaciones previas: " + confirmadas + "/" + ventanasTotales +
-            ". Días con progreso confirmado: " + diasConfirmados.size + "/" + total +
-            ". Días sin valores identificados: " + sinValor +
-            (primerasSinValor.length ? " (primeros: " + primerasSinValor.join(", ") + ")." : ".") +
-            " Sin valores no implica un error: Garmin puede carecer de registros para esos días.";
-        } catch (_) { auditoriaEstado.textContent = "No se ha podido auditar IndexedDB. No se ha modificado ningún dato."; }
-        finally { auditarBtn.disabled = false; }
-      }
-      auditarBtn.addEventListener("click", auditarCobertura);
       boton.addEventListener("click", sincronizar);
       parar.addEventListener("click", () => { cancelar = true; parar.disabled = true; });
-      return Object.freeze({ actualizarRecientes });
+      return Object.freeze({ actualizarRecientes, diasDeFamilia:(familia,bruto,desde,hasta)=>[...desglosar(bruto,desde,hasta)].filter(([,d])=>!!resumir(familia,d)).map(([dia])=>dia) });
     })();
 
     // ATLAS 5.4 — Actualización incremental voluntaria: actividad reciente + 7 días
@@ -2755,19 +2512,11 @@
       }
       function duracion(t0) { return ((performance.now() - t0) / 1000).toFixed(1).replace(".", ",") + " s"; }
       async function ejecutar() {
-        if (ocupado) return { estado: "ocupado" };
-        if (ATLASMARCAS.enCurso())return {estado:"otra_operacion"};
-        // No ejecutar dos mecanismos de importación a la vez en esta pestaña.
-        if (["atlas-detener", "atlas-sinc-parar", "atlas-salud-parar"]
-            .some(id => !document.getElementById(id).disabled)) {
-          estado.textContent = "Finaliza primero la importación que está en marcha.";
-          return { estado: "otra_operacion" };
-        }
-        ocupado = true; cancelar = false; boton.disabled = true; detener.disabled = false;
-        const bloqueados = ["atlas-importar", "atlas-sinc-rapida", "atlas-salud-piloto", "atlas-salud-total", "atlas-salud-umbral", "atlas-salud-pronosticos", "atlas-marcas-completar"]
-          .map(id => document.getElementById(id));
-        const previos = bloqueados.map(el => el.disabled);
-        bloqueados.forEach(el => { el.disabled = true; });
+        if(ocupado)return {estado:'ocupado'};
+        const op=ATLASOPERACIONES.iniciar('Datos recientes','sync');
+        if(!op){estado.textContent='Hay otra importación en marcha.';return {estado:'otra_operacion'};}
+        ocupado=true;cancelar=false;detener.disabled=false;detener.hidden=false;
+        let confirmado=false;
         const t0 = performance.now(), hoy = hoyLocal();
         let salud = null, act = null, consultas = 0; const errores = [];
         try {
@@ -2791,10 +2540,10 @@
             errores.length || (act && !act.completo) ? "Actualización parcial: " +
               [...errores, ...act && !act.completo ? ["límite de páginas o parada"] : []].join("; ") + "." :
               "Actualización reciente completada.";
-          return { estado: cancelar ? "detenido" : errores.length || (act && !act.completo) ? "parcial" : "completado" };
+          confirmado=!cancelar&&!errores.length&&Boolean(act?.completo)&&Boolean(salud);
+          return { estado: cancelar ? "detenido" : confirmado ? "completado" : "parcial" };
         } finally {
-          ocupado = false; boton.disabled = false; detener.disabled = true;
-          bloqueados.forEach((el, i) => { el.disabled = previos[i]; });
+          ocupado = false; detener.disabled = true;detener.hidden=true;await op.terminar(confirmado);
         }
       }
       boton.addEventListener("click", () => {
@@ -2804,414 +2553,6 @@
       });
       detener.addEventListener("click", () => { cancelar = true; detener.disabled = true; });
       return Object.freeze({ ejecutar });
-    })();
-
-    // ATLAS 4 — Visor local de comprobación histórica. SOLO LECTURA.
-    // Sin fetch, sin modificar registros, sin nuevas tablas ni esquema IndexedDB.
-    const ATLASVISOR = (() => {
-      const fechaEl = document.getElementById("atlas-ver-fecha");
-      const boton = document.getElementById("atlas-ver-cargar");
-      const estado = document.getElementById("atlas-ver-estado");
-      const salida = document.getElementById("atlas-ver-resultado");
-      const PREFIJO = "historico:dato:";
-      const FAMILIAS = Object.freeze({
-        resumen_ampliado_v2: "Salud diaria",
-        sueno_resumen: "Resumen de sueño",
-        vfc_resumen: "Resumen de VFC",
-        body_battery: "Body Battery",
-        vo2_max: "VO₂ máximo",
-        umbral_ritmo: "Ritmo umbral",
-        umbral_fc: "FC umbral",
-        umbral_ritmo_diario: "Ritmo umbral",
-        umbral_fc_diario: "FC umbral",
-        pronosticos_carrera: "Pronósticos de carrera",
-        sueno: "Sueño detallado",
-        vfc: "VFC detallada",
-        pulso_diario: "Frecuencia cardíaca"
-      });
-      // Solo rutas ya catalogadas en 3.6. El resto se presenta como dato original.
-      const CAMPOS = Object.freeze({
-        resumen_ampliado_v2: [
-          ["Pasos", "movement.steps.value", "pasos"],
-          ["Objetivo de pasos", "movement.steps.goal", "pasos"],
-          ["Distancia por pasos", "movement.steps.distanceInMeters", "km", "m_km"],
-          ["FC en reposo", "heartRate.restingValue", "ppm"],
-          ["FC mínima", "heartRate.minValue", "ppm"],
-          ["FC máxima", "heartRate.maxValue", "ppm"],
-          ["Estrés medio", "stress.avgLevel", "índice Garmin"],
-          ["Body Battery (último)", "bodyBattery.latestValue", "puntos"],
-          ["Body Battery (mínimo)", "bodyBattery.minValue", "puntos"],
-          ["Body Battery (máximo)", "bodyBattery.maxValue", "puntos"],
-          ["Calorías activas", "calories.burnedActive", "kcal"],
-          ["Calorías totales", "calories.burnedTotal", "kcal"]
-        ],
-        sueno: [
-          ["Sueño total", "sleepTimeSeconds", "h:mm", "s_hm"],
-          ["Sueño profundo", "deepSleepSeconds", "h:mm", "s_hm"],
-          ["Sueño ligero", "lightSleepSeconds", "h:mm", "s_hm"],
-          ["Sueño REM", "remSleepSeconds", "h:mm", "s_hm"],
-          ["Puntuación del sueño", "sleepScores.overall.value", "puntos"],
-          ["FC media durante el sueño", "avgHeartRate", "ppm"]
-        ],
-        vfc: [
-          ["VFC última noche", "hrvSummary.lastNightAvg", "ms"],
-          ["VFC media semanal", "hrvSummary.weeklyAvg", "ms"],
-          ["Estado VFC (Garmin)", "hrvSummary.status", ""]
-        ],
-        pulso_diario: [
-          ["FC en reposo", "restingHeartRate", "ppm"],
-          ["FC mínima", "minHeartRate", "ppm"],
-          ["FC máxima", "maxHeartRate", "ppm"]
-        ],
-        body_battery: [
-          ["Recarga Body Battery", "charged", "puntos"],
-          ["Descarga Body Battery", "drained", "puntos"]
-        ]
-      });
-      const FECHAS_EXPLICITAS = ["calendarDate", "summaryDate", "sleepDate", "hrvDate", "measurementDate", "localDate", "date"];
-      function esFecha(s) {
-        if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
-        const f = new Date(s + "T00:00:00Z");
-        return Number.isFinite(f.getTime()) && f.toISOString().slice(0, 10) === s;
-      }
-      function identidad(clave) {
-        if (typeof clave !== "string" || !clave.startsWith(PREFIJO)) return null;
-        const p = clave.slice(PREFIJO.length).split(":");
-        if (p.length !== 3 || !Object.hasOwn(FAMILIAS, p[1])) return null;
-        let id;
-        try { id = decodeURIComponent(p[2]); } catch { return null; }
-        if (id.startsWith("dia:") && esFecha(id.slice(4))) {
-          return { fuente: p[0], familia: p[1], desde: id.slice(4), hasta: id.slice(4), dia: true };
-        }
-        const rango = /^ventana:(\d{4}-\d{2}-\d{2}):(\d{4}-\d{2}-\d{2})$/.exec(id);
-        return rango && esFecha(rango[1]) && esFecha(rango[2])
-          ? { fuente: p[0], familia: p[1], desde: rango[1], hasta: rango[2], dia: false }
-          : null;
-      }
-      function extraerDia(bruto, dia) {
-        const encontrados = [], vistos = new Set();
-        let explorados = 0;
-        function recorrer(nodo, profundidad) {
-          if (!nodo || typeof nodo !== "object" || profundidad > 9 || ++explorados > 10000 || encontrados.length >= 40) return;
-          if (vistos.has(nodo)) return;
-          vistos.add(nodo);
-          if (Array.isArray(nodo)) {
-            for (const valor of nodo) recorrer(valor, profundidad + 1);
-            return;
-          }
-          const fechaLocal = FECHAS_EXPLICITAS
-            .map(k => nodo[k]).find(v => esFecha(typeof v === "string" ? v.slice(0, 10) : v));
-          if (fechaLocal !== undefined) {
-            if (String(fechaLocal).slice(0, 10) === dia) encontrados.push(nodo);
-            // Nunca inspeccionar métricas de otros días desde un registro fechado.
-            return;
-          }
-          for (const [clave, valor] of Object.entries(nodo)) {
-            if (clave === dia && valor && typeof valor === "object") encontrados.push(valor);
-            else if (esFecha(clave) && clave !== dia) continue;
-            else recorrer(valor, profundidad + 1);
-          }
-        }
-        recorrer(bruto, 0);
-        return [...new Set(encontrados)];
-      }
-      function ruta(obj, campo) {
-        return campo.split(".").reduce((valor, parte) => valor && typeof valor === "object" ? valor[parte] : undefined, obj);
-      }
-      function camposDisponibles(obj, familia) {
-        if (familia === "pronosticos_carrera") return [["5 km","time5K"],["10 km","time10K"],["Media maratón","timeHalfMarathon"],["Maratón","timeMarathon"]].flatMap(([label,k])=>{
-          const n=obj?.[k];if(typeof n!=="number"||!Number.isFinite(n)||n<=0)return [];
-          const t=Math.round(n),h=Math.floor(t/3600),m=Math.floor(t%3600/60),sec=String(t%60).padStart(2,"0");
-          return [[label,(h?h+":"+String(m).padStart(2,"0"):String(m))+":"+sec]];
-        });
-        if (familia.startsWith("umbral_")) {
-          const raw=obj?.value;if(typeof raw!=="number"||!Number.isFinite(raw)||raw<=0)return [];
-          if(familia.startsWith("umbral_fc"))return raw>=30&&raw<=240?[["FC umbral",Math.round(raw)+" ppm"]]:[];
-          const pace=100/raw;if(pace<120||pace>900)return [];const sec=Math.round(pace);
-          return [["Ritmo umbral",Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0")+" min/km"]];
-        }
-        // Garmin puede envolver una respuesta de un día en data/dailySleepDTO.
-        const candidatos = [obj];
-        if (obj && typeof obj === "object" && !Array.isArray(obj)) {
-          for (const clave of ["data", "dailySleepDTO"]) {
-            if (obj[clave] && typeof obj[clave] === "object" && !Array.isArray(obj[clave])) candidatos.push(obj[clave]);
-          }
-        }
-        const encontrados = [];
-        for (const [etiqueta, campo, unidad, conversion] of CAMPOS[familia] || []) {
-          let valor;
-          for (const candidato of candidatos) {
-            const resultado = ruta(candidato, campo);
-            if (resultado !== null && resultado !== undefined &&
-                (typeof resultado === "number" && Number.isFinite(resultado) || typeof resultado === "string" && resultado.length)) {
-              valor = resultado;
-              break;
-            }
-          }
-          if (valor === undefined) continue;
-          if (conversion === "m_km") valor = typeof valor === "number" && valor >= 0 ? valor / 1000 : undefined;
-          if (conversion === "s_hm") {
-            valor = typeof valor === "number" && valor >= 0
-              ? Math.floor(Math.round(valor) / 3600) + ":" + String(Math.floor((Math.round(valor) % 3600) / 60)).padStart(2, "0")
-              : undefined;
-          }
-          if (valor !== undefined) {
-            const texto = typeof valor === "number" ? new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 }).format(valor) : valor;
-            encontrados.push([etiqueta, String(texto) + (unidad && unidad !== "h:mm" ? " " + unidad : "")]);
-          }
-        }
-        return encontrados;
-      }
-      function crear(tag, clase, contenido) {
-        const nodo = document.createElement(tag);
-        if (clase) nodo.className = clase;
-        if (contenido != null) nodo.textContent = contenido;
-        return nodo;
-      }
-      function presentar(dia, registros, compacto) {
-        salida.replaceChildren();
-        let identificados = 0, sinIdentificar = 0;
-        const presentes = compacto && typeof compacto === "object" ? compacto : {};
-        const traducidos = {
-          salud: [
-            ["Pasos", "pasos", "pasos"], ["Objetivo", "objetivoPasos", "pasos"],
-            ["Distancia a pie", "distanciaMetros", "km", "m_km"],
-            ["FC en reposo", "fcReposo", "ppm"], ["FC mínima", "fcMinima", "ppm"],
-            ["FC máxima", "fcMaxima", "ppm"], ["Estrés medio", "estresMedio", "índice Garmin"],
-            ["Body Battery final", "bbUltimo", "puntos"], ["Body Battery mínimo", "bbMinimo", "puntos"],
-            ["Body Battery máximo", "bbMaximo", "puntos"],
-            ["Calorías activas", "kcalActivas", "kcal"], ["Calorías totales", "kcalTotales", "kcal"],
-          ],
-          sueno: [
-            ["Sueño total", "totalSeg", "h:mm", "s_hm"], ["Sueño profundo", "profundoSeg", "h:mm", "s_hm"],
-            ["Sueño ligero", "ligeroSeg", "h:mm", "s_hm"], ["Sueño REM", "remSeg", "h:mm", "s_hm"],
-            ["Puntuación", "puntuacion", "puntos"], ["FC media nocturna", "fcMedia", "ppm"],
-          ],
-          vfc: [
-            ["VFC última noche", "ultimaNoche", "ms"], ["VFC media semanal", "mediaSemanal", "ms"],
-            ["Referencia inferior", "referenciaInferior", "ms"], ["Referencia superior", "referenciaSuperior", "ms"],
-            ["Estado", "estado", ""],
-          ],
-        };
-        for (const [familia, titulo] of [["salud", "Salud diaria"], ["sueno", "Sueño"], ["vfc", "VFC"]]) {
-          const dato = presentes[familia];
-          if (!dato) continue;
-          identificados++;
-          const seccion = crear("div", "atlas-ver-familia");
-          seccion.appendChild(crear("h3", "", titulo));
-          seccion.appendChild(crear("div", "atlas-ver-nota", "Resumen diario unificado · " + dia));
-          for (const [etiqueta, campo, unidad, conversion] of traducidos[familia]) {
-            let valor = dato[campo];
-            if (valor === undefined || valor === null) continue;
-            if (conversion === "m_km") valor = valor / 1000;
-            if (conversion === "s_hm") valor = Math.floor(valor / 3600) + ":" + String(Math.floor((valor % 3600) / 60)).padStart(2, "0");
-            const texto = typeof valor === "number" ? new Intl.NumberFormat("es-ES", { maximumFractionDigits: 2 }).format(valor) : valor;
-            const fila = crear("div", "atlas-ver-fila");
-            fila.append(crear("span", "", etiqueta), crear("strong", "", String(texto) + (unidad && unidad !== "h:mm" ? " " + unidad : "")));
-            seccion.appendChild(fila);
-          }
-          salida.appendChild(seccion);
-        }
-        const seleccion = new Map();
-        for (const entrada of registros) {
-          const familia = entrada.meta.familia;
-          if (familia === "resumen_ampliado_v2" && presentes.salud ||
-              familia === "sueno_resumen" && presentes.sueno ||
-              familia === "vfc_resumen" && presentes.vfc) continue;
-          const antiguo = seleccion.get(familia);
-          if (!antiguo || entrada.meta.dia && !antiguo.meta.dia) seleccion.set(familia, entrada);
-        }
-        for (const { meta, bruto } of seleccion.values()) {
-          const esUmbral = meta.familia.startsWith("umbral_");
-          const muestras = esUmbral ? (Array.isArray(bruto)?bruto:[]).filter(x=>String(x?.series).toLowerCase()==="running"&&x.updatedDate===dia) : meta.dia ? [bruto] : extraerDia(bruto, dia);
-          if (muestras.length) identificados++;
-          else sinIdentificar++;
-          const seccion = crear("div", "atlas-ver-familia");
-          seccion.appendChild(crear("h3", "", FAMILIAS[meta.familia]));
-          const fuente = meta.fuente === "privada" ? "API privada" : "API oficial";
-          seccion.appendChild(crear("div", "atlas-ver-nota", fuente + " · " + (meta.dia ? "Dato diario" : "Ventana " + meta.desde + " a " + meta.hasta)));
-          if (muestras.length) {
-            const mostrados = new Set();
-            let nCampos = 0;
-            for (const muestra of muestras) {
-              for (const [etiqueta, valor] of camposDisponibles(muestra, meta.familia)) {
-                if (mostrados.has(etiqueta)) continue;
-                mostrados.add(etiqueta);
-                const linea = crear("div", "atlas-ver-fila");
-                linea.append(crear("span", "", etiqueta), crear("strong", "", valor));
-                seccion.appendChild(linea);
-                nCampos++;
-              }
-            }
-            if (!nCampos) seccion.appendChild(crear("p", "atlas-ver-nota", "Hay datos de esta fecha, pero todavía no hay campos traducidos para mostrarlos."));
-            const detalles = crear("details", "atlas-ver-detalles");
-            detalles.appendChild(crear("summary", "", "Ver dato Garmin original de este día"));
-            const contenido = JSON.stringify(muestras.length === 1 ? muestras[0] : muestras, null, 2) ?? "null";
-            detalles.appendChild(crear("pre", "", contenido.length > 50000 ? contenido.slice(0, 50000) + "\n… (vista recortada)" : contenido));
-            if (!esUmbral) seccion.appendChild(detalles);
-          } else {
-            seccion.appendChild(crear("p", "atlas-ver-nota", "Existe una respuesta para este intervalo, pero no se puede atribuir con certeza un valor a la fecha seleccionada."));
-          }
-          if (esUmbral) {
-            const detalles = crear("details", "atlas-ver-detalles");
-            detalles.appendChild(crear("summary", "", "Ver respuesta Garmin de la ventana"));
-            const texto = JSON.stringify(bruto, null, 2) ?? "null";
-            detalles.appendChild(crear("pre", "", texto.length > 50000 ? texto.slice(0, 50000) + "\n… (vista recortada)" : texto));
-            seccion.appendChild(detalles);
-          }
-          salida.appendChild(seccion);
-        }
-        if (identificados + sinIdentificar === 0) {
-          salida.appendChild(crear("p", "atlas-ver-nota", "No se encontraron registros de salud para esta fecha en este IndexedDB."));
-        }
-        estado.textContent = "Fecha " + dia + ": " + identificados + (identificados === 1 ? " bloque atribuible al día; " : " bloques atribuibles al día; ") +
-          sinIdentificar + (sinIdentificar === 1 ? " bloque de rango sin fecha individual identificable." : " bloques de rango sin fecha individual identificable.") + " Solo lectura local. Las respuestas originales se conservan sin mostrarse repetidas.";
-      }
-      async function consultar() {
-        const dia = fechaEl.value;
-        if (!esFecha(dia)) { estado.textContent = "Selecciona una fecha válida."; return; }
-        boton.disabled = true;
-        estado.textContent = "Leyendo los datos guardados en este dispositivo…";
-        try {
-          await ATLASDB.abrir();
-          const registros = await new Promise((resolver, rechazar) => {
-            const seleccion = [];
-            const tx = ATLASDB.almacen("readonly").transaction;
-            const req = tx.objectStore("registros").openCursor(IDBKeyRange.bound(PREFIJO, PREFIJO + "\uffff"));
-            req.onsuccess = () => {
-              const cursor = req.result;
-              if (!cursor) return;
-              const meta = identidad(cursor.key);
-              if (meta && meta.desde <= dia && dia <= meta.hasta) {
-                seleccion.push({ meta, bruto: cursor.value?.datos?.bruto });
-              }
-              cursor.continue();
-            };
-            req.onerror = () => rechazar(req.error || new Error("lectura_incorrecta"));
-            tx.oncomplete = () => resolver(seleccion.sort((a,b) =>
-              Object.keys(FAMILIAS).indexOf(a.meta.familia) - Object.keys(FAMILIAS).indexOf(b.meta.familia)));
-            tx.onabort = () => rechazar(tx.error || new Error("transaccion_interrumpida"));
-          });
-          const resumenDiario = await ATLASDB.leer("historico:resumen:dia:" + dia);
-          presentar(dia, registros, resumenDiario?.datos);
-        } catch (_) {
-          salida.replaceChildren();
-          estado.textContent = "No se ha podido leer IndexedDB en este origen o navegador. Los registros no se han modificado.";
-        } finally { boton.disabled = false; }
-      }
-      const hoy = new Date();
-      hoy.setDate(hoy.getDate() - 1);
-      fechaEl.value = [hoy.getFullYear(), String(hoy.getMonth() + 1).padStart(2, "0"), String(hoy.getDate()).padStart(2, "0")].join("-");
-      boton.addEventListener("click", consultar);
-      return Object.freeze({});
-    })();
-
-    // Prueba de integración 5.4. Este control reside SOLO en Ajustes, nunca en la ficha.
-    const ATLASPRUEBAVUELTAS = (() => {
-      const entrada = document.getElementById("atlas-vueltas-id");
-      const boton = document.getElementById("atlas-vueltas-probar");
-      const estado = document.getElementById("atlas-vueltas-estado");
-      const resumen = document.getElementById("atlas-vueltas-resumen");
-      function reloj(segundos) {
-        const n = Math.round(segundos);
-        return Math.floor(n / 3600) ? Math.floor(n / 3600) + ":" +
-          String(Math.floor(n / 60) % 60).padStart(2, "0") + ":" + String(n % 60).padStart(2, "0") :
-          Math.floor(n / 60) + ":" + String(n % 60).padStart(2, "0");
-      }
-      function desnivelTexto(valor) {
-        if (valor === null) return "—";
-        const metros = Math.round(valor);
-        return metros === 0 ? "0 m" : (metros > 0 ? "+" : "") + metros + " m";
-      }
-      boton.addEventListener("click", async () => {
-        const texto = entrada.value.trim();
-        if (!/^[1-9][0-9]*$/.test(texto) || !Number.isSafeInteger(Number(texto))) {
-          estado.textContent = "Introduce un ID de actividad válido."; return;
-        }
-        const id = Number(texto);
-        boton.disabled = true;
-        estado.textContent = "Comprobando vueltas...";
-        resumen.textContent = "";
-        try {
-          const resultado = await ATLASVUELTAS.cargar(id);
-          if (resultado.estado !== "disponible") {
-            const mensajes = {
-              actividad_no_guardada: "Esta actividad no está guardada en este navegador.",
-              sin_configurar: "Configura antes la conexión del Worker en Ajustes.",
-              vueltas_no_interpretables: "Garmin respondió, pero las vueltas no tienen un formato válido; no se han guardado.",
-              respuesta_no_confirmable: "La respuesta no coincide con la actividad; no se han guardado datos.",
-              cache_no_interpretable: "Hay un registro local que no se puede interpretar; se ha conservado sin cambios.",
-              conflicto_guardado: "Otro proceso ha guardado un registro diferente; revísalo antes de continuar."
-            };
-            estado.textContent = mensajes[resultado.estado] || "No se pudieron obtener vueltas (" + resultado.estado + "). Puedes reintentarlo.";
-            return;
-          }
-          const vueltas = resultado.vueltas;
-          const kilometros = vueltas.reduce((s, v) => s + v.distancia_km, 0);
-          const segundos = vueltas.reduce((s, v) => s + v.duracion_s, 0);
-          estado.textContent = "✓ " + vueltas.length + " vueltas disponibles · " +
-            (resultado.origen === "local" ? "recuperadas de IndexedDB" : "recibidas de Garmin y guardadas en IndexedDB") + ".";
-          resumen.style.whiteSpace = "pre-line";
-          resumen.textContent = "Total: " + kilometros.toFixed(3).replace(".", ",") + " km · " + reloj(segundos) + "\n" +
-            vueltas.map(v => "V" + v.numero + " · " + v.distancia_km.toFixed(3).replace(".", ",") +
-              " km · " + reloj(v.duracion_s) + " · " + (v.ritmo_s_km === null ? "Ritmo —" :
-              reloj(v.ritmo_s_km) + "/km") + " · Desnivel " +
-              desnivelTexto(v.desnivel_neto_m)
-            ).join("\n");
-        } catch {
-          estado.textContent = "No se pudieron guardar las vueltas. No se han modificado otros registros.";
-        } finally { boton.disabled = false; }
-      });
-      return Object.freeze({});
-    })();
-
-    // Prueba acotada 5.4. El botón de Ajustes es diagnóstico y no pertenece a la ficha.
-    const ATLASPRUEBAGPS = (() => {
-      const entrada = document.getElementById("atlas-gps-id");
-      const boton = document.getElementById("atlas-gps-probar");
-      const estado = document.getElementById("atlas-gps-estado");
-      const resumen = document.getElementById("atlas-gps-resumen");
-      boton.addEventListener("click", async () => {
-        const texto = entrada.value.trim();
-        if (!/^[1-9][0-9]*$/.test(texto) || !Number.isSafeInteger(Number(texto))) {
-          estado.textContent = "Introduce un ID de actividad válido."; return;
-        }
-        boton.disabled = true;
-        estado.textContent = "Comprobando recorrido GPS…";
-        resumen.textContent = "";
-        try {
-          const resultado = await ATLASGPS.cargar(Number(texto));
-          if (resultado.estado !== "disponible") {
-            const mensajes = {
-              actividad_no_guardada: "Esta actividad no está guardada en este navegador.",
-              worker_no_actualizado: "El Worker todavía no tiene la nueva ruta GPS. Debes actualizarlo primero.",
-              sin_configurar: "Configura antes la conexión del Worker en Ajustes.",
-              sin_archivo_fit: "Garmin no ofrece un archivo FIT para esta actividad.",
-              sin_puntos_gps: "El FIT no contiene coordenadas GPS.",
-              gps_no_interpretable: "El recorrido recibido no supera la validación; no se ha guardado.",
-              cache_no_interpretable: "Existe un registro GPS local no interpretable. No se ha sobrescrito.",
-              fit_crc_invalido: "La verificación de integridad FIT ha fallado.",
-              zip_descompresion_fallida: "No se pudo descomprimir el FIT en el Worker.",
-              conflicto_guardado: "Existe un registro GPS distinto. Se ha conservado sin cambios."
-            };
-            estado.textContent = mensajes[resultado.estado] ||
-              "No se pudo obtener GPS (" + resultado.estado + "). Puedes reintentarlo.";
-            return;
-          }
-          const puntos = resultado.puntos;
-          const tiempos = puntos.filter(p => Number.isSafeInteger(p.t)).length;
-          const altitudes = puntos.filter(p => Number.isFinite(p.alt_m)).length;
-          estado.textContent = "✓ " + puntos.length + " puntos GPS disponibles · " +
-            (resultado.origen === "local" ? "recuperados de IndexedDB" :
-              "recibidos de Garmin y guardados en IndexedDB") + ".";
-          resumen.textContent = "Marcas temporales: " + tiempos + " · Altitudes: " + altitudes +
-            (resultado.bytes != null ? " · FIT/ZIP original: " + Math.round(resultado.bytes / 1024) + " KB" : "") +
-            ". No se muestran coordenadas personales.";
-        } catch {
-          estado.textContent = "No se pudo completar la prueba. Los demás registros se conservan.";
-        } finally { boton.disabled = false; }
-      });
-      return Object.freeze({});
     })();
 
     ATLASDB.abrir().catch(error => console.error("ATLAS: error al abrir IndexedDB.", error));
@@ -3283,6 +2624,7 @@
     panel.hidden = false;
     barra.hidden = true;
     window.scrollTo(0, 0);
+    window.dispatchEvent(new Event('atlas:ajustes:abiertos'));
   });
   function cerrar() {
     panel.hidden = true;
@@ -3312,7 +2654,7 @@
           if (!cursor) return;
           const registro = cursor.value;
           // Nunca volcar en un archivo la clave técnica de acceso al Worker.
-          if (registro?.tipo === 'sistema:credencial' || String(registro?.clave || '').startsWith('sistema:acceso:')) excluidos++;
+          if (ATLASexcluirExportacion(registro)) excluidos++;
           else registros.push(registro);
           cursor.continue();
         };
@@ -3322,7 +2664,7 @@
       });
       const contenido = JSON.stringify({formato:'ATLAS.IndexedDB',baseDatos:'ATLAS-2026',
         version:1,almacen:'registros',generadoEn:new Date().toISOString(),
-        credencialesExcluidas:excluidos,registros});
+        credencialesExcluidas:excluidos,registros},ATLASprotegerJSON);
       const url = URL.createObjectURL(new Blob([contenido], {type:'application/json'}));
       const enlace = document.createElement('a');
       enlace.href = url;
@@ -5456,6 +4798,7 @@
     if(interiores.includes(tipo))return false;
     return /walking|hiking|cycling|biking|skiing|snowboarding|kayak|paddleboarding|rowing|open_water_swimming|climbing/.test(tipo);
   }
+  window.ATLASgpsAdmisible=gpsAdmisible;
   // 5.6.3 — Mapa reconstruido. Misma proyección para teselas y ruta Canvas;
   // el recorrido nunca depende de qué teselas estén cargadas.
   function acotar(n,min,max){return Math.min(max,Math.max(min,n));}
@@ -5762,6 +5105,12 @@
     }catch{}
   }
 
+  function complementoCompleto(dato,carrera){
+    return carrera?dato?.detalle?.temperatura_c!=null&&dato.detalle.rpe!=null&&dato.detalle.sensacion!=null&&
+      (dato.detalle.vo2_actividad!=null||dato.vo2_dia!=null)&&dato.material?.length>0:
+      dato?.estado==='ok'&&!dato.sin_datos&&[dato.diagnostico?.oficial,dato.diagnostico?.privada].includes('ok');
+  }
+  window.ATLAScomplementoCompleto=complementoCompleto;
   async function cargarComplementos(a,id,token){
     let local=null;
     try{local=await complementoLocal(id);}catch{}
@@ -5776,12 +5125,7 @@
     // Solo datos completos pueden reutilizar caché larga. Una lectura incompleta se
     // reintenta al abrir, con un mínimo de 5 minutos para no castigar Garmin.
     const carrera=compartido.deporte(a).esCarrera;
-    const completo=carrera?local?.dato?.detalle?.temperatura_c!=null&&local.dato.detalle.rpe!=null&&
-      local.dato.detalle.sensacion!=null&&
-      (local.dato.detalle.vo2_actividad!=null||local.dato.vo2_dia!=null)&&
-      local.dato.material?.length>0:
-      local?.dato?.estado==='ok'&&!local.dato.sin_datos&&
-      [local.dato.diagnostico?.oficial,local.dato.diagnostico?.privada].includes('ok');
+    const completo=complementoCompleto(local?.dato,carrera);
     if(local&&!local.etapasAntiguas&&Date.now()-local.consultado<(completo?86400000:30000))return;
     if(complementoPendiente.has(id)){
       const anterior=await complementoPendiente.get(id);
@@ -6197,5 +5541,135 @@
   window.addEventListener('atlas:perfil:ajustes-cerrados',()=>{void local();});
   window.ATLASactualizarPerfil=actualizar;
 })();
+</script>
+<script id="atlas-ajustes-inventario">
+// Exportación: nunca incluir registros de credenciales ni campos de autenticación.
+function ATLASexcluirExportacion(r){
+  const k=String(r?.clave??''),t=String(r?.tipo??'');
+  return t==='sistema:credencial'||/^sistema:(?:acceso|credencial(?:es)?|secretos?|tokens?|contrase(?:n|ñ)as?)(?::|$)/i.test(k);
+}
+function ATLASprotegerJSON(k,v){
+  const nombre=String(k).normalize('NFD').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const secreto=/^(?:password|passwd|passphrase|contrasena|clientsecret|secret|accesstoken|refreshtoken|idtoken|token|accesskey|apikey|authorization|cookie|setcookie|bearer|sessiontoken|xamzsignature|xamzsecuritytoken|signature|sig)$/;
+  if(secreto.test(nombre))return undefined;
+  if(typeof v==='string'){
+    if(/^Bearer\s+\S+/i.test(v))return undefined;
+    if(/^https?:\/\//i.test(v)&&v.includes('?')){
+      try{const u=new URL(v);let cambio=false;for(const p of [...u.searchParams.keys()])if(secreto.test(p.normalize('NFD').toLowerCase().replace(/[^a-z0-9]/g,''))){u.searchParams.delete(p);cambio=true;}if(cambio)return u.href;}catch{}
+    }
+  }
+  return v;
+}
+const ATLASINVENTARIO=(()=>{
+  const el=id=>document.getElementById(id);
+  const pref={act:'historico:dato:oficial:actividades:id%3A',gps:'historico:dato:privada:gps:id%3A',
+    vueltas:'historico:dato:privada:vueltas:id%3A',comp:'historico:dato:garmin:complementos_actividad:id%3A',
+    salud:'historico:resumen:dia:',original:'historico:dato:oficial:'};
+  const familias={resumen_ampliado_v2:'salud',sueno_resumen:'sueno',vfc_resumen:'vfc'};
+  const fecha=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00Z'))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
+  const idValido=id=>Number.isSafeInteger(id)&&id>0;
+  const idDe=(k,p)=>{const s=k.slice(p.length),id=Number(s);return /^[1-9]\d*$/.test(s)&&idValido(id)?id:null;};
+  const hayValor=o=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.values(o).some(x=>typeof x==='number'&&Number.isFinite(x)||typeof x==='string'&&x.trim());
+  const formato=n=>n.toLocaleString('es-ES');
+  const fechaTexto=d=>fecha(d)?d.split('-').reverse().join('/'):'—';
+  const instanteTexto=t=>Number.isFinite(t)&&t>0&&t<=Date.now()+60000?new Date(t).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'}):'Sin fecha registrada';
+  async function leer(){
+    const actividades=new Map(),gps=new Set(),vueltas=new Set(),comp=new Map(),dias=new Set();
+    let registros=0,ultimaImportacion=null,ultimaSync=null,fechaCobertura=null;
+    const hoy=new Date(),limite=[hoy.getFullYear(),String(hoy.getMonth()+1).padStart(2,'0'),String(hoy.getDate()).padStart(2,'0')].join('-');
+    await ATLASDB.abrir();
+    await new Promise((ok,fallo)=>{
+      const store=ATLASDB.almacen('readonly'),tx=store.transaction,req=store.openCursor();
+      req.onsuccess=()=>{
+        const c=req.result;if(!c)return;
+        try{
+        const r=c.value,k=String(c.key??r?.clave??'');
+        if(!ATLASexcluirExportacion(r))registros++;
+        const id=Number(r?.datos?.bruto?.activityId);
+        if(k.startsWith(pref.act)){
+          const a=r?.datos?.bruto,local=window.ATLASFICHAEXTERNA.fechaLocal(a?.startTimeLocal??a?.startTimeGMT);
+          const d=local?.texto?.slice(0,10);
+          if(idValido(id)&&k===pref.act+id&&fecha(d)&&d<=limite&&Number.isFinite(window.ATLASFICHAEXTERNA.instante(a))&&window.ATLASFICHAEXTERNA.instante(a)<=Date.now()+300000&&typeof a?.activityType?.typeKey==='string'){
+            actividades.set(id,{fecha:d,carrera:window.ATLASFICHAEXTERNA.deporte(a).esCarrera,gps:window.ATLASgpsAdmisible(a)});
+          }
+        }else if(k.startsWith(pref.gps)){
+          const i=idDe(k,pref.gps);if(i&&ATLASGPS.validaRegistro(i,r))gps.add(i);
+        }else if(k.startsWith(pref.vueltas)){
+          const i=idDe(k,pref.vueltas);if(i&&ATLASVUELTAS.validaRegistro(r))vueltas.add(i);
+        }else if(k.startsWith(pref.comp)){
+          const i=idDe(k,pref.comp),v=r?.datos?.bruto;
+          if(i&&v?.id===i&&v.estado==='ok'&&v.contrato===4)
+            comp.set(i,{carrera:!!window.ATLAScomplementoCompleto(v,true),otros:!!window.ATLAScomplementoCompleto(v,false)});
+        }else if(k.startsWith(pref.salud)){
+          const d=k.slice(pref.salud.length),v=r?.datos;if(fecha(d)&&d<=limite&&['salud','sueno','vfc'].some(f=>hayValor(v?.[f])))dias.add(d);
+        }else if(k.startsWith(pref.original)){
+          const familia=k.slice(pref.original.length).split(':')[0];
+          if(Object.hasOwn(familias,familia))for(const d of ATLASRAPIDO.diasDeFamilia(familia,r?.datos?.bruto,'1900-01-01',limite))dias.add(d);
+        }else if(k==='sistema:ajustes:ultima_importacion')ultimaImportacion=r?.datos?.instante;
+        else if(k==='sistema:ajustes:ultima_sync')ultimaSync=r?.datos?.instante;
+        else if(k==='sistema:incremental:actividades'&&r?.datos?.estado==='completado'&&fecha(r.datos.hasta))fechaCobertura=r.datos.hasta;
+        c.continue();
+        }catch(error){fallo(error);try{tx.abort();}catch{}}
+      };
+      req.onerror=()=>fallo(req.error||Error('lectura_inventario'));
+      tx.oncomplete=ok;tx.onabort=()=>fallo(tx.error||Error('inventario_interrumpido'));
+    });
+    let completas=0,gpsAplicables=0,gpsListos=0,vueltasAplicables=0,vueltasListas=0;
+    const fechas=[];
+    for(const [id,a] of actividades){
+      fechas.push(a.fecha);
+      if(a.gps){gpsAplicables++;if(gps.has(id))gpsListos++;}
+      if(a.carrera){vueltasAplicables++;if(vueltas.has(id))vueltasListas++;}
+      if(comp.get(id)?.[a.carrera?'carrera':'otros']&&(!a.gps||gps.has(id))&&(!a.carrera||vueltas.has(id)))completas++;
+    }
+    fechas.sort();
+    return {registros,actividades:actividades.size,completas,pendientes:actividades.size-completas,
+      salud:dias.size,primera:fechas[0]??null,ultima:fechas.at(-1)??null,
+      gpsAplicables,gpsListos,vueltasAplicables,vueltasListas,ultimaImportacion,ultimaSync,fechaCobertura};
+  }
+  let secuencia=0;
+  async function mostrar(){
+    const n=++secuencia;
+    try{
+      const r=await leer();if(n!==secuencia)return;
+      for(const k of ['actividades','completas','pendientes','salud','registros'])el('atlas-base-'+k).textContent=formato(r[k]);
+      const pct=r.actividades?Math.round(100*r.completas/r.actividades):null;
+      const barra=el('atlas-base-cobertura');
+      el('atlas-base-cobertura-relleno').style.width=(pct??0)+'%';
+      if(pct===null){barra.removeAttribute('aria-valuenow');barra.setAttribute('aria-valuetext','Sin actividades guardadas');}
+      else{barra.setAttribute('aria-valuenow',String(pct));barra.setAttribute('aria-valuetext',r.completas+' de '+r.actividades+' fichas preparadas');}
+      el('atlas-base-periodo').textContent=r.primera?'Actividades: '+fechaTexto(r.primera)+' — '+fechaTexto(r.ultima):'Aún no hay actividades guardadas.';
+      el('atlas-base-ultima').textContent='Última importación: '+instanteTexto(r.ultimaImportacion);
+      el('atlas-ultima-sync').textContent='Última actualización: '+instanteTexto(r.ultimaSync)+(r.fechaCobertura?' · Actividades consultadas hasta '+fechaTexto(r.fechaCobertura):'');
+      el('atlas-base-nota').textContent='Fichas preparadas según complementos y cachés aplicables. GPS '+r.gpsListos+'/'+r.gpsAplicables+' · Vueltas '+r.vueltasListas+'/'+r.vueltasAplicables+'. No acredita todo el histórico de Garmin.';
+    }catch{
+      if(n!==secuencia)return;
+      for(const k of ['actividades','completas','pendientes','salud','registros'])el('atlas-base-'+k).textContent='—';
+      el('atlas-base-cobertura-relleno').style.width='0%';
+      el('atlas-base-cobertura').removeAttribute('aria-valuenow');
+      el('atlas-base-cobertura').setAttribute('aria-valuetext','Inventario no disponible');
+      el('atlas-base-nota').textContent='No se pudo leer la cobertura local. Los datos se conservan.';
+    }
+  }
+  window.addEventListener('atlas:ajustes:abiertos',()=>void mostrar());
+  window.addEventListener('atlas:ajustes:operacion',e=>{
+    const d=e.detail;if(!d)return;
+    const box=el('atlas-base-trabajo'),barra=el('atlas-base-trabajo-barra'),relleno=el('atlas-base-trabajo-relleno');
+    if(d.clase==='importacion'){
+      if(d.fase==='inicio'){
+        box.hidden=false;el('atlas-base-trabajo-titulo').textContent=d.nombre;
+        el('atlas-base-trabajo-cuenta').textContent='En curso';
+        barra.classList.add('indeterminado');barra.removeAttribute('aria-valuenow');barra.setAttribute('aria-valuetext','En curso');
+      }else if(d.fase==='progreso'){
+        const total=Number.isFinite(d.total)&&d.total>0?d.total:null,hechas=Math.max(0,d.hechas||0);
+        el('atlas-base-trabajo-cuenta').textContent=total?formato(hechas)+' / '+formato(total):formato(hechas)+' lotes';
+        if(total){const p=Math.min(100,Math.round(100*hechas/total));barra.classList.remove('indeterminado');relleno.style.width=p+'%';barra.setAttribute('aria-valuenow',String(p));barra.setAttribute('aria-valuetext',hechas+' de '+total+' confirmados');}
+      }else if(d.fase==='fin'){box.hidden=true;barra.classList.remove('indeterminado');}
+    }
+    if(d.fase==='fin'&&!el('atlas-ajustes').hidden)void mostrar();
+  });
+  return Object.freeze({leer});
+})();
+
 </script>
 </body></html>
