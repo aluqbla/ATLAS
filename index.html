@@ -529,6 +529,31 @@
     .atlas-vueltas__grafico {grid-template-columns:39px minmax(0,1fr);}
     .atlas-vueltas__tabla td,.atlas-vueltas__tabla th {padding-left:1px;padding-right:1px;}
   }
+
+  /* 5.9.2 — Plan: calendario real semanal, sin motor ni prescripciones. */
+  .atlas-plan__acciones {display:flex;align-items:center;gap:5px;}
+  .atlas-plan__crear:disabled {opacity:.35;cursor:default;}
+  .atlas-plan__semana {margin:15px 0 0;}
+  .atlas-plan__semana button {width:44px;height:44px;flex-basis:44px;}
+  .atlas-plan__semana strong {min-width:0;white-space:normal;overflow-wrap:anywhere;font-size:clamp(12px,4vw,18px);}
+  .atlas-plan__relativa {margin:0;text-align:center;color:#a6a6b0;font-size:13px;line-height:1.4;font-weight:600;}
+  .atlas-plan__volver {display:block;margin:0 auto;padding:0 8px;border:0;background:none;color:var(--atlas-blue);
+    font:inherit;font-size:13px;font-weight:650;min-height:44px;cursor:pointer;}
+  .atlas-plan__volver[hidden] {display:none;}
+  .atlas-plan__volver:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:2px;border-radius:8px;}
+  .atlas-plan__contadores {grid-template-columns:repeat(3,minmax(0,1fr));margin:19px 0 17px;}
+  .atlas-plan__contadores .atlas-hoy-metrica {cursor:default;}
+  .atlas-plan__contadores .atlas-hoy-metrica__info {white-space:normal;}
+  .atlas-plan__dias {min-width:0;}
+  .atlas-plan__dia {position:relative;min-width:0;}
+  .atlas-plan__dia + .atlas-plan__dia::before {content:"";position:absolute;top:-1px;left:0;right:0;height:2px;background:#2f3038;pointer-events:none;}
+  .atlas-plan__dia .atlas-actividad-externa {min-height:72px;}
+  .atlas-plan__dia[data-hoy="true"] .atlas-actividad-externa__fecha-dia {color:var(--atlas-blue);}
+  .atlas-plan__dia[data-futuro="true"] .atlas-actividad-externa__fecha {opacity:.55;}
+  .atlas-plan__vacio {font-size:13px;font-weight:520;line-height:1.4;color:#a6a6b0;}
+  .atlas-plan__nota {display:block;color:#a6a6b0;font-size:11px;line-height:1.35;margin-top:5px;}
+  .atlas-plan__lectura {color:#a6a6b0;font-size:12px;line-height:1.4;margin:0 0 12px;}
+  .atlas-plan__lectura:empty {display:none;}
 </style>
 </head><body>
 <div class="atlas-frame"><header class="atlas-header">
@@ -658,7 +683,34 @@
   </section>
   <button id="atlas-actividad-volver-abajo" class="atlas-atras-inferior atlas-actividad-interior__pie" type="button">Atrás</button>
 </section>
-<main class="atlas-view" aria-label="Pestaña Plan, vacía" data-tab="plan" hidden><h2 class="atlas-visually-hidden">Plan</h2></main>
+<main id="atlas-plan" class="atlas-view atlas-hoy" aria-label="Pestaña Plan" data-tab="plan" hidden>
+  <div class="atlas-hoy__cabecera">
+    <h2>Plan</h2>
+    <div class="atlas-plan__acciones">
+      <button id="atlas-plan-crear" class="atlas-control-icon atlas-plan__crear" type="button" disabled aria-label="Crear plan, aún no disponible" title="Crear plan · disponible en el siguiente incremento">
+        <svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <button id="atlas-plan-actualizar" class="atlas-control-icon atlas-hoy__actualizar" type="button" aria-label="Actualizar datos de Garmin" title="Actualizar datos de Garmin">
+        <svg class="atlas-icon atlas-hoy__flecha" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 9a8 8 0 1 0 1 6"/><path d="M20 3v6h-6"/></svg>
+      </button>
+    </div>
+  </div>
+  <p class="atlas-hoy__sinc-estado" id="atlas-plan-sinc-estado" role="status" aria-live="polite"></p>
+  <div class="atlas-ficha-metrica__navegar atlas-plan__semana" aria-label="Selector de semana">
+    <button id="atlas-plan-anterior" type="button" aria-label="Semana anterior">‹</button>
+    <strong id="atlas-plan-fechas" aria-live="polite"></strong>
+    <button id="atlas-plan-siguiente" type="button" aria-label="Semana siguiente">›</button>
+  </div>
+  <p class="atlas-plan__relativa" id="atlas-plan-relativa"></p>
+  <button id="atlas-plan-volver" class="atlas-plan__volver" type="button" hidden>Volver a esta semana</button>
+  <section id="atlas-plan-contadores" class="atlas-hoy-metricas atlas-plan__contadores atlas-divisiones-cortas" aria-label="Resumen semanal">
+    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Planificados</span><span class="atlas-hoy-metrica__dato">—</span><span class="atlas-hoy-metrica__info">Sin plan</span></div>
+    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Realizados</span><span class="atlas-hoy-metrica__dato" id="atlas-plan-realizados">—</span><span class="atlas-hoy-metrica__info" id="atlas-plan-realizados-info">Sin datos</span></div>
+    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Sesiones</span><span class="atlas-hoy-metrica__dato" id="atlas-plan-sesiones">—</span><span class="atlas-hoy-metrica__info" id="atlas-plan-sesiones-info">Sin datos</span></div>
+  </section>
+  <p class="atlas-plan__lectura" id="atlas-plan-lectura" role="status" aria-live="polite"></p>
+  <div id="atlas-plan-dias" class="atlas-plan__dias" aria-label="Calendario de lunes a domingo"></div>
+</main>
 <main class="atlas-view atlas-hoy" aria-label="Pestaña Evolución" data-tab="evolucion" hidden>
   <div class="atlas-hoy__cabecera"><h2>Evolución</h2></div>
   <section id="atlas-evolucion-metricas" class="atlas-hoy-metricas atlas-divisiones-cortas" aria-label="Métricas de rendimiento">
@@ -760,7 +812,7 @@
   <details class="atlas-acordeon">
     <summary><span class="atlas-hoy-seccion__titulo">ℹ️ Versión</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
     <div class="atlas-ajustes__cuerpo">
-      <div class="atlas-ajustes__fila"><span>ATLAS</span><strong>v0.0.86</strong></div>
+      <div class="atlas-ajustes__fila"><span>ATLAS</span><strong>v0.0.87</strong></div>
       <div class="atlas-ajustes__fila"><span>Worker compatible</span><strong>v0.67</strong></div>
     </div>
   </details>
@@ -5055,7 +5107,7 @@ const ATLASMOTOR=(()=>{
  const fechaAct=a=>String(a?.startTimeLocal??a?.startTimeGMT??'').slice(0,10);
  let activo=null,pausa=false,arrancado=false,promesa=null,vistasIntentadas=false;
  function comprobar(){if(pausa)throw Error('pausado');}
- function aviso(m){el('atlas-sync-estado').textContent=m;if(activo)el('atlas-hoy-sinc-estado').textContent=m;}
+ function aviso(m){el('atlas-sync-estado').textContent=m;if(activo){el('atlas-hoy-sinc-estado').textContent=m;el('atlas-plan-sinc-estado').textContent=m;}}
  function progreso(titulo,n=null,total=null){
    const box=el('atlas-sync-trabajo'),barra=el('atlas-sync-barra'),r=el('atlas-sync-relleno');
    box.hidden=false;el('atlas-sync-etapa').textContent=titulo;
@@ -5318,8 +5370,8 @@ const ATLASMOTOR=(()=>{
    if(activo)return promesa??{estado:'ocupado'};
    if(modo==='incremental')arrancado=true;
    activo=modo;pausa=false;vistasIntentadas=false;
-   const btn=el('atlas-hoy-actualizar'),controls=['atlas-hoy-actualizar','atlas-sync-importar','atlas-sync-actualizar','atlas-guardar','atlas-comprobar','atlas-worker','atlas-clave'].map(el);
-   controls.forEach(b=>b.disabled=true);btn.classList.add('is-loading');el('atlas-sync-pausar').hidden=false;el('atlas-sync-pausar').disabled=false;
+   const circulares=[el('atlas-hoy-actualizar'),el('atlas-plan-actualizar')],controls=['atlas-hoy-actualizar','atlas-plan-actualizar','atlas-sync-importar','atlas-sync-actualizar','atlas-guardar','atlas-comprobar','atlas-worker','atlas-clave'].map(el);
+   controls.forEach(b=>b.disabled=true);circulares.forEach(b=>b.classList.add('is-loading'));el('atlas-sync-pausar').hidden=false;el('atlas-sync-pausar').disabled=false;
    promesa=(async()=>{
      let estado='parcial',autorizado=false;
      try{
@@ -5332,7 +5384,7 @@ const ATLASMOTOR=(()=>{
        return {estado};
      }catch(e){estado=e.message==='pausado'?'detenido':'parcial';if(autorizado&&!pausa&&!vistasIntentadas&&!fatal(e))try{await vistas();}catch{}aviso(estado==='detenido'?'En pausa. Los datos guardados se conservan.':e.message==='worker_no_actualizado'?'Actualiza el Worker a v0.67 y vuelve a intentarlo.':/limite|cuota/i.test(e.message)?'Garmin ha limitado las consultas. Inténtalo más tarde; se conserva el avance.':'Sincronización incompleta. Puedes continuar; los datos guardados se conservan.');return {estado,motivo:String(e.message??'error')};}
      finally{
-       activo=null;promesa=null;controls.forEach(b=>b.disabled=false);btn.classList.remove('is-loading');el('atlas-sync-pausar').hidden=true;el('atlas-sync-trabajo').hidden=true;
+       activo=null;promesa=null;controls.forEach(b=>b.disabled=false);circulares.forEach(b=>b.classList.remove('is-loading'));el('atlas-sync-pausar').hidden=true;el('atlas-sync-trabajo').hidden=true;
        try{await mostrarEstado();}catch{}window.dispatchEvent(new Event('atlas:sincronizacion:fin'));window.dispatchEvent(new Event('atlas:marcas:actualizadas'));
      }
    })();return promesa;
@@ -5341,6 +5393,7 @@ const ATLASMOTOR=(()=>{
  el('atlas-sync-importar').addEventListener('click',()=>void ejecutar('historico'));
  el('atlas-sync-actualizar').addEventListener('click',()=>void ejecutar());
  el('atlas-hoy-actualizar').addEventListener('click',()=>void ejecutar());
+ el('atlas-plan-actualizar').addEventListener('click',()=>void ejecutar());
  el('atlas-sync-pausar').addEventListener('click',()=>{pausa=true;el('atlas-sync-pausar').disabled=true;aviso('Pausando tras la petición actual…');});
  window.addEventListener('atlas:ajustes:abiertos',()=>void mostrarEstado().catch(()=>{}));
  return Object.freeze({ejecutar,arrancar,enCurso:()=>!!activo,estadoActividad,mostrarEstado,inventario});
@@ -5358,6 +5411,155 @@ const ATLASMOTOR=(()=>{
  });
  el('atlas-comprobar').addEventListener('click',async()=>{if(ocupado||ATLASMOTOR.enCurso())return;ocupado=true;try{await comprobar();}finally{ocupado=false;}});
  ATLASACCESO.estado().then(a=>{if(a.configurado){worker.value=a.destino;estado.textContent='Acceso guardado en este dispositivo.';return ATLASMOTOR.arrancar();}}).catch(()=>{estado.textContent='No se pudo leer el acceso local.';});
+})();
+</script>
+<script id="atlas-plan-controlador">
+(() => {
+  'use strict';
+  const el=id=>document.getElementById(id), vista=el('atlas-plan'), shared=window.ATLASFICHAEXTERNA;
+  const P='historico:dato:oficial:actividades:id%3A', M='sistema:sync:v1:';
+  const DIAS=['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'], MESES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const DIA=86400000;
+  const fecha=d=>new Date(d+'T00:00:00Z');
+  function diaValido(d){
+    if(typeof d!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(d)||d.slice(0,4)==='0000')return false;
+    const f=fecha(d);return Number.isFinite(+f)&&f.toISOString().slice(0,10)===d;
+  }
+  function sumar(d,n){
+    const f=new Date(+fecha(d)+n*DIA),s=f.toISOString();
+    return s.length===24&&diaValido(s.slice(0,10))?s.slice(0,10):null;
+  }
+  function hoy(){
+    const f=new Date();return String(f.getFullYear()).padStart(4,'0')+'-'+String(f.getMonth()+1).padStart(2,'0')+'-'+String(f.getDate()).padStart(2,'0');
+  }
+  const lunes=d=>sumar(d,-(fecha(d).getUTCDay()+6)%7);
+  const semanaValida=d=>diaValido(d)&&sumar(d,6)!==null;
+  function tramo(d){
+    const f=fecha(d),g=fecha(sumar(d,6));
+    const a=f.getUTCDate(),b=g.getUTCDate(),m=MESES[f.getUTCMonth()],n=MESES[g.getUTCMonth()];
+    const y=d.slice(2,4),z=sumar(d,6).slice(2,4);
+    if(f.getUTCFullYear()!==g.getUTCFullYear())return a+' '+m+' '+y+' - '+b+' '+n+' '+z;
+    return a+(m===n?'':' '+m)+' - '+b+' '+n+' '+z;
+  }
+  let seleccion=null, cache=null, leyendo=false, error=false, ticket=0;
+  const intervaloValido=(a,b)=>diaValido(a)&&diaValido(b)&&a<=b;
+  function normalizar(a,clave,actual){
+    const id=Number(a?.activityId);
+    if(!Number.isSafeInteger(id)||id<=0||clave!==P+id||typeof a?.activityType?.typeKey!=='string'||!a.activityType.typeKey.trim())return null;
+    const respaldo=a.startTimeLocal==null, loc=shared.fechaLocal(a.startTimeLocal??a.startTimeGMT), t=shared.instante(a);
+    // La fecha GMT es una atribución de respaldo, no una fecha local confirmada.
+    if(!loc||!Number.isFinite(t)||t>Date.now()+300000)return null;
+    const dia=loc.texto.slice(0,10);
+    if(!diaValido(dia)||(!respaldo&&dia>actual))return null;
+    const carrera=shared.deporte(a).esCarrera||a.activityType.typeKey==='obstacle_course_racing';
+    return {a,id,dia,t,respaldo,carrera,metros:carrera?shared.datoResumen(a,'distance'):null};
+  }
+  async function leerLocales(){
+    await ATLASDB.abrir();
+    const actividades=new Map(), intervalos=[], marcadores=new Map(), actual=hoy();
+    await new Promise((ok,fail)=>{
+      const store=ATLASDB.almacen('readonly'),tx=store.transaction;
+      function scan(pref,consume){
+        const req=store.openCursor(IDBKeyRange.bound(pref,pref+'\uffff'));
+        req.onsuccess=()=>{const c=req.result;if(!c)return;consume(c.value?.datos,String(c.key));c.continue();};
+        req.onerror=()=>fail(req.error||Error('lectura_plan'));
+      }
+      scan(P,(d,k)=>{const fila=normalizar(d?.bruto,k,actual);if(fila)actividades.set(fila.id,fila);});
+      scan(M,(d,k)=>{
+        if(k.endsWith(':lista')&&d?.cursor===null&&intervaloValido(d.desde,d.hasta)&&d.hasta<=actual)intervalos.push([d.desde,d.hasta]);
+        else if(k===M+'historico'||k.startsWith(M+'hist:lista:'))marcadores.set(k,d);
+      });
+      tx.oncomplete=ok;tx.onabort=()=>fail(tx.error||Error('lectura_plan_interrumpida'));tx.onerror=()=>fail(tx.error||Error('lectura_plan'));
+    });
+    // Asociar el listado histórico terminado a su trabajo y periodo; jamás inferir cobertura por una actividad aislada.
+    const h=marcadores.get(M+'historico');
+    if(h&&Number.isSafeInteger(h.id)&&h.id>0&&['historico','pendientes','fichas'].includes(h.fase)&&
+      intervaloValido(h.desde,h.hasta)&&h.hasta<=actual&&marcadores.get(M+'hist:lista:'+h.id)?.cursor===null)intervalos.push([h.desde,h.hasta]);
+    const porDia=new Map();
+    const filas=[...actividades.values()].sort((a,b)=>a.dia.localeCompare(b.dia)||a.t-b.t||a.id-b.id);
+    for(const f of filas){if(!porDia.has(f.dia))porDia.set(f.dia,[]);porDia.get(f.dia).push(f);}
+    return {porDia,intervalos};
+  }
+  function crearVacio(dia,mensaje){
+    const f=fecha(dia),fila=document.createElement('div');fila.className='atlas-actividad-externa';
+    const cab=document.createElement('div');cab.className='atlas-actividad-externa__fecha';
+    for(const [clase,valor] of [['diasemana',DIAS[f.getUTCDay()]],['dia',f.getUTCDate()],['mes',MESES[f.getUTCMonth()]]]){
+      const s=document.createElement('span');s.className='atlas-actividad-externa__fecha-'+clase;s.textContent=valor;cab.append(s);
+    }
+    const contenido=document.createElement('div');contenido.className='atlas-actividad-externa__contenido atlas-plan__vacio';contenido.textContent=mensaje;
+    fila.append(cab,contenido);return fila;
+  }
+  function contador(id,valor,info,unidad=''){
+    const v=el(id);v.textContent=valor;
+    if(unidad&&valor!=='—'){const u=document.createElement('span');u.className='unidad';u.textContent=' '+unidad;v.append(u);}
+    el(id+'-info').textContent=info;
+  }
+  function representar(){
+    if(vista.hidden)return;
+    const actual=hoy(), actualLunes=lunes(actual), inicio=seleccion??actualLunes;
+    if(!semanaValida(inicio))return;
+    seleccion=inicio;
+    const fin=sumar(inicio,6), diferencia=Math.round((+fecha(inicio)-+fecha(actualLunes))/(7*DIA));
+    el('atlas-plan-fechas').textContent=tramo(inicio);
+    el('atlas-plan-relativa').textContent=diferencia===0?'Esta semana':diferencia===-1?'Semana anterior':diferencia===1?'Próxima semana':diferencia<0?'Hace '+(-diferencia)+' semanas':'Dentro de '+diferencia+' semanas';
+    el('atlas-plan-volver').hidden=diferencia===0;
+    el('atlas-plan-anterior').disabled=!semanaValida(sumar(inicio,-7));
+    el('atlas-plan-siguiente').disabled=!semanaValida(sumar(inicio,7));
+    const fragment=document.createDocumentFragment();
+    let transcurridos=0,cubiertos=0,sesiones=0,metros=0,distanciaIncompleta=false,atribucionIncierta=false,atribucionKmIncierta=false;
+    const cobertura=d=>!error&&!!cache?.intervalos.some(([a,b])=>a<=d&&d<=b);
+    for(let i=0;i<7;i++){
+      const d=sumar(inicio,i),futuro=d>actual,fila=document.createElement('section');
+      fila.className='atlas-plan__dia';fila.dataset.dia=d;
+      if(d===actual)fila.dataset.hoy='true';
+      if(futuro)fila.dataset.futuro='true';
+      fila.setAttribute('aria-label',d+(d===actual?' · Hoy':''));
+      const hayCobertura=!futuro&&cobertura(d);
+      if(!futuro){transcurridos++;if(hayCobertura)cubiertos++;}
+      const listado=cache?.porDia.get(d)??[];
+      // Un registro de fecha GMT que cae después del día local actual no confirma una sesión del futuro.
+      const visibles=futuro?[]:listado;
+      for(const f of visibles){
+        const ficha=shared.crearFichaExterna(f.a);
+        if(f.respaldo){
+          const nota=document.createElement('small');nota.className='atlas-plan__nota';nota.textContent='Fecha GMT de respaldo';
+          ficha.querySelector('.atlas-actividad-externa__contenido').append(nota);
+          atribucionIncierta=true;if(f.carrera)atribucionKmIncierta=true;
+        }
+        fila.append(ficha);sesiones++;
+        if(f.carrera){if(f.metros===null)distanciaIncompleta=true;else metros+=f.metros;}
+      }
+      if(!visibles.length)fila.append(crearVacio(d,futuro?'Día futuro':hayCobertura?'Sin actividad registrada':!cache&&leyendo?'Consultando datos…':'Sin datos'));
+      fragment.append(fila);
+    }
+    // Un respaldo GMT en el límite de la semana podría pertenecer al día local vecino.
+    for(const d of [sumar(inicio,-1),sumar(fin,1)]){
+      for(const f of cache?.porDia.get(d)??[])if(f.respaldo){atribucionIncierta=true;if(f.carrera)atribucionKmIncierta=true;}
+    }
+    const totalConfirmado=transcurridos>0&&cubiertos===transcurridos;
+    const hayEvidencia=sesiones>0||cubiertos>0;
+    const num=n=>n>0&&n<.005?'< 0,01':n.toLocaleString('es-ES',{maximumFractionDigits:2});
+    const estado=parcial=>transcurridos===0?'Semana futura':!cache&&leyendo?'Consultando…':parcial||error&&cache?'Datos parciales':!hayEvidencia?'Sin datos':diferencia===0?'Hasta hoy':'';
+    const sesCompleto=totalConfirmado&&!atribucionIncierta, kmCompleto=totalConfirmado&&!distanciaIncompleta&&!atribucionKmIncierta;
+    contador('atlas-plan-sesiones',transcurridos>0&&(sesiones>0||sesCompleto)?String(sesiones):'—',estado(!sesCompleto&&(hayEvidencia||atribucionIncierta))||'Registradas');
+    contador('atlas-plan-realizados',transcurridos>0&&(metros>0||kmCompleto)?num(metros/1000):'—',estado(!kmCompleto&&(hayEvidencia||distanciaIncompleta||atribucionKmIncierta))||'Registrados','km');
+    el('atlas-plan-dias').replaceChildren(fragment);
+    el('atlas-plan-lectura').textContent=error?(cache?'No se pudo actualizar la lectura local. Se conservan los últimos datos leídos.':'No se pudieron leer las actividades locales.'):leyendo?'Consultando actividades guardadas…':atribucionIncierta&&transcurridos?'Hay actividades con fecha local no confirmada.':'';
+    requestAnimationFrame(()=>{window.ATLASajustarFilaMetricas(el('atlas-plan-contadores'));shared.reajustarFichasExternas(vista);});
+  }
+  async function cargar(){
+    const token=++ticket;leyendo=true;representar();
+    try{const datos=await leerLocales();if(token!==ticket)return;cache=datos;error=false;}
+    catch{if(token!==ticket)return;error=true;}
+    finally{if(token===ticket){leyendo=false;representar();}}
+  }
+  function mover(n){const d=sumar(seleccion??lunes(hoy()),7*n);if(semanaValida(d)){seleccion=d;representar();}}
+  el('atlas-plan-anterior').addEventListener('click',()=>mover(-1));
+  el('atlas-plan-siguiente').addEventListener('click',()=>mover(1));
+  el('atlas-plan-volver').addEventListener('click',()=>{seleccion=lunes(hoy());representar();});
+  window.addEventListener('atlas:pestana:abierta',e=>{if(e.detail.nombre==='plan'){if(seleccion===null)seleccion=lunes(hoy());void cargar();}});
+  window.addEventListener('atlas:sincronizacion:fin',()=>{if(!vista.hidden)void cargar();});
+  window.addEventListener('resize',()=>{if(!vista.hidden)requestAnimationFrame(()=>window.ATLASajustarFilaMetricas(el('atlas-plan-contadores')));});
 })();
 </script>
 </body></html>
