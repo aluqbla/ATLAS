@@ -10,7 +10,7 @@
     font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI",sans-serif; }
   *,*::before,*::after { box-sizing:border-box; }
   html,body { margin:0; min-width:0; min-height:100%; background:var(--atlas-bg); color:var(--atlas-text); }
-  body { min-height:100vh; min-height:100dvh; overflow-x:hidden; touch-action:manipulation; }
+  body { font-size:17px; min-height:100vh; min-height:100dvh; overflow-x:hidden; touch-action:manipulation; }
   /* iPhone: interfaz tipo aplicación; el zoom de Canvas se gestiona por separado. */
   @supports (-webkit-touch-callout:none) {
     @media (hover:none) and (pointer:coarse) {
@@ -49,7 +49,7 @@
 
   /* Cabecera de Perfil. */
   /* 5.8.2 — Perfil: identidad y acordeón reutilizable sobre OLED. */
-  .atlas-perfil {padding:19px 22px 34px;min-width:0;}
+  .atlas-perfil {padding:13px 22px 26px;min-width:0;}
   .atlas-perfil .atlas-profile-toolbar {margin:0;}
   .atlas-perfil__identidad {display:flex;align-items:center;gap:10px;min-height:112px;padding:5px 0;}
   .atlas-perfil__avatar {padding:0;border:0;color:inherit;cursor:zoom-in;flex:0 0 92px;width:92px;height:92px;border-radius:50%;overflow:hidden;background:#26262d;display:grid;place-items:center;}
@@ -62,11 +62,11 @@
   .atlas-perfil-foto-dialogo::backdrop {background:rgba(0,0,0,.88);}
   .atlas-perfil-foto-dialogo .atlas-control-icon {margin-left:auto;}
   .atlas-perfil-foto-dialogo img {display:block;width:100%;max-height:calc(90dvh - 70px);object-fit:contain;border-radius:12px;}
-  .atlas-perfil__nombre {font-size:25px;font-weight:750;letter-spacing:-.027em;line-height:1.12;overflow-wrap:anywhere;}
-  .atlas-perfil__dispositivo {font-size:14px;color:#a0a0aa;font-weight:600;overflow-wrap:anywhere;}
-  .atlas-perfil__estado {font-size:12px;color:#a8a8b4;margin:0 0 8px;line-height:1.4;}
+  .atlas-perfil__nombre {font-size:27px;font-weight:750;letter-spacing:-.027em;line-height:1.12;overflow-wrap:anywhere;}
+  .atlas-perfil__dispositivo {font-size:15px;color:#a0a0aa;font-weight:600;overflow-wrap:anywhere;}
+  .atlas-perfil__estado {font-size:13px;color:#a8a8b4;margin:0 0 8px;line-height:1.4;}
   .atlas-perfil__estado:empty {display:none;}
-  .atlas-acordeon {margin:14px 0 0;min-width:0;}
+  .atlas-acordeon {margin:7px 0 0;min-width:0;}
   .atlas-acordeon summary {display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;min-height:44px;}
   .atlas-acordeon summary::-webkit-details-marker {display:none;}
   .atlas-acordeon summary .atlas-hoy-seccion__titulo {margin:0;}
@@ -74,33 +74,33 @@
   .atlas-acordeon[open] summary .atlas-icon {transform:rotate(180deg);}
   .atlas-acordeon summary:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:2px;}
   .atlas-perfil-zapatillas {padding:4px 0 8px;}
-  .atlas-perfil-zapatilla {padding:10px 0;}
-  .atlas-perfil-zapatilla__cabecera {display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 9px;}
-  .atlas-perfil-zapatilla__cabecera strong {min-width:0;font-size:15px;font-weight:650;overflow-wrap:anywhere;}
-  .atlas-perfil-zapatilla__km {white-space:nowrap;font-size:12px;color:#bfc0c9;font-variant-numeric:tabular-nums;}
+  .atlas-perfil-zapatilla {padding:8px 0;}
+  .atlas-perfil-zapatilla__cabecera {display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 6px;}
+  .atlas-perfil-zapatilla__cabecera strong {min-width:0;font-size:16px;font-weight:650;overflow-wrap:anywhere;}
+  .atlas-perfil-zapatilla__km {white-space:nowrap;font-size:13px;color:#bfc0c9;font-variant-numeric:tabular-nums;}
   .atlas-perfil-zonas,.atlas-perfil-foco,.atlas-perfil-marcas {padding:4px 0 8px;}
-  .atlas-perfil-marcas table {width:100%;table-layout:fixed;border-collapse:collapse;text-align:center;font-variant-numeric:tabular-nums;font-size:14px;}
-  .atlas-perfil-marcas th,.atlas-perfil-marcas td {padding:10px 2px;vertical-align:middle;}
+  .atlas-perfil-marcas table {width:100%;table-layout:fixed;border-collapse:collapse;text-align:center;font-variant-numeric:tabular-nums;font-size:15px;}
+  .atlas-perfil-marcas th,.atlas-perfil-marcas td {padding:8px 2px;vertical-align:middle;}
   .atlas-perfil-marcas thead th {font-size:20px;font-weight:600;}
   .atlas-perfil-marcas thead th:first-child {width:25%;}
   .atlas-perfil-marcas tbody tr {border-top:1px solid #29292f;}
-  .atlas-perfil-marcas tbody th {text-align:left;font-size:13px;font-weight:650;line-height:1.25;overflow-wrap:anywhere;}
+  .atlas-perfil-marcas tbody th {text-align:left;font-size:14px;font-weight:650;line-height:1.25;overflow-wrap:anywhere;}
   .atlas-perfil-marcas td {font-weight:700;white-space:nowrap;padding:0 2px;}
   .atlas-perfil-marcas td:has(> .atlas-marca-enlace) {padding:0;}
   .atlas-perfil-marcas .atlas-marca-enlace {appearance:none;display:block;width:100%;min-height:44px;padding:10px 2px;margin:0;border:0;border-radius:0;background:transparent;color:inherit;text-align:center;font:inherit;cursor:pointer;}
   .atlas-perfil-marcas .atlas-marca-enlace:active {background:#172634;}
   .atlas-perfil-marcas .atlas-marca-enlace:focus-visible {outline:2px solid #1689ff;outline-offset:-2px;border-radius:5px;}
   .atlas-perfil-marcas .atlas-marca-enlace:disabled {opacity:.7;cursor:wait;}
-  .atlas-perfil-marcas td small {display:block;font-size:11px;font-weight:500;color:#a0a0aa;margin-top:3px;}
+  .atlas-perfil-marcas td small {display:block;font-size:12px;font-weight:500;color:#a0a0aa;margin-top:3px;}
   @media(max-width:350px){.atlas-perfil-marcas table {font-size:12px;}.atlas-perfil-marcas tbody th {font-size:12px;}.atlas-perfil-marcas td small {font-size:10px;}}
-  .atlas-perfil-zonas table {width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px;font-variant-numeric:tabular-nums;text-align:center;}
-  .atlas-perfil-zonas th,.atlas-perfil-zonas td {padding:10px 3px;}
-  .atlas-perfil-zonas thead th {font-size:12px;color:#a0a0aa;font-weight:600;}
-  .atlas-perfil-zonas tbody th {font-weight:650;white-space:nowrap;}
+  .atlas-perfil-zonas table {width:100%;border-collapse:collapse;table-layout:fixed;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;}
+  .atlas-perfil-zonas th,.atlas-perfil-zonas td {padding:8px 3px;font-weight:700;}
+  .atlas-perfil-zonas thead th {font-size:13px;color:#a0a0aa;font-weight:700;}
+  .atlas-perfil-zonas tbody th {font-weight:700;white-space:nowrap;}
   .atlas-perfil-zonas__etiqueta {display:inline-flex;align-items:center;gap:6px;}
   .atlas-perfil-zonas__emoji {font-size:13px;line-height:1;}
   .atlas-perfil-zonas tbody tr {border-top:1px solid #29292f;}
-  .atlas-perfil-metrica-nota {margin:7px 0 0;color:#a0a0aa;font-size:12px;line-height:1.4;}
+  .atlas-perfil-metrica-nota {margin:5px 0 0;color:#a0a0aa;font-size:13px;line-height:1.4;}
   .atlas-perfil-foco .atlas-hoy-factor__barra {position:relative;overflow:visible;}
   .atlas-perfil-foco__rango {position:absolute;top:-2px;bottom:-2px;border:1px dashed #a0a0aa;border-radius:4px;box-sizing:border-box;pointer-events:none;}
   .atlas-perfil-foco .atlas-perfil-zapatilla__nota {text-align:right;}
@@ -116,18 +116,18 @@
   .atlas-frame.atlas-ajustes-abiertos > .atlas-header,
   .atlas-frame.atlas-ajustes-abiertos > .atlas-view {display:none!important;}
   .atlas-ajustes {width:100%;min-width:0;padding: max(68px,calc(env(safe-area-inset-top,0px) + 18px)) 16px 30px;}
-  .atlas-ajustes__cabecera {display:flex;align-items:center;gap:16px;min-height:44px;margin:0 0 16px;}
+  .atlas-ajustes__cabecera {display:flex;align-items:center;gap:12px;min-height:44px;margin:0 0 8px;}
   .atlas-ajustes__cabecera h2 {font-size:31px;letter-spacing:-.035em;margin:0;font-weight:750;}
-  .atlas-ajustes .atlas-acordeon {margin:14px 0 0;}
+  .atlas-ajustes .atlas-acordeon {margin:7px 0 0;}
   .atlas-ajustes__cuerpo {min-width:0;padding:6px 0 8px;}
-  .atlas-ajustes__cuerpo label {display:block;font-size:13px;color:#b7b7c2;margin:12px 0 6px;}
-  .atlas-ajustes__cuerpo input {display:block;box-sizing:border-box;width:100%;min-width:0;border:1px solid #34343b;background:#17171b;color:#fff;border-radius:10px;padding:11px;font:inherit;font-size:14px;}
-  .atlas-ajustes__cuerpo button {display:block;width:100%;min-height:40px;margin:10px 0;border:0;border-radius:10px;background:#202025;color:var(--atlas-blue);font:inherit;font-weight:650;font-size:14px;padding:10px 12px;cursor:pointer;}
+  .atlas-ajustes__cuerpo label {display:block;font-size:14px;color:#b7b7c2;margin:8px 0 5px;}
+  .atlas-ajustes__cuerpo input {display:block;box-sizing:border-box;width:100%;min-width:0;border:1px solid #34343b;background:#17171b;color:#fff;border-radius:10px;padding:10px;font:inherit;font-size:16px;}
+  .atlas-ajustes__cuerpo button {display:block;width:100%;min-height:44px;margin:6px 0;border:0;border-radius:10px;background:#202025;color:var(--atlas-blue);font:inherit;font-weight:650;font-size:15px;padding:9px 12px;cursor:pointer;}
   .atlas-ajustes__cuerpo button:disabled {opacity:.45;}
   .atlas-ajustes__cuerpo input:focus-visible,.atlas-ajustes__cuerpo button:focus-visible {outline:2px solid var(--atlas-blue);}
-  .atlas-ajustes__dato,.atlas-ajustes__cuerpo small,.atlas-ajustes__cuerpo .estado {display:block;color:#a8a8b4;font-size:12px;line-height:1.45;margin:7px 0;overflow-wrap:anywhere;}
+  .atlas-ajustes__dato,.atlas-ajustes__cuerpo small,.atlas-ajustes__cuerpo .estado {display:block;color:#a8a8b4;font-size:12px;line-height:1.4;margin:5px 0;overflow-wrap:anywhere;}
   .atlas-ajustes__cuerpo .estado:empty {display:none;}
-  .atlas-ajustes__fila {display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;font-size:14px;color:#b7b7c2;}
+  .atlas-ajustes__fila {display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:5px 0;font-size:15px;color:#b7b7c2;}
   .atlas-ajustes__fila strong {color:#fff;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap;}
   .atlas-ajustes__fila span {min-width:0;}
   .atlas-ajustes__avance {margin:4px 0 9px;}
@@ -149,11 +149,11 @@
   .atlas-atras-superior {margin-left:-8px;}
   .atlas-atras-superior .atlas-icon {width:32px;height:32px;stroke-width:3;}
   .atlas-atras-inferior {display:block;min-height:50px;min-width:112px;padding:11px 16px;
-    margin:26px auto 0;border:0;border-radius:14px;background:var(--atlas-blue);color:#fff;
+    margin:16px auto 0;border:0;border-radius:14px;background:var(--atlas-blue);color:#fff;
     font:inherit;font-size:18px;line-height:1.2;font-weight:700;text-align:center;cursor:pointer;}
 
   /* 5.5.2, revisión visual v0.0.35 — información directamente sobre negro OLED. */
-  .atlas-hoy {min-width:0;padding:19px 22px 34px;}
+  .atlas-hoy {min-width:0;padding:13px 22px 26px;}
   .atlas-hoy__cabecera {display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;}
   .atlas-hoy__cabecera h2 {margin:0;font-size:32px;font-weight:750;letter-spacing:-.035em;line-height:1.15;}
   .atlas-hoy__actualizar .atlas-hoy__flecha {width:28px;height:28px;transform-origin:50% 50%;}
@@ -161,7 +161,7 @@
   .atlas-hoy__actualizar.is-loading .atlas-hoy__flecha {animation:atlas-hoy-girar .95s linear infinite;}
   @keyframes atlas-hoy-girar {from {transform:rotate(0deg);} to {transform:rotate(360deg);}}
   @media (prefers-reduced-motion:reduce) {.atlas-hoy__actualizar.is-loading .atlas-hoy__flecha {animation:none;}}
-  .atlas-hoy__sinc-estado {min-height:17px;margin:2px 0 7px;font-size:12px;line-height:1.4;color:#94949f;}
+  .atlas-hoy__sinc-estado {min-height:17px;margin:2px 0 5px;font-size:13px;line-height:1.4;color:#94949f;}
   .atlas-hoy__sinc-estado:empty {display:none;}
   .atlas-hoy__sinc-estado[data-estado="error"] {color:#ff9a9a;}
   .atlas-hoy__sinc-estado[data-estado="ok"] {color:#9acbb3;}
@@ -175,29 +175,29 @@
   .atlas-hoy__puntuacion {position:relative;font-size:37px;font-weight:750;letter-spacing:-.05em;line-height:1;}
   .atlas-hoy__anillo[data-vacio="si"] {background:#26262d;}
   .atlas-hoy__anillo[data-vacio="si"] .atlas-hoy__puntuacion {color:#888892;}
-  .atlas-hoy__estado-texto {display:flex;flex-direction:column;align-items:flex-start;gap:6px;flex:1;min-width:0;}
+  .atlas-hoy__estado-texto {display:flex;flex-direction:column;align-items:flex-start;gap:4px;flex:1;min-width:0;}
   .atlas-hoy__fecha {width:100%;max-width:100%;color:#a0a0aa;font-weight:700;font-size:var(--atlas-hoy-fecha-size,14px);
     line-height:1.35;white-space:nowrap;letter-spacing:-.008em;}
   .atlas-hoy__nivel {font-size:28px;font-weight:750;letter-spacing:-.027em;line-height:1.1;}
-  .atlas-hoy__comentario {color:#bfc0c9;font-size:13px;line-height:1.43;text-align:justify;text-justify:inter-word;}
+  .atlas-hoy__comentario {color:#bfc0c9;font-size:14px;line-height:1.43;text-align:justify;text-justify:inter-word;}
   #atlas-hoy-comentario {display:block;overflow:visible;}
   .atlas-frame.atlas-hoy-detalle-abierto > .atlas-header,
   .atlas-frame.atlas-hoy-detalle-abierto > .atlas-view {display:none!important;}
   .atlas-hoy-detalle[hidden] {display:none!important;}
   .atlas-hoy-detalle {min-width:0;padding:max(59px,calc(env(safe-area-inset-top,0px) + 15px)) 22px 35px;}
-  .atlas-hoy-detalle__estado {display:flex;align-items:center;gap:10px;margin:16px 0 23px;min-height:96px;}
-  .atlas-hoy-detalle__factores {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:23px 20px;}
+  .atlas-hoy-detalle__estado {display:flex;align-items:center;gap:10px;margin:10px 0 14px;min-height:96px;}
+  .atlas-hoy-detalle__factores {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;}
   .atlas-hoy-factor {min-width:0;}
-  .atlas-hoy-factor__titulo {margin:0 0 9px;font-size:14px;line-height:1.27;font-weight:690;}
-  .atlas-hoy-factor__valor {font-size:24px;font-weight:700;letter-spacing:-.025em;line-height:1.15;margin:0 0 8px;}
+  .atlas-hoy-factor__titulo {margin:0 0 6px;font-size:15px;line-height:1.27;font-weight:690;}
+  .atlas-hoy-factor__valor {font-size:26px;font-weight:700;letter-spacing:-.025em;line-height:1.15;margin:0 0 8px;}
   .atlas-hoy-factor__barra {height:var(--atlas-progreso-grosor);border-radius:calc(var(--atlas-progreso-grosor) / 2);background:#29292f;overflow:hidden;}
   .atlas-hoy-factor__relleno {height:100%;background:var(--atlas-blue);width:0;border-radius:inherit;}
-  .atlas-hoy-factor__comentario {margin:9px 0 0;color:#aeb0bc;font-size:12.25px;line-height:1.42;}
-  .atlas-hoy-detalle__analisis {margin:0 0 27px;}
-  .atlas-hoy-detalle__analisis-texto {font-size:13px;line-height:1.56;color:#ced0d8;text-align:justify;text-justify:inter-word;}
-  .atlas-hoy-detalle__analisis-texto p {margin:0 0 12px;}
+  .atlas-hoy-factor__comentario {margin:6px 0 0;color:#aeb0bc;font-size:14px;line-height:1.42;}
+  .atlas-hoy-detalle__analisis {margin:0 0 16px;}
+  .atlas-hoy-detalle__analisis-texto {font-size:14px;line-height:1.56;color:#ced0d8;text-align:justify;text-justify:inter-word;}
+  .atlas-hoy-detalle__analisis-texto p {margin:0 0 8px;}
   .atlas-hoy-detalle__analisis-texto p:last-child {margin-bottom:0;}
-  .atlas-hoy-detalle__pie {margin-top:32px;}
+  .atlas-hoy-detalle__pie {margin-top:18px;}
   @media(max-width:365px) {
     .atlas-hoy {padding-left:16px;padding-right:16px;}
     .atlas-hoy-detalle {padding-left:16px;padding-right:16px;}
@@ -206,8 +206,8 @@
     .atlas-hoy__anillo::before {inset:9px;}
     .atlas-hoy__puntuacion {font-size:33px;}
     .atlas-hoy__nivel {font-size:25px;}
-    .atlas-hoy-detalle__factores {gap:22px 14px;}
-    .atlas-hoy-factor__comentario {font-size:11.8px;}
+    .atlas-hoy-detalle__factores {gap:14px 12px;}
+    .atlas-hoy-factor__comentario {font-size:13px;}
   }
 
   /* 5.5.3 — Separador canónico: 80% de alto, centrado y sin tocar los extremos. */
@@ -218,10 +218,10 @@
   }
   /* Métricas directamente sobre el fondo OLED; cinco columnas invariables. */
   .atlas-hoy-metricas {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
-    width:100%;margin:14px 0 2px;--atlas-metrica-dato:19px;
-    --atlas-metrica-rotulo:12px;--atlas-metrica-info:10.5px;}
+    width:100%;margin:10px 0 2px;--atlas-metrica-dato:22px;
+    --atlas-metrica-rotulo:14px;--atlas-metrica-info:12px;}
   .atlas-hoy-metrica {display:flex;flex-direction:column;align-items:center;
-    text-align:center;gap:5px;padding:3px 2px 4px;min-width:0;}
+    text-align:center;gap:3px;padding:3px 2px 4px;min-width:0;}
   .atlas-hoy-metrica__emoji {font-size:23px;line-height:1.12;}
   .atlas-hoy-metrica__rotulo {display:block;width:100%;font-weight:650;
     font-size:var(--atlas-metrica-rotulo);white-space:nowrap;line-height:1.3;}
@@ -233,7 +233,7 @@
   .atlas-hoy-metrica__info {display:block;width:100%;font-size:var(--atlas-metrica-info);
     line-height:1.24;color:#a6a6b0;white-space:nowrap;font-weight:520;letter-spacing:-.025em;}
   @media(max-width:360px) {
-    .atlas-hoy-metricas {margin-top:13px;}
+    .atlas-hoy-metricas {margin-top:9px;}
     .atlas-hoy-metrica {padding-left:1px;padding-right:1px;}
   }
 
@@ -246,16 +246,16 @@
   .atlas-frame.atlas-metrica-abierta > #atlas-hoy-detalle {display:none!important;}
   #atlas-ficha-metrica[hidden] {display:none!important;}
   .atlas-ficha-metrica {padding:max(59px,calc(env(safe-area-inset-top,0px) + 15px)) 20px 34px;min-width:0;}
-  .atlas-ficha-metrica__titulo {margin:17px 0 23px;font-size:31px;font-weight:750;letter-spacing:-.035em;line-height:1.16;}
+  .atlas-ficha-metrica__titulo {margin:9px 0 14px;font-size:32px;font-weight:750;letter-spacing:-.035em;line-height:1.16;}
   .atlas-ficha-metrica__periodos {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;width:100%;}
   .atlas-ficha-metrica__periodos button {min-width:0;min-height:43px;padding:8px 0;border:1px solid transparent;border-radius:11px;
-    background:transparent;color:#79baff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;}
+    background:transparent;color:#79baff;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;}
   .atlas-ficha-metrica__periodos button[aria-pressed="true"] {background:var(--atlas-blue);color:#fff;border-color:var(--atlas-blue);}
   .atlas-ficha-metrica__periodos button:focus-visible,.atlas-ficha-metrica__navegar button:focus-visible {outline:2px solid white;outline-offset:2px;}
-  .atlas-ficha-metrica__navegar {display:flex;align-items:center;justify-content:space-between;gap:6px;margin:19px 0 14px;min-height:39px;}
-  .atlas-ficha-metrica__navegar strong {font-weight:750;font-size:clamp(12px,4.3vw,18px);white-space:nowrap;text-align:center;line-height:1.35;}
+  .atlas-ficha-metrica__navegar {display:flex;align-items:center;justify-content:space-between;gap:4px;margin:10px 0 8px;min-height:44px;}
+  .atlas-ficha-metrica__navegar strong {flex:1;min-width:0;font-family:inherit;font-weight:750;font-size:clamp(17px,5.5vw,22px);white-space:normal;overflow-wrap:normal;text-align:center;line-height:1.2;letter-spacing:-.025em;}
   .atlas-ficha-metrica__navegar button {display:grid;place-items:center;border:0;background:transparent;color:var(--atlas-blue);
-    width:39px;height:39px;flex:0 0 39px;font-size:30px;font-weight:700;font-family:inherit;cursor:pointer;}
+    width:44px;height:44px;flex:0 0 44px;font-size:32px;font-weight:700;font-family:inherit;cursor:pointer;}
   .atlas-ficha-metrica__navegar button:disabled {opacity:.25;cursor:default;}
   .atlas-ficha-metrica__grafica {width:100%;min-height:272px;display:grid;grid-template-columns:42px minmax(0,1fr);gap:0;}
   .atlas-ficha-metrica__eje {position:relative;height:259px;color:#9a9aa7;font-size:10px;}
@@ -266,13 +266,13 @@
   .atlas-ficha-metrica__scroll {width:100%;overflow-x:auto;overflow-y:hidden;min-width:0;scrollbar-width:thin;scrollbar-color:#35353d transparent;
     overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;}
   .atlas-ficha-metrica__canvas {display:block;max-width:none;overflow:hidden;height:262px;cursor:crosshair;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none;}
-  .atlas-ficha-metrica__seleccion {margin:10px 0 6px;min-height:0;font-size:13px;color:#d8d9df;line-height:1.45;text-align:center;}
+  .atlas-ficha-metrica__seleccion {margin:7px 0 4px;min-height:0;font-size:14px;color:#d8d9df;line-height:1.45;text-align:center;}
   .atlas-ficha-metrica__seleccion strong {color:white;}
   .atlas-ficha-metrica__nota[hidden]{display:none!important;}
-  .atlas-ficha-metrica__nota {color:#92929f;font-size:11px;line-height:1.42;text-align:center;margin:4px 0 23px;}
-  .atlas-ficha-metrica__descripcion {margin:4px 0 0;font-size:13px;line-height:1.55;color:#bfc0cb;text-align:justify;}
-  .atlas-ficha-metrica__pie {margin-top:36px;}
-  .atlas-pronosticos-leyenda {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 15px;}
+  .atlas-ficha-metrica__nota {color:#92929f;font-size:12px;line-height:1.42;text-align:center;margin:3px 0 12px;}
+  .atlas-ficha-metrica__descripcion {margin:4px 0 0;font-size:14px;line-height:1.55;color:#bfc0cb;text-align:justify;}
+  .atlas-ficha-metrica__pie {margin-top:20px;}
+  .atlas-pronosticos-leyenda {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 10px;}
   .atlas-pronosticos-leyenda button {display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-width:0;min-height:68px;padding:5px 1px;border:0;border-bottom:2px solid var(--serie);border-radius:0;background:transparent;color:#fff;font:inherit;cursor:pointer;}
   .atlas-pronosticos-leyenda button .atlas-pronosticos-distancia {font-size:clamp(8px,2.5vw,12px);font-weight:700;white-space:nowrap;}
   .atlas-pronosticos-leyenda button .atlas-pronosticos-ritmo {font-size:clamp(10px,3vw,14px);}
@@ -286,34 +286,34 @@
   #atlas-pronosticos-grafica .atlas-ficha-metrica__seleccion {min-height:22px;}
 
   @media(max-width:360px) {.atlas-ficha-metrica {padding-left:16px;padding-right:16px;}
-    .atlas-ficha-metrica__titulo {font-size:27px;}.atlas-ficha-metrica__periodos button {font-size:12px;}}
+    .atlas-ficha-metrica__titulo {font-size:29px;}.atlas-ficha-metrica__periodos button {font-size:13px;}}
 
 
   /* 5.5.5 — Secciones de Hoy y ficha externa canónica de actividad (sin tarjetas). */
-  .atlas-hoy-seccion {margin:22px 0 0;min-width:0;}
-  .atlas-hoy-seccion + .atlas-hoy-seccion {margin-top:18px;}
-  .atlas-hoy-seccion__titulo {margin:0 0 16px;font-size:21px;line-height:1.25;
+  .atlas-hoy-seccion {margin:14px 0 0;min-width:0;}
+  .atlas-hoy-seccion + .atlas-hoy-seccion {margin-top:12px;}
+  .atlas-hoy-seccion__titulo {margin:0 0 9px;font-size:22px;line-height:1.25;
     letter-spacing:-.025em;font-weight:730;}
-  .atlas-hoy-seccion__vacio {margin:0;color:#a8a8b4;font-size:13px;line-height:1.5;}
+  .atlas-hoy-seccion__vacio {margin:0;color:#a8a8b4;font-size:14px;line-height:1.5;}
   .atlas-actividad-externa {position:relative;display:grid;grid-template-columns:48px minmax(0,1fr);gap:10px;
-    align-items:center;min-width:0;padding:9px 0;}
+    align-items:center;min-width:0;padding:6px 0;}
   .atlas-actividad-externa + .atlas-actividad-externa::after {
     content:"";position:absolute;left:0;width:100%;height:2px;top:-1px;
     background:#2f3038;pointer-events:none;}
   .atlas-actividad-externa__fecha {display:flex;flex-direction:column;align-items:center;
     justify-content:center;line-height:1.04;gap:0;white-space:nowrap;}
   .atlas-actividad-externa__fecha-diasemana,.atlas-actividad-externa__fecha-mes {
-    font-size:10px;font-weight:720;color:#a5a6b0;letter-spacing:.01em;}
-  .atlas-actividad-externa__fecha-dia {font-size:27px;font-weight:770;letter-spacing:-.04em;color:white;}
+    font-size:11px;font-weight:720;color:#a5a6b0;letter-spacing:.01em;}
+  .atlas-actividad-externa__fecha-dia {font-size:29px;font-weight:770;letter-spacing:-.04em;color:white;}
   .atlas-actividad-externa__contenido {min-width:0;padding-left:10px;}
   .atlas-actividad-externa::before {content:"";position:absolute;left:57px;
     top:10%;bottom:10%;width:2px;
     background:#303039;pointer-events:none;}
-  .atlas-actividad-externa__nombre {display:block;margin:0 0 7px;font-size:var(--atlas-actividad-titulo,17px);
+  .atlas-actividad-externa__nombre {display:block;margin:0 0 5px;font-size:var(--atlas-actividad-titulo,19px);
     font-weight:690;line-height:1.15;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:clip;}
   .atlas-actividad-externa__datos {display:flex;align-items:center;min-width:0;gap:0;}
   .atlas-actividad-externa__dato {position:relative;display:inline-flex;align-items:baseline;
-    justify-content:center;gap:2px;min-width:0;padding:0 9px;color:#f1f1f5;font-size:var(--atlas-actividad-dato,13px);
+    justify-content:center;gap:2px;min-width:0;padding:0 9px;color:#f1f1f5;font-size:var(--atlas-actividad-dato,15px);
     font-weight:650;line-height:1.25;white-space:nowrap;}
   .atlas-actividad-externa__dato:first-child {padding-left:0;}
   .atlas-actividad-externa__dato:last-child {padding-right:0;}
@@ -321,7 +321,7 @@
     position:absolute;left:0;top:10%;bottom:10%;width:2px;background:#303039;}
   .atlas-actividad-externa__unidad {font-size:.82em;font-weight:520;color:#9a9aa6;}
   @media(max-width:360px) {
-    .atlas-hoy-seccion__titulo {font-size:20px;}
+    .atlas-hoy-seccion__titulo {font-size:21px;}
     .atlas-actividad-externa {grid-template-columns:44px minmax(0,1fr);gap:8px;}
     .atlas-actividad-externa::before {left:51px;}
     .atlas-actividad-externa__contenido {padding-left:8px;}
@@ -330,9 +330,9 @@
 
 
   /* 5.6 — Historial: controles funcionales y fichas canónicas, sin tarjetas añadidas. */
-  .atlas-actividades {min-width:0;padding:19px 22px 34px;}
+  .atlas-actividades {min-width:0;padding:13px 22px 26px;}
   .atlas-actividades__filtros {display:grid;grid-template-columns:minmax(0,7fr) minmax(0,3fr);
-    gap:8px;margin:18px 0 10px;}
+    gap:8px;margin:10px 0 7px;}
   .atlas-actividades__select,.atlas-actividades__buscar {display:block;width:100%;min-width:0;
     min-height:44px;border-radius:12px;border:none;background:#111115;
     color:#f5f5fa;font:inherit;font-size:16px;outline:none;box-shadow:none;}
@@ -343,13 +343,13 @@
   .atlas-actividades__buscar {padding:10px 13px;-webkit-appearance:none;appearance:none;}
   .atlas-actividades__select:focus-visible,.atlas-actividades__buscar:focus-visible {
     outline:2px solid var(--atlas-blue);outline-offset:1px;}
-  .atlas-actividades__estado {margin:12px 0;color:#9b9ba7;font-size:13px;line-height:1.45;}
+  .atlas-actividades__estado {margin:7px 0;color:#9b9ba7;font-size:14px;line-height:1.45;}
   .atlas-actividades__estado:empty {display:none;}
-  .atlas-actividades__mes {margin:25px 0 0;min-width:0;}
+  .atlas-actividades__mes {margin:15px 0 0;min-width:0;}
   .atlas-actividades__mes-cabecera {display:flex;align-items:baseline;justify-content:space-between;
-    gap:8px;min-width:0;margin:0 0 15px;}
+    gap:8px;min-width:0;margin:0 0 8px;}
   .atlas-actividades__mes-cabecera .atlas-hoy-seccion__titulo {margin:0;min-width:0;
-    font-size:clamp(17px,4.7vw,21px);white-space:nowrap;letter-spacing:-.035em;}
+    font-size:clamp(18px,5vw,22px);white-space:nowrap;letter-spacing:-.035em;}
   .atlas-actividades__contador {color:#a0a0ac;font-size:clamp(10px,2.9vw,12px);
     font-weight:600;white-space:nowrap;flex-shrink:0;}
   .atlas-actividades__lista {min-width:0;}
@@ -366,13 +366,13 @@
   .atlas-frame.atlas-actividad-abierta > #atlas-ficha-metrica {display:none!important;}
   .atlas-actividad-interior[hidden] {display:none!important;}
   .atlas-actividad-interior {min-width:0;padding:max(59px,calc(env(safe-area-inset-top,0px) + 15px)) 22px 35px;}
-  .atlas-actividad-interior__titulo {font-size:var(--atlas-interior-titulo,29px);line-height:1.15;
-    font-weight:750;letter-spacing:-.035em;margin:14px 0 21px;white-space:nowrap;overflow:hidden;}
+  .atlas-actividad-interior__titulo {font-size:var(--atlas-interior-titulo,31px);line-height:1.15;
+    font-weight:750;letter-spacing:-.035em;margin:10px 0 12px;white-space:nowrap;overflow:hidden;}
   /* Datos compactos en una sola línea, seguidos por mapa a todo el ancho. */
-  .atlas-actividad-interior__contexto {display:flex;flex-direction:column;align-items:stretch;gap:11px;min-width:0;}
+  .atlas-actividad-interior__contexto {display:flex;flex-direction:column;align-items:stretch;gap:8px;min-width:0;}
   .atlas-actividad-interior__datos {display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;
     width:100%;min-width:0;gap:5px;white-space:nowrap;overflow:hidden;}
-  .atlas-actividad-interior__datos span {font-size:var(--atlas-interior-dato,14px);font-weight:640;
+  .atlas-actividad-interior__datos span {font-size:var(--atlas-interior-dato,16px);font-weight:640;
     line-height:1.35;white-space:nowrap;flex:0 0 auto;}
   .atlas-actividad-interior__datos .atlas-interior-fecha-hora {font-weight:700;}
   .atlas-actividad-interior__mapa {position:relative;display:block;width:100%;height:auto;flex:none;
@@ -405,8 +405,8 @@
     padding:3px 4px;background:rgba(0,0,0,.8);border-radius:4px;
     color:#fff;font-size:9px;line-height:1.2;text-align:right;}
   .atlas-actividad-interior__atribucion a {color:#cde2ff;text-decoration:underline;}
-  .atlas-actividad-interior__estado {margin:12px 0 0;color:#a4a6b1;font-size:12px;line-height:1.5;}
-  .atlas-actividad-interior__pie {margin-top:30px;}
+  .atlas-actividad-interior__estado {margin:8px 0 0;color:#a4a6b1;font-size:13px;line-height:1.5;}
+  .atlas-actividad-interior__pie {margin-top:18px;}
   .atlas-actividad-externa[role="button"] {cursor:pointer;-webkit-tap-highlight-color:transparent;}
   .atlas-actividad-externa[role="button"]:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:4px;border-radius:6px;}
   @media(max-width:360px) {
@@ -417,7 +417,7 @@
 
   /* 5.6 incremento 3 — Métricas de carrera en dos filas de cinco (canon Hoy). */
   .atlas-actividad-interior__metricas {display:grid;grid-template-columns:repeat(5,minmax(0,1fr));
-    row-gap:17px;margin:22px 0 26px;min-width:0;}
+    row-gap:12px;margin:14px 0 16px;min-width:0;}
   .atlas-actividad-interior__metrica {position:relative;display:flex;flex-direction:column;
     align-items:center;gap:4px;min-width:0;padding:2px 4px;text-align:center;}
   .atlas-actividad-interior__metrica:not(:nth-child(5n+1))::before {content:"";position:absolute;
@@ -435,19 +435,19 @@
     left:0;right:0;top:-9px;height:2px;background:#303039;pointer-events:none;}
   .atlas-otras-metricas .atlas-actividad-interior__metrica[data-metrica="ritmo"] .atlas-actividad-interior__metrica-valor {max-width:calc(100% - 7px);}
   .atlas-actividad-interior__metrica-emoji {font-size:21px;line-height:1.15;}
-  .atlas-actividad-interior__metrica-titulo {font-size:var(--atlas-detalle-rotulo,12px);
+  .atlas-actividad-interior__metrica-titulo {font-size:var(--atlas-detalle-rotulo,14px);
     font-weight:650;line-height:1.2;white-space:nowrap;max-width:100%;}
-  .atlas-actividad-interior__metrica-valor {font-size:var(--atlas-detalle-valor,17px);
+  .atlas-actividad-interior__metrica-valor {font-size:var(--atlas-detalle-valor,20px);
     font-weight:740;line-height:1.15;white-space:nowrap;max-width:calc(100% - 7px);letter-spacing:-.025em;}
   .atlas-actividad-interior__metrica-unidad {font-size:.49em;font-weight:550;color:#9999a6;letter-spacing:-.055em;}
   /* Ritmo: solo el valor; unidad implícita min/km. */
   .atlas-actividad-interior__metrica[data-metrica="ritmo"] .atlas-actividad-interior__metrica-valor {
     max-width:calc(100% - 12px);
   }
-  .atlas-actividad-interior__nota {margin:-12px 0 17px;color:#9b9caa;font-size:11px;line-height:1.35;}
+  .atlas-actividad-interior__nota {margin:-6px 0 10px;color:#9b9caa;font-size:11px;line-height:1.35;}
   .atlas-actividad-interior__nota[hidden] {display:none;}
   .atlas-actividad-interior__zapatillas {display:flex;align-items:center;justify-content:space-between;
-    gap:8px;margin:15px 0 0;color:#f1f1f6;font-weight:750;}
+    gap:8px;margin:9px 0 0;color:#f1f1f6;font-weight:750;}
   .atlas-actividad-interior__zapatillas[hidden],.atlas-vueltas[hidden] {display:none!important;}
   .atlas-zapatillas__rotulo {display:flex;align-items:center;gap:6px;min-width:0;
     font-size:clamp(14px,4vw,17px);font-weight:760;}
@@ -461,10 +461,10 @@
   #atlas-actividad-vueltas-estado {display:none!important;}
 
   /* Vueltas: barra más ancha para intervalos largos; ritmos con escala absoluta. */
-  .atlas-vueltas {min-width:0;margin:12px 0 0;}
+  .atlas-vueltas {min-width:0;margin:9px 0 0;}
   .atlas-vueltas__titulo {display:none;}
   .atlas-vueltas__grafico {display:grid;grid-template-columns:45px minmax(0,1fr);
-    height:193px;min-width:0;gap:5px;margin-bottom:13px;}
+    height:193px;min-width:0;gap:5px;margin-bottom:8px;}
   .atlas-vueltas__eje {display:flex;flex-direction:column;justify-content:space-between;
     align-items:flex-end;padding:0 1px 22px 0;color:#999aa6;font-size:10px;font-variant-numeric:tabular-nums;}
   .atlas-vueltas__grafico-scroll {position:relative;min-width:0;min-height:0;overflow-x:hidden;
@@ -484,12 +484,12 @@
   .atlas-vueltas__barra[aria-pressed="true"]::after {color:#fff;font-weight:750;}
   .atlas-vueltas__barra:focus-visible {outline:2px solid var(--atlas-blue);}
   .atlas-vueltas__tabla {width:100%;border-collapse:collapse;table-layout:fixed;
-    font-size:var(--atlas-vuelta-letra,13px);font-variant-numeric:tabular-nums;}
-  .atlas-vueltas__tabla th {color:#a9aab5;font-weight:700;font-size:var(--atlas-vuelta-cabecera,13px);
+    font-size:var(--atlas-vuelta-letra,14px);font-variant-numeric:tabular-nums;}
+  .atlas-vueltas__tabla th {color:#a9aab5;font-weight:700;font-size:var(--atlas-vuelta-cabecera,14px);
     border:0;padding:8px 1px;text-align:center;white-space:nowrap;letter-spacing:-.025em;}
   /* 5.6.3 — Cada vuelta tiene una línea SOBRE sus datos: también la primera y
      la última. Nunca debajo de la última. Se aplica igual en cada bloque. */
-  .atlas-vueltas__tabla td {padding:10px 1px;text-align:center;white-space:nowrap;
+  .atlas-vueltas__tabla td {padding:8px 1px;text-align:center;white-space:nowrap;
     border:0;border-top:2px solid #32323b;font-weight:670;}
   .atlas-vueltas__tabla tbody tr {cursor:pointer;}
   .atlas-vueltas__tabla tbody tr[aria-selected="true"] {background:rgba(10,132,255,.22);}
@@ -518,13 +518,13 @@
   .atlas-vueltas__filtro:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:1px;}
   .atlas-vueltas__tabla tbody tr.atlas-vueltas__cabecera th {border:0;
     padding:8px 1px;color:#a9aab5;text-align:center;
-    font-size:var(--atlas-vuelta-cabecera,13px);font-weight:700;white-space:nowrap;letter-spacing:-.025em;}
+    font-size:var(--atlas-vuelta-cabecera,14px);font-weight:700;white-space:nowrap;letter-spacing:-.025em;}
   .atlas-vueltas__desnivel-positivo {color:#ff6257;}
   .atlas-vueltas__desnivel-negativo {color:#30d158;}
-  .atlas-vueltas__estado {min-height:18px;color:#a7a8b2;font-size:12px;margin:0 0 10px;}
+  .atlas-vueltas__estado {min-height:18px;color:#a7a8b2;font-size:13px;margin:0 0 6px;}
   .atlas-vueltas__estado:empty {display:none;}
   @media(max-width:360px) {
-    .atlas-actividad-interior__metricas {row-gap:16px;}
+    .atlas-actividad-interior__metricas {row-gap:10px;}
     .atlas-actividad-interior__metrica {padding:1px 2px;}
     .atlas-vueltas__grafico {grid-template-columns:39px minmax(0,1fr);}
     .atlas-vueltas__tabla td,.atlas-vueltas__tabla th {padding-left:1px;padding-right:1px;}
@@ -533,27 +533,101 @@
   /* 5.9.2 — Plan: calendario real semanal, sin motor ni prescripciones. */
   .atlas-plan__acciones {display:flex;align-items:center;gap:5px;}
   .atlas-plan__crear:disabled {opacity:.35;cursor:default;}
-  .atlas-plan__semana {margin:15px 0 0;}
-  .atlas-plan__semana button {width:44px;height:44px;flex-basis:44px;}
-  .atlas-plan__semana strong {min-width:0;white-space:normal;overflow-wrap:anywhere;font-size:clamp(12px,4vw,18px);}
-  .atlas-plan__relativa {margin:0;text-align:center;color:#a6a6b0;font-size:13px;line-height:1.4;font-weight:600;}
-  .atlas-plan__volver {display:block;margin:0 auto;padding:0 8px;border:0;background:none;color:var(--atlas-blue);
-    font:inherit;font-size:13px;font-weight:650;min-height:44px;cursor:pointer;}
+  .atlas-plan__semana {margin:6px 0 0;}
+  .atlas-plan__contexto {display:flex;align-items:center;justify-content:center;flex-wrap:wrap;column-gap:8px;row-gap:0;min-width:0;}
+  .atlas-plan__relativa {margin:0;text-align:center;color:#a6a6b0;font-size:11px;line-height:1.25;font-weight:600;}
+  .atlas-plan__volver {display:inline-flex;align-items:center;justify-content:center;margin:0;padding:0 4px;border:0;background:none;color:var(--atlas-blue);
+    font:inherit;font-size:11px;line-height:1.25;font-weight:650;min-height:0;height:auto;cursor:pointer;position:relative;}
+  /* 5.9.2 — Misma altura visual que «Esta semana»; conservar el área táctil sin ocupar espacio. */
+  .atlas-plan__volver::before {content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%);}
+  .atlas-plan__semana button {position:relative;z-index:1;}
   .atlas-plan__volver[hidden] {display:none;}
   .atlas-plan__volver:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:2px;border-radius:8px;}
-  .atlas-plan__contadores {grid-template-columns:repeat(3,minmax(0,1fr));margin:19px 0 17px;}
+  .atlas-plan__contadores {grid-template-columns:repeat(3,minmax(0,1fr));margin:8px 0 10px;}
   .atlas-plan__contadores .atlas-hoy-metrica {cursor:default;}
-  .atlas-plan__contadores .atlas-hoy-metrica__info {white-space:normal;}
+  .atlas-plan__contadores .atlas-hoy-metrica__dato {font-variant-numeric:tabular-nums;}
+  .atlas-plan__contadores .atlas-plan__parcial {font-size:.58em;vertical-align:super;color:#a6a6b0;letter-spacing:0;}
   .atlas-plan__dias {min-width:0;}
   .atlas-plan__dia {position:relative;min-width:0;}
   .atlas-plan__dia + .atlas-plan__dia::before {content:"";position:absolute;top:-1px;left:0;right:0;height:2px;background:#2f3038;pointer-events:none;}
-  .atlas-plan__dia .atlas-actividad-externa {min-height:72px;}
+  .atlas-plan__dia .atlas-actividad-externa {min-height:60px;}
   .atlas-plan__dia[data-hoy="true"] .atlas-actividad-externa__fecha-dia {color:var(--atlas-blue);}
   .atlas-plan__dia[data-futuro="true"] .atlas-actividad-externa__fecha {opacity:.55;}
-  .atlas-plan__vacio {font-size:13px;font-weight:520;line-height:1.4;color:#a6a6b0;}
+  .atlas-plan__vacio {min-width:0;}
   .atlas-plan__nota {display:block;color:#a6a6b0;font-size:11px;line-height:1.35;margin-top:5px;}
-  .atlas-plan__lectura {color:#a6a6b0;font-size:12px;line-height:1.4;margin:0 0 12px;}
+  .atlas-plan__lectura {color:#a6a6b0;font-size:12px;line-height:1.4;margin:8px 0 0;}
   .atlas-plan__lectura:empty {display:none;}
+
+  #atlas-sync-estado:empty {display:none;}
+  #atlas-sync-estado[data-estado="error"] {color:#ff9a9a;}
+  /* 5.9.3 — Formulario de configuración, misma tipografía, OLED y controles de ATLAS. */
+  .atlas-plan-boton {appearance:none;display:block;width:100%;min-width:0;min-height:44px;padding:10px 12px;border:0;border-radius:12px;background:var(--atlas-blue);color:white;font:inherit;font-size:16px;font-weight:700;line-height:1.22;text-align:center;overflow-wrap:anywhere;cursor:pointer;}
+  .atlas-plan-boton--rojo {background:#d72e38;}
+  .atlas-plan-boton:disabled {opacity:.42;cursor:default;}
+  .atlas-plan-boton:focus-visible,.atlas-plan-form button:focus-visible {outline:2px solid white;outline-offset:2px;}
+  .atlas-plan-activo {margin:6px 0 2px;}
+  .atlas-plan-activo[hidden],.atlas-plan-interior[hidden],.atlas-plan-form [hidden] {display:none!important;}
+  .atlas-frame.atlas-plan-interior-abierto > .atlas-header,.atlas-frame.atlas-plan-interior-abierto > .atlas-view {display:none!important;}
+  .atlas-plan-interior {min-width:0;width:100%;padding:max(59px,calc(env(safe-area-inset-top,0px) + 15px)) 22px 26px;}
+  .atlas-frame.atlas-plan-interior-abierto {padding-bottom:env(safe-area-inset-bottom,0px);}
+  .atlas-plan-interior__titulo {margin:9px 0 14px;font-size:32px;font-weight:750;line-height:1.15;letter-spacing:-.035em;overflow-wrap:anywhere;}
+  .atlas-plan-form {min-width:0;display:flex;flex-direction:column;gap:10px;}
+  .atlas-plan-form__campo {display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .atlas-plan-form__campo label {font-size:14px;font-weight:650;line-height:1.25;}
+  .atlas-plan-form input:not([type="checkbox"]),.atlas-plan-form select {appearance:none;-webkit-appearance:none;width:100%;min-width:0;min-height:44px;padding:9px 10px;border:1px solid #34343b;border-radius:10px;background:#17171b;color:#fff;font:inherit;font-size:15px;line-height:1.2;}
+  .atlas-plan-form select {padding-right:26px;background-image:linear-gradient(45deg,transparent 50%,#a8a8b4 50%),linear-gradient(135deg,#a8a8b4 50%,transparent 50%);background-position:calc(100% - 13px) 50%,calc(100% - 8px) 50%;background-size:5px 5px;background-repeat:no-repeat;text-overflow:ellipsis;}
+  .atlas-plan-form input[type="date"] {appearance:auto;-webkit-appearance:auto;font-size:clamp(13px,3.7vw,15px);padding-left:7px;padding-right:7px;}
+  .atlas-plan-form input[type="date"]::-webkit-date-and-time-value {text-align:left;min-height:1em;}
+  .atlas-plan-form input:focus-visible,.atlas-plan-form select:focus-visible {outline:2px solid var(--atlas-blue);outline-offset:1px;}
+  .atlas-plan-form input:disabled,.atlas-plan-form select:disabled {opacity:.65;}
+  .atlas-plan-form__fila {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:start;min-width:0;}
+  .atlas-plan-form__bloque {border:0;margin:5px 0 0;padding:10px 0 0;min-inline-size:0;}
+  .atlas-plan-form__bloque legend {padding:0 8px 0 0;font-size:22px;font-weight:730;letter-spacing:-.025em;}
+  .atlas-plan-form__bloque > .atlas-plan-form__campo,.atlas-plan-form__bloque > label,.atlas-plan-form__bloque > #atlas-plan-opciones-fuerza {margin-top:9px;}
+  .atlas-plan-form__dias {display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;min-width:0;}
+  .atlas-plan-form__dia {appearance:none;min-width:0;min-height:44px;padding:0;border:1px solid #34343b;border-radius:10px;background:#17171b;color:#fff;font:inherit;font-size:16px;font-weight:730;cursor:pointer;}
+  .atlas-plan-form__dia[aria-pressed="true"] {background:var(--atlas-blue);border-color:var(--atlas-blue);color:#fff;}
+  .atlas-plan-form__limites {margin:8px 0 0;}
+  .atlas-plan-form__nota {font-size:13px;color:#a8a8b4;line-height:1.4;margin:4px 0 7px;overflow-wrap:anywhere;}
+  .atlas-plan-form__check {display:flex;align-items:center;gap:9px;min-height:44px;font-size:14px;line-height:1.35;font-weight:650;cursor:pointer;}
+  .atlas-plan-form__check input {width:20px;height:20px;flex:0 0 20px;accent-color:var(--atlas-blue);margin:0;}
+  #atlas-plan-opciones-fuerza > .atlas-plan-form__campo {margin-top:8px;}
+  .atlas-plan-form__secundarias {margin-top:4px;}
+  .atlas-plan-form__cabecera {display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:44px;}
+  .atlas-plan-form__cabecera h3,.atlas-plan-form__cabecera h4 {margin:0;}
+  .atlas-plan-form__secundaria {min-width:0;display:flex;flex-direction:column;gap:9px;padding:6px 0 9px;}
+  .atlas-plan-form__secundaria h4 {font-size:16px;font-weight:700;overflow-wrap:anywhere;}
+  .atlas-plan-form__secundaria [data-quitar] {color:#ff453a;}
+  .atlas-plan-form__conflicto {padding:7px 9px;border-left:2px solid #ff9f0a;color:#e7c99a;font-size:13px;line-height:1.4;}
+  .atlas-plan-form__conflicto p {margin:0;}
+  .atlas-plan-form__conflicto .atlas-plan-form__check {color:#fff;font-weight:600;font-size:13px;}
+  .atlas-plan-error {display:block;color:#ff9999;font-size:12px;line-height:1.35;margin:0;overflow-wrap:anywhere;}
+  .atlas-plan-error:empty {display:none;}
+  .atlas-plan-form [aria-invalid="true"] {border-color:#ff453a;}
+  .atlas-plan-form__acciones {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:5px 0 0;}
+  .atlas-plan-form__acciones--gestion {margin-top:16px;}
+  /* 5.9.4 — Apartado del plan, sin separadores nuevos en la configuración. */
+  .atlas-plan-det__contenido {padding:0 0 8px;min-width:0;}
+  .atlas-plan-det__lista {display:grid;gap:8px;margin:8px 0;min-width:0;}
+  .atlas-plan-det__fila {display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:8px;align-items:start;font-size:15px;line-height:1.35;}
+  .atlas-plan-det__fila dt {font-weight:600;overflow-wrap:anywhere;}
+  .atlas-plan-det__fila dd {margin:0;text-align:right;font-weight:700;overflow-wrap:anywhere;font-variant-numeric:tabular-nums;}
+  .atlas-plan-det__fila dd small {display:block;color:#a8a8b4;font-size:11px;font-weight:500;}
+  .atlas-plan-det__centrado {text-align:center;}
+  .atlas-plan-det__editor {gap:7px;}
+  .atlas-plan-det__editor .atlas-plan-form__dia:disabled {opacity:.43;cursor:default;}
+  .atlas-plan-det__enlace {border:0;background:none;color:var(--atlas-blue);font:inherit;font-size:14px;font-weight:650;min-height:44px;padding:4px;text-align:center;cursor:pointer;}
+  .atlas-plan-det__enlace:disabled {opacity:.45;}
+  .atlas-plan-det__secundario {background:#24242b;}
+  .atlas-plan__dia[data-fuera="true"] .atlas-actividad-externa__fecha {opacity:.35;}
+  #atlas-plan-gestion [hidden] {display:none!important;}
+  @media(max-width:365px){
+    .atlas-plan-interior {padding-left:16px;padding-right:16px;}
+    .atlas-plan-interior__titulo {font-size:29px;}
+    .atlas-plan-form input:not([type="checkbox"]),.atlas-plan-form select {font-size:14px;padding-left:8px;}
+    .atlas-plan-form input[type="date"] {font-size:13px;padding-left:5px;padding-right:5px;}
+    .atlas-plan-form__dias {gap:3px;}
+  }
 </style>
 </head><body>
 <div class="atlas-frame"><header class="atlas-header">
@@ -687,7 +761,7 @@
   <div class="atlas-hoy__cabecera">
     <h2>Plan</h2>
     <div class="atlas-plan__acciones">
-      <button id="atlas-plan-crear" class="atlas-control-icon atlas-plan__crear" type="button" disabled aria-label="Crear plan, aún no disponible" title="Crear plan · disponible en el siguiente incremento">
+      <button id="atlas-plan-crear" class="atlas-control-icon atlas-plan__crear" type="button" aria-label="Crear plan" title="Crear plan">
         <svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>
       </button>
       <button id="atlas-plan-actualizar" class="atlas-control-icon atlas-hoy__actualizar" type="button" aria-label="Actualizar datos de Garmin" title="Actualizar datos de Garmin">
@@ -696,21 +770,176 @@
     </div>
   </div>
   <p class="atlas-hoy__sinc-estado" id="atlas-plan-sinc-estado" role="status" aria-live="polite"></p>
+  <p id="atlas-plan-config-estado" class="atlas-plan-error" role="status" aria-live="polite"></p>
+  <button id="atlas-plan-activo" class="atlas-plan-boton atlas-plan-activo" type="button" hidden></button>
   <div class="atlas-ficha-metrica__navegar atlas-plan__semana" aria-label="Selector de semana">
     <button id="atlas-plan-anterior" type="button" aria-label="Semana anterior">‹</button>
     <strong id="atlas-plan-fechas" aria-live="polite"></strong>
     <button id="atlas-plan-siguiente" type="button" aria-label="Semana siguiente">›</button>
   </div>
-  <p class="atlas-plan__relativa" id="atlas-plan-relativa"></p>
-  <button id="atlas-plan-volver" class="atlas-plan__volver" type="button" hidden>Volver a esta semana</button>
+  <div class="atlas-plan__contexto">
+    <p class="atlas-plan__relativa" id="atlas-plan-relativa"></p>
+    <button id="atlas-plan-volver" class="atlas-plan__volver" type="button" hidden>Volver a esta semana</button>
+  </div>
   <section id="atlas-plan-contadores" class="atlas-hoy-metricas atlas-plan__contadores atlas-divisiones-cortas" aria-label="Resumen semanal">
-    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Planificados</span><span class="atlas-hoy-metrica__dato">—</span><span class="atlas-hoy-metrica__info">Sin plan</span></div>
-    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Realizados</span><span class="atlas-hoy-metrica__dato" id="atlas-plan-realizados">—</span><span class="atlas-hoy-metrica__info" id="atlas-plan-realizados-info">Sin datos</span></div>
-    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Sesiones</span><span class="atlas-hoy-metrica__dato" id="atlas-plan-sesiones">—</span><span class="atlas-hoy-metrica__info" id="atlas-plan-sesiones-info">Sin datos</span></div>
+    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Planificados</span><span class="atlas-hoy-metrica__dato" title="Sin plan publicado" aria-label="Sin plan publicado">—</span></div>
+    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Realizados</span><span class="atlas-hoy-metrica__dato" id="atlas-plan-realizados">—</span></div>
+    <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Sesiones</span><span class="atlas-hoy-metrica__dato" id="atlas-plan-sesiones">—</span></div>
   </section>
-  <p class="atlas-plan__lectura" id="atlas-plan-lectura" role="status" aria-live="polite"></p>
   <div id="atlas-plan-dias" class="atlas-plan__dias" aria-label="Calendario de lunes a domingo"></div>
+  <p class="atlas-plan__lectura" id="atlas-plan-lectura" role="status" aria-live="polite"></p>
 </main>
+<section id="atlas-plan-gestion" class="atlas-plan-interior atlas-pagina-sin-cabecera" hidden aria-labelledby="atlas-plan-gestion-titulo">
+  <button id="atlas-plan-gestion-volver" class="atlas-control-icon atlas-atras-superior" type="button" aria-label="Volver a Plan" title="Volver"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 4-8 8 8 8"/></svg></button>
+  <h2 id="atlas-plan-gestion-titulo" class="atlas-plan-interior__titulo"></h2>
+  <details class="atlas-acordeon" id="atlas-plan-det-info">
+    <summary><span class="atlas-hoy-seccion__titulo">ℹ️ Información del plan</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div class="atlas-plan-det__contenido"><dl id="atlas-plan-det-info-datos" class="atlas-plan-det__lista"></dl></div>
+  </details>
+  <details class="atlas-acordeon" id="atlas-plan-det-estado">
+    <summary><span class="atlas-hoy-seccion__titulo">📊 Estado actual</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div class="atlas-plan-det__contenido"><dl id="atlas-plan-det-estado-datos" class="atlas-plan-det__lista" aria-live="polite"></dl><p class="atlas-plan-form__nota">Capacidad, confianza y viabilidad pendientes del motor de entrenamiento.</p></div>
+  </details>
+  <details class="atlas-acordeon" id="atlas-plan-det-ritmos">
+    <summary><span class="atlas-hoy-seccion__titulo">⏱️ Ritmos</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div class="atlas-plan-det__contenido"><dl id="atlas-plan-det-ritmos-datos" class="atlas-plan-det__lista"></dl><p class="atlas-plan-form__nota">Ritmos de entrenamiento pendientes del motor.</p></div>
+  </details>
+  <details class="atlas-acordeon" id="atlas-plan-det-disp">
+    <summary><span class="atlas-hoy-seccion__titulo">📅 Disponibilidad</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div class="atlas-plan-det__contenido"><div class="atlas-ficha-metrica__navegar atlas-plan__semana" aria-label="Selector de semana">
+      <button id="atlas-plan-disp-anterior" type="button" aria-label="Semana anterior">‹</button>
+      <strong id="atlas-plan-disp-fechas" aria-live="polite"></strong>
+      <button id="atlas-plan-disp-siguiente" type="button" aria-label="Semana siguiente">›</button>
+    </div>
+    <div class="atlas-plan__contexto"><p class="atlas-plan__relativa" id="atlas-plan-disp-relativa"></p><button id="atlas-plan-disp-volver" class="atlas-plan__volver" type="button" hidden>Volver a esta semana</button></div>
+    <p id="atlas-plan-disp-modo" class="atlas-plan-form__nota atlas-plan-det__centrado"></p>
+    <div class="atlas-plan-form atlas-plan-det__editor">
+      <div id="atlas-plan-disp-dias" class="atlas-plan-form__dias" aria-label="Días disponibles de lunes a domingo"></div>
+      <div id="atlas-plan-disp-limites" class="atlas-plan-form__fila"></div>
+      <p class="atlas-plan-form__nota">Tiempo disponible en minutos (opcional). Los días transcurridos y fuera del plan no se pueden modificar.</p>
+      <div id="atlas-plan-disp-conflictos"></div>
+      <button id="atlas-plan-disp-reset" class="atlas-plan-det__enlace" type="button" hidden>Restablecer disponibilidad habitual</button>
+      <p id="atlas-plan-disp-error" class="atlas-plan-error" role="alert"></p>
+      <div id="atlas-plan-disp-acciones" class="atlas-plan-form__acciones" hidden>
+        <button id="atlas-plan-disp-cancelar" class="atlas-plan-boton atlas-plan-det__secundario" type="button">Cancelar</button>
+        <button id="atlas-plan-disp-guardar" class="atlas-plan-boton" type="button">Guardar</button>
+      </div>
+    </div>
+    <dl id="atlas-plan-disp-preferencias" class="atlas-plan-det__lista"></dl></div>
+  </details>
+  <details class="atlas-acordeon" id="atlas-plan-det-ent">
+    <summary><span class="atlas-hoy-seccion__titulo">🏃🏻‍♂️ Entrenamientos</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div class="atlas-plan-det__contenido"><div class="atlas-ficha-metrica__navegar atlas-plan__semana" aria-label="Selector de semana">
+      <button id="atlas-plan-ent-anterior" type="button" aria-label="Semana anterior">‹</button>
+      <strong id="atlas-plan-ent-fechas" aria-live="polite"></strong>
+      <button id="atlas-plan-ent-siguiente" type="button" aria-label="Semana siguiente">›</button>
+    </div>
+    <div class="atlas-plan__contexto"><p class="atlas-plan__relativa" id="atlas-plan-ent-relativa"></p><button id="atlas-plan-ent-volver" class="atlas-plan__volver" type="button" hidden>Volver a esta semana</button></div>
+    <section id="atlas-plan-ent-contadores" class="atlas-hoy-metricas atlas-plan__contadores atlas-divisiones-cortas" aria-label="Resumen de entrenamientos">
+      <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Semana</span><span class="atlas-hoy-metrica__dato" id="atlas-plan-ent-numero">—</span></div>
+      <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo">Volumen</span><span class="atlas-hoy-metrica__dato">—</span></div>
+      <div class="atlas-hoy-metrica"><span class="atlas-hoy-metrica__rotulo" id="atlas-plan-ent-larga">Tirada larga</span><span class="atlas-hoy-metrica__dato">—</span></div>
+    </section>
+    <dl id="atlas-plan-ent-datos" class="atlas-plan-det__lista"></dl>
+    <div id="atlas-plan-ent-dias" class="atlas-plan__dias" aria-label="Calendario de entrenamientos"></div>
+    <p class="atlas-plan-form__nota">Pendiente de generar.</p></div>
+  </details>
+  <details class="atlas-acordeon" id="atlas-plan-det-pub">
+    <summary><span class="atlas-hoy-seccion__titulo">☁️ Publicación</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <div class="atlas-plan-det__contenido"><p class="atlas-plan-form__nota">Pendiente de publicación en Garmin.</p></div>
+  </details>
+  <p id="atlas-plan-gestion-error" class="atlas-plan-error" role="alert"></p>
+  <div class="atlas-plan-form__acciones atlas-plan-form__acciones--gestion">
+    <button id="atlas-plan-editar" class="atlas-plan-boton" type="button">Editar plan</button>
+    <button id="atlas-plan-eliminar" class="atlas-plan-boton atlas-plan-boton--rojo" type="button">Eliminar plan</button>
+  </div>
+  <button id="atlas-plan-gestion-atras" class="atlas-atras-inferior" type="button">Atrás</button>
+</section>
+<section id="atlas-plan-formulario" class="atlas-plan-interior atlas-pagina-sin-cabecera" hidden aria-labelledby="atlas-plan-form-titulo">
+  <button id="atlas-plan-form-volver" class="atlas-control-icon atlas-atras-superior" type="button" aria-label="Cancelar y volver a Plan" title="Volver"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 4-8 8 8 8"/></svg></button>
+  <h2 id="atlas-plan-form-titulo" class="atlas-plan-interior__titulo">Crear plan</h2>
+  <form id="atlas-plan-form" class="atlas-plan-form" novalidate autocomplete="off">
+    <div class="atlas-plan-form__campo">
+      <label for="atlas-plan-nombre">Nombre</label>
+      <input id="atlas-plan-nombre" type="text" maxlength="160" placeholder="Nombre de la competición" required aria-describedby="atlas-plan-error-nombre">
+      <small id="atlas-plan-error-nombre" class="atlas-plan-error" data-error="nombre"></small>
+    </div>
+    <div class="atlas-plan-form__fila">
+      <div class="atlas-plan-form__campo">
+        <label for="atlas-plan-distancia">Distancia</label>
+        <select id="atlas-plan-distancia" required aria-describedby="atlas-plan-error-distancia">
+          <option value="">Seleccionar</option><option value="5000">5 km</option><option value="10000">10 km</option><option value="21097.5">Media maratón</option><option value="42195">Maratón</option>
+        </select>
+        <small id="atlas-plan-error-distancia" class="atlas-plan-error" data-error="distancia"></small>
+      </div>
+      <div class="atlas-plan-form__campo">
+        <label for="atlas-plan-objetivo-tipo">Objetivo</label>
+        <select id="atlas-plan-objetivo-tipo" required><option value="marca">Marca</option><option value="finalizar">Finalizar</option></select>
+        <input id="atlas-plan-objetivo-tiempo" type="text" inputmode="text" placeholder="45:00 / 1:35:00" aria-label="Tiempo objetivo" aria-describedby="atlas-plan-error-objetivo">
+        <small id="atlas-plan-error-objetivo" class="atlas-plan-error" data-error="objetivo"></small>
+      </div>
+    </div>
+    <div class="atlas-plan-form__fila">
+      <div class="atlas-plan-form__campo">
+        <label for="atlas-plan-inicio">Fecha de inicio</label>
+        <input id="atlas-plan-inicio" type="date" required aria-describedby="atlas-plan-error-inicio">
+        <small id="atlas-plan-error-inicio" class="atlas-plan-error" data-error="inicio"></small>
+      </div>
+      <div class="atlas-plan-form__campo">
+        <label for="atlas-plan-carrera">Fecha de la carrera</label>
+        <input id="atlas-plan-carrera" type="date" required aria-describedby="atlas-plan-error-carrera">
+        <small id="atlas-plan-error-carrera" class="atlas-plan-error" data-error="carrera"></small>
+      </div>
+    </div>
+    <div id="atlas-plan-conflicto-principal" class="atlas-plan-form__conflicto" data-conflicto="principal" hidden></div>
+    <fieldset class="atlas-plan-form__bloque">
+      <legend>Disponibilidad</legend>
+      <div id="atlas-plan-dias-disponibles" class="atlas-plan-form__dias" aria-label="Días disponibles de lunes a domingo"></div>
+      <small class="atlas-plan-error" id="atlas-plan-error-disponibilidad" data-error="disponibilidad"></small>
+      <div id="atlas-plan-limites" class="atlas-plan-form__limites" hidden>
+        <p class="atlas-plan-form__nota">Tiempo disponible (minutos, opcional)</p>
+        <div id="atlas-plan-limites-dias" class="atlas-plan-form__fila"></div>
+      </div>
+      <div class="atlas-plan-form__campo">
+        <label for="atlas-plan-tirada">Día preferido de tirada larga</label>
+        <select id="atlas-plan-tirada"></select>
+        <small class="atlas-plan-error" data-error="tirada"></small>
+      </div>
+      <label class="atlas-plan-form__check"><input id="atlas-plan-fuerza" type="checkbox"><span>Incluir entrenamiento de fuerza</span></label>
+      <div id="atlas-plan-opciones-fuerza" hidden>
+        <div class="atlas-plan-form__fila">
+          <div class="atlas-plan-form__campo">
+            <label for="atlas-plan-gimnasio">Acceso a gimnasio</label>
+            <select id="atlas-plan-gimnasio"><option value="">Seleccionar</option><option value="si">Sí</option><option value="no">No</option></select>
+            <small class="atlas-plan-error" data-error="gimnasio"></small>
+          </div>
+          <div class="atlas-plan-form__campo">
+            <label for="atlas-plan-pref-fuerza">Día preferido de fuerza</label>
+            <select id="atlas-plan-pref-fuerza"></select>
+            <small class="atlas-plan-error" data-error="pref-fuerza"></small>
+          </div>
+        </div>
+        <div class="atlas-plan-form__campo">
+          <label for="atlas-plan-dobles">Sesiones dobles</label>
+          <select id="atlas-plan-dobles"><option value="sin_preferencia">Sin preferencia</option><option value="evitar">Evitar</option><option value="permitir_si_necesario">Permitir si es necesario</option></select>
+          <small class="atlas-plan-error" data-error="dobles"></small>
+        </div>
+      </div>
+    </fieldset>
+    <div class="atlas-plan-form__secundarias">
+      <div class="atlas-plan-form__cabecera">
+        <h3 class="atlas-hoy-seccion__titulo">Carreras secundarias</h3>
+        <button id="atlas-plan-secundaria-anadir" class="atlas-control-icon" type="button" aria-label="Añadir carrera secundaria" title="Añadir carrera secundaria"><svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+      <div id="atlas-plan-secundarias"></div>
+    </div>
+    <p id="atlas-plan-form-error" class="atlas-plan-error" data-error="general" role="alert"></p>
+    <div class="atlas-plan-form__acciones">
+      <button id="atlas-plan-guardar" class="atlas-plan-boton" type="submit">Guardar</button>
+      <button id="atlas-plan-cancelar" class="atlas-plan-boton atlas-plan-boton--rojo" type="button">Cancelar</button>
+    </div>
+  </form>
+</section>
 <main class="atlas-view atlas-hoy" aria-label="Pestaña Evolución" data-tab="evolucion" hidden>
   <div class="atlas-hoy__cabecera"><h2>Evolución</h2></div>
   <section id="atlas-evolucion-metricas" class="atlas-hoy-metricas atlas-divisiones-cortas" aria-label="Métricas de rendimiento">
@@ -746,7 +975,7 @@
     <div id="atlas-perfil-zapatillas" class="atlas-perfil-zapatillas"></div>
   </details>
   <details class="atlas-acordeon">
-    <summary><span class="atlas-hoy-seccion__titulo">🏃 Zonas de entrenamiento</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
+    <summary><span class="atlas-hoy-seccion__titulo">🏃🏻‍♂️ Zonas de entrenamiento</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
     <div id="atlas-perfil-zonas" class="atlas-perfil-zonas"></div>
   </details>
   <details class="atlas-acordeon">
@@ -812,7 +1041,7 @@
   <details class="atlas-acordeon">
     <summary><span class="atlas-hoy-seccion__titulo">ℹ️ Versión</span><span class="atlas-control-icon" aria-hidden="true"><svg class="atlas-icon" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></summary>
     <div class="atlas-ajustes__cuerpo">
-      <div class="atlas-ajustes__fila"><span>ATLAS</span><strong>v0.0.87</strong></div>
+      <div class="atlas-ajustes__fila"><span>ATLAS</span><strong>v0.0.92</strong></div>
       <div class="atlas-ajustes__fila"><span>Worker compatible</span><strong>v0.67</strong></div>
     </div>
   </details>
@@ -2091,7 +2320,7 @@
   const barra = document.getElementById('atlas-tabs');
   /* Tamaño ATLAS: ajustar SOLO la fuente, nunca el ancho de cada pestaña.
      Los cinco títulos comparten tamaño y conservan margen interior. */
-  function ajustarTamanoATLAS(etiquetas, contenedores, propiedadCSS, maximo = 15, minimo = 7) {
+  function ajustarTamanoATLAS(etiquetas, contenedores, propiedadCSS, maximo = 16, minimo = 7) {
     const paso = 0.25;
     const margenSeguridad = 5; // margen visual por lado, sin alterar el espacio asignado
     for (let tamaño = maximo; tamaño >= minimo; tamaño = Math.round((tamaño - paso) * 100) / 100) {
@@ -2265,16 +2494,19 @@
   // Un solo tamaño ATLAS por fila, medido contra los cinco datos reales.
   function ajustarFilaMetricas(contenedor) {
     if (!contenedor || !contenedor.clientWidth) return;
-    let dato=19, rotulo=12, info=10.5;
-    for (let i=0; i<26; i++) {
-      contenedor.style.setProperty("--atlas-metrica-dato", dato.toFixed(1)+"px");
-      contenedor.style.setProperty("--atlas-metrica-rotulo",rotulo.toFixed(1)+"px");
-      contenedor.style.setProperty("--atlas-metrica-info",info.toFixed(1)+"px");
-      const desborde = [...contenedor.querySelectorAll(
-        ".atlas-hoy-metrica__rotulo,.atlas-hoy-metrica__dato,.atlas-hoy-metrica__info")]
-        .some(el=>el.scrollWidth > el.clientWidth);
-      if (!desborde) break;
-      dato=Math.max(10,dato-.4);rotulo=Math.max(9,rotulo-.2);info=Math.max(8,info-.15);
+    // Cada nivel de información conserva un tamaño común, sin que un texto auxiliar
+    // obligue a reducir el valor principal o los rótulos de toda la fila.
+    for(const [clase,prop,max,min] of [
+      ['dato','--atlas-metrica-dato',22,10],
+      ['rotulo','--atlas-metrica-rotulo',14,9],
+      ['info','--atlas-metrica-info',12,8]
+    ]){
+      const elementos=[...contenedor.querySelectorAll('.atlas-hoy-metrica__'+clase)];
+      if(!elementos.length)continue;
+      for(let px=max;px>=min;px-=.25){
+        contenedor.style.setProperty(prop,px+'px');
+        if(elementos.every(n=>n.scrollWidth<=n.clientWidth+1))break;
+      }
     }
   }
   function ajustarTamanoMetricas() { ajustarFilaMetricas(CONTENEDOR_METRICAS); }
@@ -2962,6 +3194,25 @@
     const fecha=[...observaciones.keys()].filter(d=>observaciones.get(d).values.size===1).sort().at(-1);
     return fecha?{estado:'ok',segundos_km:[...observaciones.get(fecha).values][0],fecha}:null;
   };
+  // 5.9.4 — Lectura compartida de umbrales observados, misma prioridad y reglas de Evolución.
+  window.ATLASultimosUmbralesLocal=async()=>{
+    const ritmo=new Map(),fc=new Map(),today=dayNow(),validDay=d=>diaUmbralValido(d,today);
+    await ATLASDB.abrir();
+    await new Promise((done,fail)=>{
+      const store=ATLASDB.almacen('readonly'),tx=store.transaction;
+      for(const [familia,observaciones,isPace] of [['umbral_ritmo',ritmo,true],['umbral_fc',fc,false]]){
+        for(const [sufijo,prioridad] of [[':',1],['_diario:',2]]){
+          const prefijo='historico:dato:privada:'+familia+sufijo;
+          const req=store.openCursor(IDBKeyRange.bound(prefijo,prefijo+'\uffff'));
+          req.onsuccess=()=>{const c=req.result;if(!c)return;putThreshold(c.value?.datos?.bruto,observaciones,isPace,prioridad===2&&c.value?.datos?.calidad==='proyeccion_atlas'?3:prioridad,validDay);c.continue();};
+          req.onerror=()=>fail(req.error||Error('lectura_umbral'));
+        }
+      }
+      tx.oncomplete=done;tx.onabort=()=>fail(tx.error||Error('lectura_umbral_interrumpida'));
+    });
+    function ultimo(m,k){const fecha=[...m.keys()].filter(d=>m.get(d).values.size===1).sort().at(-1);return fecha?{[k]:[...m.get(fecha).values][0],fecha}:null;}
+    return {ritmo:ultimo(ritmo,'segundos_km'),fc:ultimo(fc,'ppm')};
+  };
   // 5.7.2 — Evolución: lectura local de las familias acreditadas, sin consultas ni escrituras.
   async function readEvolution(){
     const ticket=++evolutionRead, distances=new Map(), observations=new Map(), ids=new Set();
@@ -3338,14 +3589,14 @@
     el.style.whiteSpace='nowrap';
     el.style.overflowWrap='normal';
     el.style.textOverflow='clip';
-    let size=17;
+    let size=19;
     for (;size>=8;size-=.5) {
       el.style.setProperty('--atlas-actividad-titulo',size+'px');
       if (el.scrollWidth<=el.clientWidth+1) return;
     }
   }
   function ajustarDatos(el) {
-    let size=13;
+    let size=15;
     for (;size>=10;size-=.5) {
       el.style.setProperty('--atlas-actividad-dato',size+'px');
       if (el.scrollWidth<=el.clientWidth+1) return;
@@ -3657,7 +3908,7 @@
   }
   function ajustarDatosContexto() {
     if(!activo || !contextoDatos.clientWidth)return;
-    for(let px=15;px>=8;px-=.25){
+    for(let px=16;px>=8;px-=.25){
       contextoDatos.style.setProperty('--atlas-interior-dato',px+'px');
       if(contextoDatos.scrollWidth<=contextoDatos.clientWidth+1)break;
     }
@@ -3665,7 +3916,7 @@
   }
   function ajustarTitulo() {
     if (!activo || !titulo.clientWidth) return;
-    for (let px=29;px>=9;px-=.5) {
+    for (let px=31;px>=9;px-=.5) {
       titulo.style.setProperty('--atlas-interior-titulo',px+'px');
       if (titulo.scrollWidth<=titulo.clientWidth+1) break;
     }
@@ -3705,13 +3956,13 @@
       const rango=document.createRange();rango.selectNodeContents(n);
       return rango.getBoundingClientRect().width;
     };
-    for(let px=12;px>=9;px-=.25){
+    for(let px=14;px>=9;px-=.25){
       metricas.style.setProperty('--atlas-detalle-rotulo',px+'px');
       if([...metricas.querySelectorAll('.atlas-actividad-interior__metrica-titulo')]
         .every(n=>anchoTexto(n)<=n.parentElement.clientWidth-8))break;
     }
     // Tamaño ATLAS máximo común. Ritmo sólo muestra el valor; conserva márgenes.
-    for(let px=18;px>=11;px-=.25){
+    for(let px=20;px>=11;px-=.25){
       metricas.style.setProperty('--atlas-detalle-valor',px+'px');
       if([...metricas.querySelectorAll('.atlas-actividad-interior__metrica-valor')]
         .every(n=>anchoTexto(n)<=n.parentElement.clientWidth-10))break;
@@ -3850,7 +4101,7 @@
       return rango.getBoundingClientRect().width<=n.clientWidth-2;
     });
     let cabeBien=false;
-    const maxCabecera=13.5;
+    const maxCabecera=14.5;
     for(let px=maxCabecera;px>=10;px-=.25){
       vueltasTabla.style.setProperty('--atlas-vuelta-cabecera',px+'px');
       if(cabe()){cabeBien=true;break;}
@@ -3863,7 +4114,7 @@
         if(cabe())break;
       }
     }
-    for(let px=14;px>=10;px-=.25){
+    for(let px=15;px>=10;px-=.25){
       vueltasTabla.style.setProperty('--atlas-vuelta-letra',px+'px');
       if([...vueltasTabla.querySelectorAll('tbody td')].every(n=>n.scrollWidth<=n.clientWidth+1))break;
     }
@@ -5107,7 +5358,11 @@ const ATLASMOTOR=(()=>{
  const fechaAct=a=>String(a?.startTimeLocal??a?.startTimeGMT??'').slice(0,10);
  let activo=null,pausa=false,arrancado=false,promesa=null,vistasIntentadas=false;
  function comprobar(){if(pausa)throw Error('pausado');}
- function aviso(m){el('atlas-sync-estado').textContent=m;if(activo){el('atlas-hoy-sinc-estado').textContent=m;el('atlas-plan-sinc-estado').textContent=m;}}
+ function aviso(m=''){
+   for(const id of ['atlas-sync-estado','atlas-hoy-sinc-estado','atlas-plan-sinc-estado']){
+     const nodo=el(id);nodo.textContent=m;if(m)nodo.dataset.estado='error';else delete nodo.dataset.estado;
+   }
+ }
  function progreso(titulo,n=null,total=null){
    const box=el('atlas-sync-trabajo'),barra=el('atlas-sync-barra'),r=el('atlas-sync-relleno');
    box.hidden=false;el('atlas-sync-etapa').textContent=titulo;
@@ -5369,20 +5624,20 @@ const ATLASMOTOR=(()=>{
  async function ejecutar(modo='incremental',verificado=false){
    if(activo)return promesa??{estado:'ocupado'};
    if(modo==='incremental')arrancado=true;
-   activo=modo;pausa=false;vistasIntentadas=false;
+   activo=modo;pausa=false;vistasIntentadas=false;aviso();
    const circulares=[el('atlas-hoy-actualizar'),el('atlas-plan-actualizar')],controls=['atlas-hoy-actualizar','atlas-plan-actualizar','atlas-sync-importar','atlas-sync-actualizar','atlas-guardar','atlas-comprobar','atlas-worker','atlas-clave'].map(el);
    controls.forEach(b=>b.disabled=true);circulares.forEach(b=>b.classList.add('is-loading'));el('atlas-sync-pausar').hidden=false;el('atlas-sync-pausar').disabled=false;
    promesa=(async()=>{
      let estado='parcial',autorizado=false;
      try{
        const c=await ATLASACCESO.estado();if(!c.configurado){aviso('Configura el acceso en Ajustes.');return {estado:'sin_configurar'};}
-       aviso(modo==='historico'?'Importando datos de Garmin…':'Sincronizando con Garmin…');progreso('Conectando');
+       progreso('Conectando');
        const acceso=verificado?{estado:'autorizado'}:await ATLASACCESO.verificar();if(acceso.estado!=='autorizado')throw Error(acceso.estado);autorizado=true;
        if(modo==='historico'){await completo();}else await incremental();
-       estado=window.ATLASperfilParcial?'parcial':'completado';aviso(window.ATLASperfilParcial?'Datos guardados. Algunos campos de Perfil no se han confirmado.':modo==='historico'?'Importación finalizada.':'Sincronización completada.');
+       estado=window.ATLASperfilParcial?'parcial':'completado';if(window.ATLASperfilParcial)aviso('Algunos campos de Perfil no se han confirmado. Los datos guardados se conservan.');
        await meta('ultima_'+(modo==='historico'?'importacion':'sync'),{instante:Date.now()});
        return {estado};
-     }catch(e){estado=e.message==='pausado'?'detenido':'parcial';if(autorizado&&!pausa&&!vistasIntentadas&&!fatal(e))try{await vistas();}catch{}aviso(estado==='detenido'?'En pausa. Los datos guardados se conservan.':e.message==='worker_no_actualizado'?'Actualiza el Worker a v0.67 y vuelve a intentarlo.':/limite|cuota/i.test(e.message)?'Garmin ha limitado las consultas. Inténtalo más tarde; se conserva el avance.':'Sincronización incompleta. Puedes continuar; los datos guardados se conservan.');return {estado,motivo:String(e.message??'error')};}
+     }catch(e){estado=e.message==='pausado'?'detenido':'parcial';if(autorizado&&!pausa&&!vistasIntentadas&&!fatal(e))try{await vistas();}catch{}aviso(estado==='detenido'?'':e.message==='worker_no_actualizado'?'Actualiza el Worker a v0.67 y vuelve a intentarlo.':/limite|cuota/i.test(e.message)?'Garmin ha limitado las consultas. Inténtalo más tarde; se conserva el avance.':'Sincronización incompleta. Puedes continuar; los datos guardados se conservan.');return {estado,motivo:String(e.message??'error')};}
      finally{
        activo=null;promesa=null;controls.forEach(b=>b.disabled=false);circulares.forEach(b=>b.classList.remove('is-loading'));el('atlas-sync-pausar').hidden=true;el('atlas-sync-trabajo').hidden=true;
        try{await mostrarEstado();}catch{}window.dispatchEvent(new Event('atlas:sincronizacion:fin'));window.dispatchEvent(new Event('atlas:marcas:actualizadas'));
@@ -5394,7 +5649,7 @@ const ATLASMOTOR=(()=>{
  el('atlas-sync-actualizar').addEventListener('click',()=>void ejecutar());
  el('atlas-hoy-actualizar').addEventListener('click',()=>void ejecutar());
  el('atlas-plan-actualizar').addEventListener('click',()=>void ejecutar());
- el('atlas-sync-pausar').addEventListener('click',()=>{pausa=true;el('atlas-sync-pausar').disabled=true;aviso('Pausando tras la petición actual…');});
+ el('atlas-sync-pausar').addEventListener('click',()=>{pausa=true;el('atlas-sync-pausar').disabled=true;});
  window.addEventListener('atlas:ajustes:abiertos',()=>void mostrarEstado().catch(()=>{}));
  return Object.freeze({ejecutar,arrancar,enCurso:()=>!!activo,estadoActividad,mostrarEstado,inventario});
 })();
@@ -5441,7 +5696,7 @@ const ATLASMOTOR=(()=>{
     if(f.getUTCFullYear()!==g.getUTCFullYear())return a+' '+m+' '+y+' - '+b+' '+n+' '+z;
     return a+(m===n?'':' '+m)+' - '+b+' '+n+' '+z;
   }
-  let seleccion=null, cache=null, leyendo=false, error=false, ticket=0;
+  let seleccion=null, cache=null, leyendo=false, error=false, ticket=0,lecturaPlan=null;
   const intervaloValido=(a,b)=>diaValido(a)&&diaValido(b)&&a<=b;
   function normalizar(a,clave,actual){
     const id=Number(a?.activityId);
@@ -5480,19 +5735,24 @@ const ATLASMOTOR=(()=>{
     for(const f of filas){if(!porDia.has(f.dia))porDia.set(f.dia,[]);porDia.get(f.dia).push(f);}
     return {porDia,intervalos};
   }
-  function crearVacio(dia,mensaje){
+  function crearVacio(dia){
     const f=fecha(dia),fila=document.createElement('div');fila.className='atlas-actividad-externa';
     const cab=document.createElement('div');cab.className='atlas-actividad-externa__fecha';
     for(const [clase,valor] of [['diasemana',DIAS[f.getUTCDay()]],['dia',f.getUTCDate()],['mes',MESES[f.getUTCMonth()]]]){
       const s=document.createElement('span');s.className='atlas-actividad-externa__fecha-'+clase;s.textContent=valor;cab.append(s);
     }
-    const contenido=document.createElement('div');contenido.className='atlas-actividad-externa__contenido atlas-plan__vacio';contenido.textContent=mensaje;
+    const contenido=document.createElement('div');contenido.className='atlas-actividad-externa__contenido atlas-plan__vacio';contenido.setAttribute('aria-hidden','true');
     fila.append(cab,contenido);return fila;
   }
   function contador(id,valor,info,unidad=''){
     const v=el(id);v.textContent=valor;
     if(unidad&&valor!=='—'){const u=document.createElement('span');u.className='unidad';u.textContent=' '+unidad;v.append(u);}
-    el(id+'-info').textContent=info;
+    const parcial=info==='Datos parciales'&&valor!=='—';
+    if(parcial){const marca=document.createElement('span');marca.className='atlas-plan__parcial';marca.textContent='*';marca.setAttribute('aria-hidden','true');v.append(marca);}
+    // Dos líneas visibles, sin subrótulos. El estado de cobertura sigue disponible en accesibilidad.
+    const detalle=(valor==='—'?'Sin valor confirmado':valor+(unidad?' '+unidad:''))+(info?' · '+info:'');
+    v.title=detalle;v.setAttribute('aria-label',detalle);
+    return parcial;
   }
   function representar(){
     if(vista.hidden)return;
@@ -5501,7 +5761,7 @@ const ATLASMOTOR=(()=>{
     seleccion=inicio;
     const fin=sumar(inicio,6), diferencia=Math.round((+fecha(inicio)-+fecha(actualLunes))/(7*DIA));
     el('atlas-plan-fechas').textContent=tramo(inicio);
-    el('atlas-plan-relativa').textContent=diferencia===0?'Esta semana':diferencia===-1?'Semana anterior':diferencia===1?'Próxima semana':diferencia<0?'Hace '+(-diferencia)+' semanas':'Dentro de '+diferencia+' semanas';
+    el('atlas-plan-relativa').textContent=relativa(inicio);
     el('atlas-plan-volver').hidden=diferencia===0;
     el('atlas-plan-anterior').disabled=!semanaValida(sumar(inicio,-7));
     el('atlas-plan-siguiente').disabled=!semanaValida(sumar(inicio,7));
@@ -5529,7 +5789,11 @@ const ATLASMOTOR=(()=>{
         fila.append(ficha);sesiones++;
         if(f.carrera){if(f.metros===null)distanciaIncompleta=true;else metros+=f.metros;}
       }
-      if(!visibles.length)fila.append(crearVacio(d,futuro?'Día futuro':hayCobertura?'Sin actividad registrada':!cache&&leyendo?'Consultando datos…':'Sin datos'));
+      if(!visibles.length){
+        fila.append(crearVacio(d));
+        // La ausencia queda visualmente vacía. Mantener la semántica para accesibilidad y cobertura.
+        fila.setAttribute('aria-label',d+(d===actual?' · Hoy':'')+' · '+(futuro?'Día futuro':hayCobertura?'Sin actividad registrada':'Sin datos'));
+      }
       fragment.append(fila);
     }
     // Un respaldo GMT en el límite de la semana podría pertenecer al día local vecino.
@@ -5539,20 +5803,49 @@ const ATLASMOTOR=(()=>{
     const totalConfirmado=transcurridos>0&&cubiertos===transcurridos;
     const hayEvidencia=sesiones>0||cubiertos>0;
     const num=n=>n>0&&n<.005?'< 0,01':n.toLocaleString('es-ES',{maximumFractionDigits:2});
-    const estado=parcial=>transcurridos===0?'Semana futura':!cache&&leyendo?'Consultando…':parcial||error&&cache?'Datos parciales':!hayEvidencia?'Sin datos':diferencia===0?'Hasta hoy':'';
+    const estado=parcial=>transcurridos===0?'Semana futura':!cache&&leyendo?'Lectura pendiente':parcial?'Datos parciales':!hayEvidencia?'Sin datos':'';
     const sesCompleto=totalConfirmado&&!atribucionIncierta, kmCompleto=totalConfirmado&&!distanciaIncompleta&&!atribucionKmIncierta;
-    contador('atlas-plan-sesiones',transcurridos>0&&(sesiones>0||sesCompleto)?String(sesiones):'—',estado(!sesCompleto&&(hayEvidencia||atribucionIncierta))||'Registradas');
-    contador('atlas-plan-realizados',transcurridos>0&&(metros>0||kmCompleto)?num(metros/1000):'—',estado(!kmCompleto&&(hayEvidencia||distanciaIncompleta||atribucionKmIncierta))||'Registrados','km');
+    const parcialSes=contador('atlas-plan-sesiones',transcurridos>0&&(sesiones>0||sesCompleto)?String(sesiones):'—',estado(!sesCompleto&&(hayEvidencia||atribucionIncierta)));
+    const parcialKm=contador('atlas-plan-realizados',transcurridos>0&&(metros>0||kmCompleto)?num(metros/1000):'—',estado(!kmCompleto&&(hayEvidencia||distanciaIncompleta||atribucionKmIncierta)),'km');
     el('atlas-plan-dias').replaceChildren(fragment);
-    el('atlas-plan-lectura').textContent=error?(cache?'No se pudo actualizar la lectura local. Se conservan los últimos datos leídos.':'No se pudieron leer las actividades locales.'):leyendo?'Consultando actividades guardadas…':atribucionIncierta&&transcurridos?'Hay actividades con fecha local no confirmada.':'';
+    const notas=[];
+    if(parcialSes||parcialKm)notas.push('* Recuento parcial.');
+    if(error)notas.push(cache?'No se pudo actualizar la lectura local. Se conservan los últimos datos leídos.':'No se pudieron leer las actividades locales.');
+    else if(atribucionIncierta&&transcurridos)notas.push('Hay actividades con fecha local no confirmada.');
+    el('atlas-plan-lectura').textContent=notas.join(' ');
     requestAnimationFrame(()=>{window.ATLASajustarFilaMetricas(el('atlas-plan-contadores'));shared.reajustarFichasExternas(vista);});
   }
-  async function cargar(){
+  function relativa(inicio){
+    const diferencia=Math.round((+fecha(inicio)-+fecha(lunes(hoy())))/(7*DIA));
+    return diferencia===0?'Esta semana':diferencia===-1?'Semana anterior':diferencia===1?'Próxima semana':diferencia<0?'Hace '+(-diferencia)+' semanas':'Dentro de '+diferencia+' semanas';
+  }
+  async function cargarLocal(){
     const token=++ticket;leyendo=true;representar();
     try{const datos=await leerLocales();if(token!==ticket)return;cache=datos;error=false;}
     catch{if(token!==ticket)return;error=true;}
     finally{if(token===ticket){leyendo=false;representar();}}
   }
+  function cargar(){lecturaPlan=cargarLocal();return lecturaPlan;}
+  async function estadoLocal(){
+    if(!lecturaPlan)await cargar();else {let p;do{p=lecturaPlan;await p;}while(p!==lecturaPlan);}
+    const actual=hoy();
+    function ventana(n,maximo){
+      const desde=sumar(actual,1-n);let valor=0,completo=!!cache&&!error,evidencia=false,observadas=0;
+      for(let i=0;i<n;i++){
+        const d=sumar(desde,i),cobertura=!!cache?.intervalos.some(([a,b])=>a<=d&&d<=b)&&!error;
+        evidencia=evidencia||cobertura;completo=completo&&cobertura;
+        for(const f of cache?.porDia.get(d)??[])if(f.carrera){
+          evidencia=true;
+          if(f.respaldo||f.metros===null||!Number.isFinite(f.metros)||f.metros<0){completo=false;continue;}
+          if(f.metros>0){observadas++;valor=maximo?Math.max(valor,f.metros):valor+f.metros;}
+        }
+      }
+      for(const d of [sumar(desde,-1),sumar(actual,1)])if((cache?.porDia.get(d)??[]).some(f=>f.carrera&&f.respaldo)){completo=false;evidencia=true;}
+      return {metros:observadas||(!maximo&&completo)?valor:null,estado:completo?'':evidencia?'Datos parciales':'Sin datos'};
+    }
+    return {volumen:ventana(7,false),maxima:ventana(28,true)};
+  }
+  window.ATLASplanCalendario=Object.freeze({lunes,sumar,tramo,crearVacio,relativa,estadoLocal});
   function mover(n){const d=sumar(seleccion??lunes(hoy()),7*n);if(semanaValida(d)){seleccion=d;representar();}}
   el('atlas-plan-anterior').addEventListener('click',()=>mover(-1));
   el('atlas-plan-siguiente').addEventListener('click',()=>mover(1));
@@ -5560,6 +5853,750 @@ const ATLASMOTOR=(()=>{
   window.addEventListener('atlas:pestana:abierta',e=>{if(e.detail.nombre==='plan'){if(seleccion===null)seleccion=lunes(hoy());void cargar();}});
   window.addEventListener('atlas:sincronizacion:fin',()=>{if(!vista.hidden)void cargar();});
   window.addEventListener('resize',()=>{if(!vista.hidden)requestAnimationFrame(()=>window.ATLASajustarFilaMetricas(el('atlas-plan-contadores')));});
+})();
+</script>
+<script id="atlas-plan-configuracion-modelo">
+/* 5.9.3 — Contrato local de configuración. Nada de prescripción ni de Garmin. */
+const ATLASPLANCONFIG = (() => {
+  'use strict';
+  const REF='plan:v1:activo', PREF='plan:v1:config:', CONTRATO=1;
+  const DISTANCIAS=Object.freeze([5000,10000,21097.5,42195]);
+  const DIAS=Object.freeze(['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo']);
+  const DOBLES=['evitar','permitir_si_necesario','sin_preferencia'], IMPORTANCIAS=['entrenamiento','test','competicion'];
+  const CAMPOS=['nombre','inicio','carrera','distancia_m','objetivo','disponibilidad','preferencias','fuerza','secundarias','excepciones','confirmaciones'];
+  const copiar=o=>JSON.parse(JSON.stringify(o)), objeto=o=>o!==null&&typeof o==='object'&&!Array.isArray(o);
+  const igual=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
+  const texto=(v,max=160)=>typeof v==='string'&&v.trim().length>0&&v.trim().length<=max;
+  const int=(v,min,max)=>Number.isSafeInteger(v)&&v>=min&&v<=max;
+  const dia=d=>{
+    if(typeof d!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(d)||d.slice(0,4)==='0000')return false;
+    const f=new Date(d+'T00:00:00Z');return Number.isFinite(+f)&&f.toISOString().slice(0,10)===d;
+  };
+  function hoy(instante=Date.now()){
+    const f=new Date(instante);return String(f.getFullYear()).padStart(4,'0')+'-'+String(f.getMonth()+1).padStart(2,'0')+'-'+String(f.getDate()).padStart(2,'0');
+  }
+  const diaSemana=d=>(new Date(d+'T00:00:00Z').getUTCDay()+6)%7;
+  function idNuevo(){
+    if(typeof crypto.randomUUID==='function')return crypto.randomUUID();
+    const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;
+    const h=Array.from(b,n=>n.toString(16).padStart(2,'0')).join('');
+    return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);
+  }
+  const idValido=id=>typeof id==='string'&&/^[a-zA-Z0-9-]{8,80}$/.test(id);
+  const claveConfirmacion=(id,fecha)=>id+'|'+fecha;
+  function parseTiempo(v){
+    if(typeof v!=='string')return null;const t=v.trim();
+    if(!/^(?:\d+:[0-5]\d|\d+:[0-5]\d:[0-5]\d)$/.test(t))return null;
+    const p=t.split(':').map(Number);let segundos=0;
+    for(const n of p)segundos=segundos*60+n;
+    return Number.isSafeInteger(segundos)&&segundos>0?segundos:null;
+  }
+  function mostrarTiempo(s){
+    if(!int(s,1,Number.MAX_SAFE_INTEGER))return '';
+    const h=Math.floor(s/3600),m=Math.floor(s%3600/60),ss=String(s%60).padStart(2,'0');
+    return h?h+':'+String(m).padStart(2,'0')+':'+ss:m+':'+ss;
+  }
+  function objetivoValido(o,opcional=false){return opcional&&o===null||objeto(o)&&
+    (o.tipo==='finalizar'&&o.segundos===null||o.tipo==='marca'&&int(o.segundos,1,Number.MAX_SAFE_INTEGER));}
+  function disponibilidadValida(a,permitirCero=false){
+    return Array.isArray(a)&&a.length===7&&a.every(v=>objeto(v)&&typeof v.disponible==='boolean'&&
+      (v.limite_s===null||v.disponible&&int(v.limite_s,1,86400)))&&(permitirCero||a.some(x=>x.disponible));
+  }
+  const preferenciaValida=d=>d===null||int(d,0,6);
+  function validosCampos(c,id){
+    if(!objeto(c)||!texto(c.nombre)||!dia(c.inicio)||!dia(c.carrera)||c.carrera<=c.inicio||!DISTANCIAS.includes(c.distancia_m)||
+      !objetivoValido(c.objetivo)||!disponibilidadValida(c.disponibilidad))return false;
+    const p=c.preferencias,f=c.fuerza;
+    if(!objeto(p)||!preferenciaValida(p.tiradaLarga)||!preferenciaValida(p.fuerza)||!objeto(f)||typeof f.habilitada!=='boolean'||
+      !DOBLES.includes(f.dobles)||!(f.habilitada?typeof f.gimnasio==='boolean':f.gimnasio===null&&p.fuerza===null&&f.dobles==='sin_preferencia'))return false;
+    if(!Array.isArray(c.secundarias)||!objeto(c.excepciones)||!Array.isArray(c.confirmaciones))return false;
+    const ids=new Set([id]),fechas=new Set([c.carrera]),carreras=new Map([[id,c.carrera]]);
+    for(const x of c.secundarias){
+      if(!objeto(x)||!idValido(x.id)||ids.has(x.id)||!texto(x.nombre)||!DISTANCIAS.includes(x.distancia_m)||!objetivoValido(x.objetivo,true)||
+        !dia(x.fecha)||x.fecha<c.inicio||x.fecha>=c.carrera||fechas.has(x.fecha)||!IMPORTANCIAS.includes(x.importancia))return false;
+      ids.add(x.id);fechas.add(x.fecha);carreras.set(x.id,x.fecha);
+    }
+    const confirmadas=new Set();
+    for(const x of c.confirmaciones){
+      if(!objeto(x)||carreras.get(x.id)!==x.fecha||!dia(x.fecha)||confirmadas.has(claveConfirmacion(x.id,x.fecha)))return false;
+      confirmadas.add(claveConfirmacion(x.id,x.fecha));
+    }
+    for(const [k,v] of Object.entries(c.excepciones))if(!semanaEnPlan(c,k)||!objeto(v)||!disponibilidadValida(v.dias,true)||!dia(v.efectivaDesde)||v.efectivaDesde<k||v.efectivaDesde>sumar(k,6))return false;
+    return true;
+  }
+  function configValida(c){
+    if(!objeto(c)||c.contrato!==CONTRATO||!idValido(c.id)||!int(c.revision,1,Number.MAX_SAFE_INTEGER)||
+      !['activo','archivado'].includes(c.estado)||!int(c.creadoEn,0,Number.MAX_SAFE_INTEGER)||!int(c.modificadoEn,c.creadoEn,Number.MAX_SAFE_INTEGER)||
+      !dia(c.creadoDia)||!dia(c.efectivaDesde)||c.inicio<c.creadoDia||c.carrera<=c.creadoDia||
+      !validosCampos(c,c.id)||!Array.isArray(c.historialConfiguracion))return false;
+    if(c.estado==='archivado'&&!int(c.archivadoEn,c.creadoEn,Number.MAX_SAFE_INTEGER))return false;
+    let revision=0,efectiva='';
+    for(const h of c.historialConfiguracion){
+      if(!objeto(h)||!int(h.revision,1,c.revision-1)||h.revision<=revision||!dia(h.efectivaDesde)||h.efectivaDesde<efectiva||h.efectivaDesde>c.efectivaDesde||
+        !int(h.modificadoEn,c.creadoEn,c.modificadoEn)||!validosCampos(h,c.id))return false;
+      revision=h.revision;efectiva=h.efectivaDesde;
+    }
+    return c.historialConfiguracion.length===c.revision-1;
+  }
+  function borrador(base=null){
+    const objetivo=o=>({tipo:o?.tipo??'',tiempo:o?.tipo==='marca'?mostrarTiempo(o.segundos):''});
+    const disp=d=>({disponible:d.disponible,minutos:d.limite_s===null?'':String(d.limite_s/60)});
+    return {
+      nombre:base?.nombre??'',distancia:base?String(base.distancia_m):'',objetivo:base?objetivo(base.objetivo):{tipo:'marca',tiempo:''},inicio:base?.inicio??hoy(),carrera:base?.carrera??'',
+      disponibilidad:base?base.disponibilidad.map(disp):DIAS.map(()=>({disponible:false,minutos:''})),
+      preferencias:{tiradaLarga:base?.preferencias.tiradaLarga==null?'':String(base.preferencias.tiradaLarga),fuerza:base?.preferencias.fuerza==null?'':String(base.preferencias.fuerza)},
+      fuerza:base?{habilitada:base.fuerza.habilitada,gimnasio:base.fuerza.gimnasio===null?'':base.fuerza.gimnasio?'si':'no',dobles:base.fuerza.dobles}:{habilitada:false,gimnasio:'',dobles:'sin_preferencia'},
+      secundarias:base?base.secundarias.map(x=>({id:x.id,nombre:x.nombre,distancia:String(x.distancia_m),objetivo:objetivo(x.objetivo),fecha:x.fecha,importancia:x.importancia})):[],
+      confirmaciones:base?copiar(base.confirmaciones):[]
+    };
+  }
+  function analizar(raw,base=null,actual=hoy()){
+    const errores=[],conflictos=[],err=(campo,mensaje)=>errores.push({campo,mensaje});
+    const principal=base?.id??'principal';
+    const nombre=(v,c)=>{if(!texto(v))err(c,'Introduce un nombre válido (máximo 160 caracteres).');return typeof v==='string'?v.trim():'';};
+    const distancia=(v,c)=>{const n=Number(v);if(!DISTANCIAS.includes(n))err(c,'Selecciona una distancia.');return n;};
+    function objetivo(o,c,opcional=false){
+      if(opcional&&o?.tipo==='')return null;
+      if(o?.tipo==='finalizar')return {tipo:'finalizar',segundos:null};
+      if(o?.tipo==='marca'){
+        const segundos=parseTiempo(o.tiempo);if(segundos===null)err(c,'Introduce una marca válida: 45:00 o 1:35:00.');
+        return {tipo:'marca',segundos};
+      }
+      err(c,'Selecciona un objetivo.');return null;
+    }
+    function preferencia(v,c){
+      if(v==='')return null;const n=Number(v);if(!preferenciaValida(n)){err(c,'Selecciona un día válido.');return null;}return n;
+    }
+    const inicio=raw.inicio,carrera=raw.carrera,creadoDia=base?.creadoDia??actual;
+    if(!dia(inicio))err('inicio','Selecciona una fecha de inicio válida.');
+    else if(base?.inicio<=actual&&inicio!==base.inicio)err('inicio','No se puede cambiar el inicio de un plan ya iniciado.');
+    else if((!base||base.inicio>actual)&&inicio<actual)err('inicio','El inicio no puede ser anterior a hoy.');
+    if(!dia(carrera))err('carrera','Selecciona una fecha de carrera válida.');
+    else if(dia(inicio)&&carrera<=inicio||carrera<=creadoDia)err('carrera','La carrera debe ser posterior al inicio y a la creación.');
+    else if(carrera<actual)err('carrera','No se puede finalizar el plan antes de hoy.');
+    if(base&&base.carrera<actual)err('general','El plan concluido solo se puede consultar o retirar.');
+    const disponibilidad=DIAS.map((_,i)=>{
+      const d=raw.disponibilidad?.[i],disponible=d?.disponible===true;
+      let limite_s=null;
+      if(disponible&&d.minutos!==''){
+        const m=Number(d.minutos),seg=m*60;
+        if(!/^\d+(?:\.\d+)?$/.test(String(d.minutos))||!int(seg,1,86400))err('dia-'+i,'Indica un tiempo positivo de hasta 1440 minutos.');
+        else limite_s=seg;
+      }
+      return {disponible,limite_s};
+    });
+    if(!disponibilidad.some(d=>d.disponible))err('disponibilidad','Selecciona al menos un día disponible.');
+    const habilitada=raw.fuerza?.habilitada===true;
+    const fuerza={habilitada,gimnasio:habilitada?(raw.fuerza.gimnasio==='si'?true:raw.fuerza.gimnasio==='no'?false:null):null,dobles:habilitada?raw.fuerza.dobles:'sin_preferencia'};
+    if(habilitada&&fuerza.gimnasio===null)err('gimnasio','Indica si tienes acceso a un gimnasio.');
+    if(!DOBLES.includes(fuerza.dobles))err('dobles','Selecciona una preferencia válida.');
+    const preferencias={tiradaLarga:preferencia(raw.preferencias?.tiradaLarga,'tirada'),fuerza:habilitada?preferencia(raw.preferencias?.fuerza,'pref-fuerza'):null};
+    const datos={nombre:nombre(raw.nombre,'nombre'),distancia_m:distancia(raw.distancia,'distancia'),objetivo:objetivo(raw.objetivo,'objetivo'),inicio,carrera,disponibilidad,preferencias,fuerza,
+      secundarias:[],excepciones:copiar(base?.excepciones??{}),confirmaciones:[]};
+    if(dia(inicio)&&dia(carrera))for(const k of Object.keys(datos.excepciones))if(!semanaEnPlan(datos,k))delete datos.excepciones[k];
+    const fechas=new Map(),ids=new Set([principal]),anteriores=new Map((base?.secundarias??[]).map(x=>[x.id,x]));
+    if(dia(carrera))fechas.set(carrera,'carrera');
+    for(const x of raw.secundarias??[]){
+      const k='sec-'+x.id+'-',p=anteriores.get(x.id);
+      if(!idValido(x.id)||ids.has(x.id)){err('general','Hay una carrera secundaria con identidad no válida.');continue;}ids.add(x.id);
+      const item={id:x.id,nombre:nombre(x.nombre,k+'nombre'),distancia_m:distancia(x.distancia,k+'distancia'),objetivo:objetivo(x.objetivo,k+'objetivo',true),fecha:x.fecha,importancia:x.importancia};
+      if(!dia(item.fecha))err(k+'fecha','Selecciona una fecha válida.');
+      else {
+        if(!dia(inicio)||!dia(carrera)||item.fecha<inicio||item.fecha>=carrera)err(k+'fecha','Debe estar dentro del plan y antes de la carrera principal.');
+        if(item.fecha<actual&&(!p||p.fecha!==item.fecha))err(k+'fecha','No puedes añadir ni desplazar una carrera a una fecha pasada.');
+        if(fechas.has(item.fecha)){err(k+'fecha','Ya hay una carrera en esta fecha.');if(fechas.get(item.fecha)==='carrera')err('carrera','Coincide con una carrera secundaria.');}
+        else fechas.set(item.fecha,k+'fecha');
+      }
+      if(!IMPORTANCIAS.includes(item.importancia))err(k+'importancia','Selecciona una importancia.');
+      if(p?.fecha<actual&&!igual(item,p))err(k+'fecha','Una carrera ya transcurrida no se puede modificar.');
+      datos.secundarias.push(item);
+    }
+    for(const p of anteriores.values())if(p.fecha<actual&&!ids.has(p.id))err('general','No puedes retirar carreras secundarias ya transcurridas.');
+    const confirmadas=new Set((raw.confirmaciones??[]).filter(x=>objeto(x)&&dia(x.fecha)).map(x=>claveConfirmacion(x.id,x.fecha)));
+    const carreras=[{id:principal,fecha:carrera,campo:'carrera',nombre:datos.nombre},...datos.secundarias.map(x=>({...x,campo:'sec-'+x.id+'-fecha'}))];
+    for(const x of carreras){
+      if(!dia(x.fecha))continue;
+      if(x.fecha<actual){
+        // Historial: no se reevalúa la disponibilidad ordinaria de fechas que ya pasaron.
+        if(base?.confirmaciones.some(c=>c.id===x.id&&c.fecha===x.fecha))datos.confirmaciones.push({id:x.id,fecha:x.fecha});
+        continue;
+      }
+      if(!dia(inicio)||!dia(carrera)||x.fecha<inicio||x.fecha>carrera)continue;
+      const i=diaSemana(x.fecha);
+      if(disponibilidadEnConfiguracion(datos,x.fecha).disponible)continue;
+      const confirmada=confirmadas.has(claveConfirmacion(x.id,x.fecha));
+      conflictos.push({id:x.id,fecha:x.fecha,campo:x.campo,dia:DIAS[i],confirmada});
+      if(confirmada)datos.confirmaciones.push({id:x.id,fecha:x.fecha});
+      else err(x.campo,'Confirma la excepción de disponibilidad o modifica los días disponibles.');
+    }
+    return {datos,errores,conflictos};
+  }
+  function snapshot(c){
+    const s={revision:c.revision,efectivaDesde:c.efectivaDesde,modificadoEn:c.modificadoEn};
+    for(const k of CAMPOS)s[k]=copiar(c[k]);
+    return s;
+  }
+  const envoltura=(clave,tipo,datos)=>({clave,tipo,origen:'ATLAS',datos});
+  function error(codigo,mensaje){const e=new Error(mensaje);e.codigo=codigo;return e;}
+  function corrompido(){return error('registro_invalido','No se puede leer la configuración del plan. No se ha modificado ningún dato.');}
+  function conflicto(){return error('revision','El plan ha cambiado en otra ventana. Cancela y vuelve a abrirlo para consultar la versión actual.');}
+  function vigentes(c){return c&&c.estado==='activo';}
+  async function transaccion(modo,trabajo){
+    await ATLASDB.abrir();
+    return new Promise((ok,fail)=>{
+      let tx,fallo,resultado;
+      const abortar=e=>{fallo=e;try{tx.abort();}catch{fail(e);}};
+      try{
+        const st=ATLASDB.almacen(modo);tx=st.transaction;
+        tx.oncomplete=()=>ok(resultado);
+        tx.onabort=()=>fail(fallo||tx.error||Error('Transacción de Plan interrumpida.'));
+        const seguro=f=>()=>{try{f();}catch(e){abortar(e);}};
+        const obtener=(clave,result)=>{
+          const req=st.get(clave);req.onsuccess=seguro(()=>result(req.result));
+        };
+        const activo=callback=>obtener(REF,r=>{
+          if(r===undefined){
+            // Sin referencia solo hay ausencia real si no existe una configuración activa huérfana.
+            const req=st.openCursor(IDBKeyRange.bound(PREF,PREF+'\uffff'));
+            req.onsuccess=seguro(()=>{
+              const cursor=req.result;if(!cursor){callback(null);return;}
+              const v=cursor.value;
+              if(!objeto(v)||v.tipo!=='plan:configuracion'||v.origen!=='ATLAS'||!configValida(v.datos)||v.clave!==PREF+v.datos.id||v.datos.estado!=='archivado')throw corrompido();
+              cursor.continue();
+            });return;
+          }
+          if(!objeto(r)||r.clave!==REF||r.tipo!=='plan:referencia'||r.origen!=='ATLAS'||!idValido(r.datos?.id))throw corrompido();
+          obtener(PREF+r.datos.id,v=>{
+            if(!objeto(v)||v.clave!==PREF+r.datos.id||v.tipo!=='plan:configuracion'||v.origen!=='ATLAS'||!configValida(v.datos)||v.datos.id!==r.datos.id||!vigentes(v.datos))throw corrompido();
+            callback(v.datos);
+          });
+        });
+        trabajo({st,activo,salida:v=>{resultado=v;},seguro});
+      }catch(e){if(tx)abortar(e);else fail(e);}
+    });
+  }
+  function guardarRegistro(st,c,nuevo){
+    if(!configValida(c))throw corrompido();
+    const op=nuevo?'add':'put';
+    st[op](envoltura(PREF+c.id,'plan:configuracion',c));
+    st[op](envoltura(REF,'plan:referencia',{id:c.id}));
+  }
+  function revisar(raw,base,actual){
+    const r=analizar(raw,base,actual);
+    if(r.errores.length){const e=error('validacion','Revisa los campos del formulario.');e.errores=r.errores;throw e;}
+    return r.datos;
+  }
+  function leer(){return transaccion('readonly',({activo,salida})=>activo(salida));}
+  function crear(raw){
+    return transaccion('readwrite',({st,activo,salida})=>activo(c=>{
+      if(c)throw error('plan_activo','Ya existe un plan activo. Edítalo o retíralo antes de crear otro.');
+      const now=Date.now(),actual=hoy(now),d=revisar(raw,null,actual),id=idNuevo();
+      d.confirmaciones=d.confirmaciones.map(x=>({id:x.id==='principal'?id:x.id,fecha:x.fecha}));
+      const cfg={id,contrato:CONTRATO,revision:1,estado:'activo',creadoEn:now,creadoDia:actual,modificadoEn:now,efectivaDesde:actual,...d,historialConfiguracion:[]};
+      guardarRegistro(st,cfg,true);salida(copiar(cfg));
+    }));
+  }
+  function editar(id,revision,raw){
+    return transaccion('readwrite',({st,activo,salida})=>activo(c=>{
+      if(!c||c.id!==id||c.revision!==revision)throw conflicto();
+      const now=Math.max(Date.now(),c.modificadoEn),actual=hoy(),d=revisar(raw,c,actual);
+      if(CAMPOS.every(k=>igual(c[k],d[k]))){salida(copiar(c));return;}
+      const cfg={...c,...d,revision:c.revision+1,modificadoEn:now,efectivaDesde:actual<c.efectivaDesde?c.efectivaDesde:actual,historialConfiguracion:[...c.historialConfiguracion,snapshot(c)]};
+      guardarRegistro(st,cfg,false);salida(copiar(cfg));
+    }));
+  }
+  function retirar(id,revision){
+    return transaccion('readwrite',({st,activo,salida})=>activo(c=>{
+      if(!c||c.id!==id||c.revision!==revision)throw conflicto();
+      const now=Math.max(Date.now(),c.modificadoEn),actual=hoy();
+      const cfg={...c,estado:'archivado',revision:c.revision+1,modificadoEn:now,archivadoEn:now,efectivaDesde:actual<c.efectivaDesde?c.efectivaDesde:actual,historialConfiguracion:[...c.historialConfiguracion,snapshot(c)]};
+      if(!configValida(cfg))throw corrompido();
+      st.put(envoltura(PREF+cfg.id,'plan:configuracion',cfg));st.delete(REF);salida(copiar(cfg));
+    }));
+  }
+  // 5.9.4 — Excepciones por semana y revisión efectiva por fecha local.
+  function sumar(d,n){
+    if(!dia(d))return null;const str=new Date(Date.parse(d+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);
+    return dia(str)?str:null;
+  }
+  const lunes=d=>dia(d)?sumar(d,-diaSemana(d)):null;
+  const semanaEnPlan=(c,l)=>dia(l)&&diaSemana(l)===0&&sumar(l,6)!==null&&l<=c.carrera&&sumar(l,6)>=c.inicio;
+  function semanaInicial(c,actual=hoy()){
+    const primero=lunes(c.inicio),ultimo=lunes(c.carrera),ahora=lunes(actual);
+    return ahora<primero?primero:ahora>ultimo?ultimo:ahora;
+  }
+  const numeroSemana=(c,l)=>1+Math.round((Date.parse(l)-Date.parse(lunes(c.inicio)))/604800000);
+  function revisionEnFecha(c,d){
+    return [...c.historialConfiguracion,c].reverse().find(r=>r.efectivaDesde<=d)??null;
+  }
+  function disponibilidadEnConfiguracion(c,d){
+    const e=c.excepciones?.[lunes(d)];
+    return e&&e.efectivaDesde<=d?{...e.dias[diaSemana(d)],personalizada:true}:{...c.disponibilidad[diaSemana(d)],personalizada:false};
+  }
+  function semana(c,l,actual=hoy()){
+    if(!semanaEnPlan(c,l))return [];
+    return DIAS.map((_,i)=>{
+      const fecha=sumar(l,i),dentro=fecha>=c.inicio&&fecha<=c.carrera,editable=dentro&&fecha>=actual;
+      const r=editable?c:revisionEnFecha(c,fecha);
+      const v=dentro&&r&&fecha>=r.inicio&&fecha<=r.carrera?disponibilidadEnConfiguracion(r,fecha):{disponible:false,limite_s:null,personalizada:false};
+      return {fecha,dentro,editable,...v};
+    });
+  }
+  const semanaBorrador=(c,l,actual=hoy())=>semana(c,l,actual).map(v=>({disponible:v.disponible,minutos:v.limite_s===null?'':String(v.limite_s/60)}));
+  function analizarSemana(c,l,raw,solicitudes=[],restablecer=false,actual=hoy()){
+    const errores=[],conflictos=[],err=(campo,mensaje)=>errores.push({campo,mensaje});
+    const dias=semana(c,l,actual),excepciones=copiar(c.excepciones),confirmaciones=[];
+    if(!dias.length||!dias.some(x=>x.editable)){err('general','Esta semana no tiene días editables.');return {errores,conflictos};}
+    if(!Array.isArray(raw)||raw.length!==7){err('general','La disponibilidad debe contener siete días.');return {errores,conflictos};}
+    if(restablecer&&!excepciones[l])err('general','No hay una excepción que restablecer.');
+    const normal=dias.map((v,i)=>{
+      const d=raw[i],prev={disponible:v.disponible,limite_s:v.limite_s};
+      if(!v.editable){
+        if(d?.disponible!==prev.disponible||String(d?.minutos??'')!==(prev.limite_s===null?'':String(prev.limite_s/60)))err('dia-'+i,'Este día ya no es editable.');
+        return prev;
+      }
+      if(restablecer)return {...c.disponibilidad[i]};
+      if(!objeto(d)||typeof d.disponible!=='boolean'){err('dia-'+i,'Indica una disponibilidad válida.');return prev;}
+      let limite_s=null;
+      if(d.disponible&&d.minutos!==''){
+        const n=Number(d.minutos)*60;
+        // Permite recuperar sin pérdida los segundos guardados aunque la representación decimal sea periódica.
+        const seg=Math.round(n);
+        if(!/^\d+(?:\.\d+)?$/.test(String(d.minutos))||!int(seg,1,86400)||Math.abs(n-seg)>1e-7)err('dia-'+i,'Indica un tiempo positivo de hasta 1440 minutos.');
+        else limite_s=seg;
+      }
+      return {disponible:d.disponible,limite_s};
+    });
+    if(restablecer)delete excepciones[l];
+    else if(normal.some((d,i)=>dias[i].editable&&(d.disponible!==dias[i].disponible||d.limite_s!==dias[i].limite_s))){
+      excepciones[l]={dias:normal,efectivaDesde:dias.find(x=>x.editable).fecha};
+    }
+    const elegidas=new Set(solicitudes.filter(x=>objeto(x)&&dia(x.fecha)).map(x=>claveConfirmacion(x.id,x.fecha)));
+    for(const x of c.confirmaciones)if(x.fecha<actual||lunes(x.fecha)!==l)confirmaciones.push(x);
+    for(const x of [{id:c.id,fecha:c.carrera,nombre:c.nombre},...c.secundarias]){
+      if(x.fecha<actual||lunes(x.fecha)!==l||normal[diaSemana(x.fecha)].disponible)continue;
+      const confirmada=elegidas.has(claveConfirmacion(x.id,x.fecha));
+      conflictos.push({id:x.id,fecha:x.fecha,nombre:x.nombre,dia:DIAS[diaSemana(x.fecha)],confirmada});
+      if(confirmada)confirmaciones.push({id:x.id,fecha:x.fecha});
+      else err('conflicto','Confirma la excepción de disponibilidad de '+x.nombre+'.');
+    }
+    confirmaciones.sort((a,b)=>a.id.localeCompare(b.id)||a.fecha.localeCompare(b.fecha));
+    return {errores,conflictos,datos:{excepciones,confirmaciones}};
+  }
+  function guardarSemana(id,revision,l,raw,solicitudes,restablecer=false){
+    return transaccion('readwrite',({st,activo,salida})=>activo(c=>{
+      if(!c||c.id!==id||c.revision!==revision)throw conflicto();
+      const actual=hoy(),r=analizarSemana(c,l,raw,solicitudes,restablecer,actual);
+      if(r.errores.length){const e=error('validacion','Revisa la disponibilidad semanal.');e.errores=r.errores;throw e;}
+      const d=r.datos,orden=a=>[...a].sort((x,y)=>x.id.localeCompare(y.id)||x.fecha.localeCompare(y.fecha));
+      if(igual(c.excepciones,d.excepciones)&&igual(orden(c.confirmaciones),d.confirmaciones)){salida(copiar(c));return;}
+      const cfg={...c,...d,revision:c.revision+1,modificadoEn:Math.max(Date.now(),c.modificadoEn),efectivaDesde:actual<c.efectivaDesde?c.efectivaDesde:actual,historialConfiguracion:[...c.historialConfiguracion,snapshot(c)]};
+      guardarRegistro(st,cfg,false);salida(copiar(cfg));
+    }));
+  }
+  return Object.freeze({leer,crear,editar,retirar,borrador,analizar,configValida,parseTiempo,mostrarTiempo,idNuevo,hoy,dia,diaSemana,claveConfirmacion,DIAS,DISTANCIAS,sumar,lunes,semanaEnPlan,semanaInicial,numeroSemana,semana,semanaBorrador,analizarSemana,guardarSemana});
+})();
+</script>
+<script id="atlas-plan-detalle">
+/* 5.9.4 — Apartado del plan y disponibilidad. Solo datos locales; no prescribe ni publica. */
+const ATLASPLANDETALLE=(()=>{
+  'use strict';
+  const M=ATLASPLANCONFIG,C=window.ATLASplanCalendario,el=id=>document.getElementById('atlas-plan-'+id);
+  const node=(tag,clase,t)=>{const n=document.createElement(tag);if(clase)n.className=clase;if(t!=null)n.textContent=t;return n;};
+  const num=(v,dec=2)=>v.toLocaleString('es-ES',{maximumFractionDigits:dec});
+  const fecha=d=>d.split('-').reverse().join('/');
+  const ritmo=s=>Number.isFinite(s)&&s>0?Math.floor(Math.round(s)/60)+':'+String(Math.round(s)%60).padStart(2,'0')+' min/km':'—';
+  const objetivo=c=>c.objetivo.tipo==='marca'?M.mostrarTiempo(c.objetivo.segundos):'Finalizar';
+  const ritmoObjetivo=c=>c.objetivo.tipo==='marca'?ritmo(c.objetivo.segundos/(c.distancia_m/1000)):'—';
+  let cfg=null,notificar=null,semDisp=null,semEnt=null,draft=[],firma='',confirmaciones=new Map(),reset=false,busy=false,serial=0;
+  const key=x=>M.claveConfirmacion(x.id,x.fecha);
+  const firmaDraft=()=>JSON.stringify([draft,[...confirmaciones.keys()].sort(),reset]);
+  const sucio=()=>!!cfg&&firmaDraft()!==firma;
+  function puedeSalir(){return !busy&&(!sucio()||window.confirm('Hay cambios de disponibilidad sin guardar. ¿Quieres descartarlos?'));}
+  function cerrar(){++serial;cfg=null;notificar=null;draft=[];confirmaciones.clear();firma='';reset=false;busy=false;}
+  function filas(id,items){
+    const box=el(id),frag=document.createDocumentFragment();
+    for(const [label,value,note] of items){
+      const row=node('div','atlas-plan-det__fila'),dt=node('dt',null,label),dd=node('dd',null,value);
+      if(note)dd.append(node('small',null,note));row.append(dt,dd);frag.append(row);
+    }
+    box.replaceChildren(frag);
+  }
+  function datosFijos(){
+    const dur=1+Math.round((Date.parse(cfg.carrera)-Date.parse(cfg.inicio))/86400000);
+    filas('det-info-datos',[['📅 Inicio',fecha(cfg.inicio)],['🏁 Carrera',fecha(cfg.carrera)],['⏳ Duración',dur+' días'],['📏 Distancia',num(cfg.distancia_m/1000,4)+' km'],['🎯 Objetivo',objetivo(cfg)],['⏱️ Ritmo objetivo',ritmoObjetivo(cfg)]]);
+    filas('det-ritmos-datos',[...['🪫 Recuperación','🟢 Fácil','🔵 Aeróbico','🟠 Umbral','🔴 VO₂ máx.','🔁 Repeticiones','🎯 Específico actual'].map(x=>[x,'—']),['🎯 Ritmo objetivo',ritmoObjetivo(cfg)]]);
+    const p=cfg.preferencias,f=cfg.fuerza;
+    filas('disp-preferencias',[
+      ['Tirada larga',p.tiradaLarga===null?'Sin preferencia':M.DIAS[p.tiradaLarga]],
+      ['Fuerza',f.habilitada?'Sí':'No'],
+      ...(f.habilitada?[
+        ['Día de fuerza',p.fuerza===null?'Sin preferencia':M.DIAS[p.fuerza]],
+        ['Gimnasio',f.gimnasio?'Sí':'No'],
+        ['Dobles sesiones',({evitar:'Evitar',permitir_si_necesario:'Si es necesario',sin_preferencia:'Sin preferencia'})[f.dobles]]
+      ]:[])
+    ]);
+  }
+  function estadoFilas(v,u,pendiente=false){
+    const metric=x=>x?.metros!=null?(x.metros>0&&x.metros<5?'< 0,01':num(x.metros/1000))+' km':'—';
+    const nota=x=>pendiente?'Lectura pendiente':x?.estado||(!x?'Sin datos':'');
+    filas('det-estado-datos',[
+      ['📏 Volumen · 7 días',metric(v?.volumen),nota(v?.volumen)],
+      ['🏃🏻‍♂️ Máxima registrada · 28 días',metric(v?.maxima),nota(v?.maxima)],
+      ['⏱️ Ritmo umbral',u?.ritmo?ritmo(u.ritmo.segundos_km):'—',u?.ritmo?fecha(u.ritmo.fecha):pendiente?'Lectura pendiente':'Sin datos'],
+      ['❤️ FC umbral',u?.fc?num(u.fc.ppm,0)+' ppm':'—',u?.fc?fecha(u.fc.fecha):pendiente?'Lectura pendiente':'Sin datos'],
+      ['🎯 Objetivo',objetivo(cfg)],
+      ['⚡ Capacidad estimada','—'],['📊 Confianza','—'],['🚦 Viabilidad','—']
+    ]);
+  }
+  async function cargarEstado(){
+    const token=++serial;estadoFilas(null,null,true);
+    const [v,u]=await Promise.allSettled([C.estadoLocal(),window.ATLASultimosUmbralesLocal()]);
+    if(token!==serial||!cfg)return;
+    estadoFilas(v.status==='fulfilled'?v.value:null,u.status==='fulfilled'?u.value:null);
+  }
+  const btn=[],lim=[],fields=[];
+  for(let i=0;i<7;i++){
+    const b=node('button','atlas-plan-form__dia',['L','M','X','J','V','S','D'][i]);b.type='button';
+    b.addEventListener('click',()=>{
+      if(!cfg||busy||b.disabled)return;
+      reset=false;draft[i].disponible=!draft[i].disponible;
+      if(!draft[i].disponible)draft[i].minutos='';
+      representarDisp();
+    });el('disp-dias').append(b);btn.push(b);
+    const field=node('div','atlas-plan-form__campo'),label=node('label',null,M.DIAS[i]),input=node('input',null);
+    input.type='number';input.id='atlas-plan-disp-minuto-'+i;input.min='0';input.max='1440';input.step='any';input.placeholder='—';input.inputMode='decimal';label.htmlFor=input.id;
+    input.addEventListener('input',()=>{if(cfg&&!busy){reset=false;draft[i].minutos=input.value;actualizarConflictos();acciones();}});
+    field.append(label,input);el('disp-limites').append(field);lim.push(input);fields.push(field);
+  }
+  function representarSelector(tipo,l){
+    const actual=M.lunes(M.hoy());
+    el(tipo+'-fechas').textContent=C.tramo(l);
+    el(tipo+'-relativa').textContent=C.relativa(l);
+    el(tipo+'-volver').hidden=l===actual||!M.semanaEnPlan(cfg,actual);
+    el(tipo+'-anterior').disabled=busy||!M.semanaEnPlan(cfg,M.sumar(l,-7));
+    el(tipo+'-siguiente').disabled=busy||!M.semanaEnPlan(cfg,M.sumar(l,7));
+    el(tipo+'-volver').disabled=busy;
+  }
+  function cargarSemana(){
+    draft=M.semanaBorrador(cfg,semDisp);reset=false;
+    confirmaciones=new Map(cfg.confirmaciones.filter(x=>x.fecha>=M.hoy()&&M.lunes(x.fecha)===semDisp).map(x=>[key(x),x]));
+    firma=firmaDraft();el('disp-error').textContent='';representarDisp();
+  }
+  function acciones(){
+    const personalizada=M.semana(cfg,semDisp).some(x=>x.personalizada);
+    el('disp-modo').textContent=reset?'Disponibilidad habitual · sin guardar':sucio()?'Personalizada · sin guardar':personalizada?'Personalizada':'Disponibilidad habitual';
+    el('disp-acciones').hidden=!sucio();
+    el('disp-guardar').disabled=busy;
+    el('disp-cancelar').disabled=busy;
+    el('disp-reset').disabled=busy;
+  }
+  function analizar(){return M.analizarSemana(cfg,semDisp,draft,[...confirmaciones.values()],reset);}
+  function actualizarConflictos(){
+    const box=el('disp-conflictos');box.replaceChildren();
+    if(!M.semana(cfg,semDisp).some(x=>x.editable))return;
+    const r=analizar(),vigentes=new Set(r.conflictos.map(key));
+    for(const k of [...confirmaciones.keys()])if(!vigentes.has(k))confirmaciones.delete(k);
+    for(const x of r.conflictos){
+      const grupo=node('div','atlas-plan-form__conflicto'),p=node('p',null,x.nombre+' · '+fecha(x.fecha)+' · día no disponible.');
+      const l=node('label','atlas-plan-form__check'),check=node('input',null);check.type='checkbox';check.checked=confirmaciones.has(key(x));check.disabled=busy;
+      check.addEventListener('change',()=>{if(!cfg||busy)return;if(check.checked)confirmaciones.set(key(x),{id:x.id,fecha:x.fecha});else confirmaciones.delete(key(x));acciones();el('disp-error').textContent='';});
+      l.append(check,node('span',null,'Confirmar excepción para esta carrera'));grupo.append(p,l);box.append(grupo);
+    }
+    el('disp-error').textContent='';
+  }
+  function representarDisp(){
+    representarSelector('disp',semDisp);
+    const dias=M.semana(cfg,semDisp),editable=dias.some(x=>x.editable),personalizada=dias.some(x=>x.personalizada);
+    el('disp-modo').textContent=reset?'Disponibilidad habitual · sin guardar':sucio()?'Personalizada · sin guardar':personalizada?'Personalizada':'Disponibilidad habitual';
+    el('disp-reset').hidden=!editable||!cfg.excepciones[semDisp]||reset;
+    for(let i=0;i<7;i++){
+      const d=dias[i],v=draft[i];btn[i].setAttribute('aria-label',M.DIAS[i]+' '+fecha(d.fecha)+(d.dentro?'':', fuera del plan')+(d.editable?'':', no editable'));
+      btn[i].title=M.DIAS[i]+' '+fecha(d.fecha);btn[i].setAttribute('aria-pressed',String(v.disponible));btn[i].disabled=busy||!d.editable;
+      fields[i].hidden=!v.disponible;lim[i].value=v.minutos;lim[i].disabled=busy||!d.editable||!v.disponible;
+    }
+    actualizarConflictos();acciones();
+  }
+  function representarEnt(){
+    representarSelector('ent',semEnt);
+    el('ent-numero').textContent=String(M.numeroSemana(cfg,semEnt));
+    el('ent-larga').textContent=M.lunes(cfg.carrera)===semEnt?'Carrera':'Tirada larga';
+    filas('ent-datos',[['Fase','—'],['Tipo de semana','—'],['Duración','—']]);
+    const frag=document.createDocumentFragment(),actual=M.hoy();
+    for(const d of M.semana(cfg,semEnt,actual)){
+      const row=node('section','atlas-plan__dia');row.dataset.dia=d.fecha;
+      if(d.fecha===actual)row.dataset.hoy='true';if(d.fecha>actual)row.dataset.futuro='true';if(!d.dentro)row.dataset.fuera='true';
+      row.setAttribute('aria-label',d.fecha+(d.dentro?' · Pendiente de generar':' · Fuera del plan'));
+      row.append(C.crearVacio(d.fecha));frag.append(row);
+    }
+    el('ent-dias').replaceChildren(frag);
+    requestAnimationFrame(()=>window.ATLASajustarFilaMetricas(el('ent-contadores')));
+  }
+  function mover(tipo,l){
+    if(!cfg||busy||!M.semanaEnPlan(cfg,l))return;
+    if(tipo==='disp'){if(l===semDisp||!puedeSalir())return;semDisp=l;cargarSemana();}
+    else{semEnt=l;representarEnt();}
+  }
+  for(const tipo of ['disp','ent']){
+    for(const [dir,n] of [['anterior',-7],['siguiente',7]])el(tipo+'-'+dir).addEventListener('click',()=>mover(tipo,M.sumar(tipo==='disp'?semDisp:semEnt,n)));
+    el(tipo+'-volver').addEventListener('click',()=>mover(tipo,M.lunes(M.hoy())));
+  }
+  el('disp-reset').addEventListener('click',()=>{
+    if(!cfg||busy)return;
+    reset=true;draft=M.semanaBorrador(cfg,semDisp);
+    for(const [i,d] of M.semana(cfg,semDisp).entries())if(d.editable){const v=cfg.disponibilidad[i];draft[i]={disponible:v.disponible,minutos:v.limite_s==null?'':String(v.limite_s/60)};}
+    representarDisp();
+  });
+  el('disp-cancelar').addEventListener('click',()=>{if(cfg&&!busy)cargarSemana();});
+  el('disp-guardar').addEventListener('click',async()=>{
+    if(!cfg||busy||!sucio())return;
+    const r=analizar();
+    if(r.errores.length){el('disp-error').textContent=r.errores.map(x=>x.mensaje).join(' ');return;}
+    busy=true;representarDisp();let fallo='';
+    try{
+      const nuevo=await M.guardarSemana(cfg.id,cfg.revision,semDisp,draft,[...confirmaciones.values()],reset);
+      cfg=nuevo;notificar?.(nuevo);cargarSemana();
+    }catch(e){fallo=e?.errores?.map(x=>x.mensaje).join(' ')||e?.codigo&&e.message||'No se pudo guardar. Se conserva el borrador.';}
+    finally{busy=false;representarDisp();if(fallo)el('disp-error').textContent=fallo;}
+  });
+  el('det-ent').addEventListener('toggle',()=>{if(cfg&&el('det-ent').open)requestAnimationFrame(()=>window.ATLASajustarFilaMetricas(el('ent-contadores')));});
+  window.addEventListener('atlas:sincronizacion:fin',()=>{if(cfg)void cargarEstado();});
+  function abrir(c,onChange){
+    cerrar();cfg=c;notificar=onChange;semDisp=semEnt=M.semanaInicial(cfg);
+    for(const id of ['info','estado','ritmos','disp','ent','pub'])el('det-'+id).open=false;
+    datosFijos();cargarSemana();representarEnt();void cargarEstado();
+  }
+  return Object.freeze({abrir,cerrar,puedeSalir,sucio});
+})();
+
+</script>
+<script id="atlas-plan-configuracion-controlador">
+(() => {
+  'use strict';
+  const M=ATLASPLANCONFIG, el=id=>document.getElementById(id), f=el('atlas-plan-form'), vista=el('atlas-plan'), frame=document.querySelector('.atlas-frame'), tabs=el('atlas-tabs');
+  const gestion=el('atlas-plan-gestion'), formulario=el('atlas-plan-formulario'), crearBtn=el('atlas-plan-crear'), activoBtn=el('atlas-plan-activo');
+  const estados=el('atlas-plan-config-estado'), limites=el('atlas-plan-limites-dias'), cards=el('atlas-plan-secundarias');
+  const iniciales=['L','M','X','J','V','S','D'];
+  const distOpciones=[['','Seleccionar'],['5000','5 km'],['10000','10 km'],['21097.5','Media maratón'],['42195','Maratón']];
+  const objetivoOpciones=[['','Sin objetivo'],['marca','Marca'],['finalizar','Finalizar']];
+  const impOpciones=[['','Seleccionar'],['entrenamiento','Entrenamiento'],['test','Test'],['competicion','Competición']];
+  let activo=null,base=null,interior=null,modo='crear',ocupado=false,lectura=0,scrollPrincipal=0,firmaInicial='',confirmaciones=new Map();
+  const diasBtn=[],diasInput=[],diasCampo=[];
+  const msg=(n,t='')=>{n.textContent=t;};
+  function opciones(sel,items){sel.replaceChildren(...items.map(([v,t])=>new Option(t,v)));}
+  const diasOpciones=[['','Sin preferencia'],...M.DIAS.map((d,i)=>[String(i),d])];
+  opciones(el('atlas-plan-tirada'),diasOpciones);opciones(el('atlas-plan-pref-fuerza'),diasOpciones);
+  function crearNodo(tag,clase,texto){const n=document.createElement(tag);if(clase)n.className=clase;if(texto!=null)n.textContent=texto;return n;}
+  function errorNodo(id){const n=crearNodo('small','atlas-plan-error');n.dataset.error=id;n.id='atlas-plan-error-'+id;return n;}
+  function campo(padre,label,id,control,err){
+    const c=crearNodo('div','atlas-plan-form__campo'),l=crearNodo('label',null,label);l.htmlFor=id;control.id=id;
+    c.append(l,control);const e=errorNodo(err);control.setAttribute('aria-describedby',e.id);c.append(e);padre.append(c);return c;
+  }
+  function input(tipo,placeholder=''){const n=document.createElement('input');n.type=tipo;if(placeholder)n.placeholder=placeholder;return n;}
+  function select(op){const s=document.createElement('select');opciones(s,op);return s;}
+  for(let i=0;i<7;i++){
+    const b=crearNodo('button','atlas-plan-form__dia',iniciales[i]);b.type='button';b.setAttribute('aria-label',M.DIAS[i]);b.setAttribute('aria-pressed','false');
+    b.addEventListener('click',()=>{
+      if(ocupado||modo==='consulta')return;
+      const on=b.getAttribute('aria-pressed')!=='true';b.setAttribute('aria-pressed',String(on));if(!on)diasInput[i].value='';
+      actualizarDias();actualizarConflictos();
+    });
+    el('atlas-plan-dias-disponibles').append(b);diasBtn.push(b);
+    const n=input('number','—');n.min='1';n.max='1440';n.step='1';n.inputMode='numeric';
+    const c=campo(limites,M.DIAS[i], 'atlas-plan-limite-'+i,n,'dia-'+i);diasCampo.push(c);diasInput.push(n);
+  }
+  function actualizarDias(){
+    let alguno=false;
+    diasBtn.forEach((b,i)=>{const on=b.getAttribute('aria-pressed')==='true';diasCampo[i].hidden=!on;diasInput[i].disabled=!on||modo==='consulta';alguno=alguno||on;});
+    el('atlas-plan-limites').hidden=!alguno;
+  }
+  function objetivoVisible(tipo,tiempo){tiempo.hidden=tipo.value!=='marca';tiempo.disabled=tiempo.hidden||tipo.disabled;}
+  function fuerzaVisible(){
+    const on=el('atlas-plan-fuerza').checked,box=el('atlas-plan-opciones-fuerza');box.hidden=!on;
+    for(const n of box.querySelectorAll('select'))n.disabled=!on||modo==='consulta';
+  }
+  function secundaria(x){
+    const id=x.id,k='sec-'+id+'-',pref='atlas-plan-'+k;
+    const art=crearNodo('section','atlas-plan-form__secundaria');art.dataset.secundaria=id;
+    const header=crearNodo('div','atlas-plan-form__cabecera'),titulo=crearNodo('h4',null,'Carrera secundaria');
+    titulo.dataset.secTitulo='';const quitar=crearNodo('button','atlas-control-icon');
+    quitar.type='button';quitar.dataset.quitar='';quitar.setAttribute('aria-label','Quitar carrera secundaria');quitar.title='Quitar carrera secundaria';
+    quitar.innerHTML='<svg class="atlas-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg>';
+    header.append(titulo,quitar);art.append(header);
+    const n=input('text','Nombre de la competición');n.maxLength=160;n.value=x.nombre??'';n.dataset.field='nombre';campo(art,'Nombre',pref+'nombre',n,k+'nombre');
+    const row=crearNodo('div','atlas-plan-form__fila');art.append(row);
+    const d=select(distOpciones);d.value=x.distancia??'';d.dataset.field='distancia';campo(row,'Distancia',pref+'distancia',d,k+'distancia');
+    const o=select(objetivoOpciones);o.value=x.objetivo?.tipo??'';o.dataset.field='tipo';
+    const c=campo(row,'Objetivo',pref+'tipo',o,k+'objetivo');
+    const t=input('text','45:00 / 1:35:00');t.inputMode='text';t.id=pref+'tiempo';t.dataset.field='tiempo';t.value=x.objetivo?.tiempo??'';t.setAttribute('aria-label','Tiempo objetivo de la carrera secundaria');t.setAttribute('aria-describedby','atlas-plan-error-'+k+'objetivo');c.insertBefore(t,c.lastElementChild);objetivoVisible(o,t);
+    const row2=crearNodo('div','atlas-plan-form__fila');art.append(row2);
+    const imp=select(impOpciones);imp.value=x.importancia??'';imp.dataset.field='importancia';campo(row2,'Importancia',pref+'importancia',imp,k+'importancia');
+    const fecha=input('date');fecha.value=x.fecha??'';fecha.dataset.field='fecha';campo(row2,'Fecha de la carrera',pref+'fecha',fecha,k+'fecha');
+    const conflicto=crearNodo('div','atlas-plan-form__conflicto');conflicto.dataset.conflicto=id;conflicto.hidden=true;art.append(conflicto);
+    const pasada=!!base?.secundarias.some(v=>v.id===id&&v.fecha<M.hoy());
+    if(pasada){const aviso=crearNodo('p','atlas-plan-form__nota','Carrera ya transcurrida. Se conserva en el historial.');art.append(aviso);}
+    if(pasada||modo==='consulta'){for(const n of art.querySelectorAll('input,select,button'))n.disabled=true;quitar.hidden=true;}
+    quitar.addEventListener('click',()=>{
+      if(ocupado||pasada||modo==='consulta')return;
+      art.remove();numerar();actualizarConflictos();
+    });
+    o.addEventListener('change',()=>objetivoVisible(o,t));
+    cards.append(art);numerar();return art;
+  }
+  function numerar(){
+    [...cards.querySelectorAll('[data-sec-titulo]')].forEach((n,i)=>{n.textContent='Carrera secundaria '+(i+1);});
+  }
+  function raw(){
+    const val=id=>el(id).value;
+    return {nombre:val('atlas-plan-nombre'),distancia:val('atlas-plan-distancia'),objetivo:{tipo:val('atlas-plan-objetivo-tipo'),tiempo:val('atlas-plan-objetivo-tiempo')},inicio:val('atlas-plan-inicio'),carrera:val('atlas-plan-carrera'),
+      disponibilidad:diasBtn.map((b,i)=>({disponible:b.getAttribute('aria-pressed')==='true',minutos:diasInput[i].value})),
+      preferencias:{tiradaLarga:val('atlas-plan-tirada'),fuerza:val('atlas-plan-pref-fuerza')},
+      fuerza:{habilitada:el('atlas-plan-fuerza').checked,gimnasio:val('atlas-plan-gimnasio'),dobles:val('atlas-plan-dobles')},
+      secundarias:[...cards.querySelectorAll('[data-secundaria]')].map(a=>{
+        const v=k=>a.querySelector('[data-field="'+k+'"]').value;
+        return {id:a.dataset.secundaria,nombre:v('nombre'),distancia:v('distancia'),objetivo:{tipo:v('tipo'),tiempo:v('tiempo')},fecha:v('fecha'),importancia:v('importancia')};
+      }),
+      confirmaciones:[...confirmaciones.values()].sort((a,b)=>M.claveConfirmacion(a.id,a.fecha).localeCompare(M.claveConfirmacion(b.id,b.fecha)))};
+  }
+  function actualizarConflictos(){
+    const r=M.analizar(raw(),base),porId=new Map(r.conflictos.map(x=>[x.id,x]));
+    const vigentes=new Set(r.conflictos.map(x=>M.claveConfirmacion(x.id,x.fecha)));
+    // Confirmaciones de fechas pasadas no se reescriben ni se transfieren a otra carrera.
+    for(const c of base?.confirmaciones??[])if(c.fecha<M.hoy())vigentes.add(M.claveConfirmacion(c.id,c.fecha));
+    for(const k of [...confirmaciones.keys()])if(!vigentes.has(k))confirmaciones.delete(k);
+    for(const box of f.querySelectorAll('[data-conflicto]')){
+      const id=box.dataset.conflicto==='principal'?(base?.id??'principal'):box.dataset.conflicto;
+      const conf=porId.get(id);box.replaceChildren();box.hidden=!conf||modo==='consulta';if(box.hidden)continue;
+      const k=M.claveConfirmacion(conf.id,conf.fecha);
+      const p=crearNodo('p',null,'La carrera coincide con '+conf.dia.toLowerCase()+', día no disponible. Cambia la disponibilidad o confirma esta excepción puntual.');
+      const label=crearNodo('label','atlas-plan-form__check'),check=input('checkbox');check.checked=confirmaciones.has(k);check.dataset.confirmacion=k;
+      check.addEventListener('change',()=>{
+        if(check.checked)confirmaciones.set(k,{id:conf.id,fecha:conf.fecha});else confirmaciones.delete(k);
+      });
+      label.append(check,crearNodo('span',null,'Confirmar excepción para esta carrera'));box.append(p,label);
+    }
+  }
+  // Solo errores junto al campo: la validación formal no se confunde con viabilidad deportiva.
+  function errores(lista=[],general=''){
+    for(const n of f.querySelectorAll('[data-error]'))n.textContent='';
+    for(const n of f.querySelectorAll('[aria-invalid="true"]'))n.removeAttribute('aria-invalid');
+    const mapa=new Map([...f.querySelectorAll('[data-error]')].map(n=>[n.dataset.error,n])),sinCampo=[];
+    for(const e of lista){
+      const n=mapa.get(e.campo);if(!n){sinCampo.push(e.mensaje);continue;}
+      if(!n.textContent.includes(e.mensaje))n.textContent+=(n.textContent?' ':'')+e.mensaje;
+      const controles=e.campo==='disponibilidad'?diasBtn:e.campo==='general'?[]:n.parentElement.querySelectorAll('input:not([hidden]),select,button');
+      for(const control of controles)if(!control.disabled)control.setAttribute('aria-invalid','true');
+    }
+    const g=mapa.get('general'),texto=[g.textContent,general,...sinCampo].filter(Boolean).join(' ');g.textContent=texto;
+  }
+  function enfocarError(){
+    const n=[...f.querySelectorAll('[data-error]')].find(n=>n.textContent&&!n.closest('[hidden]'));
+    if(n){n.scrollIntoView({block:'center',behavior:'instant'});const control=n.parentElement.querySelector('[aria-invalid="true"]:not([disabled])');if(control)control.focus({preventScroll:true});}
+  }
+  function ponerBorrador(b){
+    const v=(id,x)=>el(id).value=x;
+    v('atlas-plan-nombre',b.nombre);v('atlas-plan-distancia',b.distancia);v('atlas-plan-objetivo-tipo',b.objetivo.tipo);v('atlas-plan-objetivo-tiempo',b.objetivo.tiempo);
+    v('atlas-plan-inicio',b.inicio);v('atlas-plan-carrera',b.carrera);
+    diasBtn.forEach((n,i)=>{n.setAttribute('aria-pressed',String(b.disponibilidad[i].disponible));n.disabled=modo==='consulta';diasInput[i].value=b.disponibilidad[i].minutos;});
+    v('atlas-plan-tirada',b.preferencias.tiradaLarga);v('atlas-plan-pref-fuerza',b.preferencias.fuerza);
+    el('atlas-plan-fuerza').checked=b.fuerza.habilitada;v('atlas-plan-gimnasio',b.fuerza.gimnasio);v('atlas-plan-dobles',b.fuerza.dobles);
+    for(const n of f.querySelectorAll('input,select,button'))n.disabled=false;
+    el('atlas-plan-inicio').disabled=modo==='consulta'||!!base&&base.inicio<=M.hoy();
+    el('atlas-plan-inicio').min=el('atlas-plan-inicio').disabled?b.inicio:M.hoy();el('atlas-plan-carrera').min=M.hoy();
+    if(modo==='consulta')for(const n of f.querySelectorAll('input,select,button'))n.disabled=true;
+    el('atlas-plan-cancelar').disabled=false;el('atlas-plan-cancelar').textContent=modo==='consulta'?'Atrás':'Cancelar';el('atlas-plan-guardar').hidden=modo==='consulta';
+    objetivoVisible(el('atlas-plan-objetivo-tipo'),el('atlas-plan-objetivo-tiempo'));actualizarDias();fuerzaVisible();
+    cards.replaceChildren();for(const x of b.secundarias)secundaria(x);
+    confirmaciones=new Map(b.confirmaciones.map(x=>[M.claveConfirmacion(x.id,x.fecha),x]));actualizarConflictos();errores();firmaInicial=JSON.stringify(raw());
+  }
+  function abrirInterior(destino){
+    if(!interior)scrollPrincipal=window.scrollY;
+    interior=destino;gestion.hidden=destino!=='gestion';formulario.hidden=destino!=='form';
+    frame.classList.add('atlas-plan-interior-abierto');tabs.hidden=true;window.scrollTo(0,0);
+  }
+  function mostrarActivo(c){
+    activo=c;activoBtn.hidden=!c;activoBtn.textContent=c?.nombre??'';
+    activoBtn.title=c?'Abrir configuración del plan':'';
+    vista.querySelector('.atlas-plan__contadores .atlas-hoy-metrica__dato').title=c?'Pendiente de generar y publicar':'Sin plan publicado';
+    vista.querySelector('.atlas-plan__contadores .atlas-hoy-metrica__dato').setAttribute('aria-label',c?'Pendiente de generar y publicar':'Sin plan publicado');
+  }
+  async function recargar(){
+    const token=++lectura;
+    try{const c=await M.leer();if(token!==lectura)return;mostrarActivo(c);msg(estados);}
+    catch(e){if(token!==lectura)return;mostrarActivo(null);msg(estados,e?.codigo==='registro_invalido'?e.message:'No se pudo consultar el plan local. Inténtalo de nuevo.');}
+  }
+  function volver(forzar=false){
+    if(interior==='gestion'&&!forzar&&!ATLASPLANDETALLE.puedeSalir())return;
+    ATLASPLANDETALLE.cerrar();interior=null;base=null;firmaInicial='';gestion.hidden=true;formulario.hidden=true;frame.classList.remove('atlas-plan-interior-abierto');tabs.hidden=false;
+    window.dispatchEvent(new Event('resize'));requestAnimationFrame(()=>window.scrollTo({top:scrollPrincipal,left:0,behavior:'instant'}));
+    void recargar();
+  }
+  function abrirFormulario(c=null,consulta=false){
+    base=c;modo=consulta?'consulta':c?'editar':'crear';
+    el('atlas-plan-form-titulo').textContent=consulta?'Consultar plan':c?'Editar plan':'Crear plan';
+    ponerBorrador(M.borrador(c));abrirInterior('form');
+  }
+  const sucio=()=>interior==='form'&&modo!=='consulta'&&JSON.stringify(raw())!==firmaInicial;
+  function cancelar(){
+    if(ocupado)return;
+    if(sucio()&&!window.confirm('Hay cambios sin guardar. ¿Quieres descartarlos?'))return;
+    volver();
+  }
+  function mostrarGestion(c){
+    base=c;const concluido=c.carrera<M.hoy();el('atlas-plan-gestion-titulo').textContent=c.nombre;
+    ATLASPLANDETALLE.abrir(c,nuevo=>{base=nuevo;mostrarActivo(nuevo);});
+    el('atlas-plan-editar').textContent=concluido?'Consultar plan':'Editar plan';msg(el('atlas-plan-gestion-error'));abrirInterior('gestion');
+  }
+  async function abrirDesdeCalendario(accion){
+    if(ocupado||interior)return;ocupado=true;crearBtn.disabled=true;activoBtn.disabled=true;
+    ++lectura;
+    try{
+      const c=await M.leer();mostrarActivo(c);msg(estados);if(vista.hidden)return;
+      if(accion==='crear'&&c){msg(estados,'Ya existe un plan activo. Ábrelo para editarlo o eliminarlo antes de crear otro.');return;}
+      if(accion==='crear')abrirFormulario();
+      else if(c)mostrarGestion(c);
+    }catch(e){msg(estados,e?.codigo==='registro_invalido'?e.message:'No se pudo consultar el plan local. Inténtalo de nuevo.');}
+    finally{ocupado=false;crearBtn.disabled=false;activoBtn.disabled=false;}
+  }
+  crearBtn.addEventListener('click',()=>void abrirDesdeCalendario('crear'));
+  activoBtn.addEventListener('click',()=>void abrirDesdeCalendario('gestion'));
+  el('atlas-plan-editar').addEventListener('click',()=>{if(!ocupado&&base&&ATLASPLANDETALLE.puedeSalir()){ATLASPLANDETALLE.cerrar();abrirFormulario(base,base.carrera<M.hoy());}});
+  el('atlas-plan-eliminar').addEventListener('click',async()=>{
+    if(ocupado||!base||!ATLASPLANDETALLE.puedeSalir())return;
+    if(!window.confirm('¿Eliminar este plan activo? Su configuración e historial se conservarán localmente. No se eliminarán actividades ni datos de Garmin.'))return;
+    ocupado=true;gestion.inert=true;el('atlas-plan-editar').disabled=true;el('atlas-plan-eliminar').disabled=true;
+    try{await M.retirar(base.id,base.revision);mostrarActivo(null);volver(true);}
+    catch(e){msg(el('atlas-plan-gestion-error'),e?.codigo?e.message:'No se pudo retirar el plan. Se conserva la configuración anterior.');}
+    finally{ocupado=false;gestion.inert=false;el('atlas-plan-editar').disabled=false;el('atlas-plan-eliminar').disabled=false;}
+  });
+  for(const id of ['atlas-plan-gestion-volver','atlas-plan-gestion-atras'])el(id).addEventListener('click',()=>{if(!ocupado)volver();});
+  for(const id of ['atlas-plan-form-volver','atlas-plan-cancelar'])el(id).addEventListener('click',cancelar);
+  el('atlas-plan-objetivo-tipo').addEventListener('change',()=>objetivoVisible(el('atlas-plan-objetivo-tipo'),el('atlas-plan-objetivo-tiempo')));
+  el('atlas-plan-fuerza').addEventListener('change',fuerzaVisible);
+  el('atlas-plan-secundaria-anadir').addEventListener('click',()=>{
+    if(ocupado||modo==='consulta')return;
+    try{const a=secundaria({id:M.idNuevo(),nombre:'',distancia:'',objetivo:{tipo:'',tiempo:''},fecha:'',importancia:''});actualizarConflictos();a.querySelector('input').focus();}
+    catch{errores([],'No se pudo añadir la carrera secundaria.');}
+  });
+  f.addEventListener('change',e=>{
+    const n=e.target;if(n.id==='atlas-plan-inicio'||n.id==='atlas-plan-carrera'||n.dataset.field==='fecha')actualizarConflictos();
+  });
+  f.addEventListener('submit',async e=>{
+    e.preventDefault();if(ocupado||modo==='consulta'||interior!=='form')return;
+    actualizarConflictos();const r=raw(),valid=M.analizar(r,base);
+    errores(valid.errores);if(valid.errores.length){enfocarError();return;}
+    ocupado=true;f.inert=true;el('atlas-plan-guardar').disabled=true;el('atlas-plan-cancelar').disabled=true;
+    let fallo=false;
+    try{
+      const c=base?await M.editar(base.id,base.revision,r):await M.crear(r);
+      mostrarActivo(c);volver();
+    }catch(err){
+      fallo=true;errores(err?.errores??[],err?.codigo?err.message:'No se pudo guardar el plan. Se conserva el borrador.');
+    }finally{ocupado=false;f.inert=false;el('atlas-plan-guardar').disabled=false;el('atlas-plan-cancelar').disabled=false;if(fallo)enfocarError();}
+  });
+  window.addEventListener('beforeunload',e=>{if(sucio()||interior==='gestion'&&ATLASPLANDETALLE.sucio()){e.preventDefault();e.returnValue='';}});
+  window.addEventListener('keydown',e=>{if(e.key==='Escape'&&interior==='form'){e.preventDefault();cancelar();}else if(e.key==='Escape'&&interior==='gestion'&&!ocupado){e.preventDefault();volver();}});
+  window.addEventListener('atlas:pestana:abierta',e=>{if(e.detail.nombre==='plan'&&!interior)void recargar();});
 })();
 </script>
 </body></html>
